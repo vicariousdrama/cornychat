@@ -7,6 +7,8 @@ export default function Camera() {
   let camStream = null;
   let hasRequestedOnce = false;
   let usedCameraIds = new Set();
+  let cameraOn = true;
+
   const update = useUpdate();
 
   useUnmount(() => {
@@ -47,7 +49,7 @@ export default function Camera() {
       camState = 'failed';
       camStream = null;
     }
-    update();
+    await update();
   }
 
   function forceRetryCam() {
@@ -107,21 +109,28 @@ export default function Camera() {
   return function Camera({shouldHaveCam = true}) {
     let [isRetry] = useAction(actions.RETRY_CAM);
     let [isSwitchCam] = useAction(actions.SWITCH_CAM);
+    let [isSetCamOn, camOn] = useAction(actions.SET_CAM_ON);
+
+    if (isSetCamOn) {
+      cameraOn = camOn;
+    }
+
+    const shouldHaveCamAndCamOn = cameraOn && shouldHaveCam;
 
     switch (camState) {
       case 'initial':
-        if (shouldHaveCam) {
+        if (shouldHaveCamAndCamOn) {
           camState = 'requesting';
           requestCam();
         }
         break;
       case 'requesting':
-        if (!shouldHaveCam) {
+        if (!shouldHaveCamAndCamOn) {
           camState = 'initial';
         }
         break;
       case 'active':
-        if (!shouldHaveCam) {
+        if (!shouldHaveCamAndCamOn) {
           camStream.getTracks().forEach(track => track.stop());
           camStream = null;
           camState = 'initial';
@@ -133,7 +142,7 @@ export default function Camera() {
         }
         break;
       case 'failed':
-        if (!shouldHaveCam) {
+        if (!shouldHaveCamAndCamOn) {
           camState = 'initial';
         } else if (isRetry) {
           forceRetryCam();
@@ -144,6 +153,11 @@ export default function Camera() {
         break;
     }
 
-    return {camStream, hasRequestedOnce, hasCamFailed: camState === 'failed'};
+    return {
+      cameraOn,
+      camStream,
+      hasRequestedOnce,
+      hasCamFailed: camState === 'failed',
+    };
   };
 }

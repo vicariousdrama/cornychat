@@ -287,6 +287,8 @@ async function connect(swarm, roomId, myPeerId) {
   on(hub, 'server', ({t: event, d: payload}, accept) => {
     emit(swarm.serverEvent, event, payload, accept);
   });
+
+  emit(swarm, 'hub-created');
 }
 
 function disconnect(swarm) {

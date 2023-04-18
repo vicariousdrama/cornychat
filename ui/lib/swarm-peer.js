@@ -70,7 +70,7 @@ function disconnectPeer(connection) {
     remoteStreams = [...remoteStreams];
     for (let i = remoteStreams.length - 1; i >= 0; i--) {
       if (remoteStreams[i].peerId === peerId) {
-        let newRemoteStream;
+        let newRemoteStream = undefined;
         let latestTime = -1;
         for (let s of connectionStreams) {
           if (s.peerId === peerId && s.name === remoteStreams[i].name) {
@@ -241,6 +241,22 @@ function createPeer(connection, initiator) {
     if (i === -1) i = remoteStreams.length;
     remoteStreams[i] = {stream, name, peerId};
 
+    stream.onremovetrack = () => {
+      if (!stream.getTracks().length) {
+        console.log(`Stream ${stream.id} removed.`);
+
+        const connectionStreams = [...swarm.connectionStreams].filter(
+          s => !(s.peerId === peerId && s.connId === connId && s.name === name)
+        );
+
+        const remoteStreams = [...swarm.remoteStreams].filter(
+          streamObj => !(streamObj.peerId === peerId && streamObj.name === name)
+        );
+        set(swarm, {remoteStreams, connectionStreams});
+        emit(swarm, 'stream', {stream, name, connection});
+      }
+    };
+
     set(swarm, {remoteStreams, connectionStreams});
     emit(swarm, 'stream', {stream, name, connection});
   });
@@ -277,10 +293,10 @@ function createPeer(connection, initiator) {
       handlePeerSuccess(connection);
     }
   });
-  peer.on('close', () => {
-    if (peer.garbage) return;
-    // handlePeerFail(connection);
-  });
+  // peer.on('close', () => {
+  //   if (peer.garbage) return;
+  //   // handlePeerFail(connection);
+  // });
   return peer;
 }
 

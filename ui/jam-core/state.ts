@@ -29,7 +29,7 @@ type IdentityType = {
 type AccessType = {
   identities?: string[];
   identitiesLocked?: boolean;
-}
+};
 
 type RoomType = {
   name: string;
@@ -56,7 +56,13 @@ const defaultState = {
 
   roomId: null as string | null,
   inRoom: null as string | null, // === roomId if user joined, null otherwise
-  room: {name: '', description: '', speakers: [], moderators: [], presenters: []} as RoomType,
+  room: {
+    name: '',
+    description: '',
+    speakers: [],
+    moderators: [],
+    presenters: [],
+  } as RoomType,
   hasRoom: false,
   isRoomLoading: false,
   iAmSpeaker: false,
@@ -106,9 +112,21 @@ export const actions = {
   LEAVE_STAGE: Action('leave-stage'),
   RETRY_CAM: Action('retry-cam'),
   SWITCH_CAM: Action('switch-cam'),
+  SET_CAM_ON: Action('set-cam-on'),
   RETRY_MIC: Action('retry-mic'),
   SELECT_MIC: Action('select-mic'),
   RETRY_AUDIO: Action('retry-audio'),
   REACTION: Action('reaction'),
   AUTO_JOIN: Action('auto-join'),
+  START_SERVER_RECORDING: Action('start-server-recording'),
+  STOP_SERVER_RECORDING: Action('stop-server-recording'),
+  START_RECORDING: Action('start-recording'),
+  STOP_RECORDING: Action('stop-recording'),
+  START_PODCAST_RECORDING: Action('start-podcast-recording'),
+  STOP_PODCAST_RECORDING: Action('stop-podcast-recording'),
+  START_SCREEN_SHARE: Action('start-screen-share'),
+  STOP_SCREEN_SHARE: Action('stop-screen-share'),
+  BACKCHANNEL_SUBSCRIBE: Action('backchannel-subscribe'),
+  BACKCHANNEL_UNSUBSCRIBE: Action('backchannel-unsubscribe'),
+  BACKCHANNEL_BROADCAST: Action('backchannel-broadcast'),
 };

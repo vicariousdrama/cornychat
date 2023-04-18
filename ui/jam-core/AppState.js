@@ -7,12 +7,14 @@ import {Identity} from './identity';
 import {actions} from './state';
 import {AudioState} from './audio';
 import {VideoState} from './video';
+import {BackChannel} from './backchannel';
 import {Reactions} from './reactions';
 import {RoomState} from './room';
 import ModeratorState from './room/ModeratorState';
 import ConnectMedia from './connections/ConnectMedia.js';
 import ConnectRoom from './connections/ConnectRoom';
 import {useStableArray, useStableObject} from '../lib/state-diff';
+import {ServerRecording} from './serverRecording.js';
 
 export default function AppState({hasMediasoup}) {
   const swarm = Swarm();
@@ -83,7 +85,9 @@ export default function AppState({hasMediasoup}) {
         inRoom,
         iAmPresenter,
         remoteStreams,
-      })
+      }),
+      declare(BackChannel, {swarm, myId}),
+      declare(ServerRecording, {swarm})
     );
   };
 }

@@ -14,6 +14,7 @@ const {roomAuthenticator, identityAuthenticator} = require('./auth');
 const {controller} = require('./routes/controller');
 const roomKeyRouter = require('./routes/roomKey');
 const liveRoomRouter = require('./routes/liveRoom');
+const recordingsRouter = require('./routes/recordings');
 const app = express();
 
 app.use(logger('dev'));
@@ -35,6 +36,7 @@ app.use(
 );
 app.use('/api/v1/rooms/:id/roomKey', roomKeyRouter);
 app.use('/api/v1/rooms/:id/live', liveRoomRouter);
+app.use('/api/v1/rooms/:id/recordings.zip', recordingsRouter);
 
 app.use('/api/v1/', controller('identities', identityAuthenticator));
 

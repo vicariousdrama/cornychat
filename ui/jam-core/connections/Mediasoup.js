@@ -19,8 +19,10 @@ export default function Mediasoup({swarm}) {
   let connectedRoomId = null;
   let sendingAudioStream = null;
   let sendingVideoStream = null;
+  let sendingScreenStream = null;
   let audioProducer = null;
   let videoProducer = null;
+  let screenProducer = null;
 
   let canUseMediasoup = false;
   let routerRtpCapabilities = null;
@@ -44,14 +46,16 @@ export default function Mediasoup({swarm}) {
     shouldSendVideo,
     localAudioStream,
     localVideoStream,
+    localScreenStream,
   }) {
     let wsConnected = use(swarm, 'connected');
     const {hub} = swarm;
 
     shouldSendAudio = shouldSendAudio && !!localAudioStream;
     shouldSendVideo = shouldSendVideo && !!localVideoStream;
+    const shouldSendScreen = shouldSendVideo && !!localScreenStream;
 
-    let shouldSend = shouldSendAudio || shouldSendVideo;
+    let shouldSend = shouldSendAudio || shouldSendVideo || shouldSendScreen;
 
     let [isMediasoupInfo, infoPayload] = useEvent(
       serverEvent,
@@ -122,6 +126,15 @@ export default function Mediasoup({swarm}) {
               log('mediasoup: removing video stream');
               sendingVideoStream = null;
               removeLocalVideoStream(hub);
+            }
+            if (shouldSendScreen && sendingScreenStream !== localScreenStream) {
+              log('mediasoup: sending screen stream');
+              sendingScreenStream = localScreenStream;
+              sendLocalScreenStream(hub, localScreenStream);
+            } else if (!shouldSendScreen) {
+              log('mediasoup: removing screen stream');
+              sendingScreenStream = null;
+              removeLocalScreenStream(hub);
             }
         }
         switch (receiveState) {
@@ -286,6 +299,9 @@ export default function Mediasoup({swarm}) {
         opusStereo: 1,
         opusDtx: 1,
       },
+      appData: {
+        source: 'main',
+      },
     });
 
     audioProducer.on('transportclose', () => {
@@ -301,10 +317,31 @@ export default function Mediasoup({swarm}) {
         opusStereo: 1,
         opusDtx: 1,
       },
+      appData: {
+        source: 'main',
+      },
     });
 
     videoProducer.on('transportclose', () => {
       videoProducer = null;
+    });
+  }
+
+  async function sendLocalScreenStream(hub, localStream) {
+    const track = localStream.getVideoTracks()[0];
+    screenProducer = await sendTransport.produce({
+      track,
+      codecOptions: {
+        opusStereo: 1,
+        opusDtx: 1,
+      },
+      appData: {
+        source: 'screen',
+      },
+    });
+
+    screenProducer.on('transportclose', () => {
+      screenProducer = null;
     });
   }
 
@@ -319,12 +356,25 @@ export default function Mediasoup({swarm}) {
   }
 
   function removeLocalVideoStream(hub) {
-    let producerId = videoProducer.id;
-    videoProducer.close();
-    videoProducer = null;
-    hub.sendRequest('mediasoup', {
-      type: 'closeProducer',
-      data: {producerId},
-    });
+    if (videoProducer) {
+      let producerId = videoProducer.id;
+      videoProducer.close();
+      videoProducer = null;
+      hub.sendRequest('mediasoup', {
+        type: 'closeProducer',
+        data: {producerId},
+      });
+    }
+  }
+  function removeLocalScreenStream(hub) {
+    if (screenProducer) {
+      let producerId = screenProducer.id;
+      screenProducer.close();
+      screenProducer = null;
+      hub.sendRequest('mediasoup', {
+        type: 'closeProducer',
+        data: {producerId},
+      });
+    }
   }
 }

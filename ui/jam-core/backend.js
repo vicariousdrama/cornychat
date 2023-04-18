@@ -14,6 +14,8 @@ export {
   deleteRequest,
   createRoom,
   updateRoom,
+  getRoom,
+  recordingsDownloadLink,
 };
 
 let API = `${staticConfig.urls.pantry}/api/v1`;
@@ -86,21 +88,19 @@ async function deleteRequest(state, path, payload = null) {
   return authenticatedApiRequest(state, 'DELETE', path, payload);
 }
 
-async function createRoom(
-  state,
-  roomId,
-  {
+async function createRoom(state, roomId, room = {}) {
+  const {
     name = '',
     description = '',
     logoURI = undefined,
     color = undefined,
     stageOnly = false,
     videoCall = false,
-  } = {}
-) {
+  } = room;
   let {myId} = state;
-  let room = {
+  let newRoom = {
     ...emptyRoom,
+    ...room,
     name,
     description,
     logoURI,
@@ -110,8 +110,8 @@ async function createRoom(
     moderators: [myId],
     speakers: [myId],
   };
-  let ok = await post(state, `/rooms/${roomId}`, room);
-  if (ok) populateCache(API + `/rooms/${roomId}`, room);
+  let ok = await post(state, `/rooms/${roomId}`, newRoom);
+  if (ok) populateCache(API + `/rooms/${roomId}`, newRoom);
   // if (ok) setTimeout(() => populateCache(API + `/rooms/${roomId}`, room), 0);
   return ok;
 }
@@ -122,4 +122,15 @@ async function updateRoom(state, roomId, room) {
   // (=> explicitly set to [] if that is the intention)
   if (!room?.moderators || !room?.speakers) return false;
   return await put(state, `/rooms/${roomId}`, room);
+}
+
+async function getRoom(roomId) {
+  if (!roomId) return undefined;
+  return (await get(`/rooms/${roomId}`))[0];
+}
+
+async function recordingsDownloadLink({myIdentity}, roomId) {
+  return `${API}/rooms/${roomId}/recordings.zip?token=${await signedToken(
+    myIdentity
+  )}`;
 }
