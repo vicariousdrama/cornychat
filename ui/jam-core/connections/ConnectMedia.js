@@ -8,6 +8,7 @@ export default function ConnectMedia({roomState, swarm, hasMediasoup}) {
   let {roomId, iAmSpeaker, iAmPresenter} = roomState;
   let localAudioStream = useRootState('myAudio');
   let localVideoStream = useRootState('myVideo');
+  let localScreenStream = useRootState('myScreen');
 
   // send & receive audio via SFU / mediasoup
   let serverRemoteStreams = use(Mediasoup, {
@@ -18,6 +19,7 @@ export default function ConnectMedia({roomState, swarm, hasMediasoup}) {
     shouldReceive: hasMediasoup && !iAmSpeaker,
     localAudioStream,
     localVideoStream,
+    localScreenStream,
   });
 
   // connect to subset of peers directly via webRTC
@@ -30,14 +32,14 @@ export default function ConnectMedia({roomState, swarm, hasMediasoup}) {
     iAmPresenter,
     localAudioStream,
     localVideoStream,
+    localScreenStream,
   });
 
   // merge remote streams from both sources
-  let remoteStreams = useStableArray([
+  return useStableArray([
     ...p2pRemoteStreams,
     ...serverRemoteStreams.filter(
       ({peerId}) => !p2pRemoteStreams.find(x => x.peerId === peerId)
     ),
   ]);
-  return remoteStreams;
 }

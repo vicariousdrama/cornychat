@@ -34,8 +34,8 @@ function JamProvider({
   children: React.ReactChildren;
   state: StateType;
   api: typeof defaultApi;
-  options: Parameters<typeof createJam>[0];
-  onState: (state: StateType) => void;
+  options?: Parameters<typeof createJam>[0];
+  onState?: (state: StateType) => void;
 }) {
   let value = useMemo(() => {
     if (state === undefined) {

@@ -77,12 +77,15 @@ function AudioState({swarm}) {
     }
 
     let shouldHaveMic = !!(inRoom && (iAmSpeaker || handRaised));
-    let {micStream, hasRequestedOnce, hasMicFailed, availableMicrophones} = use(
-      Microphone,
-      {
-        shouldHaveMic,
-      }
-    );
+    let {
+      micStream,
+      hasRequestedOnce,
+      hasMicFailed,
+      availableMicrophones,
+      selectedMicrophoneId,
+    } = use(Microphone, {
+      shouldHaveMic,
+    });
     let {audioFileStream, audioFileElement} = use(AudioFile, {audioContext});
 
     let myAudio = customStream ?? audioFileStream ?? micStream;
@@ -115,6 +118,10 @@ function AudioState({swarm}) {
         audioFileElement,
         hasMicFailed,
         availableMicrophones,
+        selectedMicrophoneId,
+        remoteAudioStreams: remoteStreams.filter(
+          stream => stream.name === 'audio'
+        ),
       },
       declare(Recording, {swarm, audioContext, myAudio, remoteStreams}),
       declare(PodcastRecording, {

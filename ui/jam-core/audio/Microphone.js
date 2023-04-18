@@ -109,6 +109,7 @@ export default function Microphone() {
       hasRequestedOnce,
       hasMicFailed: micState === 'failed',
       availableMicrophones,
+      selectedMicrophoneId: selectedMicrophoneState.deviceId,
     };
   };
 }

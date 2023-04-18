@@ -1,8 +1,8 @@
 import {decode} from './identity-utils';
 
-const defaultAvatar = `/img/avatar-default.png`;
+const DEFAULT_AVATAR = `/img/avatar-default.png`;
 
-const roomAvatar = (info, room) => {
+const roomAvatar = (info, room, defaultAvatar) => {
   if (room.userDisplay?.identities) {
     return room.userDisplay.identities[info.id].avatar || defaultAvatar;
   } else if (room.userDisplay?.avatars) {
@@ -33,11 +33,11 @@ const roomDisplayName = (info, room) => {
   }
 };
 
-export const avatarUrl = (info, room) => {
+export const avatarUrl = (info, room, defaultAvatar = DEFAULT_AVATAR) => {
   if (info.avatar && !room.access?.lockedIdentities) {
     return info.avatar;
   } else {
-    return roomAvatar(info, room);
+    return roomAvatar(info, room, defaultAvatar);
   }
 };
 
@@ -45,8 +45,10 @@ export const displayName = (info, room) => {
   const infoName = info.name || info.displayName;
   if (infoName && !room.access?.lockedIdentities) {
     return infoName;
-  } else {
+  } else if (room) {
     return roomDisplayName(info, room);
+  } else {
+    return selectFromList(info.id, names);
   }
 };
 
