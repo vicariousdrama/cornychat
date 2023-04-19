@@ -2,8 +2,8 @@ const base64 = require('compact-base64');
 const {data} = require('simple-signed-records-engine');
 
 const extractToken = req => {
-  const authHeader = req.header('Authorization') || '';
-  return authHeader.substring(6);
+  const authHeader = req.header('Authorization');
+  return (authHeader && authHeader.substring(6)) || req.query.token || '';
 };
 
 const ssr = (req, res, next) => {
@@ -37,7 +37,7 @@ const ssr = (req, res, next) => {
           req.body = verifiedRecord.data;
         } else {
           // if data is in ssr format, it has to be unpacked even if signatures don't verify
-          // otherwise routes that don't check identities might accidently use packed data
+          // otherwise routes that don't check identities might accidentally use packed data
           if (record.Certified) req.body = unpack(record);
         }
       }

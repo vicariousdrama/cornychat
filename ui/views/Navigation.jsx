@@ -206,7 +206,7 @@ export default function Navigation({
         {!noLeave && (
           <button
             className="flex-shrink ml-3 select-none h-12 px-6 text-lg text-black rounded-lg focus:shadow-outline"
-            onClick={() => leaveRoom(roomId)}
+            onClick={() => leaveRoom()}
             style={{backgroundColor: roomColors.buttonSecondary}}
           >
             🖖🏽&nbsp;Leave

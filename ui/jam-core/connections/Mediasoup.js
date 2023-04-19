@@ -17,8 +17,12 @@ export default function Mediasoup({swarm}) {
   let receiveState = INITIAL;
 
   let connectedRoomId = null;
-  let sendingStream = null;
-  let producer = null;
+  let sendingAudioStream = null;
+  let sendingVideoStream = null;
+  let sendingScreenStream = null;
+  let audioProducer = null;
+  let videoProducer = null;
+  let screenProducer = null;
 
   let canUseMediasoup = false;
   let routerRtpCapabilities = null;
@@ -30,15 +34,28 @@ export default function Mediasoup({swarm}) {
     // avoid UnsupportedError in non-standard environments, e.g. WebViews
     mediasoupDevice = new Device({handlerName: 'Chrome74'});
   }
-  let canSend = false;
+  let canSendAudio = false;
+  let canSendVideo = false;
   let sendTransport = null;
   let receiveTransport = null;
 
-  return function Mediasoup({roomId, shouldSend, shouldReceive, localStream}) {
+  return function Mediasoup({
+    roomId,
+    shouldSendAudio,
+    shouldReceive,
+    shouldSendVideo,
+    localAudioStream,
+    localVideoStream,
+    localScreenStream,
+  }) {
     let wsConnected = use(swarm, 'connected');
     const {hub} = swarm;
 
-    shouldSend = shouldSend && !!localStream;
+    shouldSendAudio = shouldSendAudio && !!localAudioStream;
+    shouldSendVideo = shouldSendVideo && !!localVideoStream;
+    const shouldSendScreen = shouldSendVideo && !!localScreenStream;
+
+    let shouldSend = shouldSendAudio || shouldSendVideo || shouldSendScreen;
 
     let [isMediasoupInfo, infoPayload] = useEvent(
       serverEvent,
@@ -49,7 +66,7 @@ export default function Mediasoup({swarm}) {
       routerRtpCapabilities = infoPayload.rtpCapabilities;
     }
 
-    // send & receive audio via SFU / mediasoup
+    // send & receive audio/video via SFU / mediasoup
     switch (mediasoupState) {
       case INITIAL:
         if (canUseMediasoup && (shouldReceive || shouldSend) && wsConnected) {
@@ -59,8 +76,12 @@ export default function Mediasoup({swarm}) {
             if (!mediasoupDevice.loaded) {
               await mediasoupDevice.load({routerRtpCapabilities});
             }
-            canSend = mediasoupDevice.canProduce('audio');
-            if (!canSend) console.warn('Mediasoup: cannot send audio');
+            canSendAudio = mediasoupDevice.canProduce('audio');
+            canSendVideo = mediasoupDevice.canProduce('video');
+            if (!canSendAudio) console.warn('Mediasoup: cannot send audio');
+            if (!canSendVideo) console.warn('Mediasoup: cannot send video');
+
+            let canSend = canSendAudio || canSendVideo;
 
             mediasoupState = READY;
             if (shouldReceive) initializeReceiving(hub);
@@ -74,7 +95,8 @@ export default function Mediasoup({swarm}) {
           connectedRoomId = null;
           mediasoupState = INITIAL;
           sendState = INITIAL;
-          sendingStream = null;
+          sendingAudioStream = null;
+          sendingVideoStream = null;
           sendTransport?.close();
           sendTransport = null;
           stopReceiving();
@@ -87,14 +109,32 @@ export default function Mediasoup({swarm}) {
             if (shouldSend && wsConnected) initializeSending(hub);
             break;
           case READY:
-            if (shouldSend && sendingStream !== localStream) {
-              log('mediasoup: sending stream');
-              sendingStream = localStream;
-              sendLocalStream(hub, localStream);
-            } else if (!shouldSend && sendingStream) {
-              log('mediasoup: removing stream');
-              sendingStream = null;
-              removeLocalStream(hub);
+            if (shouldSendAudio && sendingAudioStream !== localAudioStream) {
+              log('mediasoup: sending audio stream');
+              sendingAudioStream = localAudioStream;
+              sendLocalAudioStream(hub, localAudioStream);
+            } else if (!shouldSendAudio && sendingAudioStream) {
+              log('mediasoup: removing audio stream');
+              sendingAudioStream = null;
+              removeLocalAudioStream(hub);
+            }
+            if (shouldSendVideo && sendingVideoStream !== localVideoStream) {
+              log('mediasoup: sending video stream');
+              sendingVideoStream = localVideoStream;
+              sendLocalVideoStream(hub, localVideoStream);
+            } else if (!shouldSendVideo && sendingVideoStream) {
+              log('mediasoup: removing video stream');
+              sendingVideoStream = null;
+              removeLocalVideoStream(hub);
+            }
+            if (shouldSendScreen && sendingScreenStream !== localScreenStream) {
+              log('mediasoup: sending screen stream');
+              sendingScreenStream = localScreenStream;
+              sendLocalScreenStream(hub, localScreenStream);
+            } else if (!shouldSendScreen) {
+              log('mediasoup: removing screen stream');
+              sendingScreenStream = null;
+              removeLocalScreenStream(hub);
             }
         }
         switch (receiveState) {
@@ -124,11 +164,14 @@ export default function Mediasoup({swarm}) {
           if (!track) return;
           let newStream = new MediaStream([track]);
           let newRemoteStreams = [...remoteStreams];
+
+          let trackType = track.kind;
+
           let i = newRemoteStreams.findIndex(
-            s => s.peerId === peerId && s.name === 'audio'
+            s => s.peerId === peerId && s.name === trackType
           );
           if (i === -1) i = newRemoteStreams.length;
-          newRemoteStreams[i] = {stream: newStream, name: 'audio', peerId};
+          newRemoteStreams[i] = {stream: newStream, name: trackType, peerId};
 
           remoteStreams = newRemoteStreams;
           update();
@@ -248,28 +291,90 @@ export default function Mediasoup({swarm}) {
     receiveTransport = null;
   }
 
-  async function sendLocalStream(hub, localStream) {
+  async function sendLocalAudioStream(hub, localStream) {
     const track = localStream.getAudioTracks()[0];
-    producer = await sendTransport.produce({
+    audioProducer = await sendTransport.produce({
       track,
       codecOptions: {
         opusStereo: 1,
         opusDtx: 1,
       },
+      appData: {
+        source: 'main',
+      },
     });
 
-    producer.on('transportclose', () => {
-      producer = null;
+    audioProducer.on('transportclose', () => {
+      audioProducer = null;
     });
   }
 
-  function removeLocalStream(hub) {
-    let producerId = producer.id;
-    producer.close();
-    producer = null;
+  async function sendLocalVideoStream(hub, localStream) {
+    const track = localStream.getVideoTracks()[0];
+    videoProducer = await sendTransport.produce({
+      track,
+      codecOptions: {
+        opusStereo: 1,
+        opusDtx: 1,
+      },
+      appData: {
+        source: 'main',
+      },
+    });
+
+    videoProducer.on('transportclose', () => {
+      videoProducer = null;
+    });
+  }
+
+  async function sendLocalScreenStream(hub, localStream) {
+    const track = localStream.getVideoTracks()[0];
+    screenProducer = await sendTransport.produce({
+      track,
+      codecOptions: {
+        opusStereo: 1,
+        opusDtx: 1,
+      },
+      appData: {
+        source: 'screen',
+      },
+    });
+
+    screenProducer.on('transportclose', () => {
+      screenProducer = null;
+    });
+  }
+
+  function removeLocalAudioStream(hub) {
+    let producerId = audioProducer.id;
+    audioProducer.close();
+    audioProducer = null;
     hub.sendRequest('mediasoup', {
       type: 'closeProducer',
       data: {producerId},
     });
+  }
+
+  function removeLocalVideoStream(hub) {
+    if (videoProducer) {
+      let producerId = videoProducer.id;
+      videoProducer.close();
+      videoProducer = null;
+      hub.sendRequest('mediasoup', {
+        type: 'closeProducer',
+        data: {producerId},
+      });
+    }
+  }
+  function removeLocalScreenStream(hub) {
+    if (screenProducer) {
+      let producerId = screenProducer.id;
+      screenProducer.close();
+      screenProducer = null;
+      hub.sendRequest('mediasoup', {
+        type: 'closeProducer',
+        data: {producerId},
+      });
+    }
   }
 }

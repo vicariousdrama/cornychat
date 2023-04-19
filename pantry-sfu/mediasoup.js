@@ -8,12 +8,15 @@ import {
   onAddPeer,
   sendDirect,
 } from './ws.js';
+import {startRecording, stopRecording} from './record/index.js';
 
 export {runMediasoup};
 
 const hasMediasoup = true; //['true', '1'].includes(process.env.JAM_SFU);
 const announcedIp =
   process.env.JAM_SFU_EXTERNAL_IP || (local ? localIp() : null);
+
+const debug = process.env.DEBUG === 'true';
 
 const workers = [];
 const rooms = new Map();
@@ -38,7 +41,7 @@ If you do not wish to use mediasoup, make sure the JAM_SFU environment variable 
   onAddPeer(async (roomId, peerId) => {
     let room = await getOrCreateRoom(roomId);
     let rtpCapabilities = room.router.rtpCapabilities;
-    sendDirect(roomId, peerId, 'mediasoup-info', {rtpCapabilities});
+    await sendDirect(roomId, peerId, 'mediasoup-info', {rtpCapabilities});
   });
 
   onMessage('mediasoup', async (roomId, peerId, {type, data}, accept) => {
@@ -46,8 +49,35 @@ If you do not wish to use mediasoup, make sure the JAM_SFU environment variable 
     const router = room.router;
     const peer = await getOrCreatePeer(room, peerId);
     console.log('mediasoup request', type, roomId, peerId);
+    if (debug) {
+      console.log(data);
+    }
 
     switch (type) {
+      case 'startServerRecording':
+        if (room.serverRecording) break;
+
+        room.serverRecording = {
+          startTimestamp: Date.now(),
+        };
+
+        room.peers.forEach(peer => {
+          const sources = new Set(
+            [...peer.producers.values()].map(p => p.appData.source)
+          );
+          sources.forEach(source =>
+            startRecording(peer, room, source, announcedIp, debug)
+          );
+        });
+        break;
+      case 'stopServerRecording':
+        room.serverRecording = undefined;
+        room.peers.forEach(peer =>
+          [...peer.recordings.keys()].forEach(source =>
+            stopRecording(peer, source, debug)
+          )
+        );
+        break;
       case 'createWebRtcTransport': {
         let {producing, consuming, rtpCapabilities} = data;
         peer.rtpCapabilities = rtpCapabilities;
@@ -78,7 +108,9 @@ If you do not wish to use mediasoup, make sure the JAM_SFU environment variable 
         };
 
         peer.transports.set(transport.id, transport);
-        printTransports();
+        if (debug) {
+          printTransports();
+        }
 
         transport.on('dtlsstatechange', dtlsState => {
           if (dtlsState === 'failed' || dtlsState === 'closed') {
@@ -172,10 +204,21 @@ If you do not wish to use mediasoup, make sure the JAM_SFU environment variable 
         peer.producers.set(producer.id, producer);
 
         producer.on('score', score => {
-          console.log('producerScore', peerId, score);
+          if (debug) {
+            console.log('producerScore', peerId, score);
+          }
         });
 
         accept({id: producer.id});
+
+        if (room.serverRecording) {
+          const producerSource = appData.source;
+
+          if (peer.recordings.has(producerSource)) {
+            await stopRecording(peer, producerSource, debug);
+          }
+          await startRecording(peer, room, producerSource, announcedIp, true);
+        }
 
         // send this new track to all other peers
         // => create Consumer on each peer except this one
@@ -200,17 +243,24 @@ If you do not wish to use mediasoup, make sure the JAM_SFU environment variable 
         producer.close();
         peer.producers.delete(producer.id);
 
+        if (room.serverRecording) {
+          const {source} = producer.appData;
+          await stopRecording(peer, source, debug);
+          await startRecording(peer, room, source, announcedIp, debug);
+        }
+
         accept();
         break;
       }
     }
   });
 
-  onRemovePeer((roomId, peerId) => {
+  onRemovePeer(async (roomId, peerId) => {
     const room = rooms.get(roomId);
     if (room === undefined) return;
     const peer = room.peers.get(peerId);
     if (peer === undefined) return;
+    await stopRecording(peer, debug);
     for (const transport of peer.transports.values()) {
       transport.close();
     }
@@ -293,6 +343,7 @@ async function getOrCreatePeer(room, peerId) {
       producers: new Map(),
       consumers: new Map(),
       consumerTransport: null,
+      recordings: new Map(),
     };
     room.peers.set(peerId, peer);
   }
@@ -373,6 +424,75 @@ const config = {
           mimeType: 'audio/opus',
           clockRate: 48000,
           channels: 2,
+        },
+        {
+          kind: 'video',
+          mimeType: 'video/VP8',
+          clockRate: 90000,
+          rtcpFeedback: [
+            {type: 'nack'},
+            {type: 'nack', parameter: 'pli'},
+            {type: 'ccm', parameter: 'fir'},
+            {type: 'goog-remb'},
+            {type: 'transport-cc'},
+          ],
+        },
+        {
+          kind: 'video',
+          mimeType: 'video/VP9',
+          clockRate: 90000,
+          rtcpFeedback: [
+            {type: 'nack'},
+            {type: 'nack', parameter: 'pli'},
+            {type: 'ccm', parameter: 'fir'},
+            {type: 'goog-remb'},
+            {type: 'transport-cc'},
+          ],
+        },
+        {
+          kind: 'video',
+          mimeType: 'video/H264',
+          clockRate: 90000,
+          parameters: {
+            'level-asymmetry-allowed': 1,
+          },
+          rtcpFeedback: [
+            {type: 'nack'},
+            {type: 'nack', parameter: 'pli'},
+            {type: 'ccm', parameter: 'fir'},
+            {type: 'goog-remb'},
+            {type: 'transport-cc'},
+          ],
+        },
+        {
+          kind: 'video',
+          mimeType: 'video/H264-SVC',
+          clockRate: 90000,
+          parameters: {
+            'level-asymmetry-allowed': 1,
+          },
+          rtcpFeedback: [
+            {type: 'nack'},
+            {type: 'nack', parameter: 'pli'},
+            {type: 'ccm', parameter: 'fir'},
+            {type: 'goog-remb'},
+            {type: 'transport-cc'},
+          ],
+        },
+        {
+          kind: 'video',
+          mimeType: 'video/H265',
+          clockRate: 90000,
+          parameters: {
+            'level-asymmetry-allowed': 1,
+          },
+          rtcpFeedback: [
+            {type: 'nack'},
+            {type: 'nack', parameter: 'pli'},
+            {type: 'ccm', parameter: 'fir'},
+            {type: 'goog-remb'},
+            {type: 'transport-cc'},
+          ],
         },
       ],
     },

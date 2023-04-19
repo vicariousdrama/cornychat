@@ -2,6 +2,8 @@ import {is, set, on, update, until} from 'minimal-state';
 import {debugStateTree, declareStateRoot} from './lib/state-tree';
 import {debug} from './lib/state-utils';
 
+import {displayName} from './lib/avatar';
+
 import {updateInfo} from './jam-core/identity';
 import {
   defaultState,
@@ -16,15 +18,19 @@ import {
 import {
   addSpeaker,
   addModerator,
+  addPresenter,
   removeSpeaker,
   removeModerator,
+  removePresenter,
 } from './jam-core/room';
 import {staticConfig} from './jam-core/config';
 import {
   populateApiCache,
   createRoom,
   updateRoom,
+  getRoom,
   apiUrl,
+  recordingsDownloadLink,
 } from './jam-core/backend';
 import {addAdmin, removeAdmin} from './jam-core/admin';
 import AppState from './jam-core/AppState';
@@ -47,7 +53,7 @@ export {
   apiUrl,
 };
 
-function createApi<T>(
+function createApi<T extends StateType>(
   state: T,
   dispatch: (type: ActionType, payload?: unknown) => Promise<void>,
   setProps: {
@@ -76,21 +82,30 @@ function createApi<T>(
     },
     // create room with the own identity as the only moderator and speaker
     createRoom: (roomId: string, partialRoom?: Partial<RoomType>) =>
-      createRoom(state, roomId, partialRoom) as Promise<boolean>,
+      createRoom(state, roomId, partialRoom as any) as Promise<boolean>,
 
     // completely replaces the room, rejects if moderator/speaker array is not set
     // only possible for moderators
     updateRoom: (roomId: string, room: RoomType) =>
       updateRoom(state, roomId, room) as Promise<boolean>,
 
+    getRoom: (roomId: string) =>
+      (getRoom(roomId) as unknown) as Promise<RoomType | undefined>,
+    getDisplayName: (info: IdentityInfo, room: RoomType) =>
+      displayName(info, room) as string,
+
     addSpeaker: (roomId: string, peerId: string) =>
       addSpeaker(state, roomId, peerId) as Promise<boolean>,
     addModerator: (roomId: string, peerId: string) =>
       addModerator(state, roomId, peerId) as Promise<boolean>,
+    addPresenter: (roomId: string, peerId: string) =>
+      addPresenter(state, roomId, peerId) as Promise<boolean>,
     removeSpeaker: (roomId: string, peerId: string) =>
       removeSpeaker(state, roomId, peerId) as Promise<boolean>,
     removeModerator: (roomId: string, peerId: string) =>
       removeModerator(state, roomId, peerId) as Promise<boolean>,
+    removePresenter: (roomId: string, peerId: string) =>
+      removePresenter(state, roomId, peerId) as Promise<boolean>,
     addAdmin: (peerId: string) => addAdmin(state, peerId) as Promise<boolean>,
     removeAdmin: (peerId: string) =>
       removeAdmin(state, peerId) as Promise<boolean>,
@@ -105,13 +120,39 @@ function createApi<T>(
     retryAudio: () => dispatch(actions.RETRY_AUDIO),
     autoJoinOnce: () => dispatch(actions.AUTO_JOIN),
 
+    switchCamera: () => dispatch(actions.SWITCH_CAM),
+    setCameraOn: (cameraOn: boolean) => dispatch(actions.SET_CAM_ON, cameraOn),
+
+    selectMicrophone: (mic: InputDeviceInfo) =>
+      dispatch(actions.SELECT_MIC, mic),
+
+    startScreenShare: () => dispatch(actions.START_SCREEN_SHARE),
+    stopScreenShare: () => dispatch(actions.STOP_SCREEN_SHARE),
+
     startRecording: () => dispatch('start-recording'),
     stopRecording: () => dispatch('stop-recording'),
+    getRecordingsDownloadLink: roomId => recordingsDownloadLink(state, roomId),
+
+    startServerRecording: () => dispatch(actions.START_SERVER_RECORDING),
+    stopServerRecording: () => dispatch(actions.STOP_SERVER_RECORDING),
+
     downloadRecording: (fileName?: string) =>
       dispatch('download-recording', fileName),
 
     startPodcastRecording: () => dispatch('start-podcast-recording'),
     stopPodcastRecording: () => dispatch('stop-podcast-recording'),
+
+    backchannelSubscribe: (roomId, topic, handler, subscriptionId) =>
+      dispatch(actions.BACKCHANNEL_SUBSCRIBE, {
+        roomId,
+        topic,
+        handler,
+        subscriptionId,
+      }),
+    backchannelUnsubscribe: subscriptionId =>
+      dispatch(actions.BACKCHANNEL_UNSUBSCRIBE, subscriptionId),
+    backchannelBroadcast: (roomId, topic, data) =>
+      dispatch(actions.BACKCHANNEL_BROADCAST, {roomId, topic, data}),
   };
 }
 
@@ -154,7 +195,7 @@ function createJam(
     ...initialProps,
     hasMediasoup: !!staticConfig.sfu,
   };
-  const {state, dispatch, setProps} = declareStateRoot(AppState, props, {
+  const {state, dispatch, setProps} = declareStateRoot(AppState, props as any, {
     state: undefined,
     defaultState,
   }) as {

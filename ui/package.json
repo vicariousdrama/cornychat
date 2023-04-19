@@ -14,7 +14,7 @@
   "workspaces": [
     "packages/jam-core",
     "packages/jam-core-react",
-    "examples/minimal-jam-bundled",
+    "examples/jam-video",
     "examples/tiny-jam-react"
   ],
   "devDependencies": {

@@ -77,7 +77,13 @@ function AudioState({swarm}) {
     }
 
     let shouldHaveMic = !!(inRoom && (iAmSpeaker || handRaised));
-    let {micStream, hasRequestedOnce, hasMicFailed} = use(Microphone, {
+    let {
+      micStream,
+      hasRequestedOnce,
+      hasMicFailed,
+      availableMicrophones,
+      selectedMicrophoneId,
+    } = use(Microphone, {
       shouldHaveMic,
     });
     let {audioFileStream, audioFileElement} = use(AudioFile, {audioContext});
@@ -91,20 +97,32 @@ function AudioState({swarm}) {
 
     let soundMuted = !inRoom || (iAmSpeaker && !hasRequestedOnce);
 
-    remoteStreams.map(({peerId, stream}) =>
-      declare(PlayingAudio, {
-        key: peerId,
-        peerId,
-        audioContext,
-        audioElements,
-        stream,
-        soundMuted,
-        shouldPlay: !!inRoom,
-      })
-    );
+    remoteStreams.map(remoteStream => {
+      let {peerId, stream, name} = remoteStream;
+      if (name === 'audio')
+        return declare(PlayingAudio, {
+          key: peerId,
+          peerId,
+          audioContext,
+          audioElements,
+          stream,
+          soundMuted,
+          shouldPlay: !!inRoom,
+        });
+    });
 
     return merge(
-      {myAudio, soundMuted, audioFileElement, hasMicFailed},
+      {
+        myAudio,
+        soundMuted,
+        audioFileElement,
+        hasMicFailed,
+        availableMicrophones,
+        selectedMicrophoneId,
+        remoteAudioStreams: remoteStreams.filter(
+          stream => stream.name === 'audio'
+        ),
+      },
       declare(Recording, {swarm, audioContext, myAudio, remoteStreams}),
       declare(PodcastRecording, {
         swarm,

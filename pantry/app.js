@@ -8,12 +8,14 @@ require('./services/initDb')();
 
 const indexRouter = require('./routes/index');
 const metricsRouter = require('./routes/metrics');
+const activityRouter = require('./routes/activity');
 const adminRouter = require('./routes/admin');
 
 const {roomAuthenticator, identityAuthenticator} = require('./auth');
 const {controller} = require('./routes/controller');
 const roomKeyRouter = require('./routes/roomKey');
 const liveRoomRouter = require('./routes/liveRoom');
+const recordingsRouter = require('./routes/recordings');
 const app = express();
 
 app.use(logger('dev'));
@@ -23,6 +25,7 @@ app.use(ssr);
 
 app.use('/', indexRouter);
 app.use('/metrics', metricsRouter);
+app.use('/activity', activityRouter);
 
 app.use(
   '/api/v1/',
@@ -35,6 +38,7 @@ app.use(
 );
 app.use('/api/v1/rooms/:id/roomKey', roomKeyRouter);
 app.use('/api/v1/rooms/:id/live', liveRoomRouter);
+app.use('/api/v1/rooms/:id/recordings.zip', recordingsRouter);
 
 app.use('/api/v1/', controller('identities', identityAuthenticator));
 
