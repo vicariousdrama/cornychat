@@ -15,27 +15,30 @@ const controller = (prefix, authenticator, broadcastRoom, broadcastChannel) => {
   const router = express.Router();
   const path = `/${prefix}/:id`;
 
-  router.post(path, _authenticator.canPost, async function (req, res, next) {
+  router.post(path, _authenticator.canPost, async function (req, res) {
     const key = redisKey(req);
     if (await get(key)) {
       res.sendStatus(409);
     } else {
       await set(key, req.body);
+      await set(`activity/${prefix}/last-created`, Date.now());
       res.send(req.body);
     }
   });
-  router.get(path, _authenticator.canGet, async function (req, res, next) {
+  router.get(path, _authenticator.canGet, async function (req, res) {
     const room = await get(redisKey(req));
     if (room) {
+      await set(`activity/${prefix}/last-accessed`, Date.now());
       res.send(room);
     } else {
       res.sendStatus(404);
     }
   });
-  router.put(path, _authenticator.canPut, async function (req, res, next) {
+  router.put(path, _authenticator.canPut, async function (req, res) {
     const key = redisKey(req);
     if (await get(key)) {
       await set(key, req.body);
+      await set(`activity/${prefix}/last-accessed`, Date.now());
       if (broadcastRoom && broadcastChannel)
         broadcast(
           broadcastRoom(req.params.id),

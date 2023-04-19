@@ -8,6 +8,7 @@ require('./services/initDb')();
 
 const indexRouter = require('./routes/index');
 const metricsRouter = require('./routes/metrics');
+const activityRouter = require('./routes/activity');
 const adminRouter = require('./routes/admin');
 
 const {roomAuthenticator, identityAuthenticator} = require('./auth');
@@ -24,6 +25,7 @@ app.use(ssr);
 
 app.use('/', indexRouter);
 app.use('/metrics', metricsRouter);
+app.use('/activity', activityRouter);
 
 app.use(
   '/api/v1/',
