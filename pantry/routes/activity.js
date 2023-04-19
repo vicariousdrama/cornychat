@@ -18,10 +18,10 @@ const ago = data => {
 router.get('', async function (req, res) {
   res.type('application/json');
   res.send({
-    lastCreatedIdentity: ago(get('activity/identities/last-created')),
-    lastCreatedRoom: ago(get('activity/rooms/last-created')),
-    lastAccessedIdentity: ago(get('activity/identities/last-accessed')),
-    lastAccessedRoom: ago(get('activity/rooms/last-accessed')),
+    lastCreatedIdentity: ago(await get('activity/identities/last-created')),
+    lastCreatedRoom: ago(await get('activity/rooms/last-created')),
+    lastAccessedIdentity: ago(await get('activity/identities/last-accessed')),
+    lastAccessedRoom: ago(await get('activity/rooms/last-accessed')),
   });
 });
 
