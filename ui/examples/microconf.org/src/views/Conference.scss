@@ -1,0 +1,42 @@
+.conference {
+
+  height: 100%;
+  display: flex;
+  flex-flow: column;
+
+  .header {
+    flex: none;
+    margin-top: 1em;
+    margin-bottom: 2em;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    height: 4em;
+
+    .conference-info {
+
+      .rooms {
+        margin-top: 1em;
+        a {
+          background-color: var(--secondary);
+          padding: 5px;
+          font-size: 14px;
+          text-decoration: none;
+          border-radius: var(--borderradius);
+        }
+      }
+    }
+
+    .room-info, .conference-info {
+      padding: 10px;
+      background-color: var(--background);
+      border-radius: var(--borderradius);
+      z-index: 2;
+      height: fit-content;
+      min-height: 2.5em;
+      width: 40%;
+      border: 1px solid var(--secondary);
+
+    }
+  }
+}

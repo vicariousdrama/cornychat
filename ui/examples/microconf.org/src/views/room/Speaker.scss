@@ -1,0 +1,56 @@
+.speaker {
+  height: 100%;
+  display: flex;
+  flex-flow: column;
+
+  flex: auto;
+
+  .main-video-container {
+    flex: auto;
+    position: relative;
+
+    .main-video {
+      position: absolute;
+      height: 100%;
+      max-width: 100%
+    }
+
+    .display-name-container {
+      position: absolute;
+      right: 0;
+      top: 0.5em;
+      width: 150px;
+      text-align: center;
+    }
+
+    .avatar {
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 150px;
+      height: 150px;
+
+      .avatar-image {
+        width: 100%;
+        height: 100%;
+        .avatar-image-content {
+          opacity: 60%;
+        }
+      }
+
+      .avatar-image::before {
+          content: "";
+          width: 150px;
+          height: 150px;
+          position: absolute;
+          left: 0;
+          background-color: transparent;
+          backdrop-filter: blur(3px);
+      }
+    }
+  }
+  .actions {
+    flex: none;
+  }
+
+}

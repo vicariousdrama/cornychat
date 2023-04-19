@@ -1,0 +1,47 @@
+.join {
+  height: fit-content;
+  width: 400px;
+
+  margin: 0 auto;
+
+  position: relative;
+
+  top: 5em;
+
+  border: 2px solid var(--secondary);
+  border-radius: var(--borderradius);
+  padding: 1em 2em 2em;
+
+  .conference-title {
+    margin-top: 1em;
+  }
+
+  .conference-info {
+    margin-top: 1em;
+
+    .legend {
+      width: 120px;
+      display: inline-block;
+    }
+
+    .error {
+      display: inline-block;
+      color: red;
+      background-color: #FFAAAA;
+      border: 1px solid red;
+      border-radius: var(--borderradius);
+      padding: 0.5em;
+      margin-bottom: 0.5em;
+      font-size: 0.8em;
+      margin-left: 120px;
+    }
+
+    button {
+      margin-left: 120px;
+    }
+
+    input, select {
+      margin-bottom: 1em;
+    }
+  }
+}

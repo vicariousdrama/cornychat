@@ -15,6 +15,7 @@
     "packages/jam-core",
     "packages/jam-core-react",
     "examples/jam-video",
+    "examples/microconf.org",
     "examples/tiny-jam-react"
   ],
   "devDependencies": {

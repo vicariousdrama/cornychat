@@ -1,0 +1,27 @@
+.room {
+  flex: auto;
+  display: flex;
+  column-gap: 1em;
+
+  .participants {
+    position: relative;
+    display: flex;
+    flex: none;
+    padding-top: 2em;
+    box-sizing: border-box;
+
+    .participants-header {
+      position: absolute;
+      top: 0;
+      word-break: break-word;
+
+      &.participants-hidden {
+        position: relative;
+        writing-mode: vertical-lr;
+        margin-left: 0;
+        margin-right: 0.3em;
+      }
+    }
+  }
+
+}
