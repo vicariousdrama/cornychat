@@ -3,10 +3,7 @@ const {get} = require('../services/redis');
 
 const router = express.Router();
 
-const ago = data => {
-  console.log(data);
-
-  const date = (data || {})['date'];
+const ago = date => {
   const msDiff = Date.now() - (date || 0);
   return `${Math.floor(msDiff / (24 * 60 * 60 * 1000))}d ${
     Math.floor(msDiff / (60 * 60 * 1000)) % 24
