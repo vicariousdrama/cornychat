@@ -21,14 +21,14 @@ const controller = (prefix, authenticator, broadcastRoom, broadcastChannel) => {
       res.sendStatus(409);
     } else {
       await set(key, req.body);
-      await set(`activity/${prefix}/last-created`, Date.now());
+      await set(`activity/${prefix}/last-created`, {date: Date.now()});
       res.send(req.body);
     }
   });
   router.get(path, _authenticator.canGet, async function (req, res) {
     const room = await get(redisKey(req));
     if (room) {
-      await set(`activity/${prefix}/last-accessed`, Date.now());
+      await set(`activity/${prefix}/last-accessed`, {date: Date.now()});
       res.send(room);
     } else {
       res.sendStatus(404);
@@ -38,7 +38,7 @@ const controller = (prefix, authenticator, broadcastRoom, broadcastChannel) => {
     const key = redisKey(req);
     if (await get(key)) {
       await set(key, req.body);
-      await set(`activity/${prefix}/last-accessed`, Date.now());
+      await set(`activity/${prefix}/last-accessed`, {date: Date.now()});
       if (broadcastRoom && broadcastChannel)
         broadcast(
           broadcastRoom(req.params.id),
