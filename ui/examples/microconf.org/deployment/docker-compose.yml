@@ -1,0 +1,84 @@
+version: '3'
+services:
+  pantryredis:
+    image: library/redis
+    volumes:
+      - "../data/pantryredis:/data"
+    command: "redis-server --appendonly yes"
+  pantry-sfu:
+    image: registry.gitlab.com/jam-systems/jam/pantry-sfu:${CHANNEL}
+    restart: always
+    network_mode: host
+    depends_on:
+      - pantry
+    environment:
+      - JAM_HOST
+      - JAM_SFU_EXTERNAL_IP=${JAM_HOST}
+      - MEDIASOUP_MIN_PORT
+      - MEDIASOUP_MAX_PORT
+      - RECORD_FILE_LOCATION_PATH=/data/recordings
+    volumes:
+      - recordings:/data/recordings
+  pantry:
+    image: registry.gitlab.com/jam-systems/jam/pantry:${CHANNEL}
+    restart: always
+    depends_on:
+      - pantryredis
+    environment:
+      - JAM_HOST
+      - JAM_RESTRICT_ROOM_CREATION
+      - RECORD_FILE_LOCATION_PATH=/data/recordings
+    labels:
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}_pantry.rule=(Host(`${JAM_HOST}`) && PathPrefix(`/_/pantry`))
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}_pantry.middlewares=${COMPOSE_PROJECT_NAME}_pantry_stripprefix
+      - traefik.http.middlewares.${COMPOSE_PROJECT_NAME}_pantry_stripprefix.stripprefix.prefixes=/_/pantry
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}_pantry.tls=true
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}_pantry.tls.certresolver=letsencrypt
+      - traefik.enable=true
+    volumes:
+      - recordings:/data/recordings
+  microconf:
+    image: registry.gitlab.com/jam-systems/jam/microconf:${CHANNEL}
+    restart: always
+    labels:
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}_ui.rule=Host(`${JAM_HOST}`)
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}_ui.tls=true
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}_ui.tls.certresolver=letsencrypt
+      - traefik.enable=true
+  traefik:
+    hostname: traefik
+    image: traefik
+    restart: always
+    command:
+      - "--entryPoints.web.address=:80"
+      - "--entryPoints.websecure.address=:443"
+      - "--entryPoints.metrics.address=:8080"
+      - "--certificatesResolvers.letsencrypt.acme.email=admin@${JAM_HOST}"
+      - "--certificatesResolvers.letsencrypt.acme.storage=/acme/acme.json"
+      - "--certificatesResolvers.letsencrypt.acme.httpChallenge.entryPoint=web"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedByDefault=false"
+      - "--metrics.prometheus.entryPoint=metrics"
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.addEntryPointsLabels=true"
+      - "--metrics.prometheus.addServicesLabels=true"
+    labels:
+      - traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)
+      - traefik.http.routers.http-catchall.entrypoints=web
+      - traefik.http.routers.http-catchall.middlewares=redirect-to-https@docker
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+      - traefik.enable=true
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../data/traefik/acme:/acme
+
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 30
+volumes:
+  recordings: {}
