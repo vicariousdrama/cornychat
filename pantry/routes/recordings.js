@@ -4,9 +4,7 @@ const path = require('path');
 const archiver = require('archiver');
 const {get} = require('../services/redis');
 const {isModerator} = require('../auth');
-
-const RECORD_FILE_LOCATION_PATH =
-  process.env.RECORD_FILE_LOCATION_PATH || './records';
+const {recordFileLocationPath} = require('../config');
 
 const router = express.Router({mergeParams: true});
 
@@ -18,7 +16,7 @@ router.get('', async (req, res) => {
     return;
   }
 
-  const roomPath = path.join(RECORD_FILE_LOCATION_PATH, roomId);
+  const roomPath = path.join(recordFileLocationPath, roomId);
 
   // ensure directory exists, return empty zip if no recordings present
   await fs.mkdir(roomPath, {recursive: true});
