@@ -56,7 +56,7 @@ build-microconf:
   stage: build
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $DOCKER_NAMESPACE/microconf:${CI_COMMIT_REF_SLUG} ui/microconf.org
+    - docker build -t $DOCKER_NAMESPACE/microconf:${CI_COMMIT_REF_SLUG} ui/examples/microconf.org
     - docker push $DOCKER_NAMESPACE/microconf:${CI_COMMIT_REF_SLUG}
   only:
     refs:
