@@ -8,20 +8,16 @@ import {ConferenceProvider} from './ConferenceProvider';
 
 import './App.scss';
 
-window.DEBUG = true;
+const domain = window.location.host;
 
 const jamConfig = {
-  domain: 'beta.jam.systems',
-  // domain: 'localhost:3001',
+  domain,
   urls: {
-    pantry: 'http://localhost:3001',
     stun: `stun:stun.jam.systems:3478`,
     turn: `turn:turn.jam.systems:3478`,
     turnCredentials: {username: 'test', credential: 'yieChoi0PeoKo8ni'},
   },
-  development: true,
   sfu: true,
-  debug: false,
 };
 
 ReactDOM.createRoot(document.getElementById('root')).render(
