@@ -288,6 +288,7 @@ export const createConference = async (
 
 const inviteToPanel = (roomId, peerId, jamApi) => {
   jamApi.addSpeaker(roomId, peerId);
+  jamApi.addPresenter(roomId, peerId);
 };
 
 const makeSpeaker = async (conference, roomId, peerId, jamApi) => {
