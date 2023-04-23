@@ -21,6 +21,12 @@
       top: 0.5em;
       width: 150px;
       text-align: center;
+
+      &.display-name-only .display-name {
+        background-color: var(--secondary);
+        padding: 1em;
+        border-radius: var(--borderradius);
+      }
     }
 
     .avatar {

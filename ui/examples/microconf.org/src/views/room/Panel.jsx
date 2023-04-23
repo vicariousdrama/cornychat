@@ -18,9 +18,31 @@ export const Panel = () => {
     'identities',
   ]);
 
-  const conferenceSpeakerId = conference?.rooms[roomId]?.speaker;
+  const getInfo = id =>
+    id === myIdentity.info.id ? myIdentity.info : identities[id] || {id};
 
   let [contextMenuPeerId, setContextMenuPeerId] = useState(null);
+
+  const PanelContextMenu = ({info}) => (
+    <ContextMenu
+      {...{
+        title: info.name,
+        show: contextMenuPeerId === info.id,
+        menuItems: [
+          {
+            text: 'Make speaker',
+            handler: () => conferenceApi.makeSpeaker(roomId, info.id),
+          },
+          {
+            text: 'Remove from panel',
+            handler: () => jamApi.removeSpeaker(roomId, info.id),
+          },
+        ],
+      }}
+    />
+  );
+
+  const conferenceSpeakerId = conference?.rooms[roomId]?.speaker;
 
   const panelists = room.speakers.filter(id => !room.moderators.includes(id));
 
@@ -47,10 +69,10 @@ export const Panel = () => {
                     peerId: id,
                     canSpeak: true,
                     videoAvatar: true,
-                    info: myIdentity.info,
                   }}
                 />
-                <DisplayName {...{peerId: id, info: myIdentity.info}} />
+                <DisplayName {...{peerId: id}} />
+                <PanelContextMenu info={getInfo(id)} />
               </li>
             ))}
           </ul>
@@ -71,26 +93,10 @@ export const Panel = () => {
                 peerId: id,
                 canSpeak: true,
                 videoAvatar: true,
-                info: myIdentity.info,
               }}
             />
-            <DisplayName {...{peerId: id, info: myIdentity.info}} />
-            <ContextMenu
-              {...{
-                title: identities[id]?.name,
-                show: contextMenuPeerId === id,
-                menuItems: [
-                  {
-                    text: 'Make speaker',
-                    handler: () => conferenceApi.makeSpeaker(roomId, id),
-                  },
-                  {
-                    text: 'Remove from panel',
-                    handler: () => jamApi.removeSpeaker(roomId, id),
-                  },
-                ],
-              }}
-            />
+            <DisplayName {...{peerId: id}} />
+            <PanelContextMenu info={getInfo(id)} />
           </li>
         ))}
       </ul>

@@ -61,10 +61,16 @@ export const Speaker = ({conferenceRoom, roomId}) => {
           autoPlay
           playsInline
         />
-        <Avatar
-          {...{canSpeak: true, peerId: speaker, videoAvatar: !!screenStream}}
-        />
-        <div className="display-name-container">
+        {!!screenStream && (
+          <Avatar
+            {...{canSpeak: true, peerId: speaker, videoAvatar: !!screenStream}}
+          />
+        )}
+        <div
+          className={`display-name-container ${
+            !screenStream ? 'display-name-only' : ''
+          }`}
+        >
           <DisplayName {...{peerId: speaker}} />
         </div>
       </div>

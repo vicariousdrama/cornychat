@@ -8,7 +8,7 @@ import {ConferenceProvider} from './ConferenceProvider';
 
 import './App.scss';
 
-const domain = window.location.host;
+const domain = 'microconf.org';
 
 const jamConfig = {
   domain,
