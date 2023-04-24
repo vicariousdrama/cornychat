@@ -243,6 +243,10 @@ const animals = [
 const selectRandomElement = list =>
   list[Math.floor(Math.random() * list.length)];
 
+function sleep(ms) {
+  return new Promise(res => setTimeout(res, ms));
+}
+
 export const randomConferenceName = () =>
   `${selectRandomElement(verbs)} ${selectRandomElement(animals)}`;
 
@@ -286,15 +290,23 @@ export const createConference = async (
   return conference;
 };
 
-const inviteToPanel = (roomId, peerId, jamApi) => {
-  jamApi.addSpeaker(roomId, peerId);
-  jamApi.addPresenter(roomId, peerId);
+const inviteToPanel = async (roomId, peerId, jamApi) => {
+  await jamApi.addSpeaker(roomId, peerId);
+  await sleep(10);
+  await jamApi.addPresenter(roomId, peerId);
+};
+
+const removeFromPanel = async (roomId, peerId, jamApi) => {
+  await jamApi.removeSpeaker(roomId, peerId);
+  await sleep(10);
+  await jamApi.removePresenter(roomId, peerId);
 };
 
 const makeSpeaker = async (conference, roomId, peerId, jamApi) => {
   await jamApi.addSpeaker(roomId, peerId);
+  await sleep(10);
   await jamApi.addPresenter(roomId, peerId);
-
+  await sleep(10);
   const newConference = {
     ...conference,
     rooms: {
@@ -373,7 +385,9 @@ export const conferenceApi = (conference, jamState, jamApi) => {
     unsubscribeRoomInfo: () =>
       jamApi.backchannelUnsubscribe(`${jamState['myId']}-room-info`),
     inviteToPanel: async (roomId, peerId) =>
-      inviteToPanel(roomId, peerId, jamApi),
+      await inviteToPanel(roomId, peerId, jamApi),
+    removeFromPanel: async (roomId, peerId) =>
+      await removeFromPanel(roomId, peerId, jamApi),
     makeSpeaker: async (roomId, peerId) =>
       makeSpeaker(conference, roomId, peerId, jamApi),
     updateConference: async conference => updateConference(conference, jamApi),

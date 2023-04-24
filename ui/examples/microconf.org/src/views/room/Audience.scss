@@ -1,23 +1,5 @@
 .audience {
   //flex: none;
   width: 70px;
-  .audience-list {
-    list-style: none;
-    padding-inline-start: 0;
-
-    .audience-member {
-      position: relative;
-      .avatar {
-        .mic-muted {
-          display: none;
-        }
-      }
-      .display-name {
-        font-size: 0.8em;
-        word-wrap: break-word;
-      }
-
-    }
-  }
 
 }

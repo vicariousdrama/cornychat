@@ -33,14 +33,16 @@ export const Room = ({roomId}) => {
         <>
           <Speaker {...{conferenceRoom, roomId}} />
           <div className="participants">
-            <h2
-              onClick={toggleParticipants}
-              className={`participants-header ${
-                !showParticipants && 'participants-hidden'
-              }`}
-            >
-              participants
-            </h2>
+            <div className="participants-header-container">
+              <h2
+                onClick={toggleParticipants}
+                className={`participants-header ${
+                  !showParticipants && 'participants-hidden'
+                }`}
+              >
+                participants
+              </h2>
+            </div>
             {showParticipants && (
               <>
                 <Panel />
