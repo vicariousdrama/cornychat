@@ -243,6 +243,24 @@ If you do not wish to use mediasoup, make sure the JAM_SFU environment variable 
         producer.close();
         peer.producers.delete(producer.id);
 
+        const {source} = producer.appData;
+
+        for (const otherPeer of yieldOtherPeers(room, peerId)) {
+          const streamName = source === 'screen' ? 'screen' : producer.kind;
+          try {
+            await sendRequest(room.id, otherPeer.id, 'producer-closed', {
+              peerId: peer.id,
+              producerId: producer.id,
+              streamName,
+            });
+          } catch (error) {
+            console.warn(
+              `Failed to notify peer ${otherPeer.id} that stream '${streamName}' of peer ${peer.id} stopped.`,
+              error
+            );
+          }
+        }
+
         if (room.serverRecording) {
           const {source} = producer.appData;
           await stopRecording(peer, source, debug);
