@@ -6,25 +6,19 @@ import './Speaker.scss';
 
 const {Avatar, DisplayName} = components.v1;
 
-export const Speaker = ({conferenceRoom, roomId}) => {
-  const [state, api] = useJam();
+export const Speaker = ({conferenceRoom}) => {
+  const [state] = useJam();
 
   let [
     myId,
     myScreen,
     myVideo,
-    iAmModerator,
-    iAmPresenter,
-    isServerRecording,
     remoteScreenStreams,
     remoteVideoStreams,
   ] = use(state, [
     'myId',
     'myScreen',
     'myVideo',
-    'iAmModerator',
-    'iAmPresenter',
-    'isServerRecording',
     'remoteScreenStreams',
     'remoteVideoStreams',
   ]);
@@ -62,9 +56,7 @@ export const Speaker = ({conferenceRoom, roomId}) => {
           playsInline
         />
         {!!screenStream && (
-          <Avatar
-            {...{canSpeak: true, peerId: speaker, videoAvatar: !!screenStream}}
-          />
+          <Avatar {...{canSpeak: true, peerId: speaker, videoAvatar: true}} />
         )}
         <div
           className={`display-name-container ${

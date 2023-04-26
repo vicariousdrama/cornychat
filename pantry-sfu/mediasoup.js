@@ -255,7 +255,7 @@ If you do not wish to use mediasoup, make sure the JAM_SFU environment variable 
             });
           } catch (error) {
             console.warn(
-              `Failed to notify peer ${otherPeer.id} that stream '${streamName}' of peer ${peer.id} stopped.`,
+              `Failed to notify peer ${otherPeer.id} in ${room.id} that stream '${streamName}' of peer ${peer.id} stopped.`,
               error
             );
           }

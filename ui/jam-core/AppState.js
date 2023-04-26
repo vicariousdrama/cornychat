@@ -57,7 +57,7 @@ export default function AppState({hasMediasoup}) {
     declare(Reactions, {swarm});
 
     return merge(
-      {swarm, micMuted, handRaised, inRoom, myId, myIdentity},
+      {swarm, micMuted, handRaised, inRoom, myId, myIdentity, remoteStreams},
       roomState,
       declare(PeerState, {swarm}),
       declare(ConnectRoom, {
