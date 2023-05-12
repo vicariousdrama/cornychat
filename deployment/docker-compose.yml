@@ -80,6 +80,8 @@ services:
       - MEDIASOUP_MIN_PORT
       - MEDIASOUP_MAX_PORT
     profiles: [ "sfu" ]
+    volumes:
+      - recordings:/pantry-sfu/records
   pantry:
     #build: ../pantry
     image: registry.gitlab.com/jam-systems/jam/pantry:${CHANNEL}
@@ -98,6 +100,7 @@ services:
       - traefik.enable=true
     volumes:
       - "../jam-config:/jam-config"
+      - recordings:/pantry/records
   traefik:
     hostname: traefik
     image: traefik
@@ -131,3 +134,4 @@ services:
 volumes:
   prometheus_data: {}
   grafana_data: {}
+  recordings: {}
