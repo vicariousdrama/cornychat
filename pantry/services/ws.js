@@ -207,7 +207,7 @@ function activeUserCount() {
 }
 function activeUsersInRoom(roomId) {
   let peersInRoom = getPeers(roomId).map(
-    combinedPeerId => combinedPeerId.split(';')[0]
+    combinedPeerId => combinedPeerId.split('.')[0]
   );
   // make list unique
   return [...new Set(peersInRoom)];
