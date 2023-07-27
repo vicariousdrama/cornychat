@@ -149,12 +149,35 @@ export default function Mediasoup({swarm}) {
         break;
     }
 
+    let [
+      isProducerClosed,
+      producerClosedPayload,
+      acceptProducerClosed,
+    ] = useEvent(serverEvent, 'producer-closed');
+
+    if (isProducerClosed) {
+      const {peerId, streamName} = producerClosedPayload;
+
+      remoteStreams = remoteStreams.filter(
+        s => !(s.peerId === peerId.split('.')[0] && s.name === streamName)
+      );
+      acceptProducerClosed();
+
+      update();
+    }
     let [isConsumer, consumerPayload, accept] = useEvent(
       serverEvent,
       'new-consumer'
     );
     if (isConsumer) {
-      let {peerId, producerId, id, kind, rtpParameters} = consumerPayload;
+      let {
+        peerId,
+        producerId,
+        id,
+        kind,
+        rtpParameters,
+        appData,
+      } = consumerPayload;
       [peerId] = peerId.split('.');
       receiveTransport
         ?.consume({id, producerId, kind, rtpParameters})
@@ -165,7 +188,7 @@ export default function Mediasoup({swarm}) {
           let newStream = new MediaStream([track]);
           let newRemoteStreams = [...remoteStreams];
 
-          let trackType = track.kind;
+          let trackType = appData?.source === 'screen' ? 'screen' : track.kind;
 
           let i = newRemoteStreams.findIndex(
             s => s.peerId === peerId && s.name === trackType

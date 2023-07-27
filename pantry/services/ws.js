@@ -117,7 +117,6 @@ async function handleMessage(connection, roomId, msg) {
   }
 }
 
-let nConnections = 0;
 const PING_CHECK_INTERVAL = 5000;
 const PING_MAX_INTERVAL = 25000;
 
@@ -141,7 +140,6 @@ function handleConnection(ws, req) {
   const connection = {ws, peerId};
 
   addPeer(roomId, connection);
-  nConnections++;
 
   // inform every participant about new peer connection
   publish(roomId, 'add-peer', {t: 'add-peer', d: peerId});
@@ -171,7 +169,6 @@ function handleConnection(ws, req) {
 
   function closeWs() {
     clearInterval(interval);
-    nConnections--;
     console.log('ws closed', roomId, peerId);
     removePeer(roomId, connection);
     unsubscribeAll(connection);
@@ -204,11 +201,13 @@ function handleForwardingConnection(ws, req) {
 }
 
 function activeUserCount() {
-  return nConnections;
+  return [...roomConnections.keys()]
+    .map(roomId => activeUsersInRoom(roomId).length)
+    .reduce((aggregate, current) => aggregate + current, 0);
 }
 function activeUsersInRoom(roomId) {
   let peersInRoom = getPeers(roomId).map(
-    combinedPeerId => combinedPeerId.split(';')[0]
+    combinedPeerId => combinedPeerId.split('.')[0]
   );
   // make list unique
   return [...new Set(peersInRoom)];
@@ -405,7 +404,6 @@ function parseMessage(jsonMsg) {
   } catch (err) {
     console.log('ws: error parsing msg', jsonMsg);
     console.error(err);
-    return;
   }
 }
 

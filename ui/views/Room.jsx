@@ -128,7 +128,7 @@ export default function Room({room, roomId, uxConfig}) {
       >
         <div
           className={
-            inWebView
+            inWebView && !uxConfig.noWebviewWarning
               ? 'rounded bg-blue-50 border border-blue-150 text-gray-600 ml-2 p-3 mb-3 inline text-center'
               : 'hidden'
           }

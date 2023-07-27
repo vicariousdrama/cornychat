@@ -1,74 +1,11 @@
 version: '3'
 services:
-  coturn:
-    image: coturn/coturn:alpine
-    volumes:
-      - "./turnserver.conf:/etc/coturn/turnserver.conf"
-    network_mode: host
-    restart: always
-    profiles: ["coturn"]
-  prometheus:
-    image: prom/prometheus:latest
-    volumes:
-      - ./prometheus/:/etc/prometheus/
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
-      - '--storage.tsdb.retention.time=1y'
-    restart: always
-    profiles: [ "metrics" ]
-  grafana:
-    image: grafana/grafana
-    user: "472"
-    depends_on:
-      - prometheus
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./grafana/provisioning/:/etc/grafana/provisioning/
-    environment:
-      GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_ADMIN_PASSWORD}"
-      GF_USERS_ALLOW_SIGN_UP: "false"
-      GF_SERVER_ROOT_URL: "https://${JAM_HOST}/_/grafana"
-      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
-    restart: always
-    labels:
-      - traefik.http.routers.grafana.rule=(Host(`${JAM_HOST}`) && PathPrefix(`/_/grafana`))
-      - traefik.http.routers.grafana.tls=true
-      - traefik.http.routers.grafana.tls.certresolver=letsencrypt
-      - traefik.enable=true
-    profiles: [ "metrics" ]
-  ui:
-    image: registry.gitlab.com/jam-systems/jam/ui:${CHANNEL}
-    restart: always
-    environment:
-      - JAM_HOST
-      - JAM_STUN_SERVER
-      - JAM_TURN_SERVER
-      - JAM_TURN_SERVER_USERNAME
-      - JAM_TURN_SERVER_CREDENTIAL
-      - JAM_RESTRICT_ROOM_CREATION
-      - JAM_SFU
-      - JAM_HIDE_JAM_INFO
-      - SLACK_CLIENT_ID
-      - SLACK_CLIENT_SECRET
-      - SLACK_API_URL
-    labels:
-      - traefik.http.routers.${COMPOSE_PROJECT_NAME}_ui.rule=Host(`${JAM_HOST}`)
-      - traefik.http.routers.${COMPOSE_PROJECT_NAME}_ui.tls=true
-      - traefik.http.routers.${COMPOSE_PROJECT_NAME}_ui.tls.certresolver=letsencrypt
-      - traefik.enable=true
-    volumes:
-      - "../jam-config:/jam-config"
   pantryredis:
     image: library/redis
     volumes:
       - "../data/pantryredis:/data"
     command: "redis-server --appendonly yes"
   pantry-sfu:
-    #build: ../pantry-sfu
     image: registry.gitlab.com/jam-systems/jam/pantry-sfu:${CHANNEL}
     restart: always
     network_mode: host
@@ -76,14 +13,13 @@ services:
       - pantry
     environment:
       - JAM_HOST
-      - JAM_SFU_EXTERNAL_IP
+      - JAM_SFU_EXTERNAL_IP=${JAM_HOST}
       - MEDIASOUP_MIN_PORT
       - MEDIASOUP_MAX_PORT
-    profiles: [ "sfu" ]
+      - RECORD_FILE_LOCATION_PATH=/data/recordings
     volumes:
-      - recordings:/pantry-sfu/records
+      - recordings:/data/recordings
   pantry:
-    #build: ../pantry
     image: registry.gitlab.com/jam-systems/jam/pantry:${CHANNEL}
     restart: always
     depends_on:
@@ -91,6 +27,7 @@ services:
     environment:
       - JAM_HOST
       - JAM_RESTRICT_ROOM_CREATION
+      - RECORD_FILE_LOCATION_PATH=/data/recordings
     labels:
       - traefik.http.routers.${COMPOSE_PROJECT_NAME}_pantry.rule=(Host(`${JAM_HOST}`) && PathPrefix(`/_/pantry`))
       - traefik.http.routers.${COMPOSE_PROJECT_NAME}_pantry.middlewares=${COMPOSE_PROJECT_NAME}_pantry_stripprefix
@@ -99,8 +36,15 @@ services:
       - traefik.http.routers.${COMPOSE_PROJECT_NAME}_pantry.tls.certresolver=letsencrypt
       - traefik.enable=true
     volumes:
-      - "../jam-config:/jam-config"
-      - recordings:/pantry/records
+      - recordings:/data/recordings
+  microconf:
+    image: registry.gitlab.com/jam-systems/jam/microconf:${CHANNEL}
+    restart: always
+    labels:
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}_ui.rule=Host(`${JAM_HOST}`)
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}_ui.tls=true
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}_ui.tls.certresolver=letsencrypt
+      - traefik.enable=true
   traefik:
     hostname: traefik
     image: traefik
@@ -130,8 +74,11 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ../data/traefik/acme:/acme
-    profiles: [ "web" ]
+
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 30
 volumes:
-  prometheus_data: {}
-  grafana_data: {}
   recordings: {}

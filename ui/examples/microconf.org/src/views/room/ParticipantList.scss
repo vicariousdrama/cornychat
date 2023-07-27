@@ -1,0 +1,15 @@
+.participant-list {
+  list-style: none;
+  padding-inline-start: 0;
+
+  .member {
+    position: relative;
+
+    .display-name {
+      display: block;
+      font-size: 0.8em;
+      word-wrap: break-word;
+      width: 65px;
+    }
+  }
+}
