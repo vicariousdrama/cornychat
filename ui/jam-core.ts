@@ -19,6 +19,8 @@ import {
   addSpeaker,
   addModerator,
   addPresenter,
+  addNostrPrivateKey,
+  signEvent,
   removeSpeaker,
   removeModerator,
   removePresenter,
@@ -98,6 +100,10 @@ function createApi<T extends StateType>(
       addSpeaker(state, roomId, peerId) as Promise<boolean>,
     addModerator: (roomId: string, peerId: string) =>
       addModerator(state, roomId, peerId) as Promise<boolean>,
+    addNostrPrivateKey: (roomId: string, state: string, payload: any) =>
+      addNostrPrivateKey(roomId, state, payload),
+    signEvent: (state: string, roomId: string, event: any) =>
+      signEvent(state, roomId, event),
     addPresenter: (roomId: string, peerId: string) =>
       addPresenter(state, roomId, peerId) as Promise<boolean>,
     removeSpeaker: (roomId: string, peerId: string) =>

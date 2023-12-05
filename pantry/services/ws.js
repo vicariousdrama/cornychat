@@ -1,6 +1,6 @@
 const WebSocket = require('ws');
 const querystring = require('querystring');
-const {get} = require('../services/redis');
+const {get, set, del} = require('../services/redis');
 const {ssrVerifyToken} = require('../ssr');
 
 module.exports = {
@@ -167,11 +167,12 @@ function handleConnection(ws, req) {
     console.log('ws error', error);
   });
 
-  function closeWs() {
+  async function closeWs() {
     clearInterval(interval);
     console.log('ws closed', roomId, peerId);
     removePeer(roomId, connection);
     unsubscribeAll(connection);
+    removeKeys(roomId, peerId);
 
     publish(roomId, 'remove-peer', {t: 'remove-peer', d: peerId});
     publishToServers({t: 'remove-peer', d: peerId, ro: roomId});
@@ -282,6 +283,30 @@ function removePeer(roomId, connection) {
   }
   console.log('all peers:', getPeers(roomId));
 }
+
+async function removeKeys(roomId, userId) {
+  const newRoomId = roomId + 'Keys';
+  const newUserId = userId.slice(0, -5);
+  const roomPeers = getPeers(roomId);
+  let roomsKeys = await get(newRoomId);
+
+  if (!roomsKeys) {
+    return;
+  }
+  const hasPrivateKeys = roomsKeys.hasOwnProperty(newUserId);
+
+  if (hasPrivateKeys) {
+    delete roomsKeys[`${newUserId}`];
+
+    if (roomPeers.length === 0) {
+      del(newRoomId);
+      return;
+    }
+
+    set(newRoomId, roomsKeys);
+  }
+}
+
 function getConnections(roomId) {
   let connections = roomConnections.get(roomId);
   if (connections === undefined) return [];

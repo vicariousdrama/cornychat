@@ -1,5 +1,6 @@
 const verifiers = {
   twitter: require('./twitter.js'),
+  nostr: require('./nostr.js'),
 };
 
 const verifyIdentities = async (identities, publicKey) => {

@@ -4,6 +4,8 @@ import animateEmoji from '../lib/animate-emoji';
 import {useMqParser} from '../lib/tailwind-mqp';
 import {colors} from '../lib/theme';
 import {MicOffSvg} from './Svg';
+import {openModal} from './Modal';
+import {InvoiceModal} from './Invoice';
 
 const reactionEmojis = ['❤️', '💯', '😂', '😅', '😳', '🤔'];
 
@@ -117,6 +119,11 @@ export function StageAvatar({
                 divClass="text-center"
                 fontClass="text-sm"
               />
+              <NostrHandle
+                info={info}
+                divClass="text-center"
+                fontClass="text-sm"
+              />
             </div>
           </div>
         </div>
@@ -138,47 +145,69 @@ export function AudienceAvatar({
   let {inRoom = null} = peerState || {};
   let reactions_ = reactions[peerId];
   info = info || {id: peerId};
+
+  const hasNostrIdentity = checkNostrIdentity(info.identities);
+
   return (
     inRoom && (
-      <li
-        title={displayName(info, room)}
-        className={mqp('flex-none m-2 w-16 h-32 md:w-24 md:h-36 text-xs')}
-        style={onClick ? {cursor: 'pointer'} : undefined}
-      >
-        <div className="relative flex justify-center">
-          <img
-            className={mqp(
-              'human-radius w-16 h-16 md:w-24 md:h-24 border border-gray-300 object-cover'
-            )}
-            alt={displayName(info, room)}
-            src={avatarUrl(info, room)}
-            onClick={onClick}
-          />
-          <Reactions
-            reactions={reactions_}
-            className={mqp(
-              'absolute bg-white text-4xl md:text-6xl pt-3 md:pt-4 human-radius w-16 h-16 md:w-24 md:h-24 border text-center'
-            )}
-          />
-          <div className={handRaised ? '' : 'hidden'}>
-            <div
+      <div>
+        <li
+          title={displayName(info, room)}
+          className={mqp('flex-none m-2 w-16 md:w-24 md:h-36 text-xs')}
+          style={onClick ? {cursor: 'pointer'} : undefined}
+        >
+          <div className="relative flex justify-center">
+            <img
               className={mqp(
-                'absolute w-9 h-9 top-0 left-0 md:top-0 md:left-0 rounded-full bg-white text-lg border-2 border-gray-400 flex items-center justify-center'
+                'human-radius w-16 h-16 md:w-24 md:h-24 border border-gray-300 object-cover'
               )}
-            >
-              ✋🏽
+              alt={displayName(info, room)}
+              src={avatarUrl(info, room)}
+              onClick={onClick}
+            />
+            <Reactions
+              reactions={reactions_}
+              className={mqp(
+                'absolute bg-white text-4xl md:text-6xl pt-3 md:pt-4 human-radius w-16 h-16 md:w-24 md:h-24 border text-center'
+              )}
+            />
+            <div className={handRaised ? '' : 'hidden'}>
+              <div
+                className={mqp(
+                  'absolute w-9 h-9 top-0 left-0 md:top-0 md:left-0 rounded-full bg-white text-lg border-2 border-gray-400 flex items-center justify-center'
+                )}
+              >
+                ✋🏽
+              </div>
             </div>
           </div>
-        </div>
-        <div className="overflow-hidden whitespace-nowrap text-center mt-2">
-          {displayName(info, room)}
-        </div>
-        <TwitterHandle
-          info={info}
-          divClass="text-center mt-1"
-          fontClass="text-xs"
-        />
-      </li>
+          <div className="overflow-hidden whitespace-nowrap text-center mt-2">
+            {displayName(info, room)}
+          </div>
+          <TwitterHandle
+            info={info}
+            divClass="text-center mt-1"
+            fontClass="text-xs"
+          />
+          <NostrHandle
+            info={info}
+            divClass="text-center mt-1"
+            fontClass="text-xs"
+          />
+        </li>
+        {hasNostrIdentity ? (
+          <div
+            className="flex justify-center cursor-pointer"
+            onClick={() => {
+              openModal(InvoiceModal, {info: info, room: room});
+            }}
+          >
+            <div className="w-6 h-6 rounded-full bg-yellow-200 flex items-center justify-center">
+              <span>⚡</span>
+            </div>
+          </div>
+        ) : null}
+      </div>
     )
   );
 }
@@ -207,6 +236,44 @@ function TwitterHandle({info, divClass, fontClass}) {
       </div>
     )
   );
+}
+
+function NostrHandle({info, divClass, fontClass}) {
+  let nostrIdentity = info?.identities?.find(i => i.type === 'nostr');
+  let shortId = nostrIdentity ? nostrIdentity.id.slice(0, 12) : null;
+  function sayHi() {
+    console.log('i want to zap you');
+  }
+  return (
+    (nostrIdentity?.id || null) && (
+      <div className={divClass}>
+        <span className={fontClass}>
+          {/* <span className="text-gray-800">@</span> */}
+          <a
+            className={
+              nostrIdentity.verificationInfo
+                ? 'text-blue-600 font-medium ml-1'
+                : 'text-gray-500 font-medium ml-1'
+            }
+            style={{textDecoration: 'none', fontWeight: 'normal'}}
+            href={'https://primal.net/p/' + nostrIdentity?.id}
+            target="_blank"
+            rel="noreferrer"
+          >
+            @{shortId + '...'}
+          </a>
+        </span>
+      </div>
+    )
+  );
+}
+
+function checkNostrIdentity(identities) {
+  const hasNostrIdentity = identities?.some(
+    identity => identity.type === 'nostr'
+  );
+
+  return hasNostrIdentity;
 }
 
 function Reactions({reactions, className}) {

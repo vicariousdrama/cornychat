@@ -41,7 +41,7 @@ services:
       - traefik.enable=true
     profiles: [ "metrics" ]
   ui:
-    image: registry.gitlab.com/jam-systems/jam/ui:${CHANNEL}
+    image: diamsa/ui:${CHANNEL}
     restart: always
     environment:
       - JAM_HOST
@@ -84,7 +84,7 @@ services:
       - recordings:/pantry-sfu/records
   pantry:
     #build: ../pantry
-    image: registry.gitlab.com/jam-systems/jam/pantry:${CHANNEL}
+    image: diamsa/pantry:${CHANNEL}
     restart: always
     depends_on:
       - pantryredis

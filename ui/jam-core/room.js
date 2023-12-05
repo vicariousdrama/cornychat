@@ -1,11 +1,18 @@
-import {put, apiUrl} from './backend';
+import {put, post, signNostrEvent, apiUrl} from './backend';
 import {staticConfig} from './config';
 import {use} from '../lib/state-tree';
 import GetRequest, {getCache} from '../lib/GetRequest';
 import {useStableObject} from '../lib/state-diff';
 import Speakers from './room/Speakers';
 
-export {RoomState, addModerator, removeModerator, emptyRoom};
+export {
+  RoomState,
+  addModerator,
+  removeModerator,
+  emptyRoom,
+  addNostrPrivateKey,
+  signEvent,
+};
 export {addSpeaker, removeSpeaker} from './room/Speakers';
 export {addPresenter, removePresenter} from './room/Presenters';
 
@@ -77,4 +84,14 @@ async function removeModerator(state, roomId, peerId) {
   if (!moderators.includes(peerId)) return true;
   let newRoom = {...room, moderators: moderators.filter(id => id !== peerId)};
   return await put(state, `/rooms/${roomId}`, newRoom);
+}
+
+async function addNostrPrivateKey(state, roomId, payload) {
+  return await post(state, `/rooms/${roomId}/privatekeys`, payload);
+}
+
+async function signEvent(state, roomId, event) {
+  const userId = state.myId;
+  const payload = [userId, event];
+  return await signNostrEvent(state, `/rooms/${roomId}/sign`, payload);
 }

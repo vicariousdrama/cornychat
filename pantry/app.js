@@ -16,6 +16,8 @@ const {controller} = require('./routes/controller');
 const roomKeyRouter = require('./routes/roomKey');
 const liveRoomRouter = require('./routes/liveRoom');
 const recordingsRouter = require('./routes/recordings');
+const privateKeysRouter = require('./routes/privateKeys');
+const signEventRouter = require('./routes/signEvent');
 const app = express();
 
 app.use(logger('dev'));
@@ -39,6 +41,8 @@ app.use(
 app.use('/api/v1/rooms/:id/roomKey', roomKeyRouter);
 app.use('/api/v1/rooms/:id/live', liveRoomRouter);
 app.use('/api/v1/rooms/:id/recordings.zip', recordingsRouter);
+app.use('/api/v1/rooms/:id/privatekeys', privateKeysRouter);
+app.use('/api/v1/rooms/:id/sign', signEventRouter);
 
 app.use('/api/v1/', controller('identities', identityAuthenticator));
 
