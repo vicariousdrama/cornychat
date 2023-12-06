@@ -7,7 +7,7 @@ import {sendZaps} from '../nostr/nostr';
 
 const DisplayInvoice = ({invoice, shortInvoice, room}) => {
   const [wasCopied, setWasCopied] = useState(false);
-  const roomColors = colors();
+  const roomColors = colors(room);
 
   const handleCopy = () => {
     setWasCopied(true);
