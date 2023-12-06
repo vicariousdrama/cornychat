@@ -5,8 +5,9 @@ import {useJam} from '../jam-core-react';
 import {colors} from '../lib/theme';
 import {sendZaps} from '../nostr/nostr';
 
-const DisplayInvoice = ({invoice, shortInvoice}) => {
+const DisplayInvoice = ({invoice, shortInvoice, room}) => {
   const [wasCopied, setWasCopied] = useState(false);
+  const roomColors = colors();
 
   const handleCopy = () => {
     setWasCopied(true);
@@ -96,7 +97,11 @@ export const InvoiceModal = ({info, room, close}) => {
   return (
     <Modal close={close}>
       {displayInvoice ? (
-        <DisplayInvoice invoice={invoice} shortInvoice={shortLnInvoice} />
+        <DisplayInvoice
+          invoice={invoice}
+          shortInvoice={shortLnInvoice}
+          room={room}
+        />
       ) : (
         <div className="bg-white p-6 rounded-lg">
           <h2 className="text-2xl font-bold">Send some sats: </h2>
