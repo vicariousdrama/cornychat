@@ -1,17 +1,32 @@
 const {RelayPool} = require('nostr-relaypool');
 const {nip19} = require('nostr-tools');
 
+function decodeNote(noteId) {
+  const note = nip19.decode(noteId);
+  const type = note.type;
+
+  if (type === 'nevent') {
+    return note.data.id;
+  }
+
+  if (type === 'note') {
+    return note.data;
+  }
+}
+
 const verify = (identity, publicKey) => {
   return new Promise((res, rej) => {
     try {
       const noteId = identity.verificationInfo;
       const nostrPubkey = nip19.decode(identity.id).data;
+      const isValidEvent =
+        noteId.startsWith('note') || noteId.startsWith('nevent');
 
-      if (!noteId.startsWith('note')) {
+      if (!isValidEvent) {
         throw new Error(`Invalid nostr noteId: ${identity.verificationInfo}`);
       }
 
-      const decodedNote = nip19.decode(noteId).data;
+      const decodedNote = decodeNote(noteId);
 
       const filter = [{ids: [decodedNote], authors: [nostrPubkey]}];
 
@@ -49,6 +64,7 @@ const verify = (identity, publicKey) => {
         {unsubscribeOnEose: true}
       );
     } catch (error) {
+      console.log(error);
       rej(error);
     }
   });
