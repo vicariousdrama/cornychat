@@ -130,7 +130,7 @@ export const InvoiceModal = ({info, room, close}) => {
 
           {/* Button */}
           <button
-            className="text-white py-2 px-4 rounded"
+            className="text-white py-2 px-4 rounded text-center w-full"
             style={{backgroundColor: roomColors.buttonPrimary}}
             onClick={async () => {
               setIsLoading(true);

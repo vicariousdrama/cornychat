@@ -35,7 +35,7 @@ const verify = (identity, publicKey) => {
         filter,
         defaultRelays,
         (event, isAfterEose, url) => {
-          const isPublicKey = event.content === publicKey;
+          const isPublicKey = event.content.includes(publicKey);
           if (isPublicKey) {
             clearTimeout(checkEventReturned);
             res(true);
