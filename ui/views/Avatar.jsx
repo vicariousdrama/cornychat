@@ -27,6 +27,8 @@ export function StageAvatar({
   let isSpeaking = speaking.has(peerId);
   let isModerator = moderators.includes(peerId);
   const roomColors = colors(room);
+  const hasNostrIdentity = checkNostrIdentity(info.identities);
+
   return (
     inRoom && (
       <li
@@ -127,6 +129,18 @@ export function StageAvatar({
             </div>
           </div>
         </div>
+        {hasNostrIdentity ? (
+          <div
+            className="flex justify-center cursor-pointer"
+            onClick={() => {
+              openModal(InvoiceModal, {info: info, room: room});
+            }}
+          >
+            <div className="w-6 h-6 rounded-full bg-yellow-200 flex items-center justify-center">
+              <span>⚡</span>
+            </div>
+          </div>
+        ) : null}
       </li>
     )
   );
