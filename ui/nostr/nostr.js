@@ -28,12 +28,14 @@ export async function signInExtension(
     }
 
     let name = metadata.name;
+    let avatar = metadata.picture;
     let identities = [{type: 'nostr', id: metadata.npub}];
 
     setProps({userInteracted: true});
     await updateInfo({
       name,
       identities,
+      avatar,
     });
     await enterRoom(roomId);
   } catch (error) {
@@ -98,6 +100,7 @@ export async function getUserMetadata(pubkey, relays, id) {
                 ? null
                 : userMetadata[0].display_name,
             id: id,
+            picture: userMetadata[0].picture,
             npub: npub,
             lud16: userMetadata[0].lud16,
             lud06: userMetadata[0].lud06,
@@ -155,10 +158,11 @@ export async function signInPrivateKey(
       await enterRoom(roomId);
     } else {
       const name = metadata.name;
+      const avatar = metadata.picture;
       const identities = [{type: 'nostr', id: metadata.npub}];
 
       setProps({userInteracted: true});
-      await updateInfo({name, identities});
+      await updateInfo({name, identities, avatar});
       await enterRoom(roomId);
     }
   } catch (error) {
@@ -213,8 +217,8 @@ export async function sendZaps(npub, comment, amount, state, signEvent) {
     }
 
     const lnInvoice = await getLNInvoice(
-      signedEvent.nostrEvent,
-      comment,
+      signedEvent[1],
+      lightningAddress,
       LnService,
       satsAmount
     );
@@ -224,6 +228,20 @@ export async function sendZaps(npub, comment, amount, state, signEvent) {
     console.log('There was an error: ', error);
     return [undefined, error];
   }
+}
+
+export async function openLNExtension(LNInvoice) {
+  await window.webln.enable();
+
+  const result = await window.webln.sendPayment(LNInvoice);
+
+  console.log('this is result: ', result);
+
+  return result;
+}
+
+export function setDefaultZapsAmount(amount) {
+  localStorage.setItem('defaultZap', amount);
 }
 
 async function getLNService(address) {
@@ -253,9 +271,9 @@ async function getLNService(address) {
   }
 }
 
-async function getLNInvoice(zapEvent, comment, LNService, amount) {
+async function getLNInvoice(zapEvent, lnAddress, LNService, amount) {
   let hasPubkey = LNService.nostrPubkey;
-
+  const encodedLnAddress = bech32.encode('lnurl', lnAddress);
   let baseUrl = `${LNService.callback}?amount=${amount}`;
 
   async function fetchInvoice(baseUrl) {
@@ -266,24 +284,12 @@ async function getLNInvoice(zapEvent, comment, LNService, amount) {
   }
 
   if (hasPubkey) {
-    if (comment !== '') {
-      baseUrl += `&comment=${comment}&nostr=${zapEvent}`;
-      const data = await fetchInvoice(baseUrl);
-      return data;
-    } else {
-      baseUrl += `&nostr=${zapEvent}`;
-      const data = await fetchInvoice(baseUrl);
-      return data;
-    }
+    baseUrl += `&nostr=${zapEvent}&lnurl=${encodedLnAddress}`;
+    const data = await fetchInvoice(baseUrl);
+    return data;
   } else {
-    if (comment !== '') {
-      baseUrl = `&comment=${comment}`;
-      const data = await fetchInvoice(baseUrl);
-      return data;
-    } else {
-      const data = await fetchInvoice(baseUrl);
-      return data;
-    }
+    const data = await fetchInvoice(baseUrl);
+    return data;
   }
 }
 
@@ -312,15 +318,18 @@ async function getZapEvent(content, receiver, amount, state, signEvent) {
     const EventSigned = await window.nostr.signEvent(event);
     if (!EventSigned)
       return [null, 'There was an error with your nostr extension'];
-
-    return [true, EventSigned];
+    const eventSignedEncoded = encodeURI(JSON.stringify(EventSigned));
+    return [true, eventSignedEncoded];
   }
 
   const signedEvent = await signEvent(state, state.roomId, event);
   const hasError = signedEvent.hasOwnProperty('error');
 
   if (hasError) return [null, signedEvent.error];
-  return [true, signedEvent];
+
+  const eventSignedEncoded = encodeURI(JSON.stringify(signedEvent.nostrEvent));
+
+  return [true, eventSignedEncoded];
 }
 
 function encryptPrivatekey(privateKey) {

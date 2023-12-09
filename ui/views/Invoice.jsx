@@ -3,7 +3,7 @@ import {QRCodeSVG} from 'qrcode.react';
 import {Modal} from './Modal';
 import {useJam} from '../jam-core-react';
 import {colors} from '../lib/theme';
-import {sendZaps} from '../nostr/nostr';
+import {sendZaps, openLNExtension} from '../nostr/nostr';
 
 const DisplayInvoice = ({invoice, shortInvoice, room}) => {
   const [wasCopied, setWasCopied] = useState(false);
@@ -52,10 +52,11 @@ export const InvoiceModal = ({info, room, close}) => {
   const npub = findNpub(info.identities);
   const shortLnInvoice = invoice.substring(0, 17);
 
-  function handleResult(result) {
+  async function handleResult(result) {
     const ok = result[0];
     const msgValue = result[1];
     if (ok) {
+      await openLNExtension(msgValue);
       setDisplayInvoice(true);
       setInvoice(msgValue);
     } else {
@@ -65,6 +66,15 @@ export const InvoiceModal = ({info, room, close}) => {
       setAmount('');
       setComment('');
     }
+  }
+
+  function handleDefaultZap() {
+    const defaultZap = localStorage.getItem('defaultZap');
+    if (!defaultZap) {
+      setDisplayError(true);
+      setErrorMsg('You have not set up a default zap amount');
+    }
+    setAmount(defaultZap);
   }
 
   const LoadingIcon = () => {
@@ -106,11 +116,47 @@ export const InvoiceModal = ({info, room, close}) => {
         <div className="bg-white p-6 rounded-lg">
           <h2 className="text-2xl font-bold">Send some sats: </h2>
 
+          <div className="flex mb-5 w-full justify-between">
+            <div className="mx-2 w-2/4">
+              <button
+                className="bg-blue-500 w-full text-white px-4 py-2 rounded-md m-2"
+                onClick={handleDefaultZap}
+              >
+                Default
+              </button>
+
+              <button
+                className="w-full text-black px-4 py-2 rounded-md m-2"
+                style={{backgroundColor: roomColors.buttonSecondary}}
+                onClick={() => setAmount('1000')}
+              >
+                1,000 sats
+              </button>
+            </div>
+
+            <div className="mx-2 w-2/4">
+              <button
+                className="w-full text-black px-4 py-2 rounded-md m-2"
+                style={{backgroundColor: roomColors.buttonSecondary}}
+                onClick={() => setAmount('10000')}
+              >
+                10,000 sats
+              </button>
+              <button
+                className="w-full text-black px-4 py-2 rounded-md m-2"
+                style={{backgroundColor: roomColors.buttonSecondary}}
+                onClick={() => setAmount('100000')}
+              >
+                100,000 sats
+              </button>
+            </div>
+          </div>
+
           {/* Input 1 */}
           <input
             type="number"
             className="w-full p-2 border border-gray-300 mb-4"
-            placeholder="Amount"
+            placeholder="Custom amount"
             value={amount}
             onChange={e => {
               setAmount(e.target.value);
@@ -141,7 +187,7 @@ export const InvoiceModal = ({info, room, close}) => {
                 state,
                 signEvent
               );
-              handleResult(result);
+              await handleResult(result);
             }}
           >
             {isLoading ? <LoadingIcon /> : 'Create Invoice'}

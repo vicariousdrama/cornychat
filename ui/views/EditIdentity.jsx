@@ -3,6 +3,8 @@ import {Modal} from './Modal';
 import {useMqParser} from '../lib/tailwind-mqp';
 import {use} from 'use-minimal-state';
 import {useJam} from '../jam-core-react';
+import {getUserMetadata, setDefaultZapsAmount} from '../nostr/nostr';
+import {nip19} from 'nostr-tools';
 
 function addTwitter(identities, handle, tweet) {
   if (!handle) return;
@@ -33,12 +35,56 @@ export default function EditIdentity({close}) {
   let nostrIdentity = info?.identities?.find(i => i.type === 'nostr');
   let [nostr, setNostr] = useState(nostrIdentity?.id);
   let [nostrInput, setNostrInput] = useState(nostrIdentity?.verificationInfo);
+  let [defaultZap, setDeafultZap] = useState(
+    localStorage.getItem('defaultZap') ?? ''
+  );
 
   let tweet = twitterIdentity?.verificationInfo;
   let nostrNote = nostrIdentity?.verificationInfo;
 
   const [showTwitterVerify, setShowTwitterVerify] = useState(false);
   const [showNostrVerify, setShowNostrVerify] = useState(false);
+
+  const processFile = file => {
+    return new Promise((res, rej) => {
+      try {
+        let reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onloadend = async () => {
+          e.preventDefault();
+          let avatar = reader.result;
+          res(avatar);
+        };
+      } catch (error) {
+        console.log('There was an error with the image');
+        rej(undefined);
+      }
+    });
+  };
+
+  const updateValues = async (file, identities) => {
+    if (file) {
+      const avatar = await processFile(file);
+      if (!avatar) return;
+      const ok = await updateInfo({name, avatar, identities});
+      if (ok) close();
+    } else {
+      if (nostr) {
+        const pubkey = nip19.decode(nostr).data;
+        const metadata = await getUserMetadata(pubkey, [], null);
+        if (!metadata) {
+          const ok = await updateInfo({name, identities});
+          if (ok) close();
+        }
+        const avatar = metadata.picture;
+        let ok = await updateInfo({name, identities, avatar});
+        if (ok) close();
+      } else {
+        let ok = await updateInfo({name, identities});
+        if (ok) close();
+      }
+    }
+  };
 
   let submit = async e => {
     e.preventDefault();
@@ -47,27 +93,19 @@ export default function EditIdentity({close}) {
     addTwitter(identities, twitter, tweetInput);
     addNostr(identities, nostr, nostrInput);
 
-    let selectedFile = document.querySelector('.edit-profile-file-input')
+    const selectedFile = document.querySelector('.edit-profile-file-input')
       .files[0];
 
-    if (selectedFile) {
-      let reader = new FileReader();
-      reader.readAsDataURL(selectedFile);
-      reader.onloadend = async () => {
-        e.preventDefault();
-        let avatar = reader.result;
-        let ok = await updateInfo({name, avatar, identities});
-        if (ok) close();
-      };
-    } else {
-      let ok = await updateInfo({name, identities});
-      if (ok) close();
-    }
+    setDefaultZapsAmount(defaultZap);
+
+    await updateValues(selectedFile, identities);
   };
+
   let cancel = e => {
     e.preventDefault();
     close();
   };
+
   return (
     <Modal close={close}>
       <h1>Edit Profile</h1>
@@ -198,6 +236,7 @@ export default function EditIdentity({close}) {
             setNostr(e.target.value);
           }}
         />
+
         <span className="text-gray-500">
           {/* heroicons/fingerprint */}
           <svg
@@ -237,6 +276,21 @@ export default function EditIdentity({close}) {
 
         <div className="p-2 text-gray-500 italic">
           {`Set your nostr npub`}
+          <span className="text-gray-300"> (optional)</span>
+          <br />
+        </div>
+
+        <input
+          className="rounded placeholder-gray-400 bg-gray-50 w-48"
+          type="text"
+          placeholder="10000"
+          value={defaultZap ?? ''}
+          onChange={e => {
+            setDeafultZap(e.target.value);
+          }}
+        />
+        <div className="p-2 text-gray-500 italic">
+          {`Set up a default zap amount`}
           <span className="text-gray-300"> (optional)</span>
           <br />
         </div>
