@@ -3,6 +3,7 @@ import {RelayPool} from 'nostr-relaypool';
 import {nanoid} from 'nanoid';
 import crypto from 'crypto-js';
 import {bech32} from 'bech32';
+import {Buffer} from 'buffer';
 
 export async function signInExtension(
   id,
@@ -231,10 +232,14 @@ export async function sendZaps(npub, comment, amount, state, signEvent) {
 }
 
 export async function openLNExtension(LNInvoice) {
-  if (!window.webln) return undefined;
-  await window.webln.enable();
-  const result = await window.webln.sendPayment(LNInvoice);
-  return result;
+  try {
+    if (!window.webln) return undefined;
+    await window.webln.enable();
+    const result = await window.webln.sendPayment(LNInvoice);
+    return result;
+  } catch (error) {
+    return undefined;
+  }
 }
 
 export function setDefaultZapsAmount(amount) {
@@ -268,9 +273,10 @@ async function getLNService(address) {
   }
 }
 
-async function getLNInvoice(zapEvent, lnAddress, LNService, amount) {
+async function getLNInvoice(zapEvent, lightningAddress, LNService, amount) {
   let hasPubkey = LNService.nostrPubkey;
-  const encodedLnAddress = bech32.encode('lnurl', lnAddress);
+  const dataBytes = Buffer.from(lightningAddress, 'utf-8');
+  const lnurlEncoded = bech32.encode('lnurl', bech32.toWords(dataBytes));
   let baseUrl = `${LNService.callback}?amount=${amount}`;
 
   async function fetchInvoice(baseUrl) {
@@ -281,7 +287,7 @@ async function getLNInvoice(zapEvent, lnAddress, LNService, amount) {
   }
 
   if (hasPubkey) {
-    baseUrl += `&nostr=${zapEvent}&lnurl=${encodedLnAddress}`;
+    baseUrl += `&nostr=${zapEvent}&lnurl=${lnurlEncoded}`;
     const data = await fetchInvoice(baseUrl);
     return data;
   } else {

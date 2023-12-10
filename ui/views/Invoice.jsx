@@ -56,7 +56,12 @@ export const InvoiceModal = ({info, room, close}) => {
     const ok = result[0];
     const msgValue = result[1];
     if (ok) {
-      await openLNExtension(msgValue);
+      const response = await openLNExtension(msgValue);
+
+      if (response?.preimage) {
+        close();
+        return;
+      }
       setDisplayInvoice(true);
       setInvoice(msgValue);
     } else {
