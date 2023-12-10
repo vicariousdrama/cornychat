@@ -282,7 +282,7 @@ export default function EditIdentity({close}) {
 
         <input
           className="rounded placeholder-gray-400 bg-gray-50 w-48"
-          type="text"
+          type="number"
           placeholder="10000"
           value={defaultZap ?? ''}
           onChange={e => {

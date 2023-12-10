@@ -41,6 +41,7 @@ type RoomType = {
   videoCall?: boolean;
   color?: string;
   logoURI?: string;
+  backgroundURI?: string;
   access?: AccessType;
 };
 type PeerState = {

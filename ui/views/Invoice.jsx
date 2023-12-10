@@ -119,14 +119,14 @@ export const InvoiceModal = ({info, room, close}) => {
           <div className="flex mb-5 w-full justify-between">
             <div className="mx-2 w-2/4">
               <button
-                className="bg-blue-500 w-full text-white px-4 py-2 rounded-md m-2"
+                className="bg-blue-500 w-full text-sm text-white px-4 py-2 rounded-md m-2"
                 onClick={handleDefaultZap}
               >
                 Default
               </button>
 
               <button
-                className="w-full text-black px-4 py-2 rounded-md m-2"
+                className="w-full text-black text-sm px-4 py-2 rounded-md m-2"
                 style={{backgroundColor: roomColors.buttonSecondary}}
                 onClick={() => setAmount('1000')}
               >
@@ -136,14 +136,14 @@ export const InvoiceModal = ({info, room, close}) => {
 
             <div className="mx-2 w-2/4">
               <button
-                className="w-full text-black px-4 py-2 rounded-md m-2"
+                className="w-full text-black text-sm px-4 py-2 rounded-md m-2"
                 style={{backgroundColor: roomColors.buttonSecondary}}
                 onClick={() => setAmount('10000')}
               >
                 10,000 sats
               </button>
               <button
-                className="w-full text-black px-4 py-2 rounded-md m-2"
+                className="w-full text-black text-sm px-4 py-2 rounded-md m-2"
                 style={{backgroundColor: roomColors.buttonSecondary}}
                 onClick={() => setAmount('100000')}
               >

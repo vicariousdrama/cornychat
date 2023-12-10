@@ -231,12 +231,9 @@ export async function sendZaps(npub, comment, amount, state, signEvent) {
 }
 
 export async function openLNExtension(LNInvoice) {
+  if (!window.webln) return undefined;
   await window.webln.enable();
-
   const result = await window.webln.sendPayment(LNInvoice);
-
-  console.log('this is result: ', result);
-
   return result;
 }
 

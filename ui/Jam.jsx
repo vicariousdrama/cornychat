@@ -91,26 +91,44 @@ function JamUI({style, className, route = null, dynamicConfig = {}, ...props}) {
   // => color should be only set here if the route is not a room id, otherwise <PossibleRoom> should set it
   // => pass a setColor prop to PossibleRoom
   let {buttonPrimary} = colors(use(state, 'room'));
+  let backgroundImg = state.room?.backgroundURI;
   let [width, , setContainer, mqp] = useProvideWidth();
-  let backgroundColor = useMemo(
-    () =>
-      buttonPrimary && buttonPrimary !== '#4B5563'
-        ? hexToRGB(buttonPrimary, '0.123')
-        : undefined,
-    [buttonPrimary]
-  );
+
+  let backgroundRoom = useMemo(() => {
+    if (backgroundImg && backgroundImg !== '') {
+      return {
+        position: 'relative',
+        height: '100vh',
+        minHeight: '-webkit-fill-available',
+        backgroundImage: `url(${backgroundImg})`,
+        backgroundRepeat: 'repeat',
+        ...(style || null),
+      };
+    }
+
+    if (buttonPrimary && buttonPrimary !== '#4B5563') {
+      return {
+        position: 'relative',
+        height: '100vh',
+        minHeight: '-webkit-fill-available',
+        background: hexToRGB(buttonPrimary, '0.123'),
+        ...(style || null),
+      };
+    }
+
+    return {
+      position: 'relative',
+      height: '100vh',
+      minHeight: '-webkit-fill-available',
+      background: 'rgb(250, 245, 239)',
+    };
+  }, [buttonPrimary, backgroundImg]);
 
   return (
     <div
       ref={el => setContainer(el)}
       className={mqp(mergeClasses('jam sm:pt-12', className), width)}
-      style={{
-        position: 'relative',
-        height: '100%',
-        minHeight: '-webkit-fill-available',
-        backgroundColor,
-        ...(style || null),
-      }}
+      style={backgroundRoom}
       {...props}
     >
       <WidthContext.Provider value={width}>

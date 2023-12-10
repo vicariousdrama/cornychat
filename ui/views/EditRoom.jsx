@@ -15,6 +15,7 @@ export function EditRoomModal({roomId, room, close}) {
   let [description, setDescription] = useState(room.description || '');
   let [color, setColor] = useState(room.color || '#4B5563');
   let [logoURI, setLogoURI] = useState(room.logoURI || '');
+  let [backgroundURI, setBackgroundURI] = useState(room.backgroundURI || '');
   let [buttonURI, setButtonURI] = useState(room.buttonURI || '');
   let [buttonText, setButtonText] = useState(room.buttonText || '');
   let [closed, setClosed] = useState(room.closed || false);
@@ -64,6 +65,7 @@ export function EditRoomModal({roomId, room, close}) {
       description,
       color,
       logoURI,
+      backgroundURI,
       buttonURI,
       buttonText,
       closed,
@@ -175,7 +177,23 @@ export function EditRoomModal({roomId, room, close}) {
                 Set the URI for your logo.{' '}
                 <span className="text-gray-400">(optional)</span>
               </div>
-
+              <br />
+              <input
+                className={mqp(
+                  'rounded placeholder-gray-300 bg-gray-50 w-full md:w-full'
+                )}
+                type="text"
+                placeholder="Background Image URI"
+                value={backgroundURI}
+                name="room background image URI"
+                onChange={e => {
+                  setBackgroundURI(e.target.value);
+                }}
+              ></input>
+              <div className="p-2 text-gray-500 italic">
+                Set the URI of an image for your room's background.{' '}
+                <span className="text-gray-400">(optional)</span>
+              </div>
               <br />
               <input
                 className="rounded w-44 h-12"
