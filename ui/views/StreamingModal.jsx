@@ -1,6 +1,5 @@
 import React from 'react';
 import {Modal} from './Modal';
-import {SecondaryButton} from './Button';
 import {LabeledInput, useFileInput} from './Input';
 import {set} from 'use-minimal-state';
 import {useJam} from '../jam-core-react';

@@ -1,7 +1,6 @@
 import React, {useState} from 'react';
 import {use} from 'use-minimal-state';
 import EditRole, {EditSelf} from './EditRole';
-import {useWidth} from '../lib/tailwind-mqp';
 import {colors, isDark} from '../lib/theme';
 import {MicOffSvg, MicOnSvg} from './Svg';
 import {useJam} from '../jam-core-react';

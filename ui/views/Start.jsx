@@ -1,5 +1,4 @@
 import React from 'react';
-
 import {navigate} from '../lib/use-location';
 import {useJam} from '../jam-core-react';
 import {colors, isDark} from '../lib/theme';

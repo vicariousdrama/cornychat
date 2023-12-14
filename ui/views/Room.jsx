@@ -2,8 +2,6 @@ import React, {useState, useMemo} from 'react';
 import {use} from 'use-minimal-state';
 import EnterRoom from './EnterRoom';
 import RoomHeader from './RoomHeader';
-import {openModal} from './Modal';
-import {EditRoomModal} from './EditRoom';
 import useWakeLock from '../lib/use-wake-lock';
 import {AudienceAvatar, StageAvatar} from './Avatar';
 import {useMqParser} from '../lib/tailwind-mqp';
@@ -80,10 +78,6 @@ export default function Room({room, roomId, uxConfig}) {
     shareUrl,
   } = room || {};
 
-  let mqp = useMqParser();
-
-  let width = useWidth();
-
   if (!iMayEnter) {
     return <EnterRoom roomId={roomId} name={name} forbidden={true} />;
   }
@@ -130,11 +124,6 @@ export default function Room({room, roomId, uxConfig}) {
         <RoomHeader
           colors={roomColor}
           {...{name, description, logoURI, buttonURI, buttonText, audience}}
-          editRoom={
-            iModerate &&
-            (() => openModal(EditRoomModal, {roomId, room, roomColor}))
-          }
-          closeRoom={closed}
         />
       </div>
 

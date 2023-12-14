@@ -1,5 +1,7 @@
 import React, {useState} from 'react';
 import {use} from 'use-minimal-state';
+import ReactMarkdown from 'react-markdown';
+import gfm from 'remark-gfm';
 import {useMqParser, useWidth} from '../lib/tailwind-mqp';
 import {useJam} from '../jam-core-react';
 import {colors, isDark} from '../lib/theme.js';
@@ -126,7 +128,12 @@ export default function EnterRoom({
         )}
         <div className="text-center my-3">
           <p className="text-xl">{name}</p>
-          <p className="text-gray-600 text-sm">{description}</p>
+
+          <div className="text-gray-600 text-sm">
+            <ReactMarkdown className="text-sm opacity-70" plugins={[gfm]}>
+              {description || ''}
+            </ReactMarkdown>
+          </div>
         </div>
 
         <button
