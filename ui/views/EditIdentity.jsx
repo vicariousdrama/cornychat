@@ -5,6 +5,7 @@ import {use} from 'use-minimal-state';
 import {useJam} from '../jam-core-react';
 import {getUserMetadata, setDefaultZapsAmount} from '../nostr/nostr';
 import {nip19} from 'nostr-tools';
+import {isDark, colors} from '../lib/theme';
 
 function addTwitter(identities, handle, tweet) {
   if (!handle) return;
@@ -105,6 +106,9 @@ export default function EditIdentity({close}) {
     e.preventDefault();
     close();
   };
+
+  const colorTheme = state.room?.color ?? 'default';
+  const roomColor = colors(colorTheme);
 
   return (
     <Modal close={close}>
@@ -335,7 +339,13 @@ export default function EditIdentity({close}) {
         <div className="flex">
           <button
             onClick={submit}
-            className="flex-grow mt-5 h-12 px-6 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600 mr-2"
+            className="flex-grow mt-5 h-12 px-6 text-lg rounded-lg"
+            style={{
+              color: isDark(roomColor.buttons.primary)
+                ? roomColor.text.light
+                : roomColor.text.dark,
+              backgroundColor: roomColor.buttons.primary,
+            }}
           >
             Done
           </button>

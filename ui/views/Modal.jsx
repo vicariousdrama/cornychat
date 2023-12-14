@@ -17,26 +17,26 @@ export function Modal({close, children}) {
   let mqp = useMqParser();
   return (
     <div
-      className={mqp('p-0 sm:p-5 items-stretch sm:items-center')}
+      className={mqp('items-stretch sm:items-center')}
       style={{
         position: 'absolute',
+        justifyContent: 'end',
         zIndex: '10',
         top: '0',
         left: '0',
         height: '100%',
+        backdropFilter: 'blur(5px)',
         width: '100%',
-        backgroundColor: '#00000033',
         display: 'flex',
       }}
       onClick={close}
     >
       <div
-        className={mqp('relative p-1 pt-10 pb-10 sm:rounded-xl')}
+        className={mqp('relative p-1 pt-10 pb-10')}
         style={{
           flex: 'none',
           display: 'flex',
           flexDirection: 'column',
-          margin: '0 auto',
           width: useMediaQuery('sm', '100%', '640px'),
           maxWidth: '100%',
           maxHeight: '100%',
@@ -48,10 +48,7 @@ export function Modal({close, children}) {
         }}
       >
         <div className="absolute top-2 right-2">
-          <div
-            onClick={close}
-            style={{padding: '0.75rem', borderRadius: '50%', cursor: 'pointer'}}
-          >
+          <div onClick={close} style={{padding: '0.75rem', cursor: 'pointer'}}>
             <CloseSvg />
           </div>
         </div>

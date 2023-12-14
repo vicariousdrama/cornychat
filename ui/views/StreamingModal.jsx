@@ -1,9 +1,10 @@
 import React from 'react';
 import {Modal} from './Modal';
-import {PrimaryButton, SecondaryButton} from './Button';
+import {SecondaryButton} from './Button';
 import {LabeledInput, useFileInput} from './Input';
 import {set} from 'use-minimal-state';
 import {useJam} from '../jam-core-react';
+import {isDark, colors} from '../lib/theme';
 
 export default function StreamingModal({close}) {
   // let [urlValue, urlInput] = useInput();
@@ -15,6 +16,9 @@ export default function StreamingModal({close}) {
     set(state, 'audioFile', {file, name: file.name});
     close();
   };
+
+  const colorTheme = state.room?.color ?? 'default';
+  const roomColor = colors(colorTheme);
   return (
     <Modal close={close}>
       <h1>Stream audio</h1>
@@ -36,12 +40,24 @@ export default function StreamingModal({close}) {
         />
         <br /> */}
         <div className="spaced-w-2 flex">
-          <PrimaryButton onClick={submit} className="flex-grow">
+          <button
+            onClick={submit}
+            className="flex-grow mt-5 h-12 px-6 text-lg rounded-lg mr-2"
+            style={{
+              color: isDark(roomColor.buttons.primary)
+                ? roomColor.text.light
+                : roomColor.text.dark,
+              backgroundColor: roomColor.buttons.primary,
+            }}
+          >
             Stream
-          </PrimaryButton>
-          <SecondaryButton light className="flex-none" onClick={close}>
+          </button>
+          <button
+            onClick={close}
+            className="mt-5 h-12 px-6 text-lg text-black bg-gray-100 rounded-lg"
+          >
             Cancel
-          </SecondaryButton>
+          </button>
         </div>
       </form>
     </Modal>

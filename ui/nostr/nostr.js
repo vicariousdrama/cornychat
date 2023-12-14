@@ -214,7 +214,13 @@ export async function sendZaps(npub, comment, amount, state, signEvent) {
     );
 
     if (!signedEvent[0]) {
-      throw new Error(signedEvent[1]);
+      const lnInvoice = await getLNInvoice(
+        null,
+        lightningAddress,
+        LnService,
+        satsAmount
+      );
+      return [true, lnInvoice.pr];
     }
 
     const lnInvoice = await getLNInvoice(

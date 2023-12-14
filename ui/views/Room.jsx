@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useMemo} from 'react';
 import {use} from 'use-minimal-state';
 import EnterRoom from './EnterRoom';
 import RoomHeader from './RoomHeader';
@@ -7,7 +7,7 @@ import {EditRoomModal} from './EditRoom';
 import useWakeLock from '../lib/use-wake-lock';
 import {AudienceAvatar, StageAvatar} from './Avatar';
 import {useMqParser} from '../lib/tailwind-mqp';
-import Container from './Container';
+import {useWidth} from '../lib/tailwind-mqp';
 import Navigation from './Navigation';
 import {userAgent} from '../lib/user-agent';
 import {colors} from '../lib/theme.js';
@@ -62,6 +62,9 @@ export default function Room({room, roomId, uxConfig}) {
 
   let [editRole, setEditRole] = useState(null);
   let [editSelf, setEditSelf] = useState(false);
+  const [audience, setAudience] = useState(state.peers.length);
+
+  useMemo(() => setAudience(state.peers.length), [state.peers]);
 
   let {
     name,
@@ -79,6 +82,8 @@ export default function Room({room, roomId, uxConfig}) {
 
   let mqp = useMqParser();
 
+  let width = useWidth();
+
   if (!iMayEnter) {
     return <EnterRoom roomId={roomId} name={name} forbidden={true} />;
   }
@@ -90,10 +95,7 @@ export default function Room({room, roomId, uxConfig}) {
         name={name}
         description={description}
         schedule={schedule}
-        logoURI={logoURI}
         closed={closed}
-        buttonURI={buttonURI}
-        buttonText={buttonText}
       />
     );
   }
@@ -105,7 +107,6 @@ export default function Room({room, roomId, uxConfig}) {
         name={name}
         description={description}
         schedule={schedule}
-        logoURI={logoURI}
       />
     );
   }
@@ -120,11 +121,26 @@ export default function Room({room, roomId, uxConfig}) {
 
   let {noLeave} = uxConfig;
 
+  const colorTheme = state.room?.color ?? 'default';
+  const roomColor = colors(colorTheme);
+
   return (
-    <Container style={{display: 'flex', flexDirection: 'column'}}>
+    <div className="h-screen w-screen flex flex-col justify-between">
+      <div>
+        <RoomHeader
+          colors={roomColor}
+          {...{name, description, logoURI, buttonURI, buttonText, audience}}
+          editRoom={
+            iModerate &&
+            (() => openModal(EditRoomModal, {roomId, room, roomColor}))
+          }
+          closeRoom={closed}
+        />
+      </div>
+
       <div
-        className={mqp('flex flex-col pt-2 md:pt-10 md:p-10')}
-        style={{flex: '1', overflowY: 'auto', minHeight: '0'}}
+        className="h-full my-5 overflow-y-scroll"
+        // className={mqp('flex flex-col justify-between pt-2 md:pt-10 md:p-10')}
       >
         <div
           className={
@@ -133,7 +149,6 @@ export default function Room({room, roomId, uxConfig}) {
               : 'hidden'
           }
         >
-          {/*  heroicons/exclamation-circle */}
           <svg
             className="w-5 h-5 inline mr-2 -mt-1"
             xmlns="http://www.w3.org/2000/svg"
@@ -161,40 +176,9 @@ export default function Room({room, roomId, uxConfig}) {
           </a>
           .
         </div>
-        <div
-          className={
-            closed
-              ? 'rounded bg-blue-50 border border-blue-150 text-gray-600 ml-2 p-3 mb-3 inline text-center'
-              : 'hidden'
-          }
-        >
-          {/*  heroicons/exclamation-circle */}
-          <svg
-            className="w-5 h-5 inline mr-2 -mt-1"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          Room is closed
-        </div>
-        <RoomHeader
-          colors={colors(room)}
-          {...{name, description, logoURI, buttonURI, buttonText}}
-          editRoom={
-            iModerate && (() => openModal(EditRoomModal, {roomId, room}))
-          }
-        />
 
         {/* Main Area */}
-        <div className="">
+        <div className="h-full w-11/12 rounded-lg mx-auto ">
           {/* Stage */}
           <div className="">
             <ol className="flex flex-wrap">
@@ -206,7 +190,6 @@ export default function Room({room, roomId, uxConfig}) {
                   canSpeak={!hasMicFailed}
                   peerState={myPeerState}
                   info={myInfo}
-                  onClick={() => setEditSelf(true)}
                 />
               )}
               {stagePeers.map(peerId => (
@@ -227,9 +210,6 @@ export default function Room({room, roomId, uxConfig}) {
           {/* Audience */}
           {!stageOnly && (
             <>
-              <h3 className="pl-4 pb-4" style={{color: colors(room).textLight}}>
-                Audience
-              </h3>
               <ol className="flex flex-wrap">
                 {!iSpeak && (
                   <AudienceAvatar
@@ -238,7 +218,6 @@ export default function Room({room, roomId, uxConfig}) {
                     peerState={myPeerState}
                     info={myInfo}
                     handRaised={handRaised}
-                    onClick={() => setEditSelf(true)}
                   />
                 )}
                 {audiencePeers.map(peerId => (
@@ -255,21 +234,17 @@ export default function Room({room, roomId, uxConfig}) {
             </>
           )}
         </div>
-
-        <div style={{height: '136px', flex: 'none'}} />
       </div>
 
       <Navigation
         {...{
-          roomId,
           room,
           editRole,
           setEditRole,
           editSelf,
           setEditSelf,
-          noLeave,
         }}
       />
-    </Container>
+    </div>
   );
 }

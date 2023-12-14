@@ -90,7 +90,9 @@ function JamUI({style, className, route = null, dynamicConfig = {}, ...props}) {
   // TODO: the color should depend on the loading state of GET /room, to not flash orange before being in the room
   // => color should be only set here if the route is not a room id, otherwise <PossibleRoom> should set it
   // => pass a setColor prop to PossibleRoom
-  let {buttonPrimary} = colors(use(state, 'room'));
+
+  let colorTheme = use(state, 'room')?.color ?? 'default';
+  let roomColors = colors(colorTheme);
   let backgroundImg = state.room?.backgroundURI;
   let [width, , setContainer, mqp] = useProvideWidth();
 
@@ -106,28 +108,18 @@ function JamUI({style, className, route = null, dynamicConfig = {}, ...props}) {
       };
     }
 
-    if (buttonPrimary && buttonPrimary !== '#4B5563') {
-      return {
-        position: 'relative',
-        height: '100vh',
-        minHeight: '-webkit-fill-available',
-        background: hexToRGB(buttonPrimary, '0.123'),
-        ...(style || null),
-      };
-    }
-
     return {
       position: 'relative',
       height: '100vh',
       minHeight: '-webkit-fill-available',
-      background: 'rgb(250, 245, 239)',
+      background: roomColors.background,
     };
-  }, [buttonPrimary, backgroundImg]);
+  }, [colorTheme, backgroundImg]);
 
   return (
     <div
       ref={el => setContainer(el)}
-      className={mqp(mergeClasses('jam sm:pt-12', className), width)}
+      className={mqp(mergeClasses('jam', className), width)}
       style={backgroundRoom}
       {...props}
     >
@@ -140,18 +132,6 @@ function JamUI({style, className, route = null, dynamicConfig = {}, ...props}) {
 }
 
 const emptyObject = {};
-
-function hexToRGB(hex, alpha) {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-
-  if (alpha) {
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  } else {
-    return `rgb(${r}, ${g}, ${b})`;
-  }
-}
 
 function ShowModals() {
   declare(ShowAudioPlayerToast);

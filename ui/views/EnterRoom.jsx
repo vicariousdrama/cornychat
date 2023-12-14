@@ -1,10 +1,8 @@
 import React, {useState} from 'react';
 import {use} from 'use-minimal-state';
-import {useMqParser} from '../lib/tailwind-mqp';
-import Container from './Container';
-import RoomHeader from './RoomHeader';
+import {useMqParser, useWidth} from '../lib/tailwind-mqp';
 import {useJam} from '../jam-core-react';
-import {colors} from '../lib/theme.js';
+import {colors, isDark} from '../lib/theme.js';
 import {signInExtension, signInPrivateKey} from '../nostr/nostr';
 
 const iOS =
@@ -20,9 +18,6 @@ export default function EnterRoom({
   schedule,
   closed,
   forbidden,
-  buttonURI,
-  buttonText,
-  logoURI,
 }) {
   const [
     state,
@@ -34,7 +29,16 @@ export default function EnterRoom({
   let [nostrPrivateKey, setNostrPrivateKey] = React.useState('');
   let [loadingExtension, setLoadingExtension] = useState(false);
   let [loadingNsec, setLoadingNsec] = useState(false);
-  const roomColors = colors(room);
+  let width = useWidth();
+  let leftColumn = width < 720 ? 'hidden' : 'w-full';
+  let rightColum =
+    width < 720 ? 'w-full bg-white p-10' : 'w-9/12 bg-white p-10';
+  const colorTheme = room?.color ?? 'default';
+  const roomColor = colors(colorTheme);
+
+  const textColor = isDark(roomColor.buttons.primary)
+    ? roomColor.text.light
+    : roomColor.text.dark;
 
   const LoadingIcon = () => {
     return (
@@ -91,20 +95,12 @@ export default function EnterRoom({
   };
 
   return (
-    <Container>
-      <div className={mqp('p-2 pt-60 md:p-10 md:pt-60')}>
-        <RoomHeader
-          colors={roomColors}
-          {...{name, description, logoURI, buttonURI, buttonText}}
-        />
-        {/*
-            optional (for future events:)
-            when is this event?
-        */}
-        <p className="hidden pt-4 pb-4">
-          🗓 February 3rd 2021 at ⌚️ 14:06 (Vienna Time)
-        </p>
-        {/* warning if peer is in the same room on another device */}
+    <div className="flex h-screen">
+      <div
+        className={leftColumn}
+        style={{backgroundColor: roomColor.background, opacity: '90%'}}
+      ></div>
+      <div className={rightColum}>
         {otherDevice && (
           <div
             className={
@@ -128,20 +124,11 @@ export default function EnterRoom({
             You are not allowed to enter this room. Move along!
           </div>
         )}
+        <div className="text-center my-3">
+          <p className="text-xl">{name}</p>
+          <p className="text-gray-600 text-sm">{description}</p>
+        </div>
 
-        {/*
-            button for entering this room
-            for now this is possible without
-
-            * auth
-            * without picking a name
-            * without access to microphone
-
-            think: "Tasty Strawberry" (Google Docs et al)
-            this makes it easy to join and tune in less intimate (identity)
-            but a decent baseline. we can add other rules (informal + formal)
-            in the future
-        */}
         <button
           onClick={() => {
             setProps({userInteracted: true});
@@ -153,8 +140,8 @@ export default function EnterRoom({
               : 'mt-5 select-none w-full h-12 px-6 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
           }
           style={{
-            backgroundColor: roomColors.buttonPrimary,
-            color: roomColors.background,
+            backgroundColor: roomColor.buttons.primary,
+            color: textColor,
           }}
         >
           Join
@@ -169,8 +156,8 @@ export default function EnterRoom({
               : 'mt-5 select-none w-full h-12 px-6 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
           }
           style={{
-            backgroundColor: roomColors.buttonPrimary,
-            color: roomColors.background,
+            backgroundColor: roomColor.buttons.primary,
+            color: textColor,
           }}
         >
           {loadingExtension ? <LoadingIcon /> : 'Join with nostr extension'}
@@ -178,6 +165,7 @@ export default function EnterRoom({
         <div className="my-3 w-full text-center">
           <p>Or</p>
         </div>
+
         <div className="flex w-full justify-between">
           <input
             className={mqp(
@@ -196,17 +184,20 @@ export default function EnterRoom({
             onClick={() => {
               handlerSignIn('nsec');
             }}
-            className="select-none px-5 h-12 text-lg text-white bg-gray-600  focus:shadow-outline active:bg-gray-600"
+            className="select-none px-5 h-12 text-lg text-white focus:shadow-outline"
+            style={{
+              backgroundColor: roomColor.buttons.primary,
+              color: textColor,
+            }}
           >
             {loadingNsec ? <LoadingIcon /> : 'Join'}
           </button>
         </div>
         <div className="my-3 w-full text-center">
-          <p className="text-sm">
+          <p className="text-gray-600 text-sm">
             Your private key is going to be deleted once you leave the room.
           </p>
         </div>
-
         <a
           className={
             schedule
@@ -219,13 +210,13 @@ export default function EnterRoom({
           🗓 Add to Calendar
         </a>
 
-        <div className={iOS ? 'mt-40 text-gray-500 text-center' : 'hidden'}>
+        <div className={iOS ? 'mt-40 text-gray-800 text-center' : 'hidden'}>
           🎧 Use headphones or earbuds
           <br />
           for the best audio experience on iOS
         </div>
 
-        <div className={macOS ? 'mt-40 text-gray-500 text-center' : 'hidden'}>
+        <div className={macOS ? 'mt-40 text-gray-800 text-center' : 'hidden'}>
           🎧 Use Chrome or Firefox instead of Safari
           <br />
           for the best audio experience on macOS
@@ -241,6 +232,6 @@ export default function EnterRoom({
           🗓 Add this to my calendar
         </button>
       </div>
-    </Container>
+    </div>
   );
 }

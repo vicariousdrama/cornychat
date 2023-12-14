@@ -3,8 +3,9 @@ import {useMqParser} from '../lib/tailwind-mqp';
 import {Modal} from './Modal';
 import {rawTimeZones} from '@vvo/tzdb';
 import {useJam} from '../jam-core-react';
+import {colorThemes, isDark} from '../lib/theme';
 
-export function EditRoomModal({roomId, room, close}) {
+export function EditRoomModal({roomId, room, roomColor, close}) {
   const [, {updateRoom}] = useJam();
 
   let submitUpdate = async partialRoom => {
@@ -13,7 +14,7 @@ export function EditRoomModal({roomId, room, close}) {
 
   let [name, setName] = useState(room.name || '');
   let [description, setDescription] = useState(room.description || '');
-  let [color, setColor] = useState(room.color || '#4B5563');
+  let [color, setColor] = useState(room?.color ?? 'default');
   let [logoURI, setLogoURI] = useState(room.logoURI || '');
   let [backgroundURI, setBackgroundURI] = useState(room.backgroundURI || '');
   let [buttonURI, setButtonURI] = useState(room.buttonURI || '');
@@ -73,6 +74,43 @@ export function EditRoomModal({roomId, room, close}) {
     });
     close();
   };
+
+  function PaletteColor() {
+    let paletteColors = [];
+    for (const key in colorThemes) {
+      paletteColors.push([key, colorThemes[key]]);
+    }
+    return (
+      <>
+        {paletteColors.map(color => {
+          return (
+            <div className="cursor-pointer" onClick={() => setColor(color[0])}>
+              <p className="text-sm">{color[0]}</p>
+              <div className="flex mx-1.5 my-1.5">
+                <div
+                  className="w-1/5 p-4"
+                  style={{backgroundColor: color[1].background}}
+                ></div>
+
+                <div
+                  className="w-1/5 p-4"
+                  style={{backgroundColor: color[1].text.dark}}
+                ></div>
+                <div
+                  className="w-1/5 p-4"
+                  style={{backgroundColor: color[1].avatarBg}}
+                ></div>
+                <div
+                  className="w-1/5 p-4"
+                  style={{backgroundColor: color[1].buttons.primary}}
+                ></div>
+              </div>
+            </div>
+          );
+        })}
+      </>
+    );
+  }
 
   const [showAdvanced, setShowAdvanced] = useState(
     !!(room.logoURI || room.color)
@@ -195,19 +233,13 @@ export function EditRoomModal({roomId, room, close}) {
                 <span className="text-gray-400">(optional)</span>
               </div>
               <br />
-              <input
-                className="rounded w-44 h-12"
-                type="color"
-                value={color}
-                name="jam-room-color"
-                autoComplete="off"
-                onChange={e => {
-                  setColor(e.target.value);
-                }}
-              ></input>
+              <div className="flex flex-wrap">
+                <PaletteColor />
+              </div>
+
               <div className="p-2 text-gray-500 italic">
-                Set primary color for your Room.{' '}
-                <span className="text-gray-400">(optional)</span>
+                Choose your room color theme. Your color theme is going to be:{' '}
+                {color} <span className="text-gray-400">(optional)</span>
               </div>
 
               <br />
@@ -295,7 +327,13 @@ export function EditRoomModal({roomId, room, close}) {
           <div className="flex">
             <button
               onClick={submit}
-              className="flex-grow mt-5 h-12 px-6 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600 mr-2"
+              className="flex-grow mt-5 h-12 px-6 text-lg rounded-lg mr-2"
+              style={{
+                color: isDark(roomColor.buttons.primary)
+                  ? roomColor.text.light
+                  : roomColor.text.dark,
+                backgroundColor: roomColor.buttons.primary,
+              }}
             >
               Update Room
             </button>

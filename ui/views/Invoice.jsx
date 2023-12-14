@@ -2,12 +2,13 @@ import React, {useState} from 'react';
 import {QRCodeSVG} from 'qrcode.react';
 import {Modal} from './Modal';
 import {useJam} from '../jam-core-react';
-import {colors} from '../lib/theme';
+import {colors, isDark} from '../lib/theme';
 import {sendZaps, openLNExtension} from '../nostr/nostr';
 
 const DisplayInvoice = ({invoice, shortInvoice, room}) => {
   const [wasCopied, setWasCopied] = useState(false);
-  const roomColors = colors(room);
+  let colorTheme = room?.color ?? 'default';
+  let roomColors = colors(colorTheme);
 
   const handleCopy = () => {
     setWasCopied(true);
@@ -29,7 +30,7 @@ const DisplayInvoice = ({invoice, shortInvoice, room}) => {
         <button
           onClick={handleCopy}
           className="select-none px-5 h-12 text-lg text-white focus:shadow-outline active:bg-gray-600"
-          style={{backgroundColor: roomColors.buttonPrimary}}
+          style={{backgroundColor: roomColors.buttons.primary}}
         >
           {wasCopied ? 'Copied' : 'Copy LN invoice'}
         </button>
@@ -40,7 +41,7 @@ const DisplayInvoice = ({invoice, shortInvoice, room}) => {
 
 export const InvoiceModal = ({info, room, close}) => {
   const [comment, setComment] = useState('');
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState(localStorage.getItem('defaultZap'));
   const [state, {signEvent}] = useJam();
   const [displayInvoice, setDisplayInvoice] = useState(false);
   const [invoice, setInvoice] = useState('');
@@ -48,9 +49,15 @@ export const InvoiceModal = ({info, room, close}) => {
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const roomColors = colors(room);
   const npub = findNpub(info.identities);
   const shortLnInvoice = invoice.substring(0, 17);
+
+  let colorTheme = room?.color ?? 'default';
+  let roomColors = colors(colorTheme);
+
+  const textColor = isDark(roomColors.buttons.primary)
+    ? roomColors.text.light
+    : roomColors.text.dark;
 
   async function handleResult(result) {
     const ok = result[0];
@@ -124,15 +131,22 @@ export const InvoiceModal = ({info, room, close}) => {
           <div className="flex mb-5 w-full justify-between">
             <div className="mx-2 w-2/4">
               <button
-                className="bg-blue-500 w-full text-sm text-white px-4 py-2 rounded-md m-2"
+                className="w-full text-sm px-4 py-2 rounded-md m-2"
+                style={{
+                  backgroundColor: roomColors.buttons.primary,
+                  color: textColor,
+                }}
                 onClick={handleDefaultZap}
               >
                 Default
               </button>
 
               <button
-                className="w-full text-black text-sm px-4 py-2 rounded-md m-2"
-                style={{backgroundColor: roomColors.buttonSecondary}}
+                className="w-full text-sm px-4 py-2 rounded-md m-2"
+                style={{
+                  backgroundColor: roomColors.buttons.primary,
+                  color: textColor,
+                }}
                 onClick={() => setAmount('1000')}
               >
                 1,000 sats
@@ -141,15 +155,21 @@ export const InvoiceModal = ({info, room, close}) => {
 
             <div className="mx-2 w-2/4">
               <button
-                className="w-full text-black text-sm px-4 py-2 rounded-md m-2"
-                style={{backgroundColor: roomColors.buttonSecondary}}
+                className="w-full text-sm px-4 py-2 rounded-md m-2"
+                style={{
+                  backgroundColor: roomColors.buttons.primary,
+                  color: textColor,
+                }}
                 onClick={() => setAmount('10000')}
               >
                 10,000 sats
               </button>
               <button
-                className="w-full text-black text-sm px-4 py-2 rounded-md m-2"
-                style={{backgroundColor: roomColors.buttonSecondary}}
+                className="w-full text-sm px-4 py-2 rounded-md m-2"
+                style={{
+                  backgroundColor: roomColors.buttons.primary,
+                  color: textColor,
+                }}
                 onClick={() => setAmount('100000')}
               >
                 100,000 sats
@@ -181,8 +201,11 @@ export const InvoiceModal = ({info, room, close}) => {
 
           {/* Button */}
           <button
-            className="text-white py-2 px-4 rounded text-center w-full"
-            style={{backgroundColor: roomColors.buttonPrimary}}
+            className="py-2 px-4 rounded text-center w-full"
+            style={{
+              backgroundColor: roomColors.buttons.primary,
+              color: textColor,
+            }}
             onClick={async () => {
               setIsLoading(true);
               const result = await sendZaps(

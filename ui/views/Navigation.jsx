@@ -1,40 +1,38 @@
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {use} from 'use-minimal-state';
 import EditRole, {EditSelf} from './EditRole';
-import {breakpoints, useWidth} from '../lib/tailwind-mqp';
-import {colors} from '../lib/theme';
-import {openModal} from './Modal';
-import {InfoModal} from './InfoModal';
+import {useWidth} from '../lib/tailwind-mqp';
+import {colors, isDark} from '../lib/theme';
 import {MicOffSvg, MicOnSvg} from './Svg';
 import {useJam} from '../jam-core-react';
 
-const reactionEmojis = ['❤️', '💯', '😂', '😅', '😳', '🤔'];
-
-let navigationStyle = {
-  position: 'fixed',
-  bottom: '0',
-  marginLeft: '-15px',
-  flex: 'none',
-  borderLeft: '2px solid lightgrey',
-  borderRight: '2px solid lightgrey',
-};
-
-let navigationStyleSmall = {
-  padding: '0 22px 22px 22px',
-  marginLeft: '-12px',
-  boxSizing: 'border-box',
-  borderLeft: '0px',
-  borderRight: '0px',
-};
+const reactionEmojis = [
+  '❤️',
+  '💯',
+  '🫢',
+  '🫣',
+  '🫡',
+  '😳',
+  '🤔',
+  '🥹',
+  '😅',
+  '😂',
+  '🤞',
+  '🫶',
+  '🤟',
+  '⚡️',
+  '🤙',
+  '🫵',
+  '👌',
+  '🔥',
+];
 
 export default function Navigation({
-  roomId,
   room,
   editRole,
   setEditRole,
   editSelf,
   setEditSelf,
-  noLeave,
 }) {
   const [state, {leaveRoom, sendReaction, retryMic, setProps}] = useJam();
   let [myAudio, micMuted, handRaised, iSpeak] = use(state, [
@@ -50,15 +48,8 @@ export default function Navigation({
 
   let {speakers, moderators, stageOnly} = room ?? {};
 
-  const roomColors = colors(room);
-
-  let isColorDark = useMemo(() => isDark(roomColors.buttonPrimary), [
-    roomColors.buttonPrimary,
-  ]);
-
-  let width = useWidth();
-
-  let backgroundColor = roomColors.background;
+  const colorTheme = state.room?.color ?? 'default';
+  const roomColor = colors(colorTheme);
 
   let talk = () => {
     if (micOn) {
@@ -68,159 +59,231 @@ export default function Navigation({
     }
   };
 
+  const iconColor = isDark(roomColor.buttons.primary)
+    ? roomColor.icons.light
+    : roomColor.icons.dark;
+
   return (
-    <div
-      className="z-10 p-4"
-      style={{
-        ...navigationStyle,
-        ...(width < breakpoints.sm ? navigationStyleSmall : null),
-        width: width < 720 ? '100%' : '700px',
-        backgroundColor,
-      }}
-    >
-      {editRole && (
-        <EditRole
-          peerId={editRole}
-          speakers={speakers}
-          moderators={moderators}
-          stageOnly={stageOnly}
-          onCancel={() => setEditRole(null)}
-        />
-      )}
-      {editSelf && <EditSelf onCancel={() => setEditSelf(false)} />}
-      {/* microphone mute/unmute button */}
-      {/* TODO: button content breaks between icon and text on small screens. fix by using flexbox & text-overflow */}
-      <div className="flex">
-        <button
-          onClick={iSpeak ? talk : () => setProps('handRaised', !handRaised)}
-          onKeyUp={e => {
-            // don't allow clicking mute button with space bar to prevent confusion with push-to-talk w/ space bar
-            if (e.key === ' ') e.preventDefault();
-          }}
-          className="flex-grow select-none h-12 mt-4 px-6 text-lg text-white bg-gray-600 rounded-lg focus:outline-none active:bg-gray-600"
-          style={{
-            backgroundColor: roomColors.buttonPrimary,
-            color: isColorDark ? 'white' : 'black',
-          }}
-        >
-          {iSpeak && (
-            <>
-              {micOn && micMuted && (
-                <>
-                  <MicOffSvg
-                    className="w-5 h-5 mr-2 opacity-80 inline-block"
-                    stroke={roomColors.buttonPrimary}
-                  />
-                  Your&nbsp;microphone&nbsp;is&nbsp;off
-                </>
-              )}
-              {micOn && !micMuted && (
-                <>
-                  <MicOnSvg
-                    className="w-5 h-5 mr-2 opacity-80 inline-block"
-                    stroke={roomColors.buttonPrimary}
-                  />
-                  Your&nbsp;microphone&nbsp;is&nbsp;on
-                </>
-              )}
-              {!micOn && <>Allow&nbsp;microphone&nbsp;access</>}
-            </>
-          )}
-          {!iSpeak && (
-            <>
-              {handRaised ? (
-                <>Stop&nbsp;raising&nbsp;hand</>
-              ) : (
-                <>✋🏽&nbsp;Raise&nbsp;hand&nbsp;to&nbsp;get&nbsp;on&nbsp;stage</>
-              )}
-            </>
-          )}
-        </button>
-      </div>
-      <br />
-      <div className="flex relative">
-        <button
-          onClick={() => setShowReactions(s => !s)}
-          className="flex-grow select-none text-center h-12 px-6 text-lg text-black rounded-lg focus:shadow-outline"
-          style={{backgroundColor: roomColors.buttonSecondary}}
-        >
-          {/* heroicons/emoji-happy */}
-          <svg
-            className="w-6 h-6 inline-block"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        </button>
+    <div>
+      <div className="flex justify-center align-center mx-2">
         {showReactions && (
-          <div className="text-4xl w-64 flex-shrink text-black text-center bg-gray-200 rounded-lg absolute left-0 bottom-14">
+          <div
+            className="text-4xl items-center max-w-md max-h-28 flex flex-wrap overflow-y-scroll text-black text-center rounded-lg left-0 bottom-14"
+            style={{backgroundColor: roomColor.avatarBg}}
+          >
             {reactionEmojis.map(r => (
               <button
-                className="m-2 p-2 human-radius select-none px-3"
+                className="m-2 human-radius select-none"
                 key={r}
                 onClick={() => {
                   sendReaction(r);
                 }}
-                style={{backgroundColor: roomColors.buttonSecondary}}
               >
                 {r}
               </button>
             ))}
           </div>
         )}
-
-        {/* Info */}
-        <button
-          onClick={() => {
-            openModal(InfoModal, {roomId, room});
-          }}
-          className="hidden ml-3 select-none h-12 px-6 text-lg text-black rounded-lg focus:shadow-outline"
-          style={{backgroundColor: roomColors.buttonSecondary}}
-        >
-          {/* information-circle */}
-          <svg
-            className="w-6 h-6"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        </button>
-
-        {/* Leave */}
-        {!noLeave && (
-          <button
-            className="flex-shrink ml-3 select-none h-12 px-6 text-lg text-black rounded-lg focus:shadow-outline"
-            onClick={() => leaveRoom()}
-            style={{backgroundColor: roomColors.buttonSecondary}}
-          >
-            🖖🏽&nbsp;Leave
-          </button>
+        {editSelf && (
+          <div>
+            <EditSelf close={setEditSelf} roomColor={roomColor} />
+          </div>
         )}
+        {editRole ? (
+          <EditRole
+            peerId={editRole}
+            speakers={speakers}
+            moderators={moderators}
+            stageOnly={stageOnly}
+            roomColor={roomColor}
+            onCancel={() => setEditRole(null)}
+          />
+        ) : null}
+      </div>
+      <div className="flex justify-center py-4 px-10">
+        <div className="mx-2">
+          <button
+            class="w-12 h-12 rounded-full flex items-center justify-center focus:outline-none"
+            style={{backgroundColor: roomColor.buttons.primary}}
+            onClick={() => {
+              if (showReactions) {
+                setShowReactions(false);
+              }
+              setEditSelf(!editSelf);
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="w-6 h-6"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke={iconColor}
+                d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"
+              />
+            </svg>
+          </button>
+        </div>
+
+        {!iSpeak && (
+          <>
+            {handRaised ? (
+              <div className="mx-2">
+                <button
+                  class="w-12 h-12 rounded-full flex items-center justify-center focus:outline-none"
+                  style={{backgroundColor: roomColor.buttons.primary}}
+                  onClick={
+                    iSpeak ? talk : () => setProps('handRaised', !handRaised)
+                  }
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="w-6 h-6"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke={iconColor}
+                      d="M10.05 4.575a1.575 1.575 0 10-3.15 0v3m3.15-3v-1.5a1.575 1.575 0 013.15 0v1.5m-3.15 0l.075 5.925m3.075.75V4.575m0 0a1.575 1.575 0 013.15 0V15M6.9 7.575a1.575 1.575 0 10-3.15 0v8.175a6.75 6.75 0 006.75 6.75h2.018a5.25 5.25 0 003.712-1.538l1.732-1.732a5.25 5.25 0 001.538-3.712l.003-2.024a.668.668 0 01.198-.471 1.575 1.575 0 10-2.228-2.228 3.818 3.818 0 00-1.12 2.687M6.9 7.575V12m6.27 4.318A4.49 4.49 0 0116.35 15m.002 0h-.002"
+                    />
+                  </svg>
+                </button>
+              </div>
+            ) : (
+              <div className="mx-2">
+                <button
+                  class="w-12 h-12 rounded-full flex items-center justify-center focus:outline-none"
+                  style={{backgroundColor: roomColor.buttons.primary}}
+                  onClick={
+                    iSpeak ? talk : () => setProps('handRaised', !handRaised)
+                  }
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="w-6 h-6"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke={iconColor}
+                      d="M10.05 4.575a1.575 1.575 0 10-3.15 0v3m3.15-3v-1.5a1.575 1.575 0 013.15 0v1.5m-3.15 0l.075 5.925m3.075.75V4.575m0 0a1.575 1.575 0 013.15 0V15M6.9 7.575a1.575 1.575 0 10-3.15 0v8.175a6.75 6.75 0 006.75 6.75h2.018a5.25 5.25 0 003.712-1.538l1.732-1.732a5.25 5.25 0 001.538-3.712l.003-2.024a.668.668 0 01.198-.471 1.575 1.575 0 10-2.228-2.228 3.818 3.818 0 00-1.12 2.687M6.9 7.575V12m6.27 4.318A4.49 4.49 0 0116.35 15m.002 0h-.002"
+                    />
+                  </svg>
+                </button>
+              </div>
+            )}
+          </>
+        )}
+
+        {iSpeak ? (
+          <div className="mx-2">
+            <button
+              onClick={
+                iSpeak ? talk : () => setProps('handRaised', !handRaised)
+              }
+              onKeyUp={e => {
+                // don't allow clicking mute button with space bar to prevent confusion with push-to-talk w/ space bar
+                if (e.key === ' ') e.preventDefault();
+              }}
+              class="w-12 h-12 rounded-full flex items-center justify-center focus:outline-none"
+              style={{backgroundColor: roomColor.buttons.primary}}
+            >
+              {iSpeak && (
+                <>
+                  {micOn && micMuted && (
+                    <>
+                      <MicOffSvg
+                        className="w-5 h-5 mr-2 opacity-80 inline-block"
+                        stroke={iconColor}
+                      />
+                    </>
+                  )}
+                  {micOn && !micMuted && (
+                    <>
+                      <MicOnSvg
+                        className="w-5 h-5 mr-2 opacity-80 inline-block"
+                        stroke={iconColor}
+                      />
+                    </>
+                  )}
+                  {!micOn && (
+                    <>
+                      <MicOffSvg
+                        className="w-5 h-5 mr-2 opacity-80 inline-block"
+                        stroke={iconColor}
+                      />
+                    </>
+                  )}
+                </>
+              )}
+            </button>
+          </div>
+        ) : null}
+
+        <div className="mx-2">
+          <button
+            class="w-12 h-12 rounded-full flex items-center justify-center focus:outline-none"
+            style={{backgroundColor: roomColor.buttons.primary}}
+            onClick={() => {
+              if (editSelf) {
+                setEditSelf(false);
+              }
+              setShowReactions(s => !s);
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="w-6 h-6"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke={iconColor}
+                d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z"
+              />
+            </svg>
+          </button>
+        </div>
+        <div className="mx-2">
+          <button
+            class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center"
+            onClick={() => leaveRoom()}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="w-6 h-6"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke="#ffffff"
+                d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   );
-}
-
-function isDark(hex) {
-  if (!hex) return true;
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return r + g + b < 128 * 3;
 }
