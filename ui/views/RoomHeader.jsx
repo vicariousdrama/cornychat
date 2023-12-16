@@ -86,7 +86,7 @@ export default function RoomHeader({
             className="absolute mt-56 z-10 w-72 h-40 overflow-y-scroll p-3 rounded-lg"
             style={{backgroundColor: colors.avatarBg}}
           >
-            {roomLinks.length === 0 ? (
+            {!roomLinks || roomLinks.length === 0 ? (
               <p className="text-xs" style={{color: textColor}}>
                 This room has no Links
               </p>
