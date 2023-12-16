@@ -4,27 +4,7 @@ import EditRole, {EditSelf} from './EditRole';
 import {colors, isDark} from '../lib/theme';
 import {MicOffSvg, MicOnSvg} from './Svg';
 import {useJam} from '../jam-core-react';
-
-const reactionEmojis = [
-  '❤️',
-  '💯',
-  '🫢',
-  '🫣',
-  '🫡',
-  '😳',
-  '🤔',
-  '🥹',
-  '😅',
-  '😂',
-  '🤞',
-  '🫶',
-  '🤟',
-  '⚡️',
-  '🤙',
-  '🫵',
-  '👌',
-  '🔥',
-];
+import reactionEmojis from '../emojis';
 
 export default function Navigation({
   room,

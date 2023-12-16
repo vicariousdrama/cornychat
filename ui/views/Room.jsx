@@ -61,6 +61,7 @@ export default function Room({room, roomId, uxConfig}) {
   let [editRole, setEditRole] = useState(null);
   let [editSelf, setEditSelf] = useState(false);
   const [audience, setAudience] = useState(state.peers.length);
+  const [showLinks, setShowLinks] = useState(false);
 
   useMemo(() => setAudience(state.peers.length), [state.peers]);
 
@@ -69,8 +70,7 @@ export default function Room({room, roomId, uxConfig}) {
     description,
     schedule,
     logoURI,
-    buttonURI,
-    buttonText,
+    roomLinks,
     speakers,
     moderators,
     closed,
@@ -123,7 +123,16 @@ export default function Room({room, roomId, uxConfig}) {
       <div>
         <RoomHeader
           colors={roomColor}
-          {...{name, description, logoURI, buttonURI, buttonText, audience}}
+          {...{
+            name,
+            description,
+            logoURI,
+            roomLinks,
+            showLinks,
+            setShowLinks,
+            audience,
+            closed,
+          }}
         />
       </div>
 

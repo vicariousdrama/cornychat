@@ -2,7 +2,6 @@ import React from 'react';
 import {use} from 'use-minimal-state';
 import {openModal} from './Modal';
 import EditIdentity from './EditIdentity';
-import {useMqParser} from '../lib/tailwind-mqp';
 import StreamingModal from './StreamingModal';
 import {isDark} from '../lib/theme';
 import {useJam, useApiQuery} from '../jam-core-react';
@@ -127,6 +126,13 @@ export function EditSelf({close, roomColor}) {
   const textColor = isDark(roomColor.avatarBg)
     ? roomColor.text.light
     : roomColor.text.dark;
+  const host = 'wakalist.com'; //modify with your host name
+  async function copyToClipboard() {
+    await window.navigator.clipboard.writeText(`https://${host}/${roomId}`);
+
+    close(false);
+    alert('Room link copied to clipboard');
+  }
   return (
     <div
       className="max-w-lg max-h-28 mx-auto flex flex-wrap rounded-lg"
@@ -281,6 +287,31 @@ export function EditSelf({close, roomColor}) {
         </div>
       )}
 
+      <div
+        onClick={async () => copyToClipboard()}
+        className="p-2 flex items-center"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="w-4 h-4"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke={iconColor}
+            d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z"
+          />
+        </svg>
+
+        <p className="text-sm ml-1 cursor-pointer" style={{color: textColor}}>
+          Share
+        </p>
+      </div>
+
       {!stageOnly && iModerate && iSpeak && (
         <div
           onClick={() => removeSpeaker(roomId, myId).then(close(false))}
@@ -289,6 +320,7 @@ export function EditSelf({close, roomColor}) {
           <p className="text-sm text-red-500 cursor-pointer">Leave Stage</p>
         </div>
       )}
+
       {!stageOnly && !iModerate && iSpeak && (
         <div
           onClick={() => {

@@ -10,10 +10,11 @@ export default function RoomHeader({
   name,
   description,
   logoURI,
-  buttonURI,
-  buttonText,
+  roomLinks,
+  showLinks,
+  setShowLinks,
   audience,
-  closeRoom,
+  closed,
 }) {
   let [isRecording, isPodcasting] = useJamState([
     'isSomeoneRecording',
@@ -24,6 +25,10 @@ export default function RoomHeader({
   const textColor = isDark(colors.background)
     ? colors.text.light
     : colors.text.dark;
+
+  function linkSubstring(text) {
+    return text.substring(0, 40);
+  }
   return (
     <div className="flex justify-between w-full py-4 px-5 items-center">
       <div className="flex">
@@ -51,23 +56,61 @@ export default function RoomHeader({
           </div>
         </div>
       </div>
-      <div className="flex-none align-center flex">
-        <div className={buttonURI && buttonText ? 'call-to-action' : 'hidden'}>
-          <a
-            href={buttonURI}
-            className="rounded-lg px-5 m-auto py-1.5 mx-1.5 whitespace-nowrap text-sm"
-            target="_blank"
-            rel="noreferrer"
-            style={{
-              color: isDark(colors.buttons.primary)
-                ? colors.text.light
-                : colors.text.dark,
-              backgroundColor: colors.buttons.primary,
-            }}
+      <div className="w-72 items-center flex justify-end">
+        <div
+          className="flex rounded-lg m-auto px-2 py-2 mx-1.5 justify-between cursor-pointer align-center text-sm"
+          style={{backgroundColor: colors.avatarBg}}
+          onClick={() => setShowLinks(!showLinks)}
+        >
+          {' '}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="w-6 h-6"
           >
-            {buttonText}
-          </a>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke={
+                isDark(colors.avatarBg) ? colors.icons.light : colors.icons.dark
+              }
+              d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"
+            />
+          </svg>
         </div>
+        {showLinks ? (
+          <div
+            className="absolute mt-56 z-10 w-72 h-40 overflow-y-scroll p-3 rounded-lg"
+            style={{backgroundColor: colors.avatarBg}}
+          >
+            {roomLinks.length === 0 ? (
+              <p className="text-xs" style={{color: textColor}}>
+                This room has no Links
+              </p>
+            ) : (
+              roomLinks.map(links => {
+                return (
+                  <div className="mb-2">
+                    <a href={links[1]} target="_blank">
+                      <p className="text-xs" style={{color: textColor}}>
+                        {linkSubstring(links[0])}
+                      </p>
+                      <p
+                        className="text-xs opacity-60"
+                        style={{color: textColor}}
+                      >
+                        {linkSubstring(links[1])}
+                      </p>
+                    </a>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        ) : null}
         <div
           className="flex rounded-lg m-auto px-2 py-2 mx-1.5 justify-between align-center text-sm"
           style={{
@@ -103,7 +146,7 @@ export default function RoomHeader({
             <MicOnSvg className="h-5" stroke="#f80000" />
           </div>
         )}
-        {closeRoom ? (
+        {closed ? (
           <div className={'text-sm mr-2'} style={{color: textColor}}>
             Room is closed
           </div>

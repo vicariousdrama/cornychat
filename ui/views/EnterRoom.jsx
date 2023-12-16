@@ -153,6 +153,7 @@ export default function EnterRoom({
         >
           Join
         </button>
+
         <button
           onClick={() => {
             handlerSignIn('extension');
@@ -169,11 +170,18 @@ export default function EnterRoom({
         >
           {loadingExtension ? <LoadingIcon /> : 'Join with nostr extension'}
         </button>
-        <div className="my-3 w-full text-center">
+
+        <div
+          className={closed || forbidden ? 'hidden' : 'my-3 w-full text-center'}
+        >
           <p>Or</p>
         </div>
 
-        <div className="flex w-full justify-between">
+        <div
+          className={
+            closed || forbidden ? 'hidden' : 'flex w-full justify-between'
+          }
+        >
           <input
             className={mqp(
               'rounded w-full placeholder-gray-400 bg-gray-50 w-full md:w-96'
@@ -200,7 +208,9 @@ export default function EnterRoom({
             {loadingNsec ? <LoadingIcon /> : 'Join'}
           </button>
         </div>
-        <div className="my-3 w-full text-center">
+        <div
+          className={closed || forbidden ? 'hidden' : 'my-3 w-full text-center'}
+        >
           <p className="text-gray-600 text-sm">
             Your private key is going to be deleted once you leave the room.
           </p>

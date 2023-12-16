@@ -1,9 +1,9 @@
-import React, {useState} from 'react';
+import React, {useState, useMemo} from 'react';
 import {useMqParser} from '../lib/tailwind-mqp';
 import {Modal} from './Modal';
 import {rawTimeZones} from '@vvo/tzdb';
 import {useJam} from '../jam-core-react';
-import {colorThemes, isDark} from '../lib/theme';
+import {colorThemes, colors, isDark} from '../lib/theme';
 
 export function EditRoomModal({roomId, room, roomColor, close}) {
   const [, {updateRoom}] = useJam();
@@ -17,6 +17,7 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
   let [color, setColor] = useState(room?.color ?? 'default');
   let [logoURI, setLogoURI] = useState(room.logoURI || '');
   let [backgroundURI, setBackgroundURI] = useState(room.backgroundURI || '');
+  let [roomLinks, setRoomLinks] = useState(room.roomLinks || []);
   let [buttonURI, setButtonURI] = useState(room.buttonURI || '');
   let [buttonText, setButtonText] = useState(room.buttonText || '');
   let [closed, setClosed] = useState(room.closed || false);
@@ -67,8 +68,7 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
       color,
       logoURI,
       backgroundURI,
-      buttonURI,
-      buttonText,
+      roomLinks,
       closed,
       shareUrl,
     });
@@ -112,6 +112,64 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
     );
   }
 
+  function RoomLinks() {
+    if (roomLinks.length === 0) {
+      return (
+        <div>
+          <p>There are not links set up.</p>
+        </div>
+      );
+    }
+
+    function removeLink(indexLink) {
+      let newRoomLinks = roomLinks.filter((link, index) =>
+        index !== indexLink ? link : null
+      );
+      setRoomLinks(newRoomLinks);
+    }
+
+    return (
+      <>
+        {roomLinks.map((link, index) => {
+          let linkText = link[1];
+          let linkDescription = link[0];
+          if (linkText.length > 25) linkText = linkText.substring(0, 40);
+
+          return (
+            <div className="flex w-full justify-between my-3">
+              <div>
+                {' '}
+                <p className="text-sm text-black">{linkDescription}</p>
+                <p className="text-xs text-gray-500">{linkText}</p>
+              </div>
+              <div onClick={() => removeLink(index)} className="cursor-pointer">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                  class="w-4 h-4"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke="red"
+                    d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                  />
+                </svg>
+              </div>
+            </div>
+          );
+        })}
+      </>
+    );
+  }
+
+  const textColor = isDark(roomColor.buttons.primary)
+    ? roomColor.text.light
+    : roomColor.text.dark;
+
   const [showAdvanced, setShowAdvanced] = useState(
     !!(room.logoURI || room.color)
   );
@@ -122,229 +180,243 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
       <h1>Room Settings</h1>
       <br />
       <div>
-        <form onSubmit={submit}>
-          <input
-            className={mqp(
-              'rounded placeholder-gray-300 bg-gray-50 w-full md:w-96'
-            )}
-            type="text"
-            placeholder="Room topic"
-            value={name}
-            name="jam-room-topic"
-            autoComplete="off"
-            onChange={e => {
-              setName(e.target.value);
-            }}
-          ></input>
-          <br />
-          <div className="p-2 text-gray-500 italic">
-            Pick a topic to talk about.{' '}
-            <span className="text-gray-400">(optional)</span>
-          </div>
-          <br />
-          <textarea
-            className={mqp(
-              'rounded -mb-1 placeholder-gray-300 bg-gray-50 w-full md:w-full'
-            )}
-            placeholder="Room description"
-            value={description}
-            name="jam-room-description"
-            autoComplete="off"
-            rows="2"
-            onChange={e => {
-              setDescription(e.target.value);
-            }}
-          ></textarea>
-          <div className="p-2 text-gray-500 italic">
-            Describe what this room is about.{' '}
-            <span className="text-gray-400">
-              (optional) (supports{' '}
-              <a
-                className="underline"
-                href="https://www.markdownguide.org/cheat-sheet/"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Markdown
-              </a>
-              )
-            </span>{' '}
-          </div>
-
-          {!showAdvanced && (
-            <div className="p-2 text-gray-500 italic">
-              <span onClick={() => setShowAdvanced(!showAdvanced)}>
-                {/* heroicons/gift */}
-                <svg
-                  style={{cursor: 'pointer'}}
-                  className="pb-1 h-5 w-5 inline-block"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"
-                  />
-                </svg>
-              </span>
-            </div>
+        <input
+          className={mqp(
+            'rounded placeholder-gray-300 bg-gray-50 w-full md:w-96'
           )}
+          type="text"
+          placeholder="Room topic"
+          value={name}
+          name="jam-room-topic"
+          autoComplete="off"
+          onChange={e => {
+            setName(e.target.value);
+          }}
+        ></input>
+        <br />
+        <div className="p-2 text-gray-500 italic">
+          Pick a topic to talk about.{' '}
+          <span className="text-gray-400">(optional)</span>
+        </div>
+        <br />
+        <textarea
+          className={mqp(
+            'rounded -mb-1 placeholder-gray-300 bg-gray-50 w-full md:w-full'
+          )}
+          placeholder="Room description"
+          value={description}
+          name="jam-room-description"
+          autoComplete="off"
+          rows="2"
+          onChange={e => {
+            setDescription(e.target.value);
+          }}
+        ></textarea>
+        <div className="p-2 text-gray-500 italic">
+          Describe what this room is about.{' '}
+          <span className="text-gray-400">
+            (optional) (supports{' '}
+            <a
+              className="underline"
+              href="https://www.markdownguide.org/cheat-sheet/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Markdown
+            </a>
+            )
+          </span>{' '}
+        </div>
 
-          {/* advanced Room options */}
-          {showAdvanced && (
-            <div>
-              <br />
-              <input
-                className={mqp(
-                  'rounded placeholder-gray-300 bg-gray-50 w-full md:w-full'
-                )}
-                type="text"
-                placeholder="Logo URI"
-                value={logoURI}
-                name="jam-room-logo-uri"
-                autoComplete="off"
-                onChange={e => {
-                  setLogoURI(e.target.value);
-                }}
-              ></input>
-              <div className="p-2 text-gray-500 italic">
-                Set the URI for your logo.{' '}
-                <span className="text-gray-400">(optional)</span>
-              </div>
-              <br />
-              <input
-                className={mqp(
-                  'rounded placeholder-gray-300 bg-gray-50 w-full md:w-full'
-                )}
-                type="text"
-                placeholder="Background Image URI"
-                value={backgroundURI}
-                name="room background image URI"
-                onChange={e => {
-                  setBackgroundURI(e.target.value);
-                }}
-              ></input>
-              <div className="p-2 text-gray-500 italic">
-                Set the URI of an image for your room's background.{' '}
-                <span className="text-gray-400">(optional)</span>
-              </div>
-              <br />
-              <div className="flex flex-wrap">
-                <PaletteColor />
-              </div>
+        {!showAdvanced && (
+          <div className="p-2 text-gray-500 italic">
+            <span onClick={() => setShowAdvanced(!showAdvanced)}>
+              {/* heroicons/gift */}
+              <svg
+                style={{cursor: 'pointer'}}
+                className="pb-1 h-5 w-5 inline-block"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"
+                />
+              </svg>
+            </span>
+          </div>
+        )}
 
-              <div className="p-2 text-gray-500 italic">
-                Choose your room color theme. Your color theme is going to be:{' '}
-                {color} <span className="text-gray-400">(optional)</span>
-              </div>
+        {/* advanced Room options */}
+        {showAdvanced && (
+          <div>
+            <br />
+            <input
+              className={mqp(
+                'rounded placeholder-gray-300 bg-gray-50 w-full md:w-full'
+              )}
+              type="text"
+              placeholder="Logo URI"
+              value={logoURI}
+              name="jam-room-logo-uri"
+              autoComplete="off"
+              onChange={e => {
+                setLogoURI(e.target.value);
+              }}
+            ></input>
+            <div className="p-2 text-gray-500 italic">
+              Set the URI for your logo.{' '}
+              <span className="text-gray-400">(optional)</span>
+            </div>
+            <br />
+            <input
+              className={mqp(
+                'rounded placeholder-gray-300 bg-gray-50 w-full md:w-full'
+              )}
+              type="text"
+              placeholder="Background Image URI"
+              value={backgroundURI}
+              name="room background image URI"
+              onChange={e => {
+                setBackgroundURI(e.target.value);
+              }}
+            ></input>
+            <div className="p-2 text-gray-500 italic">
+              Set the URI of an image for your room's background.{' '}
+              <span className="text-gray-400">(optional)</span>
+            </div>
+            <br />
+            <div className="flex flex-wrap">
+              <PaletteColor />
+            </div>
 
-              <br />
+            <div className="p-2 text-gray-500 italic">
+              Choose your room color theme. Your color theme is going to be:{' '}
+              {color} <span className="text-gray-400">(optional)</span>
+            </div>
+
+            <br />
+            <div className="flex">
               <input
                 className={mqp(
                   'rounded placeholder-gray-400 bg-gray-50 w-full md:w-full'
                 )}
                 type="text"
-                placeholder="Button URI"
-                value={buttonURI}
+                placeholder="Visit my website"
                 name="jam-room-button-uri"
-                autoComplete="off"
-                onChange={e => {
-                  setButtonURI(e.target.value);
-                }}
-              ></input>
-              <div className="p-2 text-gray-500 italic">
-                Set the link for the {`'call to action'`} button.{' '}
-                <span className="text-gray-400">(optional)</span>
-              </div>
-
-              <br />
-              <input
-                className={mqp(
-                  'rounded placeholder-gray-400 bg-gray-50 w-full md:w-96'
-                )}
-                type="text"
-                placeholder="Button Text"
                 value={buttonText}
-                name="jam-room-button-text"
                 autoComplete="off"
                 onChange={e => {
                   setButtonText(e.target.value);
                 }}
               ></input>
-              <div className="p-2 text-gray-500 italic">
-                Set the text for the {`'call to action'`} button.{' '}
-                <span className="text-gray-400">(optional)</span>
-              </div>
-
-              <br />
               <input
                 className={mqp(
-                  'rounded placeholder-gray-400 bg-gray-50 w-full md:w-96'
+                  'rounded placeholder-gray-400 bg-gray-50 w-full md:w-full'
                 )}
                 type="text"
-                placeholder="Share URL"
-                value={shareUrl}
-                name="jam-room-share-url"
+                placeholder="http://google.com"
+                name="jam-room-button-uri"
+                value={buttonURI}
                 autoComplete="off"
                 onChange={e => {
-                  setShareUrl(e.target.value);
+                  setButtonURI(e.target.value);
                 }}
               ></input>
-              <div className="p-2 text-gray-500 italic">
-                The URL used for sharing the room.
-                <span className="text-gray-400">(optional)</span>
-              </div>
-
-              <br />
-              <hr />
-              <br />
-              <input
-                className="ml-2"
-                type="checkbox"
-                name="jam-room-closed"
-                id="jam-room-closed"
-                onChange={() => {
-                  setClosed(!closed);
+              <button
+                className="px-5 h-12 text-sm"
+                style={{
+                  color: textColor,
+                  backgroundColor: roomColor.buttons.primary,
                 }}
-                defaultChecked={closed}
-              />
-
-              <label className="pl-3 ml-0.5" htmlFor="jam-room-closed">
-                Close the room (experimental){' '}
-                <div className="p-2 pl-9 text-gray-500">
-                  Closed rooms can only be joined by moderators.
-                  <br />
-                  Everyone else sees the description and the&nbsp;
-                  {`'call to action'`} button.
-                </div>
-              </label>
+                onClick={() => {
+                  setRoomLinks([[buttonText, buttonURI], ...roomLinks]);
+                  setButtonURI('');
+                  setButtonText('');
+                }}
+              >
+                Add link
+              </button>
             </div>
-          )}
-          <div className="flex">
-            <button
-              onClick={submit}
-              className="flex-grow mt-5 h-12 px-6 text-lg rounded-lg mr-2"
-              style={{
-                color: isDark(roomColor.buttons.primary)
-                  ? roomColor.text.light
-                  : roomColor.text.dark,
-                backgroundColor: roomColor.buttons.primary,
+
+            <div className="p-2 text-gray-500 italic">
+              Set the link for the {`'call to action'`} button.{' '}
+              <span className="text-gray-400">(optional)</span>
+            </div>
+
+            <br />
+            <div className="bg-gray-100 py-2 px-4 rounded-lg">
+              <RoomLinks />
+            </div>
+
+            <br />
+
+            <input
+              className={mqp(
+                'rounded placeholder-gray-400 bg-gray-50 w-full md:w-96'
+              )}
+              type="text"
+              placeholder="Share URL"
+              value={shareUrl}
+              name="jam-room-share-url"
+              autoComplete="off"
+              onChange={e => {
+                setShareUrl(e.target.value);
               }}
-            >
-              Update Room
-            </button>
-            <button
-              onClick={close}
-              className="mt-5 h-12 px-6 text-lg text-black bg-gray-100 rounded-lg focus:shadow-outline active:bg-gray-300"
-            >
-              Cancel
-            </button>
+            ></input>
+            <div className="p-2 text-gray-500 italic">
+              The URL used for sharing the room.
+              <span className="text-gray-400">(optional)</span>
+            </div>
+
+            <br />
+            <hr />
+            <br />
+            <input
+              className="ml-2"
+              type="checkbox"
+              name="jam-room-closed"
+              id="jam-room-closed"
+              onChange={() => {
+                setClosed(!closed);
+              }}
+              defaultChecked={closed}
+            />
+
+            <label className="pl-3 ml-0.5" htmlFor="jam-room-closed">
+              Close the room (experimental){' '}
+              <div className="p-2 pl-9 text-gray-500">
+                Closed rooms can only be joined by moderators.
+                <br />
+                Everyone else sees the description and the&nbsp;
+                {`'call to action'`} button.
+              </div>
+            </label>
           </div>
-        </form>
+        )}
+        <div className="flex">
+          <button
+            onClick={submit}
+            className="flex-grow mt-5 h-12 px-6 text-lg rounded-lg mr-2"
+            style={{
+              color: textColor,
+              backgroundColor: roomColor.buttons.primary,
+            }}
+          >
+            Update Room
+          </button>
+          <button
+            onClick={close}
+            className="mt-5 h-12 px-6 text-lg text-black bg-gray-100 rounded-lg focus:shadow-outline active:bg-gray-300"
+          >
+            Cancel
+          </button>
+        </div>
+
         <br />
         <hr />
         <br />
@@ -458,7 +530,11 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
           <div className={!schedule && completeSchedule() ? 'flex' : 'hidden'}>
             <button
               onClick={submitSchedule}
-              className="flex-grow mt-5 h-12 px-6 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600 mr-2"
+              className="flex-grow mt-5 h-12 px-6 text-lg bg-gray-600 rounded-lg mr-2"
+              style={{
+                color: textColor,
+                backgroundColor: roomColor.buttons.primary,
+              }}
             >
               Set Schedule
             </button>

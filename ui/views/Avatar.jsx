@@ -6,27 +6,7 @@ import {colors, isDark} from '../lib/theme';
 import {MicOffSvg} from './Svg';
 import {openModal} from './Modal';
 import {InvoiceModal} from './Invoice';
-
-const reactionEmojis = [
-  '❤️',
-  '💯',
-  '🫢',
-  '🫣',
-  '🫡',
-  '😳',
-  '🤔',
-  '🥹',
-  '😅',
-  '😂',
-  '🤞',
-  '🫶',
-  '🤟',
-  '⚡️',
-  '🤙',
-  '🫵',
-  '👌',
-  '🔥',
-];
+import reactionEmojis from '../emojis';
 
 export function StageAvatar({
   room,
