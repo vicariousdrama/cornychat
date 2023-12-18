@@ -1,4 +1,6 @@
 version: '3'
+networks:
+  jam:
 services:
   coturn:
     image: coturn/coturn:alpine
@@ -8,6 +10,8 @@ services:
     restart: always
     profiles: ["coturn"]
   prometheus:
+    networks:
+      - jam
     image: prom/prometheus:latest
     volumes:
       - ./prometheus/:/etc/prometheus/
@@ -21,6 +25,8 @@ services:
     restart: always
     profiles: [ "metrics" ]
   grafana:
+    networks:
+      - jam
     image: grafana/grafana
     user: "472"
     depends_on:
@@ -41,6 +47,8 @@ services:
       - traefik.enable=true
     profiles: [ "metrics" ]
   ui:
+    networks:
+      - jam
     image: diamsa/ui:${CHANNEL}
     restart: always
     environment:
@@ -63,6 +71,8 @@ services:
     volumes:
       - "../jam-config:/jam-config"
   pantryredis:
+    networks:
+      - jam
     image: library/redis
     volumes:
       - "../data/pantryredis:/data"
@@ -83,6 +93,8 @@ services:
     volumes:
       - recordings:/pantry-sfu/records
   pantry:
+    networks:
+      - jam
     #build: ../pantry
     image: diamsa/pantry:${CHANNEL}
     restart: always
@@ -102,6 +114,10 @@ services:
       - "../jam-config:/jam-config"
       - recordings:/pantry/records
   traefik:
+    networks:
+      jam:
+        aliases:
+          - ${JAM_HOST}
     hostname: traefik
     image: traefik
     restart: always
