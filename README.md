@@ -1,4 +1,3 @@
-
 # Nostr Live Audio Spaces: Jam Edition
 
 This software provides an open source audio space for users of Nostr.  
@@ -81,5 +80,11 @@ This software is built as a fork from [Jam](https://gitlab.com/jam-systems/jam.g
 
 ## Host Your Own Server
 
-Hosting your own Instance is easy....
+Hosting your own Instance is easy...
+
+Follow the [Install](INSTALL.md) guidance for setting up your server
+
+Periodically [Update](UPDATE.md) your install with changes
+
+
 
