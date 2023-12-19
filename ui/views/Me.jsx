@@ -4,7 +4,7 @@ import {useJamState} from '../jam-core-react';
 export default function Me() {
   let myId = useJamState('myId');
   return (
-    <div className="p-6 md:p-10">
+    <div className="p-6 md:p-10 bg-slate-500">
       <h1>Your Identity</h1>
 
       <p className="mt-4">

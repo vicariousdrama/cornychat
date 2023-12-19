@@ -107,22 +107,17 @@ const colorThemes = {
 
 const colors = room => {
   switch (room) {
-    case 'default':
-      return colorThemes.default;
-
     case 'blue':
       return colorThemes.blue;
-
     case 'red':
       return colorThemes.red;
-
     case 'cyan':
       return colorThemes.cyan;
-
     case 'orange':
       return colorThemes.orange;
-
     case 'blackGray':
       return colorThemes.blackGray;
+    default:
+      return colorThemes.default;
   }
 };

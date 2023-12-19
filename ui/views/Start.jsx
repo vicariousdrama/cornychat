@@ -2,6 +2,8 @@ import React from 'react';
 import {navigate} from '../lib/use-location';
 import {useJam} from '../jam-core-react';
 import {colors, isDark} from '../lib/theme';
+import * as bip39 from '@scure/bip39';
+import { wordlist } from '@scure/bip39/wordlists/english';
 
 export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
   const [{room}, {enterRoom, setProps, createRoom}] = useJam();
@@ -11,8 +13,10 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
     e.preventDefault();
     setProps('userInteracted', true);
     let roomId;
-    roomId = Math.random().toString(36).substr(2, 6);
-
+    const mn = bip39.generateMnemonic(wordlist).split(' ');
+    const roomNum = (Math.floor(Math.random() * 1000)+1).toString();
+    roomId = mn[0] + mn[1] + roomNum;
+    
     (async () => {
       let roomPosted = {stageOnly};
       let ok = await createRoom(roomId, roomPosted);
@@ -31,7 +35,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
     : roomColors.text.dark;
 
   return (
-    <div className="p-10 max-w-36 h-screen flex flex-col justify-evenly m-auto text-center items-center">
+    <div className="p-0 max-w-md h-screen flex flex-col justify-evenly m-auto text-center items-center">
       <div
         className={
           roomFromURIError
@@ -43,14 +47,6 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
         <code className="text-gray-900 bg-yellow-200">{urlRoomId}</code> is not
         valid.
         <br />
-        <a
-          href="https://gitlab.com/jam-systems/jam"
-          target="_blank"
-          rel="noreferrer"
-          className="underline text-blue-800 active:text-blue-600"
-        >
-          Learn more about Room IDs
-        </a>
         <br />
         <br />
         You can use the button below to start a room.
@@ -58,7 +54,8 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
 
       <div>
         <p style={{color: textColor}}>
-          Create an audio space for chatting, brainstorming, debating, jamming,
+          Nostr Live Audio Spaces
+          is for chatting, brainstorming, debating, jamming,
           micro-conferences and more. Press the button below to start a room.
         </p>
 
@@ -74,6 +71,10 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
         >
           Start room
         </button>
+
+        <p style={{color: textColor}}>
+          Built by <a href="https://gitlab.com/jam-systems/jam/">Jam Systems</a> and <a href="https://github.com/diamsa/jam">Nostr Live Audio Spaces</a> Developers.
+        </p>
       </div>
     </div>
   );

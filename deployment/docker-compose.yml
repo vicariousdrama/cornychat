@@ -60,6 +60,9 @@ services:
       - JAM_RESTRICT_ROOM_CREATION
       - JAM_SFU
       - JAM_HIDE_JAM_INFO
+      - SERVER_LOGO
+      - SERVER_NAME
+      - SERVER_OPERATOR
       - SLACK_CLIENT_ID
       - SLACK_CLIENT_SECRET
       - SLACK_API_URL
@@ -103,6 +106,7 @@ services:
     environment:
       - JAM_HOST
       - JAM_RESTRICT_ROOM_CREATION
+      - SERVER_NSEC
     labels:
       - traefik.http.routers.${COMPOSE_PROJECT_NAME}_pantry.rule=(Host(`${JAM_HOST}`) && PathPrefix(`/_/pantry`))
       - traefik.http.routers.${COMPOSE_PROJECT_NAME}_pantry.middlewares=${COMPOSE_PROJECT_NAME}_pantry_stripprefix
