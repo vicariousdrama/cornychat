@@ -1,14 +1,28 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {navigate} from '../lib/use-location';
 import {useJam} from '../jam-core-react';
 import {colors, isDark} from '../lib/theme';
 import * as bip39 from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english';
+import StartRoomCard from './StartRoomCard';
 
 export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
-  const [{room}, {enterRoom, setProps, createRoom}] = useJam();
+  const [loadingRooms, setLoadingRooms] = useState(false);
+  const [roomList, setRoomList] = useState([]);
+  const [{room}, {enterRoom, setProps, createRoom, listRooms}] = useJam();
   let {stageOnly = false} = newRoom;
 
+  useEffect(() => {
+    const loadRooms = async () => {
+      setLoadingRooms(true);
+      let roomlist = await(listRooms());
+      setRoomList(roomlist[0]);
+      setLoadingRooms(false);
+      console.log(roomlist);
+    };
+    loadRooms();
+  }, []);
+  
   let submit = e => {
     e.preventDefault();
     setProps('userInteracted', true);
@@ -58,6 +72,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
           is for chatting, brainstorming, debating, jamming,
           micro-conferences and more. Press the button below to start a room.
         </p>
+        <br />
 
         <button
           onClick={submit}
@@ -72,8 +87,15 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
           Start room
         </button>
 
+        { loadingRooms ? (<h4>Loading...</h4>) : (roomList?.map((roomInfo) => {
+          return <StartRoomCard roomInfo={roomInfo} key={roomInfo.roomId} />
+          }))
+        }
+
+        <br />
         <p style={{color: textColor}}>
-          Built by <a href="https://gitlab.com/jam-systems/jam/">Jam Systems</a> and <a href="https://github.com/diamsa/jam">Nostr Live Audio Spaces</a> Developers.
+          Built by <a href="https://gitlab.com/jam-systems/jam/">Jam Systems</a> and <br />
+          <a href="https://github.com/diamsa/jam">Nostr Live Audio Spaces</a> Developers.
         </p>
       </div>
     </div>

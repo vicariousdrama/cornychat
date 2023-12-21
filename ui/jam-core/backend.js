@@ -17,6 +17,7 @@ export {
   getRoom,
   recordingsDownloadLink,
   signNostrEvent,
+  getRoomList,
 };
 
 let API = `${staticConfig.urls.pantry}/api/v1`;
@@ -152,4 +153,8 @@ async function recordingsDownloadLink({myIdentity}, roomId) {
   return `${API}/rooms/${roomId}/recordings.zip?token=${await signedToken(
     myIdentity
   )}`;
+}
+
+async function getRoomList() {
+  return (await get(`${API}/roomlist/`));
 }

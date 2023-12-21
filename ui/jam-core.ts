@@ -33,6 +33,7 @@ import {
   getRoom,
   apiUrl,
   recordingsDownloadLink,
+  getRoomList,
 } from './jam-core/backend';
 import {addAdmin, removeAdmin} from './jam-core/admin';
 import AppState from './jam-core/AppState';
@@ -118,7 +119,8 @@ function createApi<T extends StateType>(
 
     updateInfo: (info: IdentityInfo) => updateInfo(state, info),
 
-    enterRoom: (roomId: string) => dispatch(actions.JOIN, roomId),
+    listRooms: () => getRoomList(),
+    enterRoom: (roomId: string) => dispatch(actions.JOIN, roomId), 
     leaveRoom: () => dispatch(actions.JOIN, null),
     leaveStage: () => dispatch(actions.LEAVE_STAGE),
     sendReaction: (reaction: string) => dispatch(actions.REACTION, reaction),
