@@ -36,7 +36,7 @@ export default function EnterRoom({
   let rightColum =
     width < 720 ? 'w-full bg-white p-10' : 'w-9/12 bg-white p-10';
   const colorTheme = room?.color ?? 'default';
-  const roomColor = colors(colorTheme);
+  const roomColor = colors(colorTheme, room.customColor);
 
   const textColor = isDark(roomColor.buttons.primary)
     ? roomColor.text.light
@@ -72,6 +72,7 @@ export default function EnterRoom({
   const handlerSignIn = async type => {
     if (type === 'nsec') {
       setLoadingNsec(true);
+      sessionStorage.clear();
       const ok = await signInPrivateKey(
         nostrPrivateKey,
         state,
@@ -85,6 +86,7 @@ export default function EnterRoom({
 
     if (type === 'extension') {
       setLoadingExtension(true);
+      sessionStorage.clear();
       const ok = await signInExtension(
         state.id,
         state.roomId,
@@ -129,7 +131,7 @@ export default function EnterRoom({
         <div className="text-center my-3">
           <p className="text-xl">{name}</p>
 
-          <div className="text-gray-600 text-sm">
+          <div className="text-gray-600 max-h-96 overflow-y-scroll text-sm">
             <ReactMarkdown className="text-sm opacity-70" plugins={[gfm]}>
               {description || ''}
             </ReactMarkdown>

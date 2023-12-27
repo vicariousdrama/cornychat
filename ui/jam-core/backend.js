@@ -116,7 +116,41 @@ async function createRoom(state, roomId, room = {}) {
     color = undefined,
     stageOnly = false,
     videoCall = false,
+    customEmojis = [
+      '🤣',
+      '🤔',
+      '🤯',
+      '😴',
+      '🖕',
+      '👏',
+      '🤙',
+      '⚡',
+      '🧡',
+      '🍻',
+      '🌽',
+      '☠️',
+      '💩',
+      '💯',
+      '⌛',
+      '🎻',
+    ],
+    customColor = {
+      background: `rgba(0,0,0,1)`,
+      text: {
+        light: '#f4f4f4',
+        dark: '#111111',
+      },
+      buttons: {
+        primary: `rgba(0,0,0,1)`,
+      },
+      avatarBg: `rgba(0,0,0,1)`,
+      icons: {
+        light: '#f4f4f4',
+        dark: '#111111',
+      },
+    },
   } = room;
+
   let {myId} = state;
   let newRoom = {
     ...emptyRoom,
@@ -125,6 +159,8 @@ async function createRoom(state, roomId, room = {}) {
     description,
     logoURI,
     color,
+    customEmojis,
+    customColor,
     stageOnly: !!stageOnly,
     videoCall: !!videoCall,
     moderators: [myId],

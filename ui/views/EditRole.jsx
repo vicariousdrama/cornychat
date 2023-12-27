@@ -5,7 +5,8 @@ import EditIdentity from './EditIdentity';
 import StreamingModal from './StreamingModal';
 import {isDark} from '../lib/theme';
 import {useJam, useApiQuery} from '../jam-core-react';
-import {EditRoomModal} from './EditRoom';
+import {EditRoomModal} from './editRoom/EditRoom';
+import {Edit, Settings, Stop, Stream, Mic, Share} from './Svg';
 
 export default function EditRole({
   peerId,
@@ -135,7 +136,7 @@ export function EditSelf({close, roomColor}) {
   }
   return (
     <div
-      className="max-w-lg max-h-28 mx-auto flex flex-wrap rounded-lg"
+      className="max-w-lg max-h-28 mx-auto flex flex-wrap justify-center rounded-lg"
       style={{backgroundColor: roomColor.avatarBg, color: textColor}}
     >
       {!room.access?.lockedIdentities && (
@@ -146,21 +147,7 @@ export function EditSelf({close, roomColor}) {
           }}
           className="p-2 flex items-center"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="currentColor"
-            class="w-4 h-4"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke={iconColor}
-              d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"
-            />
-          </svg>
+          <Edit color={iconColor} />
 
           <p className="text-sm ml-1 cursor-pointer">Edit Profile</p>
         </div>
@@ -174,28 +161,7 @@ export function EditSelf({close, roomColor}) {
           }}
           className="p-2 flex items-center"
         >
-          <svg
-            className="w-4 h-4"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              stroke={iconColor}
-              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-            />
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              stroke={iconColor}
-              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-            />
-          </svg>{' '}
+          <Settings color={iconColor} />
           <p className="text-sm ml-1 cursor-pointer">Room settings</p>
         </div>
       )}
@@ -216,21 +182,7 @@ export function EditSelf({close, roomColor}) {
           }}
           className="p-2 flex items-center"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="currentColor"
-            class="w-4 h-4"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke={iconColor}
-              d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"
-            />
-          </svg>
+          <Stream color={iconColor} />
 
           <p className="text-sm ml-1 cursor-pointer">Stream audio</p>
         </div>
@@ -248,39 +200,7 @@ export function EditSelf({close, roomColor}) {
           }}
           className="p-2 flex items-center"
         >
-          {isRecording ? (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="1.5"
-              stroke="currentColor"
-              class="w-4 h-4"
-            >
-              <path
-                stroke-linecap="round"
-                stroke={iconColor}
-                stroke-linejoin="round"
-                d="M5.25 7.5A2.25 2.25 0 017.5 5.25h9a2.25 2.25 0 012.25 2.25v9a2.25 2.25 0 01-2.25 2.25h-9a2.25 2.25 0 01-2.25-2.25v-9z"
-              />
-            </svg>
-          ) : (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="1.5"
-              stroke="currentColor"
-              class="w-4 h-4"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke={iconColor}
-                d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"
-              />
-            </svg>
-          )}
+          {isRecording ? <Stop color={iconColor} /> : <Mic color={iconColor} />}
           <p className="text-sm ml-1 cursor-pointer items-center">
             {isRecording ? 'Stop Recording' : 'Start Recording'}
           </p>
@@ -291,22 +211,7 @@ export function EditSelf({close, roomColor}) {
         onClick={async () => copyToClipboard()}
         className="p-2 flex items-center"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke-width="1.5"
-          stroke="currentColor"
-          class="w-4 h-4"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke={iconColor}
-            d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z"
-          />
-        </svg>
-
+        <Share color={iconColor} />
         <p className="text-sm ml-1 cursor-pointer" style={{color: textColor}}>
           Share
         </p>

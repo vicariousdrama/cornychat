@@ -11,5 +11,6 @@
   },
   "lint-staged": {
     "{pantry,ui}/**/*.{js,jsx}": "prettier --write --ignore-unknown"
-  }
+  },
+  "dependencies": {}
 }

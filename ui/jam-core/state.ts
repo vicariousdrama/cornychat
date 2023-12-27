@@ -31,16 +31,34 @@ type AccessType = {
   identitiesLocked?: boolean;
 };
 
+type CustomColor = {
+  background: string;
+  text: {
+    light: string;
+    dark: string;
+  };
+  buttons: {
+    primary: string;
+  };
+  avatarBg: string;
+  icons: {
+    light: string;
+    dark: string;
+  };
+};
+
 type RoomType = {
   name: string;
   description?: string;
   speakers: string[];
   moderators: string[];
   presenters: string[];
+  customColor: CustomColor;
   stageOnly?: boolean;
   videoCall?: boolean;
   color?: string;
   logoURI?: string;
+  roomEmojis?: string[];
   backgroundURI?: string;
   access?: AccessType;
 };
@@ -63,6 +81,21 @@ const defaultState = {
     speakers: [],
     moderators: [],
     presenters: [],
+    customColor: {
+      background: `rgba(0,0,0,1)`,
+      text: {
+        light: '#f4f4f4',
+        dark: '#111111',
+      },
+      buttons: {
+        primary: `rgba(0,0,0,1)`,
+      },
+      avatarBg: `rgba(0,0,0,1)`,
+      icons: {
+        light: '#f4f4f4',
+        dark: '#111111',
+      },
+    },
   } as RoomType,
   hasRoom: false,
   isRoomLoading: false,

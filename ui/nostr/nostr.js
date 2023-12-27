@@ -5,6 +5,8 @@ import crypto from 'crypto-js';
 import {bech32} from 'bech32';
 import {Buffer} from 'buffer';
 
+const pool = new RelayPool();
+
 export async function signInExtension(
   id,
   roomId,
@@ -76,8 +78,6 @@ export async function getUserMetadata(pubkey, relays, id) {
       const filter = [{kinds: [0], authors: [pubkey]}];
       const npub = nip19.npubEncode(pubkey);
 
-      const pool = new RelayPool();
-
       //check if i can use a variable set to true or false
       let userMetadata = [];
 
@@ -103,8 +103,10 @@ export async function getUserMetadata(pubkey, relays, id) {
             id: id,
             picture: userMetadata[0].picture,
             npub: npub,
-            lud16: userMetadata[0].lud16,
-            lud06: userMetadata[0].lud06,
+            about: userMetadata[0].about,
+            nip05: userMetadata[0].nip05,
+            lud16: userMetadata[0]?.lud16,
+            lud06: userMetadata[0]?.lud06,
           };
           res(userInfo);
         },
@@ -115,6 +117,87 @@ export async function getUserMetadata(pubkey, relays, id) {
     } catch (error) {
       rej(undefined);
       console.log('There was an error when getting user metadata: ', error);
+    }
+  });
+}
+
+export async function isOnFollowList(actorPubkey, userPubkey) {
+  return new Promise(async (res, rej) => {
+    try {
+      let userRelays = [];
+
+      const defaultRelays = [
+        'wss://nos.lol',
+        'wss://relay.damus.io',
+        'wss://nostr-pub.wellorder.net',
+        'wss://nostr.mutinywallet.com',
+        'wss://relay.snort.social',
+        'wss://relay.primal.net',
+      ];
+
+      if (window.nostr) {
+        const relays = await window.nostr.getRelays();
+
+        const relaysSet = Object.keys(relays).length !== 0;
+
+        if (relaysSet) {
+          for (const relay in relays) {
+            if (relays[relay].read) {
+              const startWithWss = relay.startsWith('wss://');
+
+              startWithWss
+                ? userRelays.push(relay)
+                : userRelays.push('wss://' + relay);
+            }
+          }
+        }
+      }
+
+      const relaysToUse = [...userRelays, ...defaultRelays];
+
+      const filter = [{kinds: [3], authors: [actorPubkey]}];
+
+      let events = [];
+
+      setTimeout(() => {
+        const lastEvent = events[events.length - 1];
+
+        const followList = lastEvent.tags;
+
+        const isOnList = isOnFollowList();
+
+        if (isOnList) res([true, followList]);
+
+        if (!isOnList) res([false, followList]);
+
+        function isOnFollowList() {
+          for (let i = 0; i < followList.length; i++) {
+            if (followList[i][1] === userPubkey) {
+              return true;
+            }
+          }
+
+          return false;
+        }
+      }, 2700);
+
+      pool.subscribe(
+        filter,
+        relaysToUse,
+        (event, onEose, url) => {
+          events.push(event);
+        },
+        undefined,
+        undefined,
+        {
+          unsubscribeOnEose: true,
+          allowDuplicateEvents: false,
+          allowOlderEvents: false,
+        }
+      );
+    } catch (error) {
+      rej(undefined);
+      console.log('There was an error while fetching follow list: ', error);
     }
   });
 }
@@ -252,6 +335,181 @@ export function setDefaultZapsAmount(amount) {
   localStorage.setItem('defaultZap', amount);
 }
 
+export async function unFollowUser(
+  npub,
+  myFollowList,
+  state,
+  roomId,
+  signEvent
+) {
+  const userPubkey = nip19.decode(npub).data;
+
+  const defaultRelays = [
+    'wss://nos.lol',
+    'wss://relay.damus.io',
+    'wss://nostr-pub.wellorder.net',
+    'wss://nostr.mutinywallet.com',
+    'wss://relay.snort.social',
+    'wss://relay.primal.net',
+  ];
+
+  let userRelays = [];
+
+  const indexToRemove = myFollowList.findIndex(childArray =>
+    childArray.includes(userPubkey)
+  );
+
+  if (indexToRemove !== -1) {
+    myFollowList.splice(indexToRemove, 1);
+  }
+
+  const event = {
+    id: null,
+    pubkey: null,
+    created_at: Math.floor(Date.now() / 1000),
+    kind: 3,
+    tags: myFollowList,
+    content: '',
+    sig: null,
+  };
+
+  if (window.nostr) {
+    const relays = await window.nostr.getRelays();
+
+    const relaysSet = Object.keys(relays).length !== 0;
+
+    if (relaysSet) {
+      for (const relay in relays) {
+        if (relays[relay].read) {
+          const startWithWss = relay.startsWith('wss://');
+
+          startWithWss
+            ? userRelays.push(relay)
+            : userRelays.push('wss://' + relay);
+        }
+      }
+    }
+
+    const relaysToUse = [...userRelays, ...defaultRelays];
+
+    const EventSigned = await window.nostr.signEvent(event);
+    if (!EventSigned)
+      return [null, 'There was an error with your nostr extension'];
+
+    pool.publish(EventSigned, relaysToUse);
+
+    updateCache(false, npub, myFollowList);
+
+    return [true];
+  }
+
+  const signedEvent = await signEvent(state, roomId, event);
+
+  const hasError = signedEvent.hasOwnProperty('error');
+
+  if (hasError) return [null, signedEvent.error];
+
+  pool.publish(signedEvent.nostrEvent, defaultRelays);
+
+  updateCache(false, npub, myFollowList);
+
+  return [true];
+}
+
+export async function followUser(npub, myFollowList, state, roomId, signEvent) {
+  const userPubkey = nip19.decode(npub).data;
+
+  myFollowList.push(['p', userPubkey]);
+
+  const defaultRelays = [
+    'wss://nos.lol',
+    'wss://relay.damus.io',
+    'wss://nostr-pub.wellorder.net',
+    'wss://nostr.mutinywallet.com',
+    'wss://relay.snort.social',
+    'wss://relay.primal.net',
+  ];
+
+  let userRelays = [];
+
+  const event = {
+    id: null,
+    pubkey: null,
+    created_at: Math.floor(Date.now() / 1000),
+    kind: 3,
+    tags: myFollowList,
+    content: '',
+    sig: null,
+  };
+
+  if (window.nostr) {
+    const relays = await window.nostr.getRelays();
+
+    const relaysSet = Object.keys(relays).length !== 0;
+
+    if (relaysSet) {
+      for (const relay in relays) {
+        if (relays[relay].read) {
+          const startWithWss = relay.startsWith('wss://');
+
+          startWithWss
+            ? userRelays.push(relay)
+            : userRelays.push('wss://' + relay);
+        }
+      }
+    }
+
+    const relaysToUse = [...userRelays, ...defaultRelays];
+
+    const EventSigned = await window.nostr.signEvent(event);
+
+    if (!EventSigned)
+      return [null, 'There was an error with your nostr extension'];
+
+    pool.publish(EventSigned, relaysToUse);
+
+    updateCache(true, npub, myFollowList);
+
+    return [true];
+  }
+
+  const signedEvent = await signEvent(state, roomId, event);
+  const hasError = signedEvent.hasOwnProperty('error');
+
+  if (hasError) return [null, signedEvent.error];
+
+  pool.publish(signedEvent, defaultRelays);
+
+  updateCache(true, npub, myFollowList);
+
+  return [true];
+}
+
+export async function verifyNip05(nip05, userNpub) {
+  if (nip05 !== '' && userNpub) {
+    const pubkey = nip19.decode(userNpub).data;
+    const url = nip05.split('@');
+    const domain = url[1];
+    const name = url[0];
+
+    try {
+      const data = await (
+        await fetch(`https://${domain}/.well-known/nostr.json?name=${name}`)
+      ).json();
+
+      let userNamePubkey = data.names[`${name}`];
+
+      let isSamePubkey = pubkey === userNamePubkey;
+      if (isSamePubkey) return true;
+    } catch (error) {
+      console.log('There was a problem fetching nip05. Error: ', error);
+      return false;
+    }
+  }
+
+  return false;
+}
+
 async function getLNService(address) {
   let isLNUrl = address.toLowerCase().startsWith('lnurl');
   let isDecodedAddress = address.includes('@');
@@ -348,4 +606,15 @@ function encryptPrivatekey(privateKey) {
   const cipherText = crypto.AES.encrypt(textToEncode, encryptionKey).toString();
 
   return {cipherText, encryptionKey};
+}
+
+function updateCache(iFollow, npub, followList) {
+  let newCache = JSON.parse(sessionStorage.getItem(npub));
+  newCache.iFollow = iFollow;
+
+  newCache = JSON.stringify(newCache);
+  let newFollowingList = JSON.stringify(followList);
+
+  sessionStorage.setItem(npub, newCache);
+  sessionStorage.setItem('myFollowList', newFollowingList);
 }

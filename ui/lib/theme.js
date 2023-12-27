@@ -3,12 +3,30 @@ export {colors, colorThemes, isDark};
 const lightColor = '#f4f4f4';
 const darkColor = '#111111';
 
-function isDark(hex) {
-  if (!hex) return true;
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return r + g + b < 128 * 3;
+function isDark(color) {
+  const hexToRgb = hex =>
+    hex.match(/[A-Za-z0-9]{2}/g).map(v => parseInt(v, 16));
+
+  const parseRgba = rgba =>
+    rgba
+      .substring(rgba.indexOf('(') + 1, rgba.lastIndexOf(')'))
+      .split(',')
+      .map(val => parseFloat(val.trim()));
+
+  let rgb;
+  if (color.startsWith('#') && color.length === 7) {
+    rgb = hexToRgb(color);
+  } else if (color.startsWith('rgba(')) {
+    rgb = parseRgba(color);
+  } else {
+    console.error('Invalid color format');
+    return null;
+  }
+
+  const relativeLuminance = (r, g, b) => 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  const luminance = relativeLuminance(...rgb.map(c => c / 255));
+
+  return luminance < 0.5;
 }
 
 const colorThemes = {
@@ -105,7 +123,7 @@ const colorThemes = {
   },
 };
 
-const colors = room => {
+const colors = (room, customColor) => {
   switch (room) {
     case 'blue':
       return colorThemes.blue;
@@ -117,6 +135,8 @@ const colors = room => {
       return colorThemes.orange;
     case 'blackGray':
       return colorThemes.blackGray;
+    case 'customColor':
+      return customColor;
     default:
       return colorThemes.default;
   }

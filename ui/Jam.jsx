@@ -92,7 +92,8 @@ function JamUI({style, className, route = null, dynamicConfig = {}, ...props}) {
   // => pass a setColor prop to PossibleRoom
 
   let colorTheme = use(state, 'room')?.color ?? 'default';
-  let roomColors = colors(colorTheme);
+  let customColor = state.room.customColor;
+  let roomColors = colors(colorTheme, customColor);
   let backgroundImg = state.room?.backgroundURI;
   let [width, , setContainer, mqp] = useProvideWidth();
 
@@ -114,7 +115,7 @@ function JamUI({style, className, route = null, dynamicConfig = {}, ...props}) {
       minHeight: '-webkit-fill-available',
       background: roomColors.background,
     };
-  }, [colorTheme, backgroundImg]);
+  }, [colorTheme, backgroundImg, customColor]);
 
   return (
     <div

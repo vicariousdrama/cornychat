@@ -4,13 +4,13 @@ import EnterRoom from './EnterRoom';
 import RoomHeader from './RoomHeader';
 import useWakeLock from '../lib/use-wake-lock';
 import {AudienceAvatar, StageAvatar} from './Avatar';
-import {useMqParser} from '../lib/tailwind-mqp';
-import {useWidth} from '../lib/tailwind-mqp';
 import Navigation from './Navigation';
 import {userAgent} from '../lib/user-agent';
 import {colors} from '../lib/theme.js';
 import {usePushToTalk, useCtrlCombos} from '../lib/hotkeys';
 import {useJam} from '../jam-core-react';
+import {openModal} from './Modal';
+import {Profile} from './Profile';
 
 const inWebView =
   userAgent.browser?.name !== 'JamWebView' &&
@@ -116,7 +116,7 @@ export default function Room({room, roomId, uxConfig}) {
   let {noLeave} = uxConfig;
 
   const colorTheme = state.room?.color ?? 'default';
-  const roomColor = colors(colorTheme);
+  const roomColor = colors(colorTheme, state.room.customColor);
 
   return (
     <div className="h-screen w-screen flex flex-col justify-between">
@@ -188,6 +188,19 @@ export default function Room({room, roomId, uxConfig}) {
                   canSpeak={!hasMicFailed}
                   peerState={myPeerState}
                   info={myInfo}
+                  onClick={
+                    iModerate
+                      ? () => {
+                          openModal(Profile, {
+                            info: state.myIdentity.info,
+                            room,
+                            peerId: myPeerId,
+                            iModerate,
+                            actorIdentity: myIdentity,
+                          });
+                        }
+                      : undefined
+                  }
                 />
               )}
               {stagePeers.map(peerId => (
@@ -198,7 +211,15 @@ export default function Room({room, roomId, uxConfig}) {
                   canSpeak={true}
                   peerState={peerState[peerId]}
                   info={identities[peerId]}
-                  onClick={iModerate ? () => setEditRole(peerId) : undefined}
+                  onClick={() => {
+                    openModal(Profile, {
+                      info: identities[peerId],
+                      room,
+                      peerId,
+                      iModerate,
+                      actorIdentity: myIdentity,
+                    });
+                  }}
                 />
               ))}
             </ol>
@@ -216,6 +237,19 @@ export default function Room({room, roomId, uxConfig}) {
                     peerState={myPeerState}
                     info={myInfo}
                     handRaised={handRaised}
+                    onClick={
+                      iModerate
+                        ? () => {
+                            openModal(Profile, {
+                              info: state.myIdentity.info,
+                              room,
+                              peerId: myPeerId,
+                              iModerate,
+                              actorIdentity: myIdentity,
+                            });
+                          }
+                        : undefined
+                    }
                   />
                 )}
                 {audiencePeers.map(peerId => (
@@ -225,7 +259,15 @@ export default function Room({room, roomId, uxConfig}) {
                     peerState={peerState[peerId]}
                     info={identities[peerId]}
                     handRaised={iModerate && peerState[peerId]?.handRaised}
-                    onClick={iModerate ? () => setEditRole(peerId) : undefined}
+                    onClick={() =>
+                      openModal(Profile, {
+                        info: identities[peerId],
+                        room,
+                        peerId,
+                        iModerate,
+                        actorIdentity: myIdentity,
+                      })
+                    }
                   />
                 ))}
               </ol>
@@ -237,8 +279,6 @@ export default function Room({room, roomId, uxConfig}) {
       <Navigation
         {...{
           room,
-          editRole,
-          setEditRole,
           editSelf,
           setEditSelf,
         }}

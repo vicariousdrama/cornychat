@@ -91,7 +91,6 @@ async function addNostrPrivateKey(state, roomId, payload) {
 }
 
 async function signEvent(state, roomId, event) {
-  const userId = state.myId;
-  const payload = [userId, event];
+  const payload = [state.myId, event];
   return await signNostrEvent(state, `/rooms/${roomId}/sign`, payload);
 }

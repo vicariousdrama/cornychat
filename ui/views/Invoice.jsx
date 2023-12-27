@@ -8,7 +8,7 @@ import {sendZaps, openLNExtension} from '../nostr/nostr';
 const DisplayInvoice = ({invoice, shortInvoice, room}) => {
   const [wasCopied, setWasCopied] = useState(false);
   let colorTheme = room?.color ?? 'default';
-  let roomColors = colors(colorTheme);
+  let roomColors = colors(colorTheme, room.customColor);
 
   const handleCopy = () => {
     setWasCopied(true);
@@ -53,7 +53,7 @@ export const InvoiceModal = ({info, room, close}) => {
   const shortLnInvoice = invoice.substring(0, 17);
 
   let colorTheme = room?.color ?? 'default';
-  let roomColors = colors(colorTheme);
+  let roomColors = colors(colorTheme, room.customColor);
 
   const textColor = isDark(roomColors.buttons.primary)
     ? roomColors.text.light

@@ -12,6 +12,18 @@
   color: rgba(30, 64, 175); /* blue-800 */
 }
 
+.jam .markdown {
+  padding: 1rem;
+  position: absolute;
+  margin-top: 0.5rem;
+  max-width: 500px;
+  max-height: 500px;
+  overflow-y: scroll;
+  border-radius: 10px;
+  margin-right: 0.5rem;
+  z-index: 20;
+}
+
 /* util */
 .spaced-w-2 > *:not(:last-child) {
   margin-right: 0.5rem;
@@ -305,10 +317,11 @@
 }
 .jam h1 {
   font-size: 24px;
+  margin: 3% 0% 3% 0%;
 }
 .jam h2 {
   font-size: 20px;
-  margin: -4% 0 6% 0;
+  margin: 3% 0% 3% 0%;
 }
 .jam input,
 .jam textarea {

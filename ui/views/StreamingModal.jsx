@@ -17,7 +17,7 @@ export default function StreamingModal({close}) {
   };
 
   const colorTheme = state.room?.color ?? 'default';
-  const roomColor = colors(colorTheme);
+  const roomColor = colors(colorTheme, state.room.customColor);
   return (
     <Modal close={close}>
       <h1>Stream audio</h1>

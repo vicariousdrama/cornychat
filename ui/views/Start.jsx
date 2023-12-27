@@ -42,7 +42,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
   };
 
   const colorTheme = room?.color ?? 'default';
-  const roomColors = colors(colorTheme);
+  const roomColors = colors(colorTheme, room.customColor);
 
   const textColor = isDark(roomColors.background)
     ? roomColors.text.light

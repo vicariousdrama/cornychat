@@ -47,7 +47,7 @@ export function Modal({close, children}) {
           e.stopPropagation();
         }}
       >
-        <div className="absolute top-2 right-2">
+        <div className="absolute top-2 z-20 right-2">
           <div onClick={close} style={{padding: '0.75rem', cursor: 'pointer'}}>
             <CloseSvg />
           </div>
