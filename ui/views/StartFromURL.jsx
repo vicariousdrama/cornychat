@@ -37,6 +37,7 @@ export default function StartFromURL({roomId, newRoom}) {
         🌱 Start room
       </button>
 
+      <div className={'hidden'}>
       <div className={iOS ? 'mt-40 text-gray-500 text-center' : 'hidden'}>
         🎧 Use headphones or earbuds
         <br />
@@ -47,6 +48,7 @@ export default function StartFromURL({roomId, newRoom}) {
         🎧 Use Chrome or Firefox instead of Safari
         <br />
         for the best audio experience on macOS
+      </div>
       </div>
     </div>
   );

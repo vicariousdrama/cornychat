@@ -33,8 +33,16 @@ export default function Navigation({room, editSelf, setEditSelf}) {
             onClick={() => {
               sendReaction(r);
             }}
+            style={{
+              backgroundImage: `url(/img/emoji-${r}.png)`,
+              backgroundSize: '48px 48px',
+              width: '48px',
+              height: '48px',
+            }}
           >
-            {r}
+            {r.toString().startsWith('E') ? (
+            <img src={`/img/emoji-${r}.png`} style={{width: '100%', height: 'auto', border: '0px'}} />
+            ) : r }
           </button>
         ))}
       </div>

@@ -129,11 +129,11 @@ export default function EnterRoom({
           </div>
         )}
         <div className="text-center my-3">
-          <p className="text-xl">{name}</p>
+          <p className="text-xl">Topic: {name || 'General Discussion'}</p>
 
           <div className="text-gray-600 max-h-96 overflow-y-scroll text-sm">
             <ReactMarkdown className="text-sm opacity-70" plugins={[gfm]}>
-              {description || ''}
+              Room Description: {description || ''}
             </ReactMarkdown>
           </div>
         </div>
@@ -153,7 +153,7 @@ export default function EnterRoom({
             color: textColor,
           }}
         >
-          Join
+          Join Room
         </button>
 
         <button
@@ -170,7 +170,7 @@ export default function EnterRoom({
             color: textColor,
           }}
         >
-          {loadingExtension ? <LoadingIcon /> : 'Join with nostr extension'}
+          {loadingExtension ? <LoadingIcon /> : 'Login with Nostr extension'}
         </button>
 
         <div
@@ -190,7 +190,7 @@ export default function EnterRoom({
             )}
             value={nostrPrivateKey}
             type="text"
-            placeholder="Your nostr nsec"
+            placeholder="A Nostr nsec"
             name="jam-room-topic"
             autoComplete="off"
             onChange={e => {
@@ -207,14 +207,14 @@ export default function EnterRoom({
               color: textColor,
             }}
           >
-            {loadingNsec ? <LoadingIcon /> : 'Join'}
+            {loadingNsec ? <LoadingIcon /> : 'Login'}
           </button>
         </div>
         <div
           className={closed || forbidden ? 'hidden' : 'my-3 w-full text-center'}
         >
           <p className="text-gray-600 text-sm">
-            Your private key is going to be deleted once you leave the room.
+            This option should only be used for testing purposes. Do not use your primary user NSEC.
           </p>
         </div>
         <a
@@ -228,7 +228,7 @@ export default function EnterRoom({
         >
           🗓 Add to Calendar
         </a>
-
+        <div className{'hidden'}>
         <div className={iOS ? 'mt-40 text-gray-800 text-center' : 'hidden'}>
           🎧 Use headphones or earbuds
           <br />
@@ -239,6 +239,7 @@ export default function EnterRoom({
           🎧 Use Chrome or Firefox instead of Safari
           <br />
           for the best audio experience on macOS
+        </div>
         </div>
         {/*
             if it is a future/scheduled room this button could be replaced with

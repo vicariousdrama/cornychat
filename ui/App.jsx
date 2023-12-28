@@ -18,7 +18,6 @@ function App() {
 
   return (
     <Jam
-      style={{height: '100vh'}}
       route={route}
       dynamicConfig={dynamicConfig}
     />

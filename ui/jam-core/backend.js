@@ -18,6 +18,7 @@ export {
   recordingsDownloadLink,
   signNostrEvent,
   getRoomList,
+  getStaticRoomsList,
 };
 
 let API = `${staticConfig.urls.pantry}/api/v1`;
@@ -117,22 +118,26 @@ async function createRoom(state, roomId, room = {}) {
     stageOnly = false,
     videoCall = false,
     customEmojis = [
+      '🌽',
+      '🍻',
+      '🧡',
       '🤣',
       '🤔',
       '🤯',
       '😴',
-      '🖕',
-      '👏',
-      '🤙',
-      '⚡',
-      '🧡',
-      '🍻',
-      '🌽',
       '☠️',
       '💩',
+      '🖕',
+      '⚡',
+      '👏',
+      '🤙',
       '💯',
       '⌛',
       '🎻',
+      '👍',
+      '👎',
+      '❓❗',
+      '🔇',
     ],
     customColor = {
       background: `rgba(0,0,0,1)`,
@@ -192,5 +197,9 @@ async function recordingsDownloadLink({myIdentity}, roomId) {
 }
 
 async function getRoomList() {
-  return (await get(`${API}/roomlist/`));
+  return (await get(`/roomlist/`));
+}
+
+async function getStaticRoomsList() {
+  return (await get(`/staticrooms/`));
 }

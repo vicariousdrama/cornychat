@@ -64,7 +64,17 @@
       "reactions": [],
       "userDisplay": {
         "randomNames": [],
-        "randomAvatars": [],
+        "randomAvatars": [
+            "/img/avatar-corn-0.png",
+            "/img/avatar-corn-1.png",
+            "/img/avatar-corn-2.png",
+            "/img/avatar-corn-3.png",
+            "/img/avatar-corn-4.png",
+            "/img/avatar-corn-5.png",
+            "/img/avatar-corn-6.png",
+            "/img/avatar-corn-7.png",
+            "/img/avatar-corn-8.png"
+        ],
         "randomIdentities": [
           {
             "name": null,

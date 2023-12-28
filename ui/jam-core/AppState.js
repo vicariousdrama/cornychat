@@ -21,7 +21,7 @@ export default function AppState({hasMediasoup}) {
   const {peerState, myPeerState} = swarm;
   is(myPeerState, {
     inRoom: false,
-    micMuted: false,
+    micMuted: true,
     leftStage: false,
     isRecording: false,
   });

@@ -52,6 +52,7 @@ services:
     image: diamsa/ui:${CHANNEL}
     restart: always
     environment:
+      - DEFAULT_AVATAR
       - JAM_HOST
       - JAM_STUN_SERVER
       - JAM_TURN_SERVER
@@ -60,6 +61,8 @@ services:
       - JAM_RESTRICT_ROOM_CREATION
       - JAM_SFU
       - JAM_HIDE_JAM_INFO
+      - SERVER_FAVICON
+      - SERVER_IMAGE
       - SERVER_LOGO
       - SERVER_NAME
       - SERVER_OPERATOR

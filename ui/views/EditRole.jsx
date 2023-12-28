@@ -127,9 +127,8 @@ export function EditSelf({close, roomColor}) {
   const textColor = isDark(roomColor.avatarBg)
     ? roomColor.text.light
     : roomColor.text.dark;
-  const host = 'wakalist.com'; //modify with your host name
   async function copyToClipboard() {
-    await window.navigator.clipboard.writeText(`https://${host}/${roomId}`);
+    await window.navigator.clipboard.writeText(`https://${location.hostname}/${roomId}`);
 
     close(false);
     alert('Room link copied to clipboard');

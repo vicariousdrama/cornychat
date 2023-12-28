@@ -41,7 +41,7 @@ function handleMessageFromServer(serverConnection, msg) {
   let connection = getConnections(roomId).find(c => c.peerId === receiverId);
   if (connection === undefined) {
     console.error(
-      "Peer is not connected, can't forward message to him",
+      "Peer is not connected, can't forward message to them",
       roomId,
       receiverId
     );
