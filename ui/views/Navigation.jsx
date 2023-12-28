@@ -34,8 +34,6 @@ export default function Navigation({room, editSelf, setEditSelf}) {
               sendReaction(r);
             }}
             style={{
-              backgroundImage: `url(/img/emoji-${r}.png)`,
-              backgroundSize: '48px 48px',
               width: '48px',
               height: '48px',
             }}
