@@ -23,7 +23,7 @@ export default function Navigation({room, editSelf, setEditSelf}) {
 
   function ReactionsEmojis() {
     const emojis = room?.customEmojis;
-    const areEmojisSet = emojis ? emojis.length !== 0 : undefined;
+    const areEmojisSet = emojis ? emojis.length : undefined;
 
     return (
       <div>
