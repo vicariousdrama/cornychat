@@ -6,7 +6,7 @@ import useWakeLock from '../lib/use-wake-lock';
 import {AudienceAvatar, StageAvatar} from './Avatar';
 import Navigation from './Navigation';
 import {userAgent} from '../lib/user-agent';
-import {colors} from '../lib/theme.js';
+import {colors, isDark} from '../lib/theme.js';
 import {usePushToTalk, useCtrlCombos} from '../lib/hotkeys';
 import {useJam} from '../jam-core-react';
 import {openModal} from './Modal';
@@ -62,7 +62,7 @@ export default function Room({room, roomId, uxConfig}) {
   let [editSelf, setEditSelf] = useState(false);
   const [audience, setAudience] = useState(state.peers.length);
   const [showLinks, setShowLinks] = useState(false);
-
+  
   useMemo(() => setAudience(state.peers.length), [state.peers]);
 
   let {
@@ -117,6 +117,7 @@ export default function Room({room, roomId, uxConfig}) {
 
   const colorTheme = state.room?.color ?? 'default';
   const roomColor = colors(colorTheme, state.room.customColor);
+  const textColor = isDark(roomColor.avatarBg) ? roomColor.text.light : roomColor.text.dark;
 
   return (
     <div className="h-screen w-screen flex flex-col justify-between">
@@ -142,7 +143,7 @@ export default function Room({room, roomId, uxConfig}) {
       >
         <div
           className={
-            inWebView && !uxConfig.noWebviewWarning
+            inWebView && !uxConfig.noWebviewWarning && false
               ? 'rounded bg-blue-50 border border-blue-150 text-gray-600 ml-2 p-3 mb-3 inline text-center'
               : 'hidden'
           }
@@ -176,7 +177,7 @@ export default function Room({room, roomId, uxConfig}) {
         </div>
 
         {/* Main Area */}
-        <div className="h-full w-11/12 rounded-lg mx-auto ">
+        <div className="h-full rounded-lg mx-auto ">
           {/* Stage */}
           <div className="">
             <ol className="flex flex-wrap">
@@ -227,6 +228,8 @@ export default function Room({room, roomId, uxConfig}) {
 
           <br />
           {/* Audience */}
+          <hr />
+          <p style={{color: textColor }}>Audience</p>
           {!stageOnly && (
             <>
               <ol className="flex flex-wrap">

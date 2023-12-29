@@ -85,7 +85,7 @@ export default function RoomHeader({
   }
 
   return (
-    <div className="flex justify-between w-full py-4 px-5 items-center">
+    <div className="flex justify-between w-full py-0 px-0 items-center">
       <div className="flex">
         {logoURI && (
           <div className="flex-none">
@@ -100,7 +100,7 @@ export default function RoomHeader({
         <div>
           {' '}
           <div
-            className="flex flex-wrap px-4 py-2 rounded-lg"
+            className="flex flex-wrap px-0 py-0 rounded-lg"
             style={{backgroundColor: colors.avatarBg}}
           >
             <p className="text-sm mr-2" style={{color: textColor}}>
@@ -135,10 +135,14 @@ export default function RoomHeader({
       <div className="items-center flex justify-end">
         <div
           className="flex rounded-lg m-auto px-2 py-2 mx-1.5 justify-between cursor-pointer align-center text-sm"
-          style={{backgroundColor: colors.avatarBg}}
+          style={{
+            color : isDark(colors.avatarBg) ? colors.text.light : colors.text.dark,
+            backgroundColor: colors.avatarBg
+          }}
           onClick={() => setShowLinks(!showLinks)}
         >
           <Links color={iconColor} />
+          <div className="px-1">{!roomLinks || roomLinks.length === 0 ? '0' : roomLinks.length}</div>
         </div>
         {showLinks ? <RoomLinks /> : null}
         <div

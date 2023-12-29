@@ -3,6 +3,11 @@ import {decode} from './identity-utils';
 const DEFAULT_AVATAR = `/img/avatar-default.png`;
 
 const roomAvatar = (info, room, defaultAvatar) => {
+  let cornAvatarList = [];
+  for (let i = 0; i < 9; i ++) {
+    cornAvatarList.push('/img/avatar-corn-' + i.toString() + '.png');
+  }
+  defaultAvatar = selectFromList(info.id, cornAvatarList);
   if (room.userDisplay?.identities) {
     return room.userDisplay.identities[info.id].avatar || defaultAvatar;
   } else if (room.userDisplay?.avatars) {

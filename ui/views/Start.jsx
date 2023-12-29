@@ -9,13 +9,13 @@ import StartRoomCard from './StartRoomCard';
 export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
   const [loadingRooms, setLoadingRooms] = useState(false);
   const [roomList, setRoomList] = useState([]);
-  const [{room}, {enterRoom, setProps, createRoom, listRooms}] = useJam();
+  const [{room}, {enterRoom, setProps, createRoom, listRooms, listStaticRooms}] = useJam();
   let {stageOnly = false} = newRoom;
 
   useEffect(() => {
     const loadRooms = async () => {
       setLoadingRooms(true);
-      let roomlist = await(listRooms());
+      let roomlist = await(listStaticRooms());
       setRoomList(roomlist[0]);
       setLoadingRooms(false);
       console.log(roomlist);
@@ -49,7 +49,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
     : roomColors.text.dark;
 
   return (
-    <div className="p-0 max-w-md h-screen flex flex-col justify-evenly m-auto text-center items-center">
+    <div className="p-2 max-w-s flex flex-col justify-evenly m-auto text-center items-center">
       <div
         className={
           roomFromURIError
@@ -66,14 +66,32 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
         You can use the button below to start a room.
       </div>
 
+      <br />
+      <a href="https://nostrudel.ninja/#/u/npub1ymt2j3n8tesrlr0yhaheem6yyqmmwrr7actslurw6annls6vnrcslapxnz/notes">
+      <div class="pictureFrame">
+        <img src="./img/startImage.jpg" class="pictureImage" />
+        <br />
+        Art by TheNoshole
+      </div>
+      </a>
+      
       <div>
         <p style={{color: textColor}}>
-          Nostr Live Audio Spaces
-          is for chatting, brainstorming, debating, jamming,
-          micro-conferences and more. Press the button below to start a room.
+          Nostr Live Audio Spaces is for chatting, brainstorming, debating, jamming,
+          <br />
+          micro-conferences and more. Join an existing room or start a new one using the buttons below.
         </p>
         <br />
 
+        <div style={{align: 'center'}}>
+        { loadingRooms ? (<h4>Loading...</h4>) : (roomList?.map((roomInfo) => {
+          return <StartRoomCard roomInfo={roomInfo} key={roomInfo.roomId} />
+          }))
+        }
+        </div>
+
+        <br /><br />
+        
         <button
           onClick={submit}
           className="select-none h-12 px-6 text-lg rounded-lg mt-3"
@@ -84,19 +102,19 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
               : roomColors.text.dark,
           }}
         >
-          Start room
+          Start a new room
         </button>
 
-        { loadingRooms ? (<h4>Loading...</h4>) : (roomList?.map((roomInfo) => {
-          return <StartRoomCard roomInfo={roomInfo} key={roomInfo.roomId} />
-          }))
-        }
+        <br /><br /><br />
 
-        <br />
-        <p style={{color: textColor}}>
-          Built by <a href="https://gitlab.com/jam-systems/jam/">Jam Systems</a> and <br />
-          <a href="https://github.com/diamsa/jam">Nostr Live Audio Spaces</a> Developers.
-        </p>
+        <div style={{color: textColor}} className="jam">
+          <p style={{color: textColor, backgroundColor: roomColors.background}} className="room-header">
+          Built by Nostr Live Audio Spaces Developers as a fork of Jam by Jam Systems Developers.
+          </p>
+          <p style={{color: textColor, backgroundColor: roomColors.background}} className="room-header">
+          Download from <a href="https://github.com/diamsa/jam">github.com/diamsa/jam</a> to host and run your own instance.
+          </p>
+        </div>
       </div>
     </div>
   );

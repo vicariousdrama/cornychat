@@ -28,6 +28,21 @@
     window.jamConfig = <%- jamConfigString %>;
     window.existingRoomInfo = <%- roomInfoString %>;
     window.existingRoomId = <%- roomIdString %>;
+
+    var script_snowflakes = document.createElement('script');
+    script_snowflakes.setAttribute('src','https://unpkg.com/magic-snowflakes/dist/snowflakes.min.js');
+    document.head.appendChild(script_snowflakes);
+    function load_snow() {
+        var showSnow = false;
+        if (showSnow) {
+            var mysnowflakes = new Snowflakes({color: "#d7c1f9",minOpacity: 0.4,maxOpacity: 0.8,maxSize:50,speed:3});
+        }
+    }
+    if(window.addEventListener) {
+        window.addEventListener('load', load_snow, false);
+    } else {
+        window.attachEvent('load', load_snow);
+    }
 </script>
 <script type="module" src="/js/App.js"></script>
 </body>

@@ -98,7 +98,7 @@ export async function getUserMetadata(pubkey, relays, id) {
           const userInfo = {
             name:
               userMetadata[0].display_name === ''
-                ? null
+                ? (userMetadata[0].name === '' ? null : userMetadata[0].name)
                 : userMetadata[0].display_name,
             id: id,
             picture: userMetadata[0].picture,

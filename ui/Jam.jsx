@@ -101,17 +101,16 @@ function JamUI({style, className, route = null, dynamicConfig = {}, ...props}) {
     if (backgroundImg && backgroundImg !== '') {
       return {
         position: 'relative',
-        height: '100vh',
         minHeight: '-webkit-fill-available',
         backgroundImage: `url(${backgroundImg})`,
         backgroundRepeat: 'repeat',
+        backgroundSize: '100% auto',
         ...(style || null),
       };
     }
 
     return {
       position: 'relative',
-      height: '100vh',
       minHeight: '-webkit-fill-available',
       background: roomColors.background,
     };
