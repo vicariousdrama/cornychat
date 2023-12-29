@@ -22,9 +22,6 @@ export default function Navigation({room, editSelf, setEditSelf}) {
   };
 
   function ReactionsEmojis() {
-    const emojis = room?.customEmojis;
-    const areEmojisSet = emojis ? emojis.length : undefined;
-
     return (
       <div>
         {areEmojisSet ? (
@@ -78,6 +75,8 @@ export default function Navigation({room, editSelf, setEditSelf}) {
     'handRaised',
     'iAmSpeaker',
   ]);
+  const emojis = room?.customEmojis;
+  const areEmojisSet = emojis ? emojis.length : undefined;
 
   let micOn = myAudio?.active;
 
@@ -201,7 +200,7 @@ export default function Navigation({room, editSelf, setEditSelf}) {
         ) : null}
 
         {/* emoji */}
-        {room?.customEmojis.length ? (
+        {areEmojisSet ? (
           <div class="mx-2 ">
             <button
               class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
