@@ -128,7 +128,9 @@ export function EditSelf({close, roomColor}) {
     ? roomColor.text.light
     : roomColor.text.dark;
   async function copyToClipboard() {
-    await window.navigator.clipboard.writeText(`https://${location.hostname}/${roomId}`);
+    await window.navigator.clipboard.writeText(
+      `https://${location.hostname}/${roomId}`
+    );
 
     close(false);
     alert('Room link copied to clipboard');
@@ -138,20 +140,6 @@ export function EditSelf({close, roomColor}) {
       className="max-w-lg max-h-28 mx-auto flex flex-wrap justify-center rounded-lg"
       style={{backgroundColor: roomColor.avatarBg, color: textColor}}
     >
-      {!room.access?.lockedIdentities && (
-        <div
-          onClick={() => {
-            openModal(EditIdentity);
-            close(false);
-          }}
-          className="p-2 flex items-center"
-        >
-          <Edit color={iconColor} />
-
-          <p className="text-sm ml-1 cursor-pointer">Edit Profile</p>
-        </div>
-      )}
-
       {iModerate && (
         <div
           onClick={() => {

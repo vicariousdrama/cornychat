@@ -19,20 +19,50 @@ function addNostr(identities, handle, nostrNote) {
 
 export default function EditIdentity({close}) {
   const [state, {updateInfo}] = useJam();
-  let [id, myIdentity] = use(state, ['myId', 'myIdentity']);
-  let mqp = useMqParser();
-  let info = myIdentity?.info;
+  const [id, myIdentity] = use(state, ['myId', 'myIdentity']);
+  const info = myIdentity?.info;
+  const nostrIdentity = info?.identities?.find(i => i.type === 'nostr');
+  const mqp = useMqParser();
+  const colorTheme = state.room?.color ?? 'default';
+  const roomColor = colors(colorTheme, state.room.customColor);
+  let nostrNote = nostrIdentity?.verificationInfo;
+
   let [name, setName] = useState(info?.name ?? info?.displayName);
-  let nostrIdentity = info?.identities?.find(i => i.type === 'nostr');
   let [nostr, setNostr] = useState(nostrIdentity?.id);
   let [nostrInput, setNostrInput] = useState(nostrIdentity?.verificationInfo);
+  const [showErrorMsg, setErrorMsg] = useState(false);
+  const [showNostrVerify, setShowNostrVerify] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   let [defaultZap, setDeafultZap] = useState(
     localStorage.getItem('defaultZap') ?? ''
   );
 
-  let nostrNote = nostrIdentity?.verificationInfo;
-
-  const [showNostrVerify, setShowNostrVerify] = useState(false);
+  const LoadingIcon = () => {
+    return (
+      <div className="flex justify-center">
+        <svg
+          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          ></circle>
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 6.627 5.373 12 12 12v-4c-3.313 0-6-2.687-6-6z"
+          ></path>
+        </svg>
+      </div>
+    );
+  };
 
   const processFile = file => {
     return new Promise((res, rej) => {
@@ -55,8 +85,11 @@ export default function EditIdentity({close}) {
     if (file) {
       const avatar = await processFile(file);
       if (!avatar) return;
+
       const ok = await updateInfo({name, avatar, identities});
       if (ok) close();
+      setErrorMsg('The profile picture size must be less than 500kb.');
+      setIsLoading(false);
     } else {
       if (nostr) {
         const pubkey = nip19.decode(nostr).data;
@@ -81,6 +114,8 @@ export default function EditIdentity({close}) {
 
     sessionStorage.clear();
 
+    setIsLoading(true);
+
     let identities = [];
     addNostr(identities, nostr, nostrInput);
 
@@ -96,9 +131,6 @@ export default function EditIdentity({close}) {
     e.preventDefault();
     close();
   };
-
-  const colorTheme = state.room?.color ?? 'default';
-  const roomColor = colors(colorTheme, state.room.customColor);
 
   return (
     <Modal close={close}>
@@ -126,12 +158,19 @@ export default function EditIdentity({close}) {
           className="edit-profile-file-input rounded placeholder-gray-400 bg-gray-50 w-72"
         />
         <div className="p-2 text-gray-500 italic">
-          Set your profile picture
+          Set your profile picture. If your picture is too large, try
+          compressing it{' '}
+          <a
+            href="https://tinypng.com/"
+            target="blank"
+            className="text-blue-500"
+          >
+            here
+          </a>
           <span className="text-gray-300"> (optional)</span>
         </div>
         <br />
 
-        <br />
         <input
           className="rounded placeholder-gray-400 bg-gray-50 w-48"
           type="text"
@@ -185,6 +224,7 @@ export default function EditIdentity({close}) {
           <span className="text-gray-300"> (optional)</span>
           <br />
         </div>
+        <br />
 
         <input
           className="rounded placeholder-gray-400 bg-gray-50 w-48"
@@ -238,6 +278,7 @@ export default function EditIdentity({close}) {
         <br />
         <hr />
         <br />
+        {showErrorMsg ? <p className="text-red-500">{showErrorMsg}</p> : null}
         <div className="flex">
           <button
             onClick={submit}
@@ -249,7 +290,7 @@ export default function EditIdentity({close}) {
               backgroundColor: roomColor.buttons.primary,
             }}
           >
-            Done
+            {isLoading ? <LoadingIcon /> : 'Done'}
           </button>
           <button
             onClick={cancel}

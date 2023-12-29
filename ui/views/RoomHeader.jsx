@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
 import {isDark} from '../lib/theme';
 import {useJamState} from '../jam-core-react/JamContext';
-import {MicOnSvg, Links, Audience} from './Svg';
+import {MicOnSvg, Links, Audience, Info} from './Svg';
 
 export default function RoomHeader({
   colors,
@@ -40,7 +40,7 @@ export default function RoomHeader({
   function RoomLinks() {
     return (
       <div
-        className="absolute mt-56 z-10 w-72 h-40 overflow-y-scroll p-3 rounded-lg"
+        className="absolute mt-56 z-10 w-72 h-40 mr-3 overflow-y-scroll p-3 rounded-lg"
         style={{backgroundColor: colors.avatarBg}}
       >
         {!roomLinks || roomLinks.length === 0 ? (
@@ -85,7 +85,7 @@ export default function RoomHeader({
   }
 
   return (
-    <div className="flex justify-between w-full py-0 px-0 items-center">
+    <div className="flex justify-between my-2 mx-4 items-center">
       <div className="flex">
         {logoURI && (
           <div className="flex-none">
@@ -100,11 +100,11 @@ export default function RoomHeader({
         <div>
           {' '}
           <div
-            className="flex flex-wrap px-0 py-0 rounded-lg"
+            className="flex flex-wrap px-1 py-1 rounded-lg"
             style={{backgroundColor: colors.avatarBg}}
           >
             <p className="text-sm mr-2" style={{color: textColor}}>
-              {name.substring(0, 25)} |
+              {name.substring(0, 25)}
             </p>
 
             {displayDescription ? (
@@ -113,18 +113,18 @@ export default function RoomHeader({
                 className="text-sm opacity-70 cursor-pointer"
                 onClick={() => setDisplayDescription(!displayDescription)}
               >
-                Description ↑
+                <Info />
               </div>
             ) : (
               <div className="flex">
                 <div
                   style={{color: textColor}}
-                  className="text-sm opacity-70 cursor-pointer flex"
+                  className="text-sm cursor-pointer flex"
                   onClick={async () => {
                     setDisplayDescription(!displayDescription);
                   }}
                 >
-                  Description ↓
+                  <Info />
                 </div>
               </div>
             )}
@@ -136,13 +136,17 @@ export default function RoomHeader({
         <div
           className="flex rounded-lg m-auto px-2 py-2 mx-1.5 justify-between cursor-pointer align-center text-sm"
           style={{
-            color : isDark(colors.avatarBg) ? colors.text.light : colors.text.dark,
-            backgroundColor: colors.avatarBg
+            color: isDark(colors.avatarBg)
+              ? colors.text.light
+              : colors.text.dark,
+            backgroundColor: colors.avatarBg,
           }}
           onClick={() => setShowLinks(!showLinks)}
         >
           <Links color={iconColor} />
-          <div className="px-1">{!roomLinks || roomLinks.length === 0 ? '0' : roomLinks.length}</div>
+          <div className="px-1">
+            {!roomLinks || roomLinks.length === 0 ? '0' : roomLinks.length}
+          </div>
         </div>
         {showLinks ? <RoomLinks /> : null}
         <div

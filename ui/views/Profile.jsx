@@ -9,10 +9,11 @@ import {
 } from '../nostr/nostr';
 import {nip19} from 'nostr-tools';
 import {avatarUrl, displayName} from '../lib/avatar';
-import {CheckBadged, OpenLink} from './Svg';
+import {CheckBadged, CopiedToClipboard, CopyToClipboard} from './Svg';
 import {useJam, useApiQuery} from '../jam-core-react';
 import {use} from 'use-minimal-state';
 import {InvoiceModal} from './Invoice';
+import EditIdentity from './EditIdentity';
 
 export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
   async function setUserMetadata() {
@@ -51,7 +52,7 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
   async function handleFollowBtn(userNpub, state, signEvent) {
     const myFollowList = sessionStorage.getItem('myFollowList');
     const parsedFollowingList = JSON.parse(myFollowList);
-    const updateBtn = followUser(
+    const updateBtn = await followUser(
       userNpub,
       parsedFollowingList,
       state,
@@ -94,6 +95,15 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
     setShowUnfollowBtn(false);
   }
 
+  function copiedToClipboardFn() {
+    navigator.clipboard.writeText(userNpub);
+    setCopiedToClipboard(true);
+
+    setTimeout(() => {
+      setCopiedToClipboard(false);
+    }, 2500);
+  }
+
   const [state, api] = useJam();
   const {
     addSpeaker,
@@ -120,13 +130,16 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
   const [lnAddress, setLnAddress] = useState('');
   const [about, setAbout] = useState(undefined);
   const [nip05, setNip05] = useState('');
+  const [banner, setbanner] = useState(undefined);
   const [showFollowBtn, setShowFollowBtn] = useState(false);
   const [showUnfollowBtn, setShowUnfollowBtn] = useState(false);
+  const [copiedToClipboard, setCopiedToClipboard] = useState(false);
 
   const userNpub = userIdentity(info);
   const actorNpub = userIdentity(actorIdentity.info);
   const shortNpub = userNpub ? userNpub.substring(0, 16) : null;
   const hasNostrIdentity = checkNostrIdentity(info.identities);
+  const isSameId = info.id === actorIdentity.info.id;
 
   useEffect(async () => {
     const wasMetadataFetched = sessionStorage.getItem(userNpub);
@@ -138,12 +151,14 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
       const lightningAddressCache = data.lightningAddress;
       const isNip05ValidCache = data.nip05.isValid;
       const nip05AddressCache = data.nip05.nip05Address;
+      const bannerCache = data.banner;
 
       iFollowUser(iFollowCache);
       setAbout(aboutCache);
       setIsValidNip05(isNip05ValidCache);
       setNip05(nip05AddressCache);
       setLnAddress(lightningAddressCache);
+      setbanner(bannerCache);
     } else {
       const userMetadata = await setUserMetadata();
 
@@ -165,7 +180,9 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
         iFollowUser(iFollow);
       } else {
         obj.iFollow = 'npub not found';
-        console.log('one of them does not have an npub');
+        console.log(
+          `user npub: ${userNpub}\nactor npub: ${actorNpub}\nOne or both of them does not have an npub set up`
+        );
       }
 
       if (userMetadata) {
@@ -190,6 +207,7 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
 
         setAbout(userMetadata.about);
         setNip05(userMetadata.nip05);
+        setbanner(userMetadata.banner);
 
         obj.about = userMetadata.about;
         obj.lightningAddress = lightningAddress;
@@ -197,6 +215,7 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
           isValid: isNip05Valid,
           nip05Address: userMetadata.nip05,
         };
+        obj.banner = userMetadata.banner;
 
         const userMetadataCache = JSON.stringify(obj);
         sessionStorage.setItem(userNpub, userMetadataCache);
@@ -212,7 +231,9 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
             className="h-40 bg-gray-700 rounded-lg absolute top-2"
             style={{
               width: '560px',
-              backgroundColor: 'linear-gradient(to bottom, #ff0000, #0000ff)',
+              backgroundImage: `url(${banner})`,
+              backgroundSize: 'cover',
+              backgroundRepeat: 'no-repeat',
             }}
           ></div>
         </div>
@@ -244,17 +265,22 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
                 <p className="text-sm text-gray-400">{'⚡ ' + lnAddress}</p>
               </div>
               <div className="flex justify-center">
-                <a
-                  className="text-sm text-gray-400 cursor-pointer"
-                  href={'https://primal.net/p/' + userNpub}
-                  target="_blank"
-                  rel="noreferrer"
+                <span
+                  className={
+                    userNpub
+                      ? 'flex text-sm text-gray-400 cursor-pointer'
+                      : 'hidden'
+                  }
+                  onClick={() => copiedToClipboardFn()}
                 >
-                  <span className={userNpub ? 'flex' : 'hidden'}>
-                    {userNpub ? `${shortNpub}...` : null}
-                    <OpenLink />
-                  </span>
-                </a>
+                  {userNpub ? `${shortNpub}...` : null}
+
+                  {copiedToClipboard ? (
+                    <CopiedToClipboard />
+                  ) : (
+                    <CopyToClipboard />
+                  )}
+                </span>
               </div>
             </div>
           </div>
@@ -301,7 +327,7 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
               </button>
             ) : null}
 
-            {isSpeaker && !isModerator && (
+            {isSpeaker && iModerate && (
               <button
                 className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
                 onClick={() => addModerator(roomId, peerId).then(close)}
@@ -338,6 +364,18 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
                 }}
               >
                 Unfollow
+              </button>
+            ) : null}
+
+            {isSameId ? (
+              <button
+                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
+                onClick={() => {
+                  close();
+                  openModal(EditIdentity);
+                }}
+              >
+                Edit profile
               </button>
             ) : null}
 

@@ -22,27 +22,51 @@ export default function Navigation({room, editSelf, setEditSelf}) {
   };
 
   function ReactionsEmojis() {
-    const emojis = room.customEmojis;
+    const emojis = room?.customEmojis;
+    const areEmojisSet = emojis ? emojis.length !== 0 : undefined;
 
     return (
       <div>
-        {emojis.map(r => (
-          <button
-            class="m-2 human-radius text-2xl select-none"
-            key={r}
-            onClick={() => {
-              sendReaction(r);
-            }}
+        {areEmojisSet ? (
+          emojis.map(r => (
+            <button
+              class="human-radius text-2xl select-none"
+              key={r}
+              onClick={() => {
+                sendReaction(r);
+              }}
+              style={{
+                width: '48px',
+                height: '48px',
+              }}
+            >
+              {r.toString().startsWith('E') ? (
+                <img
+                  src={`/img/emoji-${r}.png`}
+                  style={{
+                    width: '100%',
+                    height: 'auto',
+                    border: '0px',
+                    display: 'inline',
+                  }}
+                />
+              ) : (
+                r
+              )}
+            </button>
+          ))
+        ) : (
+          <p
+            className="text-sm "
             style={{
-              width: '48px',
-              height: '48px',
+              color: isDark(roomColor.avatarBg)
+                ? roomColor.text.light
+                : roomColor.text.dark,
             }}
           >
-            {r.toString().startsWith('E') ? (
-            <img src={`/img/emoji-${r}.png`} style={{width: '100%', height: 'auto', border: '0px'}} />
-            ) : r }
-          </button>
-        ))}
+            Emoji reactions have not been set up.
+          </p>
+        )}
       </div>
     );
   }
@@ -177,20 +201,22 @@ export default function Navigation({room, editSelf, setEditSelf}) {
         ) : null}
 
         {/* emoji */}
-        <div class="mx-2 ">
-          <button
-            class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
-            style={{backgroundColor: roomColor.buttons.primary}}
-            onClick={() => {
-              if (editSelf) {
-                setEditSelf(false);
-              }
-              setShowReactions(s => !s);
-            }}
-          >
-            <EmojiFace color={iconColor} />
-          </button>
-        </div>
+        {room?.customEmojis.length ? (
+          <div class="mx-2 ">
+            <button
+              class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
+              style={{backgroundColor: roomColor.buttons.primary}}
+              onClick={() => {
+                if (editSelf) {
+                  setEditSelf(false);
+                }
+                setShowReactions(s => !s);
+              }}
+            >
+              <EmojiFace color={iconColor} />
+            </button>
+          </div>
+        ) : null}
 
         {/* Leave room */}
         <div class="mx-2">

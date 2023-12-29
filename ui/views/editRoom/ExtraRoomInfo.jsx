@@ -2,6 +2,7 @@ import React from 'react';
 import {useMqParser} from '../../lib/tailwind-mqp';
 import {Trash} from '../Svg';
 import EmojiPicker from 'emoji-picker-react';
+import reactionEmojis from '../../emojis';
 
 export function ExtraRoomInfo({
   roomLinks,
@@ -69,7 +70,12 @@ export function ExtraRoomInfo({
   }
 
   function addEmoji(emoji) {
+    if (customEmojis.includes(emoji)) return;
     setCustomEmojis(prevArray => [...prevArray, emoji]);
+  }
+
+  function resetEmojis() {
+    setCustomEmojis(reactionEmojis);
   }
 
   return (
@@ -141,6 +147,7 @@ export function ExtraRoomInfo({
           width={'width:max-content'}
           onEmojiClick={emoji => addEmoji(emoji.emoji)}
           previewConfig={{showPreview: false}}
+          autoFocusSearch={false}
         />
         <div className="mt-3">
           <p className="text-sm font-medium text-gray-500 p-2">
@@ -158,6 +165,13 @@ export function ExtraRoomInfo({
               );
             })}
           </div>
+
+          <button
+            className="text-sm font-medium underline text-gray-500 p-2"
+            onClick={() => resetEmojis()}
+          >
+            Reset to default emojis
+          </button>
         </div>
       </div>
 

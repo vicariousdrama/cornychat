@@ -214,7 +214,8 @@ export default function EnterRoom({
           className={closed || forbidden ? 'hidden' : 'my-3 w-full text-center'}
         >
           <p className="text-gray-600 text-sm">
-            This option should only be used for testing purposes. Do not use your primary user NSEC.
+            This option should only be used for testing purposes. Do not use
+            your primary user NSEC.
           </p>
         </div>
         <a
@@ -228,18 +229,18 @@ export default function EnterRoom({
         >
           🗓 Add to Calendar
         </a>
-        <div className{'hidden'}>
-        <div className={iOS ? 'mt-40 text-gray-800 text-center' : 'hidden'}>
-          🎧 Use headphones or earbuds
-          <br />
-          for the best audio experience on iOS
-        </div>
+        <div className="hidden">
+          <div className={iOS ? 'mt-40 text-gray-800 text-center' : 'hidden'}>
+            🎧 Use headphones or earbuds
+            <br />
+            for the best audio experience on iOS
+          </div>
 
-        <div className={macOS ? 'mt-40 text-gray-800 text-center' : 'hidden'}>
-          🎧 Use Chrome or Firefox instead of Safari
-          <br />
-          for the best audio experience on macOS
-        </div>
+          <div className={macOS ? 'mt-40 text-gray-800 text-center' : 'hidden'}>
+            🎧 Use Chrome or Firefox instead of Safari
+            <br />
+            for the best audio experience on macOS
+          </div>
         </div>
         {/*
             if it is a future/scheduled room this button could be replaced with

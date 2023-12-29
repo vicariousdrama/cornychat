@@ -58,11 +58,10 @@ export default function Room({room, roomId, uxConfig}) {
   let myInfo = myIdentity.info;
   let hasEnteredRoom = inRoom === roomId;
 
-  let [editRole, setEditRole] = useState(null);
   let [editSelf, setEditSelf] = useState(false);
   const [audience, setAudience] = useState(state.peers.length);
   const [showLinks, setShowLinks] = useState(false);
-  
+
   useMemo(() => setAudience(state.peers.length), [state.peers]);
 
   let {
@@ -117,7 +116,9 @@ export default function Room({room, roomId, uxConfig}) {
 
   const colorTheme = state.room?.color ?? 'default';
   const roomColor = colors(colorTheme, state.room.customColor);
-  const textColor = isDark(roomColor.avatarBg) ? roomColor.text.light : roomColor.text.dark;
+  const textColor = isDark(roomColor.avatarBg)
+    ? roomColor.text.light
+    : roomColor.text.dark;
 
   return (
     <div className="h-screen w-screen flex flex-col justify-between">
@@ -177,7 +178,7 @@ export default function Room({room, roomId, uxConfig}) {
         </div>
 
         {/* Main Area */}
-        <div className="h-full rounded-lg mx-auto ">
+        <div className="h-full rounded-lg mx-4">
           {/* Stage */}
           <div className="">
             <ol className="flex flex-wrap">
@@ -189,19 +190,15 @@ export default function Room({room, roomId, uxConfig}) {
                   canSpeak={!hasMicFailed}
                   peerState={myPeerState}
                   info={myInfo}
-                  onClick={
-                    iModerate
-                      ? () => {
-                          openModal(Profile, {
-                            info: state.myIdentity.info,
-                            room,
-                            peerId: myPeerId,
-                            iModerate,
-                            actorIdentity: myIdentity,
-                          });
-                        }
-                      : undefined
-                  }
+                  onClick={() => {
+                    openModal(Profile, {
+                      info: state.myIdentity.info,
+                      room,
+                      peerId: myPeerId,
+                      iModerate,
+                      actorIdentity: myIdentity,
+                    });
+                  }}
                 />
               )}
               {stagePeers.map(peerId => (
@@ -229,7 +226,9 @@ export default function Room({room, roomId, uxConfig}) {
           <br />
           {/* Audience */}
           <hr />
-          <p style={{color: textColor }}>Audience</p>
+          <p className="mt-2" style={{color: textColor}}>
+            Audience
+          </p>
           {!stageOnly && (
             <>
               <ol className="flex flex-wrap">
@@ -240,19 +239,15 @@ export default function Room({room, roomId, uxConfig}) {
                     peerState={myPeerState}
                     info={myInfo}
                     handRaised={handRaised}
-                    onClick={
-                      iModerate
-                        ? () => {
-                            openModal(Profile, {
-                              info: state.myIdentity.info,
-                              room,
-                              peerId: myPeerId,
-                              iModerate,
-                              actorIdentity: myIdentity,
-                            });
-                          }
-                        : undefined
-                    }
+                    onClick={() => {
+                      openModal(Profile, {
+                        info: state.myIdentity.info,
+                        room,
+                        peerId: myPeerId,
+                        iModerate,
+                        actorIdentity: myIdentity,
+                      });
+                    }}
                   />
                 )}
                 {audiencePeers.map(peerId => (

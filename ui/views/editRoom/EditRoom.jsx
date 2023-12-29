@@ -131,65 +131,51 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
       </div>
 
       <div>
-        {!showAdvanced && (
-          <div className="p-2 text-gray-500 italic">
-            <span
-              className="text-sm font-medium text-gray-500 p-2 cursor-pointer"
-              onClick={() => setShowAdvanced(!showAdvanced)}
-            >
-              Advance
-            </span>
+        <div>
+          <div className="p-4 py-8 bg-gray-100 rounded-lg my-3">
+            <DesignRoomInfo
+              backgroundURI={backgroundURI}
+              setBackgroundURI={setBackgroundURI}
+              paletteColors={paletteColors}
+              color={color}
+              setColor={setColor}
+              colorPickerBg={colorPickerBg}
+              colorPickerAvatar={colorPickerAvatar}
+              colorPickerButton={colorPickerButton}
+              setColorPickerBg={setColorPickerBg}
+              setColorPickerAvatar={setColorPickerAvatar}
+              setColorPickerButton={setColorPickerButton}
+              customBg={customBg}
+              setCustomBg={setCustomBg}
+              customAvatar={customAvatar}
+              setCustomAvatar={setCustomAvatar}
+              customButtons={customButtons}
+              setCustomButtons={setCustomButtons}
+              styleBg={styleBg}
+              styleAvatar={styleAvatar}
+              styleButtons={styleButtons}
+              tooltipStates={tooltipStates}
+              setTooltipStates={setTooltipStates}
+            />
           </div>
-        )}
 
-        {/* advanced Room options */}
-        {showAdvanced && (
-          <div>
-            <div className="p-4 py-8 bg-gray-100 rounded-lg my-3">
-              <DesignRoomInfo
-                backgroundURI={backgroundURI}
-                setBackgroundURI={setBackgroundURI}
-                paletteColors={paletteColors}
-                color={color}
-                setColor={setColor}
-                colorPickerBg={colorPickerBg}
-                colorPickerAvatar={colorPickerAvatar}
-                colorPickerButton={colorPickerButton}
-                setColorPickerBg={setColorPickerBg}
-                setColorPickerAvatar={setColorPickerAvatar}
-                setColorPickerButton={setColorPickerButton}
-                customBg={customBg}
-                setCustomBg={setCustomBg}
-                customAvatar={customAvatar}
-                setCustomAvatar={setCustomAvatar}
-                customButtons={customButtons}
-                setCustomButtons={setCustomButtons}
-                styleBg={styleBg}
-                styleAvatar={styleAvatar}
-                styleButtons={styleButtons}
-                tooltipStates={tooltipStates}
-                setTooltipStates={setTooltipStates}
-              />
-            </div>
-
-            <div className="px-4 py-8 bg-gray-100 rounded-lg my-3">
-              <ExtraRoomInfo
-                roomLinks={roomLinks}
-                setRoomLinks={setRoomLinks}
-                buttonText={buttonText}
-                setButtonText={setButtonText}
-                buttonURI={buttonURI}
-                setButtonURI={setButtonURI}
-                textColor={textColor}
-                roomColor={roomColor}
-                customEmojis={customEmojis}
-                setCustomEmojis={setCustomEmojis}
-                closed={closed}
-                setClosed={setClosed}
-              />
-            </div>
+          <div className="px-4 py-8 bg-gray-100 rounded-lg my-3">
+            <ExtraRoomInfo
+              roomLinks={roomLinks}
+              setRoomLinks={setRoomLinks}
+              buttonText={buttonText}
+              setButtonText={setButtonText}
+              buttonURI={buttonURI}
+              setButtonURI={setButtonURI}
+              textColor={textColor}
+              roomColor={roomColor}
+              customEmojis={customEmojis}
+              setCustomEmojis={setCustomEmojis}
+              closed={closed}
+              setClosed={setClosed}
+            />
           </div>
-        )}
+        </div>
         <div className="flex items-center absolute bottom-2 w-full">
           <button
             onClick={submit}
@@ -356,13 +342,3 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
     </Modal>
   );
 }
-
-// pubkey:{
-//   iFollow: true || false,
-//   about:'about',
-//   lightningAddress: "wos.com",
-//   nip05: {
-//     isValid: true || false,
-//     nip05Address: "diegoamsa@google.com"
-//   }
-// }

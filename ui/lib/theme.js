@@ -15,7 +15,7 @@ function isDark(color) {
 
   let rgb;
   if (color.startsWith('#') && color.length >= 7) {
-    rgb = hexToRgb(color.substring(0,7));
+    rgb = hexToRgb(color.substring(0, 7));
   } else if (color.startsWith('rgba(')) {
     rgb = parseRgba(color);
   } else {
@@ -39,7 +39,7 @@ const colorThemes = {
     buttons: {
       primary: '#0066ff',
     },
-    avatarBg: '#1e1e1e80',
+    avatarBg: '#1e1e1e',
     icons: {
       light: lightColor,
       dark: darkColor,
@@ -54,7 +54,7 @@ const colorThemes = {
     buttons: {
       primary: '#ff592a',
     },
-    avatarBg: '#3276b980',
+    avatarBg: '#3276b9',
     icons: {
       light: lightColor,
       dark: darkColor,
@@ -69,7 +69,7 @@ const colorThemes = {
     buttons: {
       primary: '#51da6a',
     },
-    avatarBg: '#22556780',
+    avatarBg: '#225567',
     icons: {
       light: lightColor,
       dark: darkColor,
@@ -84,7 +84,7 @@ const colorThemes = {
     buttons: {
       primary: '#ba0000',
     },
-    avatarBg: '#1e1e1e80',
+    avatarBg: '#1e1e1e',
     icons: {
       light: lightColor,
       dark: darkColor,
@@ -100,7 +100,7 @@ const colorThemes = {
     buttons: {
       primary: '#ff592a',
     },
-    avatarBg: '#3276b980',
+    avatarBg: '#3276b9',
     icons: {
       light: lightColor,
       dark: darkColor,
@@ -115,7 +115,7 @@ const colorThemes = {
     buttons: {
       primary: '#333333',
     },
-    avatarBg: '#e5e5e580',
+    avatarBg: '#e5e5e5',
     icons: {
       light: lightColor,
       dark: darkColor,

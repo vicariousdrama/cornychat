@@ -3,6 +3,7 @@ import {staticConfig} from './config';
 import {emptyRoom} from './room';
 import {populateCache} from '../lib/GetRequest';
 import {signData, signedToken} from '../lib/identity-utils';
+import reactionEmojis from '../emojis';
 
 export {
   apiUrl,
@@ -114,47 +115,28 @@ async function createRoom(state, roomId, room = {}) {
     name = '',
     description = '',
     logoURI = undefined,
-    color = undefined,
+    color = 'default',
     stageOnly = false,
     videoCall = false,
-    customEmojis = [
-      '🌽',
-      '🍻',
-      '🧡',
-      '🤣',
-      '🤔',
-      '🤯',
-      '😴',
-      '☠️',
-      '💩',
-      '🖕',
-      '⚡',
-      '👏',
-      '🤙',
-      '💯',
-      '⌛',
-      '🎻',
-      '👍',
-      '👎',
-      '❓❗',
-      '🔇',
-    ],
-    customColor = {
-      background: `rgba(0,0,0,1)`,
-      text: {
-        light: '#f4f4f4',
-        dark: '#111111',
-      },
-      buttons: {
-        primary: `rgba(0,0,0,1)`,
-      },
-      avatarBg: `rgba(0,0,0,1)`,
-      icons: {
-        light: '#f4f4f4',
-        dark: '#111111',
-      },
-    },
   } = room;
+
+  const customEmojis = reactionEmojis;
+
+  const customColor = {
+    background: `rgba(0,0,0,1)`,
+    text: {
+      light: '#f4f4f4',
+      dark: '#111111',
+    },
+    buttons: {
+      primary: `rgba(0,0,0,1)`,
+    },
+    avatarBg: `rgba(0,0,0,1)`,
+    icons: {
+      light: '#f4f4f4',
+      dark: '#111111',
+    },
+  };
 
   let {myId} = state;
   let newRoom = {
@@ -197,9 +179,9 @@ async function recordingsDownloadLink({myIdentity}, roomId) {
 }
 
 async function getRoomList() {
-  return (await get(`/roomlist/`));
+  return await get(`/roomlist/`);
 }
 
 async function getStaticRoomsList() {
-  return (await get(`/staticrooms/`));
+  return await get(`/staticrooms/`);
 }

@@ -75,13 +75,9 @@ export function DesignRoomInfo({
 
                   <div
                     className="w-1/5 p-4"
-                    onMouseEnter={() => displayTooltip(index, 'Text')}
-                    style={{backgroundColor: colorPalette[1].text.dark}}
-                  ></div>
-
-                  <div
-                    className="w-1/5 p-4"
-                    onMouseEnter={() => displayTooltip(index, 'Avatar card')}
+                    onMouseEnter={() =>
+                      displayTooltip(index, 'Panel background')
+                    }
                     style={{backgroundColor: colorPalette[1].avatarBg}}
                   ></div>
 
@@ -179,6 +175,20 @@ export function DesignRoomInfo({
             <div
               className="mx-1.5 cursor-pointer flex flex-col items-center"
               onClick={() => {
+                setColorPickerAvatar(!colorPickerAvatar);
+                setColorPickerBg(false);
+                setColorPickerButton(false);
+              }}
+            >
+              <div
+                className="w-8 h-8 rounded-full"
+                style={{backgroundColor: styleAvatar}}
+              ></div>
+              <span className="text-xs">Panel background</span>
+            </div>
+            <div
+              className="mx-1.5 cursor-pointer flex flex-col items-center"
+              onClick={() => {
                 setColorPickerButton(!colorPickerButton);
                 setColorPickerBg(false);
                 setColorPickerAvatar(false);
@@ -189,20 +199,6 @@ export function DesignRoomInfo({
                 style={{backgroundColor: styleButtons}}
               ></div>
               <span className="text-xs">Buttons</span>
-            </div>
-            <div
-              className="mx-1.5 cursor-pointer flex flex-col items-center"
-              onClick={() => {
-                setColorPickerAvatar(!colorPickerAvatar);
-                setColorPickerBg(false);
-                setColorPickerButton(false);
-              }}
-            >
-              <div
-                className="w-8 h-8 rounded-full"
-                style={{backgroundColor: styleAvatar}}
-              ></div>
-              <span className="text-xs">Avatar Card</span>
             </div>
           </div>
         </div>
