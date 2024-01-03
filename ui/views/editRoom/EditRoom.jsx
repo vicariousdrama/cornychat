@@ -176,7 +176,9 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
             />
           </div>
         </div>
-        <div className="flex items-center absolute bottom-2 w-full">
+        <div className="flex items-center absolute w-full" style={{
+            bottom: '96px'
+          }}>
           <button
             onClick={submit}
             className="h-12 px-4 w-3/5 text-md rounded-lg mr-2"
@@ -338,6 +340,7 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
           </a>
           )
         </div>
+        <div className="h-28"></div>
       </div>
     </Modal>
   );

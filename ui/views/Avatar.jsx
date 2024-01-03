@@ -4,6 +4,9 @@ import animateEmoji from '../lib/animate-emoji';
 import {useMqParser} from '../lib/tailwind-mqp';
 import {colors, isDark} from '../lib/theme';
 import {ModeratorIcon} from './Svg';
+import {InvoiceModal} from './Invoice';
+import {openModal} from './Modal';
+import {useApiQuery} from '../jam-core-react';
 
 export function StageAvatar({
   room,
@@ -14,6 +17,8 @@ export function StageAvatar({
   peerState,
   reactions,
   info,
+  handRaised,
+  handType,
   onClick,
 }) {
   let mqp = useMqParser();
@@ -22,8 +27,18 @@ export function StageAvatar({
   info = info || {id: peerId};
   let isSpeaking = speaking.has(peerId);
   let isModerator = moderators.includes(peerId);
+  let [peerAdminStatus] = useApiQuery(`/admin/${peerId}`, {fetchOnMount: true});
+  let isAdmin = peerAdminStatus?.admin ?? false;
   const colorTheme = room?.color ?? 'default';
   const roomColor = colors(colorTheme, room.customColor);
+  let isHandRH = (handType == 'RH');
+  let isHandTU = (handType == 'TU');
+  let isHandTD = (handType == 'TD');
+  let isHandAFK = (handType == 'AFK');
+  if (handRaised && !isHandTU && !isHandTD && !isHandAFK) {
+    isHandRH = true;
+  }
+
 
   const textColor = isDark(roomColor.avatarBg)
     ? roomColor.text.light
@@ -33,13 +48,76 @@ export function StageAvatar({
     ? roomColor.icons.light
     : roomColor.icons.dark;
 
+  const dimSatSymbolColor = `rgba(80,80,80,.15)`;
+
+  const hasNostrIdentity = checkNostrIdentity(info.identities);
+
+  function checkNostrIdentity(identities) {
+    const hasNostrIdentity = identities?.some(
+      identity => identity.type === 'nostr'
+    );
+
+    return hasNostrIdentity;
+  }
+
+  const adminSymbol = '🐲';
+  const ownerSymbol = '♔';
+  const moderatorSymbol = '👁️';
+
   return (
     inRoom && (
       <div
-        className="py-2 w-24 ml-2 mb-2 rounded-lg"
+        className="py-0 w-24 mr-2 mb-2 rounded-lg"
         style={{backgroundColor: roomColor.avatarBg}}
       >
         <div className="relative flex flex-col items-center">
+
+        <Reactions
+          reactions={reactions_}
+          className={mqp(
+            'absolute text-5xl pt-0 md:pt-0 human-radius w-20 h-20 md:w-16 md:h-16 text-center'
+          )}
+          emojis={room.customEmojis}
+          style={{backgroundColor: roomColor.buttons.primary, zIndex: '15'}}
+        />
+
+
+          <table><tr><td width="25%">
+            {hasNostrIdentity ? (
+              <div
+                className="flex justify-center cursor-pointer"
+                onClick={() => {
+                  close();
+                  openModal(InvoiceModal, {info: info, room: room});
+                }}
+              >
+                <div className="w-5 h-5 rounded-full bg-gray-600 flex items-center justify-center">
+                  <span>⚡</span>
+                </div>
+              </div>
+            ) : (
+              <div
+                className="flex justify-center"
+              >
+                <div className="w-5 h-5 rounded-full bg-gray-600 flex items-center justify-center">
+                  <span style={{color:dimSatSymbolColor}}>⚡</span>
+                </div>
+              </div>
+
+            )}
+
+            {isAdmin ? (
+              <div title="Admin">
+              {adminSymbol}
+              </div>
+            ) : null }
+            {isModerator && !isAdmin ? (
+              <div style={{color:roomColor.buttons.primary}} title="Moderator">
+              {moderatorSymbol}
+              </div>
+            ) : null}
+
+          </td><td width="75%">
           <div
             className="w-16 h-16 border-2 human-radius mx-auto"
             style={{
@@ -56,8 +134,8 @@ export function StageAvatar({
 
           {(!!micMuted || !canSpeak) && (
             <div
-              className="absolute bottom-0 mt-4 right-2 rounded-full p-2"
-              style={{backgroundColor: roomColor.background}}
+              className="absolute mt-0 rounded-full p-1"
+              style={{backgroundColor: roomColor.background, top: '0px', right: '0px'}}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -84,34 +162,68 @@ export function StageAvatar({
               </svg>
             </div>
           )}
-        </div>
 
-        <Reactions
-          reactions={reactions_}
-          className={mqp(
-            'absolute text-5xl pt-4 md:pt-5 human-radius w-20 h-20 md:w-16 md:h-16 text-center'
-          )}
-          emojis={room.customEmojis}
-          style={{backgroundColor: roomColor.buttons.primary}}
-        />
-
-        <div class="w-full text-center">
-          <div className="flex justify-center items-center">
-            <div>
-              <span
-                className={mqp('text-xs whitespace-nowrap font-medium')}
-                style={{color: textColor}}
-              >
-                {isModerator ? (
-                  <ModeratorIcon color={roomColor.buttons.primary} />
-                ) : null}
-
-                {'  '}
-                {displayName(info, room).substring(0, 12)}
-              </span>
+          {handRaised && isHandRH && (
+          <div className={isHandRH ? 'relative' : 'hidden'}>
+            <div
+              className={mqp(
+                'absolute w-6 h-6 rounded-full bg-white text-xl border-2 border-gray-400 flex items-center justify-center'
+              )}
+              style={{backgroundColor: roomColor.background, top: '-69px', right: '18px'}}
+            >
+              ✋
             </div>
           </div>
+          )}
+          {handRaised && isHandTU && (
+          <div className={isHandTU ? 'relative' : 'hidden'}>
+            <div
+              className={mqp(
+                'absolute w-6 h-6 rounded-full bg-white text-xl border-2 border-gray-400 flex items-center justify-center'
+              )}
+              style={{backgroundColor: `rgb(17,170,17)`, top: '-69px', right: '18px'}}
+            >
+              👍
+            </div>
+          </div>
+          )}
+          {handRaised && isHandTD && (
+          <div className={isHandTD ? 'relative' : 'hidden'}>
+            <div
+              className={mqp(
+                'absolute w-6 h-6 rounded-full bg-white text-xl border-2 border-gray-400 flex items-center justify-center'
+              )}
+              style={{backgroundColor: `rgb(170,17,17)`, top: '-69px', right: '18px'}}
+            >
+              👎
+            </div>
+          </div>
+          )}
+          {handRaised && isHandAFK && (
+          <div className={isHandAFK ? 'relative' : 'hidden'}>
+            <div
+              className={mqp(
+                'absolute w-6 h-6 rounded-full bg-white text-xs border-2 border-gray-400 flex items-center justify-center'
+              )}
+              style={{backgroundColor: `rgb(17,17,170)`, color: 'yellow', top: '-69px', right: '18px'}}
+            >
+              AFK
+            </div>
+          </div>
+          )}
+
+          </td></tr></table>
         </div>
+
+
+        <div
+          className="overflow-hidden whitespace-nowrap text-s mt-0 w-24"
+          style={{color: textColor, width: '95px',overflow:'hidden'}}
+        >
+          {displayName(info, room)}
+        </div>
+
+
       </div>
     )
   );
@@ -121,28 +233,102 @@ export function AudienceAvatar({
   room,
   peerId,
   peerState,
+  moderators,
   reactions,
   info,
   handRaised,
+  handType,
   onClick,
 }) {
   let mqp = useMqParser();
   let {inRoom = null} = peerState || {};
   let reactions_ = reactions[peerId];
   info = info || {id: peerId};
+  let isModerator = moderators.includes(peerId);
+  let [peerAdminStatus] = useApiQuery(`/admin/${peerId}`, {fetchOnMount: true});
+  let isAdmin = peerAdminStatus?.admin ?? false;
+  let isHandRH = handRaised && (handType == 'RH');
+  let isHandTU = handRaised && (handType == 'TU');
+  let isHandTD = handRaised && (handType == 'TD');
+  let isHandAFK = handRaised && (handType == 'AFK');
+  if (handRaised && !isHandTU && !isHandTD && !isHandAFK) {
+    isHandRH = true;
+  }
   const colorTheme = room?.color ?? 'default';
   const roomColor = colors(colorTheme, room.customColor);
   const textColor = isDark(roomColor.avatarBg)
     ? roomColor.text.light
     : roomColor.text.dark;
+  const dimSatSymbolColor = `rgba(80,80,80,.15)`;
+
+  const hasNostrIdentity = checkNostrIdentity(info.identities);
+
+  const adminSymbol = '🐲';
+  const moderatorSymbol = '👁️';
+
+  function checkNostrIdentity(identities) {
+    const hasNostrIdentity = identities?.some(
+      identity => identity.type === 'nostr'
+    );
+
+    return hasNostrIdentity;
+  }
 
   return (
     inRoom && (
       <div
-        className="py-2 w-24 ml-2 my-2 rounded-lg"
+        className="py-0 w-24 mr-2 mb-2 rounded-lg"
         style={{backgroundColor: roomColor.avatarBg}}
       >
         <div className="flex flex-col items-center">
+
+        <Reactions
+          reactions={reactions_}
+          className={mqp(
+            'absolute text-5xl  pt-4 md:pt-5 human-radius w-20 h-20 md:w-16 md:h-16 text-center'
+          )}
+          emojis={room.customEmojis}
+          style={{backgroundColor: roomColor.buttons.primary, zIndex: '15'}}
+        />
+
+          <table><tr><td width="25%">
+            {hasNostrIdentity ? (
+              <div
+                className="flex justify-center cursor-pointer"
+                onClick={() => {
+                  close();
+                  openModal(InvoiceModal, {info: info, room: room});
+                }}
+              >
+                <div className="w-5 h-5 rounded-full bg-gray-600 flex items-center justify-center">
+                  <span>⚡</span>
+                </div>
+              </div>
+            ) : (
+              <div
+                className="flex justify-center"
+              >
+                <div className="w-5 h-5 rounded-full bg-gray-600 flex items-center justify-center">
+                  <span style={{color:dimSatSymbolColor}}>⚡</span>
+                </div>
+              </div>
+
+            )}
+
+            {isAdmin ? (
+              <div title="Admin">
+              {adminSymbol}
+              </div>
+            ) : null }
+            {isModerator && !isAdmin ? (
+              <div style={{color:roomColor.buttons.primary}} title="Moderator">
+              {moderatorSymbol}
+              </div>
+            ) : null}
+
+
+          </td><td width="75%">
+
           <div
             className="w-16 h-16 border-2 human-radius mx-auto"
             style={{
@@ -156,32 +342,66 @@ export function AudienceAvatar({
               onClick={onClick}
             />
           </div>
-          <div className={handRaised ? 'relative' : 'hidden'}>
+
+          {handRaised && isHandRH && (
+          <div className={isHandRH ? 'relative' : 'hidden'}>
             <div
               className={mqp(
-                'absolute w-7 h-7 bottom-2 left-2 mb-1 rounded-full bg-white text-sm border-2 border-gray-400 flex items-center justify-center'
+                'absolute w-6 h-6 rounded-full bg-white text-xl border-2 border-gray-400 flex items-center justify-center'
               )}
+              style={{backgroundColor: roomColor.background, top: '-69px', right: '18px'}}
             >
-              ✋🏽
+              ✋
             </div>
           </div>
-        </div>
-
-        <Reactions
-          reactions={reactions_}
-          className={mqp(
-            'absolute text-5xl  pt-4 md:pt-5 human-radius w-20 h-20 md:w-16 md:h-16 text-center'
           )}
-          emojis={room.customEmojis}
-          style={{backgroundColor: roomColor.buttons.primary}}
-        />
+          {handRaised && isHandTU && (
+          <div className={isHandTU ? 'relative' : 'hidden'}>
+            <div
+              className={mqp(
+                'absolute w-6 h-6 rounded-full bg-white text-xl border-2 border-gray-400 flex items-center justify-center'
+              )}
+              style={{backgroundColor: `rgb(17,170,17)`, top: '-69px', right: '18px'}}
+            >
+              👍
+            </div>
+          </div>
+          )}
+          {handRaised && isHandTD && (
+          <div className={isHandTD ? 'relative' : 'hidden'}>
+            <div
+              className={mqp(
+                'absolute w-6 h-6 rounded-full bg-white text-xl border-2 border-gray-400 flex items-center justify-center'
+              )}
+              style={{backgroundColor: `rgb(170,17,17)`, top: '-69px', right: '18px'}}
+            >
+              👎
+            </div>
+          </div>
+          )}
+          {handRaised && isHandAFK && (
+          <div className={isHandAFK ? 'relative' : 'hidden'}>
+            <div
+              className={mqp(
+                'absolute w-6 h-6 rounded-full bg-white text-xs border-2 border-gray-400 flex items-center justify-center'
+              )}
+              style={{backgroundColor: `rgb(17,17,170)`, color: 'yellow', top: '-69px', right: '18px'}}
+            >
+              AFK
+            </div>
+          </div>
+          )}
+
+          </td></tr></table>
+        </div>
 
         <div
-          className="overflow-hidden whitespace-nowrap text-center text-xs mt-2"
-          style={{color: textColor}}
+          className="overflow-hidden whitespace-nowrap text-s mt-0 w-24"
+          style={{color: textColor, width: '95px',overflow:'hidden'}}
         >
-          {displayName(info, room).substring(0, 12)}
+          {displayName(info, room)}
         </div>
+
       </div>
     )
   );
@@ -222,6 +442,7 @@ function AnimatedEmoji({emoji, ...props}) {
           width: '96px',
           height: '96px',
           border: '0px',
+          zIndex: '15',
         }}
         {...props}
       >
@@ -231,13 +452,14 @@ function AnimatedEmoji({emoji, ...props}) {
             width: '100%',
             height: 'auto',
             border: '0px',
+            zIndex: '15',
           }}
         />
       </div>
     );
   } else {
     return (
-      <div ref={setElement} {...props}>
+      <div ref={setElement} {...props} style={{zIndex: '15'}}>
         {emoji}
       </div>
     );

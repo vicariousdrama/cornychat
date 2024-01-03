@@ -68,11 +68,74 @@ export default function Navigation({room, editSelf, setEditSelf}) {
     );
   }
 
+  function StickyStatus() {
+    return (
+      <div>
+        <button class="human-radius text-2xl select-none"
+          style={{width:'48px',height:'48px'}}
+          onClick={() => {
+            handRaised = false;
+            handType = '';
+            setProps('handRaised', handRaised);
+            setProps('handType', handType);
+            //setHandType(handType);
+            setShowStickies(s => !s);
+          }}
+        >🆑</button>
+        <button class="human-radius text-xl select-none"
+          style={{width:'48px',height:'48px',backgroundColor:`rgb(17,17,17)`,color:'yellow'}}
+          onClick={() => {
+            handRaised = true;
+            handType = 'RH';
+            setProps('handRaised', handRaised);
+            setProps('handType', handType);
+            //setHandType(handType);
+            setShowStickies(s => !s);
+          }}
+        >✋</button>
+        <button class="human-radius text-xl select-none"
+          style={{width:'48px',height:'48px',backgroundColor:`rgb(17,170,17)`,color:'yellow'}}
+          onClick={() => {
+            handRaised = true;
+            handType = 'TU';
+            setProps('handRaised', handRaised);
+            setProps('handType', handType);
+            //setHandType(handType);
+            setShowStickies(s => !s);
+          }}
+        >👍</button>
+        <button class="human-radius text-xl select-none"
+          style={{width:'48px',height:'48px',backgroundColor:`rgb(170,17,17)`,color:'yellow'}}
+          onClick={() => {
+            handRaised = true;
+            handType = 'TD';
+            setProps('handRaised', handRaised);
+            setProps('handType', handType);
+            //setHandType(handType);
+            setShowStickies(s => !s);
+          }}
+        >👎</button>
+        <button class="human-radius text-xl select-none"
+          style={{width:'48px',height:'48px',backgroundColor:`rgb(17,17,170)`,color:'yellow'}}
+          onClick={() => {
+            handRaised = true;
+            handType = 'AFK';
+            setProps('handRaised', handRaised);
+            setProps('handType', handType);
+            //setHandType(handType);
+            setShowStickies(s => !s);
+          }}
+        >AFK</button>
+      </div>
+    );
+  }
+
   const [state, {leaveRoom, sendReaction, retryMic, setProps}] = useJam();
-  let [myAudio, micMuted, handRaised, iSpeak] = use(state, [
+  let [myAudio, micMuted, handRaised, handType, iSpeak] = use(state, [
     'myAudio',
     'micMuted',
     'handRaised',
+    'handType',
     'iAmSpeaker',
   ]);
   const emojis = room?.customEmojis;
@@ -81,6 +144,8 @@ export default function Navigation({room, editSelf, setEditSelf}) {
   let micOn = myAudio?.active;
 
   let [showReactions, setShowReactions] = useState(false);
+  let [showStickies, setShowStickies] = useState(false);
+  //let [handType, setHandType] = useState('');
 
   const colorTheme = state.room?.color ?? 'default';
   const roomColor = colors(colorTheme, state.room.customColor);
@@ -88,10 +153,19 @@ export default function Navigation({room, editSelf, setEditSelf}) {
   const iconColor = isDark(roomColor.buttons.primary)
     ? roomColor.icons.light
     : roomColor.icons.dark;
+  const iconColorBad = `rgba(240,40,40,.80)`;
 
   return (
-    <div>
+    <div style={{zIndex: '10',position:'absolute',bottom:'96px',width:'100%',backgroundColor:roomColor.avatarBg}}>
       <div class="flex justify-center align-center mx-2">
+        {showStickies && (
+          <div
+            class="text-4xl items-center max-w-md max-h-28 flex flex-wrap overflow-y-scroll no-scrollbar text-black text-center rounded-lg left-0 bottom-14"
+            style={{backgroundColor: roomColor.avatarBg}}
+          >
+            <StickyStatus />
+          </div>
+        )}
         {showReactions && (
           <div
             class="text-4xl items-center max-w-md max-h-28 flex flex-wrap overflow-y-scroll text-black text-center rounded-lg left-0 bottom-14"
@@ -106,7 +180,7 @@ export default function Navigation({room, editSelf, setEditSelf}) {
           </div>
         )}
       </div>
-      <div class="flex justify-center py-4 px-10">
+      <div class="flex justify-center align-center py-4 px-0">
         {/* setting */}
         <div class="mx-2">
           <button
@@ -116,6 +190,9 @@ export default function Navigation({room, editSelf, setEditSelf}) {
               if (showReactions) {
                 setShowReactions(false);
               }
+              if (showStickies) {
+                setShowStickies(false);
+              }
               setEditSelf(!editSelf);
             }}
           >
@@ -123,8 +200,8 @@ export default function Navigation({room, editSelf, setEditSelf}) {
           </button>
         </div>
 
-        {/* hand raised */}
-        {!iSpeak && (
+        {/* hand raised - original */}
+        {false && (
           <>
             {handRaised ? (
               <div class="mx-2">
@@ -132,10 +209,10 @@ export default function Navigation({room, editSelf, setEditSelf}) {
                   class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
                   style={{backgroundColor: roomColor.buttons.primary}}
                   onClick={
-                    iSpeak ? talk : () => setProps('handRaised', !handRaised)
+                    /*iSpeak ? talk :*/ () => setProps('handRaised', !handRaised)
                   }
                 >
-                  <HandRaised color={iconColor} />
+                     ✋
                 </button>
               </div>
             ) : (
@@ -144,8 +221,53 @@ export default function Navigation({room, editSelf, setEditSelf}) {
                   class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
                   style={{backgroundColor: roomColor.buttons.primary}}
                   onClick={
-                    iSpeak ? talk : () => setProps('handRaised', !handRaised)
+                    /*iSpeak ? talk :*/ () => setProps('handRaised', !handRaised)
                   }
+                >
+                  <HandRaised color={iconColor} />
+                </button>
+              </div>
+            )}
+          </>
+        )}
+        {/* hand raised - choices */}
+        {true && (
+          <>
+            {handRaised ? (
+              <div class="mx-2">
+                <button
+                  class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
+                  style={{backgroundColor: roomColor.buttons.primary, color:iconColor}}
+                  onClick={() => {
+                    if (editSelf) {
+                      setEditSelf(false);
+                    }
+                    if (showReactions) {
+                      setShowReactions(false);
+                    }
+                    setShowStickies(s => !s);
+                  }}
+                >
+                {handType === 'RH' ? '✋' : null}
+                {handType === 'TU' ? '👍' : null}
+                {handType === 'TD' ? '👎' : null}
+                {handType === 'AFK' ? 'AFK' : null}
+                </button>
+              </div>
+            ) : (
+              <div class="mx-2">
+                <button
+                  class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
+                  style={{backgroundColor: roomColor.buttons.primary}}
+                  onClick={() => {
+                    if (editSelf) {
+                      setEditSelf(false);
+                    }
+                    if (showReactions) {
+                      setShowReactions(false);
+                    }
+                    setShowStickies(s => !s);
+                  }}
                 >
                   <HandRaised color={iconColor} />
                 </button>
@@ -189,7 +311,7 @@ export default function Navigation({room, editSelf, setEditSelf}) {
                     <>
                       <MicOffSvg
                         class="w-5 h-5 mr-2 opacity-80 inline-block"
-                        stroke={iconColor}
+                        stroke={iconColorBad}
                       />
                     </>
                   )}
@@ -208,6 +330,9 @@ export default function Navigation({room, editSelf, setEditSelf}) {
               onClick={() => {
                 if (editSelf) {
                   setEditSelf(false);
+                }
+                if (showStickies) {
+                  setShowStickies(false);
                 }
                 setShowReactions(s => !s);
               }}

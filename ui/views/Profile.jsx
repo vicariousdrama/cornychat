@@ -296,7 +296,7 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
                     className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs text-white"
                     onClick={() => removeAdmin(peerId).then(close)}
                   >
-                    ❎️ Remove Admin
+                    ❌ Remove Admin
                   </button>
                 )) || (
                   <button
@@ -341,7 +341,7 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
                 className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
                 onClick={() => removeModerator(roomId, peerId).then(close)}
               >
-                ❎ Demote Moderator
+                ❌ Demote Moderator
               </button>
             )}
 
@@ -363,7 +363,7 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
                   handleUnfollowBtn(userNpub, state, signEvent);
                 }}
               >
-                Unfollow
+                ❌ Unfollow
               </button>
             ) : null}
 

@@ -35,7 +35,7 @@ export default function StartRoomCard({
             >
             </div>
         </div>
-        <div className="justify-center" style={{float: 'right',maxWidth: '480px'}}>{
+        <div className="justify-center" style={{maxWidth: '320px'}}>{
             userInfo.map((userData) => { return <StartRoomCardAvatar userData={userData} key={userData.id} />
         })}</div>
 

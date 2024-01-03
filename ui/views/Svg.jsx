@@ -322,7 +322,7 @@ function Links({color}) {
       viewBox="0 0 24 24"
       stroke-width="1.5"
       stroke="currentColor"
-      class="w-6 h-6"
+      class="w-5 h-5"
     >
       <path
         stroke-linecap="round"
@@ -342,7 +342,7 @@ function Audience({color}) {
       viewBox="0 0 24 24"
       stroke-width="1.5"
       stroke="currentColor"
-      class="w-4 h-5"
+      class="w-5 h-5"
     >
       <path
         stroke-linecap="round"
@@ -362,7 +362,7 @@ function Info({color}) {
       viewBox="0 0 24 24"
       stroke-width="1.5"
       stroke="currentColor"
-      class="w-6 h-6"
+      class="w-7 h-7"
     >
       <path
         stroke-linecap="round"
