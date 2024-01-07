@@ -22,6 +22,8 @@ const reactionEmojis = [
 'E2',
 'E3',
 'E4',  
+'E5',
+'E6',
 ];
 
 export default reactionEmojis;

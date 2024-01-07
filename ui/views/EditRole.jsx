@@ -48,7 +48,7 @@ export default function EditRole({
               onClick={() => removeAdmin(peerId).then(onCancel)}
               className="text-white text-sm p-4 cursor-pointer"
             >
-              ❎️ Remove Admin
+              ❌ Remove Admin
             </p>
           )) || (
             <p
@@ -89,7 +89,7 @@ export default function EditRole({
           onClick={() => removeModerator(roomId, peerId).then(onCancel)}
           className="text-white text-sm p-4 cursor-pointer"
         >
-          ❎ Demote Moderator
+          ❌ Demote Moderator
         </p>
       )}
       <p onClick={onCancel} className="text-red-500 text-sm p-4 cursor-pointer">
@@ -149,7 +149,7 @@ export function EditSelf({close, roomColor}) {
           className="p-2 flex items-center"
         >
           <Settings color={iconColor} />
-          <p className="text-sm ml-1 cursor-pointer">Room settings</p>
+          <p className="text-md ml-1 cursor-pointer">Room settings</p>
         </div>
       )}
       {!stageOnly && iModerate && !iSpeak && (
@@ -157,7 +157,7 @@ export function EditSelf({close, roomColor}) {
           onClick={() => addSpeaker(roomId, myId).then(close(false))}
           className="p-2"
         >
-          <p className="text-sm cursor-pointer">↑ Move to stage</p>
+          <p className="text-md cursor-pointer">↑ Move to stage</p>
         </div>
       )}
 
@@ -171,7 +171,7 @@ export function EditSelf({close, roomColor}) {
         >
           <Stream color={iconColor} />
 
-          <p className="text-sm ml-1 cursor-pointer">Stream audio</p>
+          <p className="text-md ml-1 cursor-pointer">Stream audio</p>
         </div>
       )}
       {iModerate && (
@@ -188,7 +188,7 @@ export function EditSelf({close, roomColor}) {
           className="p-2 flex items-center"
         >
           {isRecording ? <Stop color={iconColor} /> : <Mic color={iconColor} />}
-          <p className="text-sm ml-1 cursor-pointer items-center">
+          <p className="text-md ml-1 cursor-pointer items-center">
             {isRecording ? 'Stop Recording' : 'Start Recording'}
           </p>
         </div>
@@ -199,7 +199,7 @@ export function EditSelf({close, roomColor}) {
         className="p-2 flex items-center"
       >
         <Share color={iconColor} />
-        <p className="text-sm ml-1 cursor-pointer" style={{color: textColor}}>
+        <p className="text-md ml-1 cursor-pointer" style={{color: textColor}}>
           Share
         </p>
       </div>
@@ -209,7 +209,7 @@ export function EditSelf({close, roomColor}) {
           onClick={() => removeSpeaker(roomId, myId).then(close(false))}
           className="p-2"
         >
-          <p className="text-sm text-red-500 cursor-pointer">Leave Stage</p>
+          <p className="text-md text-red-500 cursor-pointer">Leave Stage</p>
         </div>
       )}
 
@@ -221,7 +221,7 @@ export function EditSelf({close, roomColor}) {
           }}
           className="p-2"
         >
-          <p className="text-sm text-red-500 cursor-pointer">Leave stage</p>
+          <p className="text-md text-red-500 cursor-pointer">Leave stage</p>
         </div>
       )}
     </div>

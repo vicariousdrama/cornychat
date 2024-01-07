@@ -11,38 +11,40 @@ Roadmap
   - ✅ Nostr Login with NIP-07 extension
   - ✅ Nostr Login with user provided NSEC
   - ⬜ Nostr Login with newly generated NSEC for onboarding (NIP-06 generate from seed words)
-- ☑️ Recognition of User Profile (kind 0)
+- ✅ Recognition of User Profile (kind 0)
   - ✅ Fetch and display Name (kind 0)
   - ✅ Fetch and display Avatar Image from picture (kind 0)
   - ✅ Fetch and display Lightning Address (kind 0)
-  - ⬜ Nostr Address (kind 0)
-  - ⬜ Description/About (kind 0)
+  - ✅ Nostr Address (kind 0)
+  - ✅ Description/About (kind 0)
 - ☑️ Room Customizations
   - ✅ Set Room Background Picture
   - ✅ Set Room Colors from Preconfigured Palette/Theme
-  - ⬜ Set Room Colors from Custom Selection
-  - ⬜ Set Room Emoji Reactions vs Default
+  - ✅ Set Room Colors from Custom Selection
+  - ✅ Set Room Emoji Reactions vs Default
   - ✅ Allow multiple avatars per row to fit on desktop
-  - ⬜ Add Collapse/Expand to hide/show the room description
+  - ✅ Add Collapse/Expand to hide/show the room description
+- ⬜ Avatar Layout Customizations
   - ⬜ Room Arrangement of Avatars (Stage/Audience, Alphasort, other groupings...?)
-- ⬜ User Avatar / Card View Customizations
   - ⬜ Drag and Drop position of Avatars in room
   - ⬜ Resize / Zoom avatars
-  - ⬜ Allow Users to set their in room status (e.g. AFK, BRB, Present)
-  - ⬜ Raise Hand as Audience member and Speaker
-  - ⬜ Show microphone on/muted for speakers
-  - ⬜ Show indication when speaker is speaking
-- ⬜ Profile Details View
+- ✅ User Avatar
+  - ✅ Allow Users to set their in room status (e.g. AFK, BRB, Present)
+  - ✅ Raise Hand as Audience member and Speaker
+  - ✅ Show microphone on/muted for speakers
+  - ✅ Show indication when speaker is speaking
+- ⬜ Edit User Profile
   - ⬜ Edit Personal Profile to set name, picture, about, lud16, nip05
-  - ⬜ Follow Button to add to contact list (kind 3)
-  - ⬜ Unfollow Button to remove from contact list (kind 3)
-- ⬜ View User Profile
-  - ⬜ Display name, about, avatar, nostr address on popup
-  - ⬜ Verify nostr address
-  - ⬜ Follow User Action
-  - ⬜ Unfollow User Action
+  - ⬜ Upload Banner image to common media uploaders
+  - ⬜ Upload Avatar image to common media uploaders
+- ✅ View User Profile
+  - ✅ Display name, about, avatar, nostr address on popup
+  - ✅ Verify nostr address
+  - ✅ Follow User Action to adjust contact list (kind 3)
+  - ✅ Unfollow User Action to adjust contact list (kind 3)
 - ☑️ Reaction Customizations
   - ✅ Update Default Emoji Reactions
+  - ⬜ Emoji sets (kind 30030)
   - ⬜ Target user for sending reaction
   - ⬜ Animate reaction from sender to target
 - ☑️ Zapping other Users
@@ -68,7 +70,6 @@ Roadmap
   - ⬜ Link to this git repository for source code
   - ⬜ List of code contributors, supporters, producers.. contact and links
   - ⬜ Contact information for server operator
-
 
 ## About Nostr:
 

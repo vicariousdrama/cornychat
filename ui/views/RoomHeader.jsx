@@ -40,8 +40,8 @@ export default function RoomHeader({
   function RoomLinks() {
     return (
       <div
-        className="absolute mt-56 z-10 w-72 h-40 mr-3 overflow-y-scroll p-3 rounded-lg"
-        style={{backgroundColor: colors.avatarBg}}
+        className="absolute z-10 w-72 mr-3 overflow-y-scroll p-3 rounded-lg"
+        style={{backgroundColor: colors.avatarBg, height: '256px', top: '48px'}}
       >
         {!roomLinks || roomLinks.length === 0 ? (
           <p className="text-xs" style={{color: textColor}}>
@@ -72,6 +72,9 @@ export default function RoomHeader({
       <div
         className="markdown"
         style={{backgroundColor: colors.avatarBg, color: textColor}}
+        onClick={async () => {
+          setDisplayDescription(!displayDescription);
+        }}
       >
         <ReactMarkdown
           className="text-sm opacity-70 h-full mt-3"
@@ -91,20 +94,24 @@ export default function RoomHeader({
           <div className="flex-none">
             <img
               alt={'room icon'}
-              className="w-8 h-8 border rounded p-1 m-2 mt-0"
+              className="w-12 h-12 rounded p-0 m-0 mt-0"
               src={logoURI}
               style={{objectFit: 'cover'}}
             />
           </div>
         )}
-        <div>
+        <div className="cursor-pointer"
+          onClick={async () => {
+            setDisplayDescription(!displayDescription);
+          }}
+        >
           {' '}
           <div
             className="flex flex-wrap px-1 py-1 rounded-lg"
-            style={{backgroundColor: colors.avatarBg}}
+            style={{backgroundColor: colors.avatarBg, overflow: 'hidden'}}
           >
-            <p className="text-sm mr-2" style={{color: textColor}}>
-              {name.substring(0, 25)}
+            <p className="text-xl mr-2" style={{color: textColor}}>
+              {name}
             </p>
 
             {displayDescription ? (

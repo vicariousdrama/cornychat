@@ -7,6 +7,7 @@ const defaultProps = {
   userInteracted: false,
   micMuted: true,
   handRaised: false,
+  handType: '',
   autoJoin: false,
   hasMediasoup: false,
   customStream: null,
@@ -67,6 +68,7 @@ type PeerState = {
   micMuted: boolean;
   leftStage: boolean;
   isRecording: boolean;
+  handType: string;
 };
 
 const defaultState = {
@@ -113,10 +115,12 @@ const defaultState = {
     micMuted: true,
     leftStage: false,
     isRecording: false,
+    handType: '',
   },
 
   reactions: {},
   handRaised: false,
+  handType: '',
 
   soundMuted: true,
   micMuted: true,

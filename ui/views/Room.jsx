@@ -28,6 +28,7 @@ export default function Room({room, roomId, uxConfig}) {
   let [
     reactions,
     handRaised,
+    handType,
     identities,
     speaking,
     iSpeak,
@@ -42,6 +43,7 @@ export default function Room({room, roomId, uxConfig}) {
   ] = use(state, [
     'reactions',
     'handRaised',
+    'handType',
     'identities',
     'speaking',
     'iAmSpeaker',
@@ -120,9 +122,12 @@ export default function Room({room, roomId, uxConfig}) {
     ? roomColor.text.light
     : roomColor.text.dark;
 
+  const audienceBarBG = roomColor.buttons.primary;
+  const audienceBarFG = isDark(audienceBarBG) ? roomColor.text.light : roomColor.text.dark;
+
   return (
     <div className="h-screen w-screen flex flex-col justify-between">
-      <div>
+      <div style={{zIndex: '10', position:'absolute', top: '0px'}} className="w-screen flex flex-col justify-between">
         <RoomHeader
           colors={roomColor}
           {...{
@@ -136,10 +141,11 @@ export default function Room({room, roomId, uxConfig}) {
             closed,
           }}
         />
+
       </div>
 
       <div
-        className="h-full my-5 overflow-y-scroll"
+        className="overflow-y-scroll"
         // className={mqp('flex flex-col justify-between pt-2 md:pt-10 md:p-10')}
       >
         <div
@@ -177,11 +183,16 @@ export default function Room({room, roomId, uxConfig}) {
           .
         </div>
 
+        <div style={{height:'64px'}}></div>
+        <div className="hidden m-0 p-0" style={{backgroundColor: audienceBarBG, color: audienceBarFG}}>
+          MOTD: None set
+        </div>
+
         {/* Main Area */}
         <div className="h-full rounded-lg mx-4">
           {/* Stage */}
           <div className="">
-            <ol className="flex flex-wrap">
+            <ol className="flex flex-wrap justify-center">
               {iSpeak && (
                 <StageAvatar
                   key={myPeerId}
@@ -190,6 +201,8 @@ export default function Room({room, roomId, uxConfig}) {
                   canSpeak={!hasMicFailed}
                   peerState={myPeerState}
                   info={myInfo}
+                  handRaised={handRaised}
+                  handType={handType}
                   onClick={() => {
                     openModal(Profile, {
                       info: state.myIdentity.info,
@@ -209,6 +222,8 @@ export default function Room({room, roomId, uxConfig}) {
                   canSpeak={true}
                   peerState={peerState[peerId]}
                   info={identities[peerId]}
+                  handRaised={peerState[peerId]?.handRaised}
+                  handType={peerState[peerId]?.handType}
                   onClick={() => {
                     openModal(Profile, {
                       info: identities[peerId],
@@ -225,20 +240,20 @@ export default function Room({room, roomId, uxConfig}) {
 
           <br />
           {/* Audience */}
-          <hr />
-          <p className="mt-2" style={{color: textColor}}>
+          <div className="m-0 p-0" style={{backgroundColor: audienceBarBG, color: audienceBarFG}}>
             Audience
-          </p>
+          </div>
           {!stageOnly && (
             <>
-              <ol className="flex flex-wrap">
+              <ol className="flex flex-wrap justify-center">
                 {!iSpeak && (
                   <AudienceAvatar
-                    {...{reactions, room}}
+                    {...{moderators, reactions, room}}
                     peerId={myPeerId}
                     peerState={myPeerState}
                     info={myInfo}
                     handRaised={handRaised}
+                    handType={handType}
                     onClick={() => {
                       openModal(Profile, {
                         info: state.myIdentity.info,
@@ -253,10 +268,11 @@ export default function Room({room, roomId, uxConfig}) {
                 {audiencePeers.map(peerId => (
                   <AudienceAvatar
                     key={peerId}
-                    {...{peerId, peerState, reactions, room}}
+                    {...{peerId, peerState, moderators, reactions, room}}
                     peerState={peerState[peerId]}
                     info={identities[peerId]}
-                    handRaised={iModerate && peerState[peerId]?.handRaised}
+                    handRaised={peerState[peerId]?.handRaised}
+                    handType={peerState[peerId]?.handType}
                     onClick={() =>
                       openModal(Profile, {
                         info: identities[peerId],
@@ -272,8 +288,8 @@ export default function Room({room, roomId, uxConfig}) {
             </>
           )}
         </div>
+        <div className="h-24"></div>
       </div>
-
       <Navigation
         {...{
           room,

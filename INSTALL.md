@@ -105,19 +105,6 @@ sudo apt-get install -y python3 python3-venv git libjpeg-dev zlib1g-dev imagemag
 sudo apt-get install -y fail2ban
 ```
 
-**UFW**
-
-```sh
-sudo apt-get install ufw
-```
-
-**Configure UFW**
-
-```sh
-sudo ufw allow ssh
-sudo ufw enable
-```
-
 **Configure File Limits**
 
 ```sh

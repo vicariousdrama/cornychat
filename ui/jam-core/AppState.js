@@ -24,6 +24,7 @@ export default function AppState({hasMediasoup}) {
     micMuted: true,
     leftStage: false,
     isRecording: false,
+    handType: '',
   });
 
   return function AppState({
@@ -31,6 +32,7 @@ export default function AppState({hasMediasoup}) {
     userInteracted,
     micMuted,
     handRaised,
+    handType,
     autoJoin,
     autoRejoin,
     customStream,
@@ -49,15 +51,15 @@ export default function AppState({hasMediasoup}) {
     let {room, iAmSpeaker, iAmModerator, iAmPresenter, hasRoom} = roomState;
     let inRoom = use(InRoom, {roomState, autoJoin, autoRejoin});
 
-    declare(ModeratorState, {swarm, moderators: room.moderators, handRaised});
+    declare(ModeratorState, {swarm, moderators: room.moderators, handRaised, handType});
 
     let remoteStreams = use(ConnectMedia, {roomState, hasMediasoup, swarm});
 
-    is(myPeerState, {micMuted, inRoom: !!inRoom});
+    is(myPeerState, {micMuted, inRoom: !!inRoom, handType});
     declare(Reactions, {swarm});
 
     return merge(
-      {swarm, micMuted, handRaised, inRoom, myId, myIdentity, remoteStreams},
+      {swarm, micMuted, handRaised, handType, inRoom, myId, myIdentity, remoteStreams},
       roomState,
       declare(PeerState, {swarm}),
       declare(ConnectRoom, {
@@ -79,6 +81,7 @@ export default function AppState({hasMediasoup}) {
         userInteracted,
         micMuted,
         handRaised,
+        handType,
         customStream,
       }),
       declare(VideoState, {
