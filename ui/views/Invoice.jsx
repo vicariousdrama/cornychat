@@ -83,10 +83,12 @@ export const InvoiceModal = ({info, room, close}) => {
   function handleDefaultZap() {
     const defaultZap = localStorage.getItem('defaultZap');
     if (!defaultZap) {
-      setDisplayError(true);
-      setErrorMsg('You have not set up a default zap amount');
+      setAmount(1);
+//      setDisplayError(true);
+//      setErrorMsg('You have not set up a default zap amount');
+    } else {
+      setAmount(defaultZap);
     }
-    setAmount(defaultZap);
   }
 
   const LoadingIcon = () => {
@@ -147,9 +149,9 @@ export const InvoiceModal = ({info, room, close}) => {
                   backgroundColor: roomColors.buttons.primary,
                   color: textColor,
                 }}
-                onClick={() => setAmount('1000')}
+                onClick={() => setAmount('21')}
               >
-                1,000 sats
+                21 sats
               </button>
             </div>
 
@@ -160,9 +162,9 @@ export const InvoiceModal = ({info, room, close}) => {
                   backgroundColor: roomColors.buttons.primary,
                   color: textColor,
                 }}
-                onClick={() => setAmount('10000')}
+                onClick={() => setAmount('1000')}
               >
-                10,000 sats
+                1000 sats
               </button>
               <button
                 className="w-full text-sm px-4 py-2 rounded-md m-2"
@@ -170,9 +172,9 @@ export const InvoiceModal = ({info, room, close}) => {
                   backgroundColor: roomColors.buttons.primary,
                   color: textColor,
                 }}
-                onClick={() => setAmount('100000')}
+                onClick={() => setAmount('2000')}
               >
-                100,000 sats
+                2000 sats
               </button>
             </div>
           </div>

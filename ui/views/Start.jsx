@@ -5,11 +5,14 @@ import {colors, isDark} from '../lib/theme';
 import * as bip39 from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english';
 import StartRoomCard from './StartRoomCard';
+import StartEventCard from './StartEventCard';
 
 export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
   const [loadingRooms, setLoadingRooms] = useState(false);
   const [roomList, setRoomList] = useState([]);
-  const [{room}, {enterRoom, setProps, createRoom, listRooms, listStaticRooms}] = useJam();
+  const [loadingEvents, setLoadingEvents] = useState(false);
+  const [eventList, setEventList] = useState([]);
+  const [{room}, {enterRoom, setProps, createRoom, listRooms, listStaticRooms, listStaticEvents}] = useJam();
   let {stageOnly = false} = newRoom;
 
   useEffect(() => {
@@ -20,9 +23,17 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
       setLoadingRooms(false);
       console.log(roomlist);
     };
+    const loadEvents = async () => {
+      setLoadingEvents(true);
+      let eventlist = await(listStaticEvents());
+      setEventList(eventlist[0]);
+      setLoadingEvents(false);
+      console.log(eventlist);
+    };
     loadRooms();
+    loadEvents();
   }, []);
-  
+
   let submit = e => {
     e.preventDefault();
     setProps('userInteracted', true);
@@ -30,7 +41,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
     const mn = bip39.generateMnemonic(wordlist).split(' ');
     const roomNum = (Math.floor(Math.random() * 1000)+1).toString();
     roomId = mn[0] + mn[1] + roomNum;
-    
+
     (async () => {
       let roomPosted = {stageOnly};
       let ok = await createRoom(roomId, roomPosted);
@@ -74,7 +85,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
         Art by TheNoshole
       </div>
       </a>
-      
+
       <div>
         <p style={{color: textColor}}>
           Nostr Live Audio Spaces is for chatting, brainstorming, debating, jamming,
@@ -84,6 +95,13 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
         <br />
 
         <div style={{align: 'center'}}>
+        { loadingEvents ? (<h4>Loading...</h4>) : (eventList?.map((eventInfo) => {
+          return <StartEventCard eventInfo={eventInfo} key={eventInfo.eventId} />
+          }))
+        }
+        </div>
+
+        <div style={{align: 'center'}}>
         { loadingRooms ? (<h4>Loading...</h4>) : (roomList?.map((roomInfo) => {
           return <StartRoomCard roomInfo={roomInfo} key={roomInfo.roomId} />
           }))
@@ -91,7 +109,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
         </div>
 
         <br /><br />
-        
+
         <button
           onClick={submit}
           className="select-none h-12 px-6 text-lg rounded-lg mt-3"

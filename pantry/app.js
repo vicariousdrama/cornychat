@@ -12,6 +12,7 @@ const activityRouter = require('./routes/activity');
 const adminRouter = require('./routes/admin');
 const roomListRouter = require('./routes/roomListRouter');
 const staticRoomsRouter = require('./routes/staticRoomsRouter');
+const staticEventsRouter = require('./routes/staticEventsRouter');
 
 const {roomAuthenticator, identityAuthenticator} = require('./auth');
 const {controller} = require('./routes/controller');
@@ -52,5 +53,6 @@ app.use('/api/v1/admin/', adminRouter);
 
 app.use('/api/v1/roomlist/', roomListRouter);
 app.use('/api/v1/staticrooms/', staticRoomsRouter);
+app.use('/api/v1/staticevents/', staticEventsRouter);
 
 module.exports = app;

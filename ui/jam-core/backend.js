@@ -20,6 +20,7 @@ export {
   signNostrEvent,
   getRoomList,
   getStaticRoomsList,
+  getStaticEventsList,
 };
 
 let API = `${staticConfig.urls.pantry}/api/v1`;
@@ -184,4 +185,8 @@ async function getRoomList() {
 
 async function getStaticRoomsList() {
   return await get(`/staticrooms/`);
+}
+
+async function getStaticEventsList() {
+  return await get(`/staticevents/`);
 }

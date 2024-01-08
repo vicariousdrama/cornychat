@@ -114,6 +114,9 @@ export default function Room({room, roomId, uxConfig}) {
     ? []
     : peers.filter(id => !stagePeers.includes(id));
 
+  () => setAudience(stagePeers.length + audiencePeers.length);
+//  useMemo(() => setAudience(stagePeers.length + audiencePeers.length), [state.peers]);
+
   let {noLeave} = uxConfig;
 
   const colorTheme = state.room?.color ?? 'default';
@@ -126,7 +129,7 @@ export default function Room({room, roomId, uxConfig}) {
   const audienceBarFG = isDark(audienceBarBG) ? roomColor.text.light : roomColor.text.dark;
 
   return (
-    <div className="h-screen w-screen flex flex-col justify-between">
+    <div className="h-screen w-screen flex flex-col justify-between overflow-y-scroll">
       <div style={{zIndex: '10', position:'absolute', top: '0px'}} className="w-screen flex flex-col justify-between">
         <RoomHeader
           colors={roomColor}
@@ -145,7 +148,7 @@ export default function Room({room, roomId, uxConfig}) {
       </div>
 
       <div
-        className="overflow-y-scroll"
+        // className="overflow-y-scroll"
         // className={mqp('flex flex-col justify-between pt-2 md:pt-10 md:p-10')}
       >
         <div

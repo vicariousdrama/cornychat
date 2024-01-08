@@ -103,10 +103,10 @@ export async function getUserMetadata(pubkey, relays, id) {
                   : userMetadata[0].name
                 : userMetadata[0].display_name,
             id: id,
-            picture: userMetadata[0].picture,
+            picture: userMetadata[0]?.picture,
             npub: npub,
-            about: userMetadata[0].about,
-            nip05: userMetadata[0].nip05,
+            about: userMetadata[0]?.about,
+            nip05: userMetadata[0]?.nip05,
             lud16: userMetadata[0]?.lud16,
             lud06: userMetadata[0]?.lud06,
             banner: userMetadata[0]?.banner,

@@ -34,8 +34,8 @@ export function StageAvatar({
   let isHandRH = (handType == 'RH');
   let isHandTU = (handType == 'TU');
   let isHandTD = (handType == 'TD');
-  let isHandAFK = (handType == 'AFK');
-  if (handRaised && !isHandTU && !isHandTD && !isHandAFK) {
+  let isHandOther = (handRaised && !isHandRH && !isHandTU && !isHandTD);
+  if (handRaised && !isHandTU && !isHandTD && !isHandOther) {
     isHandRH = true;
   }
 
@@ -68,7 +68,9 @@ export function StageAvatar({
     inRoom && (
       <div
         className="py-0 w-24 mr-2 mb-2 rounded-lg"
-        style={{backgroundColor: roomColor.avatarBg}}
+        style={{
+              backgroundColor: isSpeaking ? roomColor.buttons.primary : roomColor.avatarBg,
+        }}
       >
         <div className="relative flex flex-col items-center">
 
@@ -121,7 +123,7 @@ export function StageAvatar({
           <div
             className="w-16 h-16 border-2 human-radius mx-auto"
             style={{
-              borderColor: isSpeaking ? roomColor.buttons.primary : 'white',
+              borderColor: isSpeaking ? roomColor.buttons.primary : `rgba(255,255,255,0)`,
             }}
           >
             <img
@@ -199,15 +201,15 @@ export function StageAvatar({
             </div>
           </div>
           )}
-          {handRaised && isHandAFK && (
-          <div className={isHandAFK ? 'relative' : 'hidden'}>
+          {handRaised && isHandOther && (
+          <div className={isHandOther ? 'relative' : 'hidden'}>
             <div
               className={mqp(
                 'absolute w-6 h-6 rounded-full bg-white text-xs border-2 border-gray-400 flex items-center justify-center'
               )}
               style={{backgroundColor: `rgb(17,17,170)`, color: 'yellow', top: '-69px', right: '18px'}}
             >
-              AFK
+              {handType}
             </div>
           </div>
           )}
@@ -250,8 +252,8 @@ export function AudienceAvatar({
   let isHandRH = handRaised && (handType == 'RH');
   let isHandTU = handRaised && (handType == 'TU');
   let isHandTD = handRaised && (handType == 'TD');
-  let isHandAFK = handRaised && (handType == 'AFK');
-  if (handRaised && !isHandTU && !isHandTD && !isHandAFK) {
+  let isHandOther = (handRaised && !isHandRH && !isHandTU && !isHandTD);
+  if (handRaised && !isHandTU && !isHandTD && !isHandOther) {
     isHandRH = true;
   }
   const colorTheme = room?.color ?? 'default';
@@ -379,15 +381,15 @@ export function AudienceAvatar({
             </div>
           </div>
           )}
-          {handRaised && isHandAFK && (
-          <div className={isHandAFK ? 'relative' : 'hidden'}>
+          {handRaised && isHandOther && (
+          <div className={isHandOther ? 'relative' : 'hidden'}>
             <div
               className={mqp(
                 'absolute w-6 h-6 rounded-full bg-white text-xs border-2 border-gray-400 flex items-center justify-center'
               )}
               style={{backgroundColor: `rgb(17,17,170)`, color: 'yellow', top: '-69px', right: '18px'}}
             >
-              AFK
+              {handType}
             </div>
           </div>
           )}

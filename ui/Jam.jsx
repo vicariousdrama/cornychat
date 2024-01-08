@@ -108,6 +108,8 @@ function JamUI({style, className, route = null, dynamicConfig = {}, ...props}) {
         ...(style || null),
       };
     }
+    //    backgroundRepeat: 'repeat',   'no-repeat'
+    //    backgroundSize: '100% auto',  'cover'
 
     return {
       position: 'relative',

@@ -71,8 +71,8 @@ export default function Navigation({room, editSelf, setEditSelf}) {
   function StickyStatus() {
     return (
       <div>
-        <button class="human-radius text-2xl select-none"
-          style={{width:'48px',height:'48px'}}
+        <button class="human-radius text-xs select-none"
+          style={{width:'48px',height:'48px','color':'yellow'}}
           onClick={() => {
             handRaised = false;
             handType = '';
@@ -81,7 +81,7 @@ export default function Navigation({room, editSelf, setEditSelf}) {
             //setHandType(handType);
             setShowStickies(s => !s);
           }}
-        >🆑</button>
+        >Lower Hand</button>
         <button class="human-radius text-xl select-none"
           style={{width:'48px',height:'48px',backgroundColor:`rgb(17,17,17)`,color:'yellow'}}
           onClick={() => {
@@ -119,13 +119,35 @@ export default function Navigation({room, editSelf, setEditSelf}) {
           style={{width:'48px',height:'48px',backgroundColor:`rgb(17,17,170)`,color:'yellow'}}
           onClick={() => {
             handRaised = true;
-            handType = 'AFK';
+            handType = 'BRB';
             setProps('handRaised', handRaised);
             setProps('handType', handType);
             //setHandType(handType);
             setShowStickies(s => !s);
           }}
-        >AFK</button>
+        >BRB</button>
+        <button class="human-radius text-xl select-none"
+          style={{width:'48px',height:'48px',backgroundColor:`rgb(17,17,170)`,color:'yellow'}}
+          onClick={() => {
+            handRaised = true;
+            handType = '🚽';
+            setProps('handRaised', handRaised);
+            setProps('handType', handType);
+            //setHandType(handType);
+            setShowStickies(s => !s);
+          }}
+        >🚽</button>
+        <button class="human-radius text-xl select-none"
+          style={{width:'48px',height:'48px',backgroundColor:`rgb(17,17,170)`,color:'yellow'}}
+          onClick={() => {
+            handRaised = true;
+            handType = '🌽';
+            setProps('handRaised', handRaised);
+            setProps('handType', handType);
+            //setHandType(handType);
+            setShowStickies(s => !s);
+          }}
+        >🌽</button>
       </div>
     );
   }
@@ -160,7 +182,7 @@ export default function Navigation({room, editSelf, setEditSelf}) {
       <div class="flex justify-center align-center mx-2">
         {showStickies && (
           <div
-            class="text-4xl items-center max-w-md max-h-28 flex flex-wrap overflow-y-scroll no-scrollbar text-black text-center rounded-lg left-0 bottom-14"
+            class="text-4xl items-center max-w-md max-h-28 flex flex-wrap overflow-y-none no-scrollbar text-black text-center rounded-lg left-0 bottom-14"
             style={{backgroundColor: roomColor.avatarBg}}
           >
             <StickyStatus />
@@ -248,10 +270,7 @@ export default function Navigation({room, editSelf, setEditSelf}) {
                     setShowStickies(s => !s);
                   }}
                 >
-                {handType === 'RH' ? '✋' : null}
-                {handType === 'TU' ? '👍' : null}
-                {handType === 'TD' ? '👎' : null}
-                {handType === 'AFK' ? 'AFK' : null}
+                {handType === 'RH' ? '✋' :( handType === 'TU' ? '👍' :( handType === 'TD' ? '👎' : handType ))}
                 </button>
               </div>
             ) : (

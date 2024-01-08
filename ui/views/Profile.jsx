@@ -137,7 +137,7 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
 
   const userNpub = userIdentity(info);
   const actorNpub = userIdentity(actorIdentity.info);
-  const shortNpub = userNpub ? userNpub.substring(0, 16) : null;
+  const shortNpub = userNpub ? userNpub.substring(0, 20) : null;
   const hasNostrIdentity = checkNostrIdentity(info.identities);
   const isSameId = info.id === actorIdentity.info.id;
 
@@ -240,23 +240,22 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
 
         <div className="mt-20 items-center flex flex-col relative z-20">
           <img
-            className="w-32 h-32 rounded-full bg-gray-200"
+            className="w-32 h-32 human-radius bg-gray-200"
             alt={displayName(info, room)}
             src={avatarUrl(info, room)}
           />
           <div className="w-96 flex flex-col items-center">
             <div className="flex flex-wrap items-center">
               <p className="text-xl mr-1 font-semibold">
-                {displayName(info, room).substring(0, 12)}
+                {displayName(info, room)}
               </p>
-              <div className="mr-2">
-                {isValidNip05 ? <CheckBadged /> : null}
-              </div>
             </div>
             <div className="w-full">
               <div className="flex justify-center">
                 <p className="text-sm text-gray-400">
-                  {isValidNip05 ? nip05 : null}
+                  {isValidNip05 ? <CheckBadged /> : '🚫'}
+                  {nip05}
+                  {isValidNip05 ? '' : '(nostr address verification failed)'}
                 </p>
               </div>
               <div
@@ -398,7 +397,9 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
           <p className={about ? 'text-xl mr-1 font-semibold' : 'hidden'}>
             About
           </p>
-          <p className="text-sm text-gray-400 break-words mb-1">{about}</p>
+          <p className="text-sm text-gray-400 break-words mb-1"
+             style={{whiteSpace:'pre-line'}}
+          >{about}</p>
         </div>
       </div>
     </Modal>
