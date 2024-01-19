@@ -19,12 +19,14 @@ router.get('', async function (req, res) {
         }
         let peerIds = await activeUsersInRoom(roomId);
         let userCount = peerIds.length;
+        let userInfo = [];
+        //if(userCount > 0) {
+        //    userInfo = await Promise.all(peerIds.map(id => get(`identities/${id}`)));
+        //}
         if(userCount > 0) {
-            let userInfo = await Promise.all(peerIds.map(id => get(`identities/${id}`)));
-            rooms.push({"roomId":roomId,"userCount":userCount,"userInfo":userInfo});
+            let roomInfo = await get(roomKeys[i]);
+            rooms.push({"roomId":roomId,"name":roomInfo.name,"description":roomInfo.description,"logoURI":roomInfo.logoURI,"userCount":userCount,"userInfo":userInfo});
         }
     };
     res.send(rooms);
 });
-
-module.exports = router;

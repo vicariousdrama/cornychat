@@ -130,13 +130,13 @@ export default function Navigation({room, editSelf, setEditSelf}) {
           style={{width:'48px',height:'48px',backgroundColor:`rgb(17,17,170)`,color:'yellow'}}
           onClick={() => {
             handRaised = true;
-            handType = '🚽';
+            handType = '☕';
             setProps('handRaised', handRaised);
             setProps('handType', handType);
             //setHandType(handType);
             setShowStickies(s => !s);
           }}
-        >🚽</button>
+        >☕</button>
         <button class="human-radius text-xl select-none"
           style={{width:'48px',height:'48px',backgroundColor:`rgb(17,17,170)`,color:'yellow'}}
           onClick={() => {
@@ -178,7 +178,7 @@ export default function Navigation({room, editSelf, setEditSelf}) {
   const iconColorBad = `rgba(240,40,40,.80)`;
 
   return (
-    <div style={{zIndex: '10',position:'absolute',bottom:'96px',width:'100%',backgroundColor:roomColor.avatarBg}}>
+    <div style={{zIndex: '5',position:'absolute',bottom:'96px',width:'100%',backgroundColor:roomColor.avatarBg}}>
       <div class="flex justify-center align-center mx-2">
         {showStickies && (
           <div

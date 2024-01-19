@@ -186,7 +186,7 @@ export default function Room({room, roomId, uxConfig}) {
           .
         </div>
 
-        <div style={{height:'64px'}}></div>
+        <div style={{height:'128px'}}></div>
         <div className="hidden m-0 p-0" style={{backgroundColor: audienceBarBG, color: audienceBarFG}}>
           MOTD: None set
         </div>
@@ -243,10 +243,12 @@ export default function Room({room, roomId, uxConfig}) {
 
           <br />
           {/* Audience */}
+          {!stageOnly && (!iSpeak || audiencePeers.length > 0) && (
           <div className="m-0 p-0" style={{backgroundColor: audienceBarBG, color: audienceBarFG}}>
             Audience
           </div>
-          {!stageOnly && (
+          )}
+          {!stageOnly &&  (!iSpeak || audiencePeers.length > 0) && (
             <>
               <ol className="flex flex-wrap justify-center">
                 {!iSpeak && (

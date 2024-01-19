@@ -43,14 +43,13 @@ export function ExtraRoomInfo({
         {roomLinks.map((link, index) => {
           let linkText = link[1];
           let linkDescription = link[0];
-          if (linkText.length > 25) linkText = linkText.substring(0, 40);
 
           return (
             <div className="flex w-full justify-between my-3">
               <div>
                 {' '}
-                <p className="text-sm text-black">{linkDescription}</p>
-                <p className="text-xs text-gray-500">{linkText}</p>
+                <p className="text-sm text-black" style={{overflowWrap: 'break-word'}}>{linkDescription}</p>
+                <p className="text-xs text-gray-500" style={{overflowWrap: 'anywhere'}}>{linkText}</p>
               </div>
               <div onClick={() => removeLink(index)} className="cursor-pointer">
                 <Trash />

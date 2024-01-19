@@ -59,13 +59,8 @@ export function DesignRoomInfo({
               onClick={() => setColor(colorThemeName)}
               onMouseLeave={() => hideTooltip(index)}
             >
-              <div className="mx-2 my-2 h-12 flex flex-col justify-between">
-                <div>
-                  {tooltipStates[index] ? (
-                    <p class="text-center text-xs">{colorType}</p>
-                  ) : null}
-                </div>
-
+              <div className="mx-2 my-2 h-20 flex flex-col justify-between">
+                <div>{colorThemeName}</div>
                 <div class="flex">
                   <div
                     onMouseEnter={() => displayTooltip(index, 'Background')}
@@ -86,6 +81,11 @@ export function DesignRoomInfo({
                     onMouseEnter={() => displayTooltip(index, 'Buttons')}
                     style={{backgroundColor: colorPalette[1].buttons.primary}}
                   ></div>
+                </div>
+                <div>
+                  {tooltipStates[index] ? (
+                    <p class="text-center text-xs">{colorType}</p>
+                  ) : null}
                 </div>
               </div>
             </div>

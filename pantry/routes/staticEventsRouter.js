@@ -11,7 +11,9 @@ router.get('', async function (req, res) {
             let eventId = staticEvents[i].eventId;
             let roomId = staticEvents[i].roomId;
             let buttonUrl = staticEvents[i].buttonUrl;
-            events.push({"eventId":eventId,"roomId":roomId,"buttonUrl":buttonUrl});
+            let humanTime = staticEvents[i].humanTime;
+            let humanName = staticEvents[i].humanName;
+            events.push({"eventId":eventId,"roomId":roomId,"buttonUrl":buttonUrl,"humanTime":humanTime,"humanName":humanName});
         };
     }
     res.send(events);

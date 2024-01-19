@@ -33,7 +33,7 @@ export default function EditIdentity({close}) {
   const [showErrorMsg, setErrorMsg] = useState(false);
   const [showNostrVerify, setShowNostrVerify] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  let [defaultZap, setDeafultZap] = useState(
+  let [defaultZap, setDefaultZap] = useState(
     localStorage.getItem('defaultZap') ?? ''
   );
 
@@ -82,6 +82,7 @@ export default function EditIdentity({close}) {
   };
 
   const updateValues = async (file, identities) => {
+    setName('*' + name);
     if (file) {
       const avatar = await processFile(file);
       if (!avatar) return;
@@ -91,6 +92,9 @@ export default function EditIdentity({close}) {
       setErrorMsg('The profile picture size must be less than 500kb.');
       setIsLoading(false);
     } else {
+      let ok = await updateInfo({name, identities});
+      if (ok) close();
+      /*
       if (nostr) {
         const pubkey = nip19.decode(nostr).data;
         const metadata = await getUserMetadata(pubkey, [], null);
@@ -106,6 +110,7 @@ export default function EditIdentity({close}) {
         let ok = await updateInfo({name, identities});
         if (ok) close();
       }
+      */
     }
   };
 
@@ -137,6 +142,9 @@ export default function EditIdentity({close}) {
       <h1>Edit Profile</h1>
       <br />
       <form onSubmit={submit}>
+        <div className="p-2 text-gray-500 bold">
+          Display Name
+        </div>
         <input
           className="rounded placeholder-gray-400 bg-gray-50 w-48"
           type="text"
@@ -147,18 +155,19 @@ export default function EditIdentity({close}) {
             setName(e.target.value);
           }}
         />
-        <div className="p-2 text-gray-500 italic">
-          {`What's your name?`}
-          <span className="text-gray-300"> (optional)</span>
-        </div>
+
         <br />
+
+        <div className="p-2 text-gray-500 bold">
+          Avatar Image
+        </div>
         <input
           type="file"
           accept="image/*"
           className="edit-profile-file-input rounded placeholder-gray-400 bg-gray-50 w-72"
         />
         <div className="p-2 text-gray-500 italic">
-          Set your profile picture. If your picture is too large, try
+          Change your profile picture. Limited to 500kb. If your picture is too large, try
           compressing it{' '}
           <a
             href="https://tinypng.com/"
@@ -171,19 +180,39 @@ export default function EditIdentity({close}) {
         </div>
         <br />
 
+        <span className={'hidden'}>
+        <div className="p-2 text-gray-500 bold">
+          Nostr Public Key <span className="text-gray-300"> (optional)</span>
+        </div>
+        <div className="p-2 text-gray-500 italic">
+          {`1. Set your nostr npub`}
+        </div>
         <input
           className="rounded placeholder-gray-400 bg-gray-50 w-48"
           type="text"
           placeholder="npub1234"
           value={nostr ?? ''}
           name="Nostr"
+          style={{width: '420px', fontSize: '.75em'}}
           onChange={e => {
             setNostr(e.target.value);
           }}
         />
-
         <span className="text-gray-500">
           {/* heroicons/fingerprint */}
+          <button
+            onClick={() => {
+              setShowNostrVerify(!showNostrVerify);
+              event.preventDefault();
+            }}
+            className="flex-grow mt-5 h-12 px-6 text-lg rounded-lg"
+            style={{
+              color: isDark(roomColor.buttons.primary)
+                ? roomColor.text.light
+                : roomColor.text.dark,
+              backgroundColor: roomColor.buttons.primary,
+            }}
+          >
           <svg
             className={
               nostrNote
@@ -206,73 +235,61 @@ export default function EditIdentity({close}) {
             <span
               className={nostrNote ? 'hidden' : 'underline'}
               style={{cursor: 'pointer'}}
-              onClick={() => setShowNostrVerify(!showNostrVerify)}
             >
               verify
             </span>
             <span
               className={nostrNote ? '' : 'hidden'}
-              onClick={() => setShowNostrVerify(!showNostrVerify)}
             >
               verified
             </span>
           </span>
+          </button>
         </span>
-
-        <div className="p-2 text-gray-500 italic">
-          {`Set your nostr npub`}
-          <span className="text-gray-300"> (optional)</span>
-          <br />
+        <div
+          className={showNostrVerify ? 'p-2 text-gray-500 italic' : 'hidden'}
+        >
+          <p>
+              2. Create a nostr post that includes only the following to verify your npub
+          </p>
+          <pre
+            style={{fontSize: '0.7rem'}}
+            className={mqp(
+              'rounded-md bg-yellow-50 not-italic text-md text-center py-2 -ml-2 mt-2 md:text-base'
+            )}
+          >
+            {id}
+          </pre>
+          3. Copy and paste the nostr note or event id to the following field
+          <input
+            className="tweet mt-2 -ml-2 rounded placeholder-gray-400 bg-gray-50 w-72"
+            type="text"
+            style={{width: '420px', fontSize: '.75em'}}
+            placeholder="Nostr note ID"
+            name="Note ID"
+            value={nostrInput ?? ''}
+            onChange={e => setNostrInput(e.target.value)}
+          />
         </div>
         <br />
+        </span>
 
+        <div className="p-2 text-gray-500 bold">
+          Default Zap Amount
+        </div>
         <input
           className="rounded placeholder-gray-400 bg-gray-50 w-48"
           type="number"
           placeholder="10000"
           value={defaultZap ?? ''}
           onChange={e => {
-            setDeafultZap(e.target.value);
+            setDefaultZap(e.target.value);
           }}
         />
         <div className="p-2 text-gray-500 italic">
-          {`Set up a default zap amount`}
+          {`Configure your default zap amount for sending value to others`}
           <span className="text-gray-300"> (optional)</span>
           <br />
-        </div>
-
-        <div
-          className={showNostrVerify ? 'p-2 text-gray-500 italic' : 'hidden'}
-        >
-          <p>
-            <a
-              className="underline not-italic text-blue-600 hover:text-blue-800 visited:text-purple-600"
-              href={'https://primal.net/home'}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Create a nostr post with your Jam public key
-            </a>
-            <br />
-            to verify your nostr npub
-          </p>
-          <pre
-            style={{fontSize: '0.7rem'}}
-            className={mqp(
-              'rounded-md bg-yellow-50 not-italic text-xs text-center py-2 -ml-2 mt-2 md:text-base'
-            )}
-          >
-            {id}
-          </pre>
-
-          <input
-            className="tweet mt-2 -ml-2 rounded placeholder-gray-400 bg-gray-50 w-72"
-            type="text"
-            placeholder="Nostr note ID"
-            name="Note ID"
-            value={nostrInput ?? ''}
-            onChange={e => setNostrInput(e.target.value)}
-          />
         </div>
 
         <br />

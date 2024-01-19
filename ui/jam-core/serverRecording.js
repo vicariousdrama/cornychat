@@ -25,7 +25,7 @@ function ServerRecording({swarm}) {
     const [start] = useAction(actions.START_SERVER_RECORDING);
     const [stop] = useAction(actions.STOP_SERVER_RECORDING);
 
-    console.log(start, stop);
+    console.log('server recording started?', start, 'server recording stopped?', stop);
 
     if (start) {
       hub.sendRequest('mediasoup', {type: 'startServerRecording'});

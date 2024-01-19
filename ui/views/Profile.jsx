@@ -308,7 +308,7 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
               </div>
             )}
 
-            {isSpeaker && iModerate ? (
+            {isSpeaker && (iModerate || myAdminStatus?.admin) ? (
               <button
                 className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
                 onClick={() => removeSpeaker(roomId, peerId).then(close)}
@@ -317,7 +317,7 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
               </button>
             ) : null}
 
-            {!isSpeaker && iModerate ? (
+            {!isSpeaker && (iModerate || myAdminStatus?.admin) ? (
               <button
                 className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
                 onClick={() => addSpeaker(roomId, peerId).then(close)}
@@ -326,7 +326,7 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
               </button>
             ) : null}
 
-            {isSpeaker && iModerate && (
+            {isSpeaker && (iModerate || myAdminStatus?.admin) && (
               <button
                 className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
                 onClick={() => addModerator(roomId, peerId).then(close)}
@@ -335,7 +335,7 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
               </button>
             )}
 
-            {isModerator && iModerate && (
+            {isModerator && (iModerate || myAdminStatus?.admin) && (
               <button
                 className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
                 onClick={() => removeModerator(roomId, peerId).then(close)}

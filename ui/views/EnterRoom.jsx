@@ -88,8 +88,7 @@ export default function EnterRoom({
       setLoadingExtension(true);
       sessionStorage.clear();
       const ok = await signInExtension(
-        state.id,
-        state.roomId,
+        state,
         setProps,
         updateInfo,
         enterRoom
@@ -156,6 +155,7 @@ export default function EnterRoom({
           Join Room
         </button>
 
+        {window.nostr && (
         <button
           onClick={() => {
             handlerSignIn('extension');
@@ -172,6 +172,7 @@ export default function EnterRoom({
         >
           {loadingExtension ? <LoadingIcon /> : 'Login with Nostr extension'}
         </button>
+        )}
 
         <div
           className={closed || forbidden ? 'hidden' : 'my-3 w-full text-center'}

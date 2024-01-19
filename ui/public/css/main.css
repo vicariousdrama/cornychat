@@ -10,6 +10,7 @@
 .jam .markdown a {
   text-decoration: underline;
   color: rgba(30, 64, 175); /* blue-800 */
+  background-color: rgba(224, 128, 224);
 }
 
 .jam .markdown {

@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
 import {isDark} from '../lib/theme';
 import {useJamState} from '../jam-core-react/JamContext';
-import {MicOnSvg, Links, Audience, Info} from './Svg';
+import {MicOnSvg, Links, Audience, InfoR} from './Svg';
 
 export default function RoomHeader({
   colors,
@@ -33,36 +33,37 @@ export default function RoomHeader({
     ? colors.icons.light
     : colors.icons.dark;
 
-  function linkSubstring(text) {
-    return text.substring(0, 40);
-  }
-
   function RoomLinks() {
     return (
       <div
         className="absolute z-10 w-72 mr-3 overflow-y-scroll p-3 rounded-lg"
-        style={{backgroundColor: colors.avatarBg, height: '256px', top: '48px'}}
+        style={{backgroundColor: colors.avatarBg, maxHeight: '512px', top: '48px', left: '5%', width: '90%', border: '1px solid white'}}
+        onClick={() => setShowLinks(false)}
       >
         {!roomLinks || roomLinks.length === 0 ? (
           <p className="text-xs" style={{color: textColor}}>
             This room has no Links
           </p>
         ) : (
-          roomLinks.map(links => {
+          <p class="flex justify-center" style={{color: textColor}}>ROOM LINKS</p>
+        )}
+        {roomLinks && roomLinks.length > 0 ? (
+          roomLinks.map((links,index) => {
+            let linkNumber = 1 + index;
             return (
               <div className="mb-2">
                 <a href={links[1]} target="_blank">
                   <p className="text-xs" style={{color: textColor}}>
-                    {linkSubstring(links[0])}
+                    {linkNumber}. {links[0]}
                   </p>
                   <p className="text-xs opacity-60" style={{color: textColor}}>
-                    {linkSubstring(links[1])}
+                    {links[1]}
                   </p>
                 </a>
               </div>
             );
           })
-        )}
+        ) : null}
       </div>
     );
   }
@@ -70,25 +71,34 @@ export default function RoomHeader({
   function RoomDescription() {
     return (
       <div
-        className="markdown"
-        style={{backgroundColor: colors.avatarBg, color: textColor}}
+        className="markdown z-10"
+        style={{backgroundColor: colors.avatarBg, color: textColor, maxHeight: '512px', top: '48px', left: '5%', width: '90%', border: '1px solid white'}}
         onClick={async () => {
-          setDisplayDescription(!displayDescription);
+          setDisplayDescription(false);
         }}
       >
+        {!description || description.length === 0 ? (
+          <p className="text-xs" style={{color: textColor}}>
+            This room has not set up a description yet.
+          </p>
+        ) : (
+          <p class="flex justify-center" style={{color: textColor}}>ROOM DESCRIPTION</p>
+        )}
+        {description && description.length > 0 ? (
         <ReactMarkdown
           className="text-sm opacity-70 h-full mt-3"
           plugins={[gfm]}
           transformLinkUri={customUriTransformer}
         >
-          {description || 'This room has not set up a description yet.'}
+          {description}
         </ReactMarkdown>
+        ):null}
       </div>
     );
   }
 
   return (
-    <div className="flex justify-between my-2 mx-4 items-center">
+    <div className="flex justify-between my-2 mx-4">
       <div className="flex">
         {logoURI && (
           <div className="flex-none">
@@ -103,43 +113,22 @@ export default function RoomHeader({
         <div className="cursor-pointer"
           onClick={async () => {
             setDisplayDescription(!displayDescription);
+            setShowLinks(false);
           }}
         >
           {' '}
           <div
             className="flex flex-wrap px-1 py-1 rounded-lg"
-            style={{backgroundColor: colors.avatarBg, overflow: 'hidden'}}
+            style={{backgroundColor: colors.avatarBg, overflow: 'hidden', maxHeight: '116px'}}
           >
             <p className="text-xl mr-2" style={{color: textColor}}>
-              {name}
+              {name} <InfoR />
             </p>
-
-            {displayDescription ? (
-              <div
-                style={{color: textColor}}
-                className="text-sm opacity-70 cursor-pointer"
-                onClick={() => setDisplayDescription(!displayDescription)}
-              >
-                <Info />
-              </div>
-            ) : (
-              <div className="flex">
-                <div
-                  style={{color: textColor}}
-                  className="text-sm cursor-pointer flex"
-                  onClick={async () => {
-                    setDisplayDescription(!displayDescription);
-                  }}
-                >
-                  <Info />
-                </div>
-              </div>
-            )}
-          </div>{' '}
+          </div>
           {displayDescription ? <RoomDescription /> : null}
         </div>
       </div>
-      <div className="items-center flex justify-end">
+      <div className="flex-none justify-end">
         <div
           className="flex rounded-lg m-auto px-2 py-2 mx-1.5 justify-between cursor-pointer align-center text-sm"
           style={{
@@ -148,7 +137,10 @@ export default function RoomHeader({
               : colors.text.dark,
             backgroundColor: colors.avatarBg,
           }}
-          onClick={() => setShowLinks(!showLinks)}
+          onClick={() => {
+            setShowLinks(!showLinks);
+            setDisplayDescription(false);
+          }}
         >
           <Links color={iconColor} />
           <div className="px-1">

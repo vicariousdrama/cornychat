@@ -29,7 +29,7 @@ const urls = {
 };
 
 const jamServerName = process.env.SERVER_NAME || 'Jam';
-const jamServerLogo = process.env.SERVER_LOGO || `${urls.jam}/img/jam-app-icon.jpg`;
+const jamServerLogo = process.env.SERVER_LOGO || `${urls.jam}/img/cornychat-app-icon.jpg`;
 const jamServerImage = process.env.SERVER_IMAGE || jamServerLogo;
 const jamServerFavicon = process.env.SERVER_FAVICON || jamServerLogo;
 const jamServerOperator = process.env.SERVER_OPERATOR || 'a Friendly Nostrich';
@@ -176,13 +176,13 @@ app.use(async (req, res) => {
       name: metaInfo.ogTitle,
       icons: [
         {
-          src: `${urls.jam}/img/jam-app-icon-512.png`,
+          src: `${urls.jam}/img/cornychat-app-icon-512.png`,
           type: 'image/png',
           sizes: '512x512',
           purpose: 'any',
         },
         {
-          src: `${urls.jam}/img/jam-app-icon-192.png`,
+          src: `${urls.jam}/img/cornychat-app-icon-192.png`,
           type: 'image/png',
           sizes: '192x192',
           purpose: 'any',
@@ -191,7 +191,7 @@ app.use(async (req, res) => {
       start_url: '/?source=pwa',
       display: 'standalone',
       scope: '/',
-      theme_color: metaInfo.color,
+      theme_color: '#212121',
       description: metaInfo.ogDescription,
     });
   }

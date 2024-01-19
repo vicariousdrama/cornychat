@@ -207,10 +207,21 @@ function activeUserCount() {
     .reduce((aggregate, current) => aggregate + current, 0);
 }
 function activeUsersInRoom(roomId) {
+  return activeUsersInRoomNEW(roomId);
+}
+function activeUsersInRoomOLD(roomId) {
   let peersInRoom = getPeers(roomId).map(
     combinedPeerId => combinedPeerId.split('.')[0]
   );
   // make list unique
+  return [...new Set(peersInRoom)];
+}
+function activeUsersInRoomNEW(roomId) {
+  let peersInRoom = getConnections(roomId)
+    .filter(c => c.ws.readyState == WebSocket.OPEN)
+    .map(c => c.peerId)
+    .map(p => p.split('.')[0]);
+  console.log('room',roomId, 'peers',peersInRoom);
   return [...new Set(peersInRoom)];
 }
 
