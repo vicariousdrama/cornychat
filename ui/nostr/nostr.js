@@ -8,8 +8,7 @@ import {Buffer} from 'buffer';
 const pool = new RelayPool();
 
 export async function signInExtension(
-  id,
-  roomId,
+  state,
   setProps,
   updateInfo,
   enterRoom
@@ -18,30 +17,34 @@ export async function signInExtension(
     if (!window.nostr) {
       throw new Error('There is not nostr extension available');
     }
-    const pubkey = await window.nostr.getPublicKey();
-    const relays = await window.nostr.getRelays();
-
-    const metadata = await getUserMetadata(pubkey, relays, id);
-
-    if (!metadata) {
-      setProps({userInteracted: true});
-      await updateInfo();
-      await enterRoom(roomId);
-      return;
-    }
-
-    let name = metadata.name;
-    let avatar = metadata.picture;
-    let identities = [{type: 'nostr', id: metadata.npub}];
-
+    let id = state.id;
+    let roomId = state.roomId;
+    let pubkey = await window.nostr.getPublicKey();
+    let created_at = Math.floor(Date.now()/1000);
+    let kind = 1;
+    let tags = [[]];
+    let myId = state.myId;
+    let loginEvent = {created_at: created_at, pubkey: pubkey, kind: kind, tags: tags, content: myId};
+    let signedLogin = await window.nostr.signEvent(loginEvent);
+    let npub = nip19.npubEncode(pubkey);
+    let identities = [{type: 'nostr', id: npub, loginTime: created_at, loginId: signedLogin.id, loginSig: signedLogin.sig}];
+    let relays = await window.nostr.getRelays();
+    let metadata = await getUserMetadata(pubkey, relays, id);
     setProps({userInteracted: true});
-    await updateInfo({
-      name,
-      identities,
-      avatar,
-    });
+    if (!metadata) {
+      await updateInfo({identities});
+    } else {
+      let name = metadata.name;
+      let avatar = metadata.picture;
+      await updateInfo({
+        name,
+        identities,
+        avatar,
+      });
+    }
     await enterRoom(roomId);
   } catch (error) {
+    console.log('There was an error logging in with extension: ', error);
     return undefined;
   }
 }

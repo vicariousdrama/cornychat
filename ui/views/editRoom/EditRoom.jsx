@@ -197,10 +197,7 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
           </button>
         </div>
 
-        <br />
-        <hr />
-        <br />
-
+        {false && (
         <form>
           <div className="pb-1">🗓 Room Schedule (experimental)</div>
           <div className="pb-3 text-gray-500">
@@ -320,26 +317,8 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
             </button>
           </div>
         </form>
+        )}
 
-        <br />
-        <hr />
-        <br />
-        <input
-          className="rounded bg-gray-50 text-gray-400 w-full"
-          defaultValue={`<iframe src="${window.location.href}" allow="microphone *;" width="420" height="600"></iframe>`}
-        />
-        <div className="p-2 text-gray-500 mb-5 italic">
-          Embed this room using an iFrame. (
-          <a
-            className="underline"
-            href="https://gitlab.com/jam-systems/jam"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Learn more
-          </a>
-          )
-        </div>
         <div className="h-28"></div>
       </div>
     </Modal>

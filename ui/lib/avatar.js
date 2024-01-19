@@ -95,7 +95,7 @@ const names = [
   'Freedom Fry',
   'Sat Sniper',
   'Sad Senator',
-  'Larry F**k',
+  'Lettuce Hands',
   'The Keymaker',
 ];
 

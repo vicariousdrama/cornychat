@@ -7,6 +7,7 @@ import {ModeratorIcon} from './Svg';
 import {InvoiceModal} from './Invoice';
 import {openModal} from './Modal';
 import {useApiQuery} from '../jam-core-react';
+import {validateEvent, verifySignature} from 'nostr-tools';
 
 export function StageAvatar({
   room,

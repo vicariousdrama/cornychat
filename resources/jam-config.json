@@ -1,15 +1,15 @@
 {
     "urls": {
-      "jam": "https://jam.systems",
-      "pantry": "https://jam.systems/_/pantry",
-      "stun": "stun:stun.jam.systems:3478",
-      "turn": "turn:turn.jam.systems:3478",
+      "jam": "https://cornychat.com",
+      "pantry": "https://cornychat.com/_/pantry",
+      "stun": "stun:stun.cornychat.com:3478",
+      "turn": "turn:turn.cornychat.com:3478",
       "turnCredentials": {
         "username": null,
         "credential": null
       }
     },
-    "development": false,
+    "development": true,
     "defaultRoom": {
       "name": null,
       "description": null,
@@ -65,15 +65,15 @@
       "userDisplay": {
         "randomNames": [],
         "randomAvatars": [
-            "/img/avatar-corn-0.png",
-            "/img/avatar-corn-1.png",
-            "/img/avatar-corn-2.png",
-            "/img/avatar-corn-3.png",
-            "/img/avatar-corn-4.png",
-            "/img/avatar-corn-5.png",
-            "/img/avatar-corn-6.png",
-            "/img/avatar-corn-7.png",
-            "/img/avatar-corn-8.png"
+          "/img/avatar-corn-0.png",
+          "/img/avatar-corn-1.png",
+          "/img/avatar-corn-2.png",
+          "/img/avatar-corn-3.png",
+          "/img/avatar-corn-4.png",
+          "/img/avatar-corn-5.png",
+          "/img/avatar-corn-6.png",
+          "/img/avatar-corn-7.png",
+          "/img/avatar-corn-8.png"
         ],
         "randomIdentities": [
           {

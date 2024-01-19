@@ -5,7 +5,9 @@ import {colors, isDark} from '../lib/theme';
 import * as bip39 from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english';
 import StartRoomCard from './StartRoomCard';
+import StartRoomSimple from './StartRoomSimple';
 import StartEventCard from './StartEventCard';
+import StartEventSimple from './StartEventSimple';
 
 export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
   const [loadingRooms, setLoadingRooms] = useState(false);
@@ -18,7 +20,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
   useEffect(() => {
     const loadRooms = async () => {
       setLoadingRooms(true);
-      let roomlist = await(listStaticRooms());
+      let roomlist = await(listRooms()); // listStaticRooms
       setRoomList(roomlist[0]);
       setLoadingRooms(false);
       console.log(roomlist);
@@ -78,32 +80,33 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
       </div>
 
       <br />
-      <a href="https://nostrudel.ninja/#/u/npub1ymt2j3n8tesrlr0yhaheem6yyqmmwrr7actslurw6annls6vnrcslapxnz/notes">
-      <div class="pictureFrame">
-        <img src="./img/startImage.jpg" class="pictureImage" />
-        <br />
-        Art by TheNoshole
-      </div>
-      </a>
+      <img src="https://i.nostr.build/jkBj.png" />
 
       <div>
-        <p style={{color: textColor}}>
-          Nostr Live Audio Spaces is for chatting, brainstorming, debating, jamming,
-          <br />
-          micro-conferences and more. Join an existing room or start a new one using the buttons below.
-        </p>
+        <div style={{color: textColor}} className="jam">
+          <p style={{color: textColor, backgroundColor: roomColors.background}} className="room-header">
+            Corny Chat is your place for chatting with friends!
+          </p>
+          <a className={'hidden'} href=".">.</a>
+        </div>
         <br />
 
         <div style={{align: 'center'}}>
-        { loadingEvents ? (<h4>Loading...</h4>) : (eventList?.map((eventInfo) => {
-          return <StartEventCard eventInfo={eventInfo} key={eventInfo.eventId} />
+        <div style={{display:'block',color:`rgb(244,244,244)`}}>
+        <h1>Live Rooms</h1>
+        </div>
+        { loadingRooms ? (<h4>Loading...</h4>) : (roomList?.map((roomInfo) => {
+          return <StartRoomSimple roomInfo={roomInfo} key={roomInfo.roomId} />
           }))
         }
         </div>
 
         <div style={{align: 'center'}}>
-        { loadingRooms ? (<h4>Loading...</h4>) : (roomList?.map((roomInfo) => {
-          return <StartRoomCard roomInfo={roomInfo} key={roomInfo.roomId} />
+        <div style={{display:'block',color:`rgb(244,244,244)`}}>
+        <h1>Scheduled Events</h1>
+        </div>
+        { loadingEvents ? (<h4>Loading...</h4>) : (eventList?.map((eventInfo) => {
+          return <StartEventSimple eventInfo={eventInfo} key={eventInfo.eventId} />
           }))
         }
         </div>
@@ -127,10 +130,13 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
 
         <div style={{color: textColor}} className="jam">
           <p style={{color: textColor, backgroundColor: roomColors.background}} className="room-header">
+          For event rooms and support, contact <a href="https://nostrudel.ninja/#/u/npub1yx6pjypd4r7qh2gysjhvjd9l2km6hnm4amdnjyjw3467fy05rf0qfp7kza">Vic</a> on Nostr
+          </p>
+          <p style={{color: textColor, backgroundColor: roomColors.background}} className="room-header">
           Built by Nostr Live Audio Spaces Developers as a fork of Jam by Jam Systems Developers.
           </p>
           <p style={{color: textColor, backgroundColor: roomColors.background}} className="room-header">
-          Download from <a href="https://github.com/diamsa/jam">github.com/diamsa/jam</a> to host and run your own instance.
+          Download from <a href="https://github.com/vicariousdrama/cornychat">github.com/vicariousdrama/cornychat</a> to host and run your own instance.
           </p>
         </div>
       </div>

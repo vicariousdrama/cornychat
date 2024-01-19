@@ -213,6 +213,15 @@ export function EditSelf({close, roomColor}) {
         </div>
       )}
 
+      <div onClick={async () => {
+        location.reload(true);
+        //history.pushState(null, null, window.location.href);
+      }} className="p-2 flex items-center">
+        <p className="text-md ml-1 cursor-pointer" style={{color: textColor}}>
+          Refresh Page
+        </p>
+      </div>
+      
       {!stageOnly && !iModerate && iSpeak && (
         <div
           onClick={() => {
