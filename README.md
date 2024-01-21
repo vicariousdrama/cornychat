@@ -1,13 +1,13 @@
-# Nostr Live Audio Spaces: Jam Edition
+# Corny Chat
 
-This software provides an open source audio space for users of Nostr.  
+This software provides an open source audio space for users of Nostr.
 
 Users can quickly login with existing Nostr accounts and have name and avatar image set from profile data used throughout Nostr.
 
 Roadmap
 
 - ☑️ Login Enhancements
-  - ✅ Anon login and Nostr Pubkey verification
+  - ✅ Anon login
   - ✅ Nostr Login with NIP-07 extension
   - ✅ Nostr Login with user provided NSEC
   - ⬜ Nostr Login with newly generated NSEC for onboarding (NIP-06 generate from seed words)
@@ -17,31 +17,32 @@ Roadmap
   - ✅ Fetch and display Lightning Address (kind 0)
   - ✅ Nostr Address (kind 0)
   - ✅ Description/About (kind 0)
-- ☑️ Room Customizations
+- ✅ Room Customizations
   - ✅ Set Room Background Picture
   - ✅ Set Room Colors from Preconfigured Palette/Theme
   - ✅ Set Room Colors from Custom Selection
   - ✅ Set Room Emoji Reactions vs Default
   - ✅ Allow multiple avatars per row to fit on desktop
   - ✅ Add Collapse/Expand to hide/show the room description
-- ⬜ Avatar Layout Customizations
-  - ⬜ Room Arrangement of Avatars (Stage/Audience, Alphasort, other groupings...?)
-  - ⬜ Drag and Drop position of Avatars in room
-  - ⬜ Resize / Zoom avatars
-- ✅ User Avatar
+- ☑️ User Avatar
   - ✅ Allow Users to set their in room status (e.g. AFK, BRB, Present)
   - ✅ Raise Hand as Audience member and Speaker
   - ✅ Show microphone on/muted for speakers
   - ✅ Show indication when speaker is speaking
-- ⬜ Edit User Profile
-  - ⬜ Edit Personal Profile to set name, picture, about, lud16, nip05
-  - ⬜ Upload Banner image to common media uploaders
-  - ⬜ Upload Avatar image to common media uploaders
+  - ⬜ Show indication of verified Nostr login
 - ✅ View User Profile
   - ✅ Display name, about, avatar, nostr address on popup
   - ✅ Verify nostr address
   - ✅ Follow User Action to adjust contact list (kind 3)
   - ✅ Unfollow User Action to adjust contact list (kind 3)
+- ⬜ Edit User Profile
+  - ⬜ Edit Personal Profile to set name, picture, about, lud16, nip05
+  - ⬜ Upload Banner image to common media uploaders
+  - ⬜ Upload Avatar image to common media uploaders
+- ⬜ Avatar Layout Customizations
+  - ⬜ Room Arrangement of Avatars (Stage/Audience, Alphasort, other groupings...?)
+  - ⬜ Drag and Drop position of Avatars in room
+  - ⬜ Resize / Zoom avatars
 - ☑️ Reaction Customizations
   - ✅ Update Default Emoji Reactions
   - ⬜ Emoji sets (kind 30030)
@@ -77,7 +78,7 @@ NOSTR is an acronym meaning "Notes and Other Stuff Transmitted through Relays". 
 
 ## About Jam:
 
-This software is built as a fork from [Jam](https://gitlab.com/jam-systems/jam.git) from [stable branch on gitlab from 2023-07-27](https://gitlab.com/jam-systems/jam/-/commit/578afaf1d34c0422c153b68f5e8eb09610872bb6). 🍓 Jam is an open source alternative to Clubhouse, Twitter Spaces and similar audio spaces. With Jam you can create audio rooms that can be used for panel discussions, jam sessions, free flowing conversations, debates, theatre plays, musicals and more. The only limit is your imagination. For more information, check out [Jam](https://gitlab.com/jam-systems/jam.git), the [Jam community on 🎧 Discord](https://discord.gg/BfakmCuXSX), [Jam on X](https://twitter.com/jam_systems), and [Jam on 😽 Product Hunt](https://www.producthunt.com/posts/jam-d17ff3cc-556c-4c17-8140-5211cb1cd81f). The original README for Jam is available [here](JAM-README.md)
+This software is built as a fork from [Diego's Jam](https://github.com/diamsa/jam) which was forked from [Jam](https://gitlab.com/jam-systems/jam.git) from [stable branch on gitlab from 2023-07-27](https://gitlab.com/jam-systems/jam/-/commit/578afaf1d34c0422c153b68f5e8eb09610872bb6). 🍓 Jam is an open source alternative to Clubhouse, Twitter Spaces and similar audio spaces. With Jam you can create audio rooms that can be used for panel discussions, jam sessions, free flowing conversations, debates, theatre plays, musicals and more. The only limit is your imagination. For more information, check out [Jam](https://gitlab.com/jam-systems/jam.git), the [Jam community on 🎧 Discord](https://discord.gg/BfakmCuXSX), [Jam on X](https://twitter.com/jam_systems), and [Jam on 😽 Product Hunt](https://www.producthunt.com/posts/jam-d17ff3cc-556c-4c17-8140-5211cb1cd81f). The original README for Jam is available [here](JAM-README.md)
 
 ## Host Your Own Server
 
