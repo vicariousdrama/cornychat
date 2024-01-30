@@ -17,6 +17,7 @@ const hasAccessToRoom = async (req, roomId) => {
 };
 
 const isModerator = async (req, roomId) => {
+  if (await isAdmin(req)) return true;
   const roomInfo = await get('rooms/' + roomId);
   if (!roomInfo) return false;
   return isAnyInList(req.ssrIdentities, roomInfo['moderators']);

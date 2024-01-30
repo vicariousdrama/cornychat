@@ -65,26 +65,26 @@ app.use('/config.json', (_, res) => {
 app.use(async (req, res) => {
   let route = parsePath(req.path);
   console.log(req.path, route);
-  if (route === 'new') {
+  if (false && route === 'new') {
     return res.redirect(
       302,
       `${urls.jam}/${Math.random().toString(36).substr(2, 6)}`
     );
   }
 
-  if (req.path === '/_/integrations/slack') {
+  if (false && req.path === '/_/integrations/slack') {
     return res.json({
       response_type: 'in_channel',
       text: `${urls.jam}/${Math.random().toString(36).substr(2, 6)}`,
     });
   }
 
-  if (req.path === '/_/integrations/slack/install') {
+  if (false && req.path === '/_/integrations/slack/install') {
     let slackInstallURI = `https://slack.com/oauth/v2/authorize?client_id=${process.env.SLACK_CLIENT_ID}&scope=chat:write,chat:write.public,commands&user_scope=`;
     return res.redirect(302, slackInstallURI);
   }
 
-  if (req.path === '/_/integrations/slack/oauth') {
+  if (false && req.path === '/_/integrations/slack/oauth') {
     if (!req.query.code) {
       console.log('invalid code from Slack');
       return res.send('invalid code parameter');
@@ -118,7 +118,7 @@ app.use(async (req, res) => {
 
   let {metaInfo, roomInfo, roomId} = await getRoomMetaInfo(route);
 
-  if (req.path.includes('/_/integrations/oembed')) {
+  if (false && req.path.includes('/_/integrations/oembed')) {
     if (!req.query.url?.startsWith(`${urls.jam}/`)) return res.json();
 
     let width = parseInt(req.query.width || '440', 10);

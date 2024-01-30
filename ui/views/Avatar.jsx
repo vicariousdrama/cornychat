@@ -61,9 +61,12 @@ export function StageAvatar({
     return hasNostrIdentity;
   }
 
-  const adminSymbol = '🐲';
-  const ownerSymbol = '♔';
-  const moderatorSymbol = '👁️';
+  //const adminSymbol = '🐲';
+  //const ownerSymbol = '♔';
+  //const moderatorSymbol = '👁️';
+  const adminSymbol = '🛠️';
+  const ownerSymbol = '🧯';
+  const moderatorSymbol = '📛';
 
   return (
     inRoom && (
@@ -221,7 +224,7 @@ export function StageAvatar({
 
         <div
           className="overflow-hidden whitespace-nowrap text-s mt-0 w-24"
-          style={{color: textColor, width: '95px',overflow:'hidden'}}
+          style={{color: textColor, width: '95px',overflow:'hidden',paddingLeft:'2px',paddingRight:'2px'}}
         >
           {displayName(info, room)}
         </div>
@@ -266,8 +269,11 @@ export function AudienceAvatar({
 
   const hasNostrIdentity = checkNostrIdentity(info.identities);
 
-  const adminSymbol = '🐲';
-  const moderatorSymbol = '👁️';
+  //const adminSymbol = '🐲';
+  //const moderatorSymbol = '👁️';
+  const adminSymbol = '🛠️';
+  const ownerSymbol = '🧯';
+  const moderatorSymbol = '📛';
 
   function checkNostrIdentity(identities) {
     const hasNostrIdentity = identities?.some(
@@ -400,7 +406,7 @@ export function AudienceAvatar({
 
         <div
           className="overflow-hidden whitespace-nowrap text-s mt-0 w-24"
-          style={{color: textColor, width: '95px',overflow:'hidden'}}
+          style={{color: textColor, width: '95px',overflow:'hidden',paddingLeft:'2px',paddingRight:'2px'}}
         >
           {displayName(info, room)}
         </div>
@@ -417,7 +423,7 @@ function Reactions({reactions, className, emojis}) {
     <>
       {reactions.map(
         ([r, id]) =>
-          emojis.includes(r) && (
+          (true || emojis.includes(r)) && (
             <AnimatedEmoji
               key={id}
               emoji={r}

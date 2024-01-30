@@ -8,7 +8,7 @@ const recordFileLocationPath =
   process.env.RECORD_FILE_LOCATION_PATH || './records';
 const recordFileRetentionDays = process.env.RECORD_FILE_RETENTION_DAYS
   ? parseInt(process.env.RECORD_FILE_RETENTION_DAYS)
-  : 1;
+  : 10;
 
 module.exports = {
   serverAdminId,

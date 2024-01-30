@@ -251,6 +251,7 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
               </p>
             </div>
             <div className="w-full">
+              {nip05 && (
               <div className="flex justify-center">
                 <p className="text-sm text-gray-400">
                   {isValidNip05 ? <CheckBadged /> : '🚫'}
@@ -258,6 +259,7 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
                   {isValidNip05 ? '' : '(nostr address verification failed)'}
                 </p>
               </div>
+              )}
               <div
                 className={lnAddress !== '' ? 'flex justify-center' : 'hidden'}
               >

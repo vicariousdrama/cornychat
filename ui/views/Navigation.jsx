@@ -176,7 +176,8 @@ export default function Navigation({room, editSelf, setEditSelf}) {
     ? roomColor.icons.light
     : roomColor.icons.dark;
   const iconColorBad = `rgba(240,40,40,.80)`;
-
+  let [leaving, setLeaving] = useState(false);
+  
   return (
     <div style={{zIndex: '5',position:'absolute',bottom:'96px',width:'100%',backgroundColor:roomColor.avatarBg}}>
       <div class="flex justify-center align-center mx-2">
@@ -365,7 +366,36 @@ export default function Navigation({room, editSelf, setEditSelf}) {
         <div class="mx-2">
           <button
             class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center transition-all hover:opacity-80"
-            onClick={() => leaveRoom()}
+            onClick={async() => {
+              if (leaving) {
+                setLeaving(false);
+                leaveRoom();
+              } else {
+                setLeaving(true);
+                let byeEmoji = localStorage.getItem('byeEmoji') ?? '';
+                let byeAmount = Math.floor(localStorage.getItem('byeAmount') ?? '0');
+                if (byeAmount > 0) {
+                  if (byeAmount > 20) {
+                    byeAmount = 20;
+                  }
+                  let byeEmojiParts = byeEmoji.split(',');
+                  let bepl = byeEmojiParts.length;
+                  let bec = 0;
+                  for (let er = 0; er < byeAmount; er ++) {
+                    for (let bepi = 0; bepi < bepl; bepi ++) {
+                      bec = bec + 1;
+                      sendReaction(byeEmojiParts[bepi]);
+                      await new Promise((resolve,reject) => setTimeout(resolve, 100));
+                    }
+                  }
+                  if (bec > 1) {
+                    await new Promise((resolve,reject) => setTimeout(resolve, 2000));
+                  }
+                }
+                setLeaving(false);
+                leaveRoom();
+              }
+            }}
           >
             <Leave />
           </button>

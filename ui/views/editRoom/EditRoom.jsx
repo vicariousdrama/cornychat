@@ -6,6 +6,7 @@ import {colorThemes, isDark} from '../../lib/theme';
 import {BasicRoomInfo} from './BasicRoomInfo';
 import {DesignRoomInfo} from './DesignRoomInfo';
 import {ExtraRoomInfo} from './ExtraRoomInfo';
+import {RoomModerators} from './RoomModerators';
 import {getCustomColor, getRgbaObj, getColorPallete} from './utils';
 
 export function EditRoomModal({roomId, room, roomColor, close}) {
@@ -29,9 +30,12 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
   let [logoURI, setLogoURI] = useState(room.logoURI || '');
   let [backgroundURI, setBackgroundURI] = useState(room.backgroundURI || '');
   let [roomLinks, setRoomLinks] = useState(room.roomLinks || []);
+  let [moderators, setModerators] = useState(room.moderators || []);
   let [buttonURI, setButtonURI] = useState(room.buttonURI || '');
   let [buttonText, setButtonText] = useState(room.buttonText || '');
   let [closed, setClosed] = useState(room.closed || false);
+  let [isPrivate, setIsPrivate] = useState(room.isPrivate || false);
+  let [stageOnly, setStageOnly] = useState(room.stageOnly || false);
   let [customEmojis, setCustomEmojis] = useState(room.customEmojis);
 
   let [schedule, setSchedule] = useState(room.schedule);
@@ -46,13 +50,13 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
   let [colorPickerAvatar, setColorPickerAvatar] = useState(false);
   let [colorPickerButton, setColorPickerButton] = useState(false);
   let [customBg, setCustomBg] = useState(
-    getRgbaObj(room.customColor.background)
+    getRgbaObj(room.customColor?.background ?? 'rbga(255,255,255,1)')
   );
   let [customAvatar, setCustomAvatar] = useState(
-    getRgbaObj(room.customColor.avatarBg)
+    getRgbaObj(room.customColor?.avatarBg ?? 'rgba(21,21,192,1)')
   );
   let [customButtons, setCustomButtons] = useState(
-    getRgbaObj(room.customColor.buttons.primary)
+    getRgbaObj(room.customColor?.buttons.primary ?? 'rgba(192,192,21,1)')
   );
 
   let styleBg = `rgba(${customBg.r},${customBg.g},${customBg.b},${customBg.a})`;
@@ -67,7 +71,7 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
   });
 
   const [tooltipStates, setTooltipStates] = useState(
-    paletteColors.map(() => false)
+    paletteColors?.map(() => false) ?? false
   );
 
   let completeSchedule = () => {
@@ -112,6 +116,9 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
       roomLinks,
       customEmojis,
       closed,
+      isPrivate,
+      stageOnly,
+      moderators,
     });
     close();
   };
@@ -173,11 +180,23 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
               setCustomEmojis={setCustomEmojis}
               closed={closed}
               setClosed={setClosed}
+              isPrivate={isPrivate}
+              setIsPrivate={setIsPrivate}
+              stageOnly={stageOnly}
+              setStageOnly={setStageOnly}
             />
           </div>
+
+          <div className="px-4 py-8 bg-gray-100 rounded-lg my-3 hidden">
+            <RoomModerators
+              moderators={moderators}
+              setModerators={setModerators}
+            />
+          </div>
+
         </div>
         <div className="flex items-center absolute w-full" style={{
-            bottom: '96px'
+            bottom: '96px', zIndex: '5'
           }}>
           <button
             onClick={submit}
