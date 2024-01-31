@@ -13,6 +13,10 @@ router.get('', async function (req, res) {
             let buttonUrl = staticEvents[i].buttonUrl;
             let humanTime = staticEvents[i].humanTime;
             let humanName = staticEvents[i].humanName;
+            let enabled = staticEvents[i].enabled ?? true;
+            if (!enabled) {
+                continue;
+            }
             events.push({"eventId":eventId,"roomId":roomId,"buttonUrl":buttonUrl,"humanTime":humanTime,"humanName":humanName});
         };
     }

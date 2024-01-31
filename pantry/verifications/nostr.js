@@ -5,6 +5,9 @@ function decodeNote(noteId) {
   const note = nip19.decode(noteId);
   const type = note.type;
 
+  console.log(note);
+  console.log(type);
+
   if (type === 'nevent') {
     return note.data.id;
   }
@@ -23,7 +26,8 @@ const verify = (identity, publicKey) => {
         noteId.startsWith('note') || noteId.startsWith('nevent');
 
       if (!isValidEvent) {
-        throw new Error(`Invalid nostr noteId: ${identity.verificationInfo}`);
+        const error_msg = `Invalid nostr noteId: ${identity.verificationInfo}`;
+        rej(new Error(error_msg));
       }
 
       const decodedNote = decodeNote(noteId);
@@ -43,7 +47,7 @@ const verify = (identity, publicKey) => {
 
       const checkEventReturned = setTimeout(() => {
         const error_msg = `Relays did not returned any events`;
-        throw new Error(error_msg);
+        rej(new Error(error_msg));
       }, 2500);
 
       pool.subscribe(

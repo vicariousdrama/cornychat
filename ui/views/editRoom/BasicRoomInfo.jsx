@@ -12,16 +12,19 @@ export function BasicRoomInfo({
   let mqp = useMqParser();
   return (
     <div>
-      <div className="mb-10">
+      <p className="text-lg font-medium text-gray-500 px-2">
+        Basic Room Info
+      </p>
+      <div className="mb-2">
         <p className="text-sm font-medium text-gray-500 px-2">
-          Choose your room's topic:
+          Room topic:
         </p>
         <input
           className={mqp(
             'rounded-lg placeholder-gray-400 bg-gray-100 border-4 m-2 pb-2 rounded-lg w-full md:w-96'
           )}
           type="text"
-          placeholder="Room topic"
+          placeholder="Room topic. Appears on the landing page when room is active."
           value={name}
           name="jam-room-topic"
           autoComplete="off"
@@ -34,16 +37,16 @@ export function BasicRoomInfo({
         ></input>
       </div>
 
-      <div className="my-5">
+      <div className="my-2">
         <p className="text-sm font-medium text-gray-500 px-2">
-          Paste your room's logo URI:
+          Room logo URI:
         </p>
         <input
           className={mqp(
             'rounded-lg placeholder-gray-400 bg-gray-100 border-4 m-2 pb-2 rounded-lg w-full md:w-96'
           )}
           type="text"
-          placeholder="Logo URI"
+          placeholder="Logo URI. Displayed on the landing page when room is active."
           value={logoURI}
           name="jam-room-logo-uri"
           autoComplete="off"
@@ -56,9 +59,9 @@ export function BasicRoomInfo({
         ></input>
       </div>
 
-      <div className="mt-10">
+      <div className="mt-2">
         <p className="text-sm font-medium text-gray-500 px-2">
-          Set your room's description:
+          Room Description (markdown supported):
         </p>
         <textarea
           className={mqp(
@@ -68,7 +71,7 @@ export function BasicRoomInfo({
           value={description}
           name="jam-room-description"
           autoComplete="off"
-          rows="2"
+          rows="4"
           style={{
             fontSize: '15px',
           }}

@@ -492,6 +492,9 @@ export async function followUser(npub, myFollowList, state, roomId, signEvent) {
 }
 
 export async function verifyNip05(nip05, userNpub) {
+  if (!nip05) {
+    return false;
+  }
   if (nip05 !== '' && userNpub) {
     const pubkey = nip19.decode(userNpub).data;
     const url = nip05.split('@');

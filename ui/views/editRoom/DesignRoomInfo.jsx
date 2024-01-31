@@ -97,8 +97,13 @@ export function DesignRoomInfo({
 
   return (
     <div>
+
+      <p className="text-lg font-medium text-gray-500 px-2">
+        Designer Settings
+      </p>
+
       <p className="text-sm font-medium text-gray-500 p-2">
-        Paste your room's background image URI:
+        Background Image URI:
       </p>
       <input
         className={mqp(
@@ -116,14 +121,16 @@ export function DesignRoomInfo({
         }}
       ></input>
 
-      <div className="my-5">
+      <div className="my-2">
         <span class="flex items-center text-sm font-medium text-gray-500 p-2">
-          <span class="flex w-2.5 h-2.5 bg-blue-600 rounded-full mr-2 flex-shrink-0"></span>
-          Your theme is going to be: <b>{color}</b>
+          Choose a Color Theme:  <b>{color}</b>
         </span>
         <div className="flex flex-wrap justify-between">
           <PaletteColor />
         </div>
+
+        { color === 'customColor' && (
+        <div className="text-sm">
         <p className="text-sm font-medium text-gray-500 p-2">
           Choose your custom colors:
         </p>
@@ -170,7 +177,7 @@ export function DesignRoomInfo({
                   backgroundColor: styleBg,
                 }}
               ></div>
-              <span className="text-xs">Background</span>
+              <span className="text-xs">Background / Alternate</span>
             </div>
             <div
               className="mx-1.5 cursor-pointer flex flex-col items-center"
@@ -202,6 +209,9 @@ export function DesignRoomInfo({
             </div>
           </div>
         </div>
+        </div>
+        )}
+
       </div>
     </div>
   );

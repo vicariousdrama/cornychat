@@ -36,7 +36,13 @@ export default function EditIdentity({close}) {
   let [defaultZap, setDefaultZap] = useState(
     localStorage.getItem('defaultZap') ?? ''
   );
-
+  let [byeEmoji, setByeEmoji] = useState(
+    localStorage.getItem('byeEmoji') ?? 'E7'
+  );
+  let [byeAmount, setByeAmount] = useState(
+    localStorage.getItem('byeAmount') ?? '5'
+  );
+  
   const LoadingIcon = () => {
     return (
       <div className="flex justify-center">
@@ -129,6 +135,9 @@ export default function EditIdentity({close}) {
 
     setDefaultZapsAmount(defaultZap);
 
+    localStorage.setItem('byeEmoji',byeEmoji);
+    localStorage.setItem('byeAmount',byeAmount);
+    
     await updateValues(selectedFile, identities);
   };
 
@@ -292,6 +301,42 @@ export default function EditIdentity({close}) {
           <br />
         </div>
 
+        <div className="p-2 text-gray-500 bold">
+          Default Bye Emoji
+        </div>
+        <input
+          className="rounded placeholder-gray-400 bg-gray-50 w-48"
+          type="text"
+          placeholder="E7"
+          value={byeEmoji ?? ''}
+          onChange={e => {
+            setByeEmoji(e.target.value);
+          }}
+        />
+        <div className="p-2 text-gray-500 italic">
+          {`Configure your default exit emoji when leaving the room`}
+          <span className="text-gray-300"> (optional)</span>
+          <br />
+        </div>
+
+        <div className="p-2 text-gray-500 bold">
+          Amount of Bye Emojis
+        </div>
+        <input
+          className="rounded placeholder-gray-400 bg-gray-50 w-48"
+          type="number"
+          placeholder="5"
+          value={byeAmount ?? ''}
+          onChange={e => {
+            setByeAmount(e.target.value);
+          }}
+        />
+        <div className="p-2 text-gray-500 italic">
+          {`Number of bye emojis to be sent as reactions when leaving the room`}
+          <span className="text-gray-300"> (optional)</span>
+          <br />
+        </div>
+        
         <br />
         <hr />
         <br />

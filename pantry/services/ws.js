@@ -207,7 +207,7 @@ function activeUserCount() {
     .reduce((aggregate, current) => aggregate + current, 0);
 }
 function activeUsersInRoom(roomId) {
-  return activeUsersInRoomNEW(roomId);
+  return activeUsersInRoomOLD(roomId);
 }
 function activeUsersInRoomOLD(roomId) {
   let peersInRoom = getPeers(roomId).map(

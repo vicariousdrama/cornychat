@@ -131,7 +131,7 @@ export default function Mediasoup({swarm}) {
               log('mediasoup: sending screen stream');
               sendingScreenStream = localScreenStream;
               sendLocalScreenStream(hub, localScreenStream);
-            } else if (!shouldSendScreen) {
+            } else if (!shouldSendScreen && sendingScreenStream) {
               log('mediasoup: removing screen stream');
               sendingScreenStream = null;
               removeLocalScreenStream(hub);

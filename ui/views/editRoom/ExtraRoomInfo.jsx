@@ -17,6 +17,10 @@ export function ExtraRoomInfo({
   setCustomEmojis,
   closed,
   setClosed,
+  isPrivate,
+  setIsPrivate,
+  stageOnly,
+  setStageOnly,
 }) {
   let mqp = useMqParser();
 
@@ -79,7 +83,10 @@ export function ExtraRoomInfo({
 
   return (
     <div>
-      <div className="mb-10">
+      <p className="text-lg font-medium text-gray-500 px-2">
+        Extra Room Info
+      </p>
+      <div className="mb-2">
         <p className="text-sm font-medium text-gray-500 p-2">
           Add your custom links:
         </p>
@@ -153,7 +160,7 @@ export function ExtraRoomInfo({
             Your current emoji reactions:
           </p>
           <div className="flex flex-wrap cursor-pointer">
-            {customEmojis.map((emoji, index) => {
+            {customEmojis?.map((emoji, index) => {
               return (
                 <div
                   className="p-2 m-2 bg-gray-200 rounded-lg hover:bg-red-500"
@@ -174,7 +181,7 @@ export function ExtraRoomInfo({
         </div>
       </div>
 
-      <div className="mt-10">
+      <div className="mt-2">
         <input
           className="ml-2"
           type="checkbox"
@@ -185,7 +192,6 @@ export function ExtraRoomInfo({
           }}
           defaultChecked={closed}
         />
-
         <label
           className="pl-3 ml-0.5 text-sm font-medium text-gray-500 p-2"
           htmlFor="jam-room-closed"
@@ -193,12 +199,58 @@ export function ExtraRoomInfo({
           Close the room
           <div className="p-2 pl-9 text-gray-400 text-sm">
             Closed rooms can only be joined by moderators.
-            <br />
             Everyone else sees the description and the&nbsp;
             {`'call to action'`} button.
           </div>
         </label>
       </div>
+
+      <div className="mt-2">
+        <input
+          className="ml-2"
+          type="checkbox"
+          name="jam-room-isprivate"
+          id="jam-room-isprivate"
+          onChange={() => {
+            setIsPrivate(!isPrivate);
+          }}
+          defaultChecked={isPrivate}
+        />
+        <label
+          className="pl-3 ml-0.5 text-sm font-medium text-gray-500 p-2"
+          htmlFor="jam-room-isprivate"
+        >
+          Make room private
+          <div className="p-2 pl-9 text-gray-400 text-sm">
+            Private rooms are not displayed on the landing page, nor announced by the Corny Chat bot.
+            Anyone can join a private room by navigating to the room url.
+          </div>
+        </label>
+      </div>
+
+      <div className="mt-2">
+        <input
+          className="ml-2"
+          type="checkbox"
+          name="jam-room-stageonly"
+          id="jam-room-stageonly"
+          onChange={() => {
+            setStageOnly(!stageOnly);
+          }}
+          defaultChecked={stageOnly}
+        />
+        <label
+          className="pl-3 ml-0.5 text-sm font-medium text-gray-500 p-2"
+          htmlFor="jam-room-stageonly"
+        >
+          Stage Only room
+          <div className="p-2 pl-9 text-gray-400 text-sm">
+            When enabled, users entering the room will be brought on stage by default.
+            A moderator can still move a user to the audience.
+          </div>
+        </label>
+      </div>
+
     </div>
   );
 }

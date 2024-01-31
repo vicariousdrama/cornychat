@@ -25,6 +25,11 @@ router.get('', async function (req, res) {
         //}
         if(userCount > 0) {
             let roomInfo = await get(roomKeys[i]);
+            let isClosed = roomInfo?.closed ?? false;
+            let isPrivate = roomInfo?.isPrivate ?? false;
+            if (isPrivate || isClosed) {
+                continue;
+            }
             rooms.push({"roomId":roomId,"name":roomInfo.name,"description":roomInfo.description,"logoURI":roomInfo.logoURI,"userCount":userCount,"userInfo":userInfo});
         }
     };
