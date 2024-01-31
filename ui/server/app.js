@@ -65,7 +65,7 @@ app.use('/config.json', (_, res) => {
 app.use(async (req, res) => {
   let route = parsePath(req.path);
   console.log(req.path, route);
-  if (false && route === 'new') {
+  if (route === 'new') {
     return res.redirect(
       302,
       `${urls.jam}/${Math.random().toString(36).substr(2, 6)}`
