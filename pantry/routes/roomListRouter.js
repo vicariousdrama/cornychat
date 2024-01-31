@@ -35,3 +35,5 @@ router.get('', async function (req, res) {
     };
     res.send(rooms);
 });
+
+module.exports = router;
