@@ -12,6 +12,9 @@ export {
   emptyRoom,
   addNostrPrivateKey,
   signEvent,
+  setCurrentSlide,
+  addOwner,
+  removeOwner,
 };
 export {addSpeaker, removeSpeaker} from './room/Speakers';
 export {addPresenter, removePresenter} from './room/Presenters';
@@ -21,7 +24,7 @@ function RoomState({roomId, myIdentity, peerState, myPeerState}) {
   let {data, isLoading} = use(GetRequest, {path});
   let hasRoom = !!data;
   let room = data ?? emptyRoom;
-  let {moderators, presenters, stageOnly, videoCall} = room;
+  let {moderators, owners, presenters, stageOnly, videoCall} = room;
   let myId = myIdentity.publicKey;
   let accessRestricted = !!room.access?.identities;
 
@@ -37,6 +40,7 @@ function RoomState({roomId, myIdentity, peerState, myPeerState}) {
   room = useStableObject({...room, speakers});
 
   let iAmModerator = moderators.includes(myId);
+  let iAmOwner = owners?.includes(myId) || false;
   let iAmSpeaker = !!stageOnly || speakers.includes(myId);
   let iAmPresenter = !!videoCall || (presenters && presenters.includes(myId));
   let iAmAuthorized =
@@ -49,6 +53,7 @@ function RoomState({roomId, myIdentity, peerState, myPeerState}) {
     isRoomLoading: isLoading,
     iAmSpeaker,
     iAmModerator,
+    iAmOwner,
     iAmAuthorized,
     iAmPresenter,
   };
@@ -61,6 +66,7 @@ const emptyRoom = {
   speakers: [],
   moderators: [],
   presenters: [],
+  owners: [],
 };
 
 function getCachedRoom(roomId) {
@@ -86,6 +92,24 @@ async function removeModerator(state, roomId, peerId) {
   return await put(state, `/rooms/${roomId}`, newRoom);
 }
 
+async function addOwner(state, roomId, peerId) {
+  let room = getCachedRoom(roomId);
+  if (room === null) return false;
+  let {owners = []} = room;
+  if (owners.includes(peerId)) return true;
+  let newRoom = {...room, owners: [...owners, peerId]};
+  return await put(state, `/rooms/${roomId}`, newRoom);
+}
+
+async function removeOwner(state, roomId, peerId) {
+  let room = getCachedRoom(roomId);
+  if (room === null) return false;
+  let {owners = []} = room;
+  if (!owners.includes(peerId)) return true;
+  let newRoom = {...room, owners: owners.filter(id => id !== peerId)};
+  return await put(state, `/rooms/${roomId}`, newRoom);
+}
+
 async function addNostrPrivateKey(state, roomId, payload) {
   return await post(state, `/rooms/${roomId}/privatekeys`, payload);
 }
@@ -93,4 +117,11 @@ async function addNostrPrivateKey(state, roomId, payload) {
 async function signEvent(state, roomId, event) {
   const payload = [state.myId, event];
   return await signNostrEvent(state, `/rooms/${roomId}/sign`, payload);
+}
+
+async function setCurrentSlide(state, roomId, slideNumber) {
+  let room = getCachedRoom(roomId);
+  if (room === null) return false;
+  let newRoom = {...room, currentSlide: slideNumber};
+  return await put(state, `/rooms/${roomId}`, newRoom);
 }

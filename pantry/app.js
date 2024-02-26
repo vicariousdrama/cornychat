@@ -13,6 +13,7 @@ const adminRouter = require('./routes/admin');
 const roomListRouter = require('./routes/roomListRouter');
 const staticRoomsRouter = require('./routes/staticRoomsRouter');
 const staticEventsRouter = require('./routes/staticEventsRouter');
+const roomModeratorsRouter = require('./routes/roomModerators');
 
 const {roomAuthenticator, identityAuthenticator} = require('./auth');
 const {controller} = require('./routes/controller');
@@ -46,6 +47,7 @@ app.use('/api/v1/rooms/:id/live', liveRoomRouter);
 app.use('/api/v1/rooms/:id/recordings.zip', recordingsRouter);
 app.use('/api/v1/rooms/:id/privatekeys', privateKeysRouter);
 app.use('/api/v1/rooms/:id/sign', signEventRouter);
+app.use('/api/v1/rooms/:id/moderators', roomModeratorsRouter);
 
 app.use('/api/v1/', controller('identities', identityAuthenticator));
 

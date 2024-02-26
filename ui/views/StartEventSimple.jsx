@@ -8,8 +8,9 @@ export default function StartEventSimple({
     const humanTime = eventInfo?.humanTime ?? 'soon';
 
     var coloringStyle = {
-        backgroundColor: '#CCCC0080',
-        color: '#ffffcc',
+        backgroundColor: 'rgb(7,74,40)',
+        backgroundImage: 'linear-gradient(rgb(7,74,40), rgb(0,0,0))',
+        color: 'rgb(254,234,101)',
         maxWidth: '350px',
         cursor: 'pointer',
         display: 'inline-block',
@@ -18,7 +19,7 @@ export default function StartEventSimple({
     };
 
     return (
-        <div className="flex justify-center">
+        <div className="">
         <a href={`./${roomId}`}>
         <div className="select-none px-0 text-lg rounded-lg mt-3"
              style={coloringStyle}

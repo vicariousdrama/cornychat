@@ -18,12 +18,15 @@ import {
 import {
   addSpeaker,
   addModerator,
+  addOwner,
   addPresenter,
   addNostrPrivateKey,
   signEvent,
   removeSpeaker,
   removeModerator,
+  removeOwner,
   removePresenter,
+  setCurrentSlide,
 } from './jam-core/room';
 import {staticConfig} from './jam-core/config';
 import {
@@ -89,37 +92,44 @@ function createApi<T extends StateType>(
     createRoom: (roomId: string, partialRoom?: Partial<RoomType>) =>
       createRoom(state, roomId, partialRoom as any) as Promise<boolean>,
 
-    // completely replaces the room, rejects if moderator/speaker array is not set
-    // only possible for moderators
-    updateRoom: (roomId: string, room: RoomType) =>
-      updateRoom(state, roomId, room) as Promise<boolean>,
 
     getRoom: (roomId: string) =>
       (getRoom(roomId) as unknown) as Promise<RoomType | undefined>,
     getDisplayName: (info: IdentityInfo, room: RoomType) =>
       displayName(info, room) as string,
 
-    addSpeaker: (roomId: string, peerId: string) =>
-      addSpeaker(state, roomId, peerId) as Promise<boolean>,
+    addAdmin: (peerId: string) =>
+      addAdmin(state, peerId) as Promise<boolean>,
     addModerator: (roomId: string, peerId: string) =>
       addModerator(state, roomId, peerId) as Promise<boolean>,
     addNostrPrivateKey: (roomId: string, state: string, payload: any) =>
       addNostrPrivateKey(roomId, state, payload),
-    signEvent: (state: string, roomId: string, event: any) =>
-      signEvent(state, roomId, event),
+    addOwner: (roomId: string, peerId: string) =>
+      addOwner(state, roomId, peerId) as Promise<boolean>,
     addPresenter: (roomId: string, peerId: string) =>
       addPresenter(state, roomId, peerId) as Promise<boolean>,
-    removeSpeaker: (roomId: string, peerId: string) =>
-      removeSpeaker(state, roomId, peerId) as Promise<boolean>,
-    removeModerator: (roomId: string, peerId: string) =>
-      removeModerator(state, roomId, peerId) as Promise<boolean>,
-    removePresenter: (roomId: string, peerId: string) =>
-      removePresenter(state, roomId, peerId) as Promise<boolean>,
-    addAdmin: (peerId: string) => addAdmin(state, peerId) as Promise<boolean>,
+    addSpeaker: (roomId: string, peerId: string) =>
+      addSpeaker(state, roomId, peerId) as Promise<boolean>,
+
+    signEvent: (state: string, roomId: string, event: any) =>
+      signEvent(state, roomId, event),
+
     removeAdmin: (peerId: string) =>
       removeAdmin(state, peerId) as Promise<boolean>,
+    removeModerator: (roomId: string, peerId: string) =>
+      removeModerator(state, roomId, peerId) as Promise<boolean>,
+    removeOwner: (roomId: string, peerId: string) =>
+      removeOwner(state, roomId, peerId) as Promise<boolean>,
+    removePresenter: (roomId: string, peerId: string) =>
+      removePresenter(state, roomId, peerId) as Promise<boolean>,
+    removeSpeaker: (roomId: string, peerId: string) =>
+      removeSpeaker(state, roomId, peerId) as Promise<boolean>,
 
     updateInfo: (info: IdentityInfo) => updateInfo(state, info),
+    // completely replaces the room, rejects if moderator/speaker array is not set
+    // only possible for moderators
+    updateRoom: (roomId: string, room: RoomType) =>
+      updateRoom(state, roomId, room) as Promise<boolean>,
 
     listRooms: () => getRoomList(),
     listStaticRooms: () => getStaticRoomsList(),
@@ -165,6 +175,10 @@ function createApi<T extends StateType>(
       dispatch(actions.BACKCHANNEL_UNSUBSCRIBE, subscriptionId),
     backchannelBroadcast: (roomId, topic, data) =>
       dispatch(actions.BACKCHANNEL_BROADCAST, {roomId, topic, data}),
+
+    setCurrentSlide: (roomId: string, slideNumber: string) =>
+      setCurrentSlide(state, roomId, slideNumber) as Promise<boolean>,
+
   };
 }
 

@@ -7,10 +7,14 @@ import {BasicRoomInfo} from './BasicRoomInfo';
 import {DesignRoomInfo} from './DesignRoomInfo';
 import {ExtraRoomInfo} from './ExtraRoomInfo';
 import {RoomModerators} from './RoomModerators';
+import {Links} from './Links';
+import {Slides} from './Slides';
+import {CustomEmojis} from './CustomEmojis';
 import {getCustomColor, getRgbaObj, getColorPallete} from './utils';
+import {use} from 'use-minimal-state';
 
 export function EditRoomModal({roomId, room, roomColor, close}) {
-  const [, {updateRoom}] = useJam();
+  const [state, {updateRoom}] = useJam();
 
   let submitUpdate = async partialRoom => {
     updateRoom(roomId, {...room, ...partialRoom});
@@ -24,6 +28,10 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
     !!(room.logoURI || room.color)
   );
 
+  //const [state] = useJam();
+  let [myId] = use(state, ['myId']);
+  const isAdmin = (myId == 'N0NUR5mmNAMuoif5eR_hoovEKuaTl_KhJyYcskU9QY4');
+
   let [name, setName] = useState(room.name || '');
   let [description, setDescription] = useState(room.description || '');
   let [color, setColor] = useState(room?.color ?? 'default');
@@ -31,12 +39,12 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
   let [backgroundURI, setBackgroundURI] = useState(room.backgroundURI || '');
   let [roomLinks, setRoomLinks] = useState(room.roomLinks || []);
   let [moderators, setModerators] = useState(room.moderators || []);
-  let [buttonURI, setButtonURI] = useState(room.buttonURI || '');
-  let [buttonText, setButtonText] = useState(room.buttonText || '');
   let [closed, setClosed] = useState(room.closed || false);
   let [isPrivate, setIsPrivate] = useState(room.isPrivate || false);
+  let [isRecordingAllowed, setIsRecordingAllowed] = useState(room.isRecordingAllowed || false);
   let [stageOnly, setStageOnly] = useState(room.stageOnly || false);
   let [customEmojis, setCustomEmojis] = useState(room.customEmojis);
+  let [roomSlides, setRoomSlides] = useState(room.roomSlides || []);
 
   let [schedule, setSchedule] = useState(room.schedule);
   let [scheduleCandidate, setScheduleCandidate] = useState({
@@ -106,6 +114,9 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
   let submit = async e => {
     e.preventDefault();
 
+    name = name.replace('&amp','&');
+    description = description.replace('&amp','&');
+
     await submitUpdate({
       name,
       description,
@@ -117,8 +128,10 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
       customEmojis,
       closed,
       isPrivate,
+      isRecordingAllowed,
       stageOnly,
       moderators,
+      roomSlides,
     });
     close();
   };
@@ -134,67 +147,82 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
           setDescription={setDescription}
           logoURI={logoURI}
           setLogoURI={setLogoURI}
+          closed={closed}
+          setClosed={setClosed}
+          isPrivate={isPrivate}
+          setIsPrivate={setIsPrivate}
+          isRecordingAllowed={isRecordingAllowed}
+          setIsRecordingAllowed={setIsRecordingAllowed}
+          stageOnly={stageOnly}
+          setStageOnly={setStageOnly}
         />
       </div>
 
+      <div className="p-4 py-8 bg-gray-100 rounded-lg my-3">
+        <DesignRoomInfo
+          backgroundURI={backgroundURI}
+          setBackgroundURI={setBackgroundURI}
+          paletteColors={paletteColors}
+          color={color}
+          setColor={setColor}
+          colorPickerBg={colorPickerBg}
+          colorPickerAvatar={colorPickerAvatar}
+          colorPickerButton={colorPickerButton}
+          setColorPickerBg={setColorPickerBg}
+          setColorPickerAvatar={setColorPickerAvatar}
+          setColorPickerButton={setColorPickerButton}
+          customBg={customBg}
+          setCustomBg={setCustomBg}
+          customAvatar={customAvatar}
+          setCustomAvatar={setCustomAvatar}
+          customButtons={customButtons}
+          setCustomButtons={setCustomButtons}
+          styleBg={styleBg}
+          styleAvatar={styleAvatar}
+          styleButtons={styleButtons}
+          tooltipStates={tooltipStates}
+          setTooltipStates={setTooltipStates}
+        />
+      </div>
+
+      <div className="px-4 py-8 bg-gray-100 rounded-lg my-3">
+        <Links
+          roomLinks={roomLinks}
+          setRoomLinks={setRoomLinks}
+          textColor={textColor}
+          roomColor={roomColor}
+        />
+      </div>
+
+      <div className="px-4 py-8 bg-gray-100 rounded-lg my-3">
+        <Slides
+          roomSlides={roomSlides}
+          setRoomSlides={setRoomSlides}
+          textColor={textColor}
+          roomColor={roomColor}
+        />
+      </div>
+
+      <div className="px-4 py-8 bg-gray-100 rounded-lg my-3">
+        <CustomEmojis
+          customEmojis={customEmojis}
+          setCustomEmojis={setCustomEmojis}
+          textColor={textColor}
+          roomColor={roomColor}
+        />
+      </div>
+
+      <div className="px-4 py-8 bg-gray-100 rounded-lg my-3 hidden">
+        <RoomModerators
+          moderators={moderators}
+          setModerators={setModerators}
+          textColor={textColor}
+          roomColor={roomColor}
+        />
+      </div>
+
+
       <div>
-        <div>
-          <div className="p-4 py-8 bg-gray-100 rounded-lg my-3">
-            <DesignRoomInfo
-              backgroundURI={backgroundURI}
-              setBackgroundURI={setBackgroundURI}
-              paletteColors={paletteColors}
-              color={color}
-              setColor={setColor}
-              colorPickerBg={colorPickerBg}
-              colorPickerAvatar={colorPickerAvatar}
-              colorPickerButton={colorPickerButton}
-              setColorPickerBg={setColorPickerBg}
-              setColorPickerAvatar={setColorPickerAvatar}
-              setColorPickerButton={setColorPickerButton}
-              customBg={customBg}
-              setCustomBg={setCustomBg}
-              customAvatar={customAvatar}
-              setCustomAvatar={setCustomAvatar}
-              customButtons={customButtons}
-              setCustomButtons={setCustomButtons}
-              styleBg={styleBg}
-              styleAvatar={styleAvatar}
-              styleButtons={styleButtons}
-              tooltipStates={tooltipStates}
-              setTooltipStates={setTooltipStates}
-            />
-          </div>
-
-          <div className="px-4 py-8 bg-gray-100 rounded-lg my-3">
-            <ExtraRoomInfo
-              roomLinks={roomLinks}
-              setRoomLinks={setRoomLinks}
-              buttonText={buttonText}
-              setButtonText={setButtonText}
-              buttonURI={buttonURI}
-              setButtonURI={setButtonURI}
-              textColor={textColor}
-              roomColor={roomColor}
-              customEmojis={customEmojis}
-              setCustomEmojis={setCustomEmojis}
-              closed={closed}
-              setClosed={setClosed}
-              isPrivate={isPrivate}
-              setIsPrivate={setIsPrivate}
-              stageOnly={stageOnly}
-              setStageOnly={setStageOnly}
-            />
-          </div>
-
-          <div className="px-4 py-8 bg-gray-100 rounded-lg my-3 hidden">
-            <RoomModerators
-              moderators={moderators}
-              setModerators={setModerators}
-            />
-          </div>
-
-        </div>
         <div className="flex items-center absolute w-full" style={{
             bottom: '96px', zIndex: '5'
           }}>
@@ -216,7 +244,7 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
           </button>
         </div>
 
-        {false && (
+      <div className="px-4 py-8 bg-gray-100 rounded-lg my-3 hidden">
         <form>
           <div className="pb-1">🗓 Room Schedule (experimental)</div>
           <div className="pb-3 text-gray-500">
@@ -336,7 +364,7 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
             </button>
           </div>
         </form>
-        )}
+      </div>
 
         <div className="h-28"></div>
       </div>

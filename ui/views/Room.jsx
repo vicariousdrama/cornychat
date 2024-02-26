@@ -11,6 +11,9 @@ import {usePushToTalk, useCtrlCombos} from '../lib/hotkeys';
 import {useJam} from '../jam-core-react';
 import {openModal} from './Modal';
 import {Profile} from './Profile';
+import RoomSlides from './RoomSlides';
+import RoomMembers from './RoomMembers';
+import {useJamState} from '../jam-core-react/JamContext';
 
 const inWebView =
   userAgent.browser?.name !== 'JamWebView' &&
@@ -24,6 +27,12 @@ export default function Room({room, roomId, uxConfig}) {
   useWakeLock();
   usePushToTalk();
   useCtrlCombos();
+
+  let [isRecording, isPodcasting] = useJamState([
+    'isSomeoneRecording',
+    'isSomeonePodcasting',
+  ]);
+  isRecording = isRecording || isPodcasting;
 
   let [
     reactions,
@@ -60,11 +69,12 @@ export default function Room({room, roomId, uxConfig}) {
   let myInfo = myIdentity.info;
   let hasEnteredRoom = inRoom === roomId;
 
-  let [editSelf, setEditSelf] = useState(false);
-  const [audience, setAudience] = useState(state.peers.length);
+  let [showMyNavMenu, setShowMyNavMenu] = useState(false);
+  const [audience, setAudience] = useState(state.peers.length + 1);
   const [showLinks, setShowLinks] = useState(false);
+  const [showSlides, setShowSlides] = useState(false);
 
-  useMemo(() => setAudience(state.peers.length), [state.peers]);
+  useMemo(() => setAudience(state.peers.length + 1), [state.peers]);
 
   let {
     name,
@@ -72,6 +82,8 @@ export default function Room({room, roomId, uxConfig}) {
     schedule,
     logoURI,
     roomLinks,
+    roomSlides,
+    currentSlide,
     speakers,
     moderators,
     closed,
@@ -114,8 +126,7 @@ export default function Room({room, roomId, uxConfig}) {
     ? []
     : peers.filter(id => !stagePeers.includes(id));
 
-  () => setAudience(stagePeers.length + audiencePeers.length);
-//  useMemo(() => setAudience(stagePeers.length + audiencePeers.length), [state.peers]);
+  () => setAudience(stagePeers.length + audiencePeers.length + 1);
 
   let {noLeave} = uxConfig;
 
@@ -140,56 +151,42 @@ export default function Room({room, roomId, uxConfig}) {
             roomLinks,
             showLinks,
             setShowLinks,
+            currentSlide,
             audience,
             closed,
           }}
         />
 
+
+        {isRecording && (
+        <div className="w-full mx-4" style={{backgroundColor: 'red', color: 'white'}}>
+          RECORDING IN PROGRESS
+        </div>
+        )}
       </div>
+
 
       <div
         // className="overflow-y-scroll"
         // className={mqp('flex flex-col justify-between pt-2 md:pt-10 md:p-10')}
       >
-        <div
-          className={
-            inWebView && !uxConfig.noWebviewWarning && false
-              ? 'rounded bg-blue-50 border border-blue-150 text-gray-600 ml-2 p-3 mb-3 inline text-center'
-              : 'hidden'
-          }
-        >
-          <svg
-            className="w-5 h-5 inline mr-2 -mt-1"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          Open in {userAgent.os?.name === 'iOS' ? 'Safari' : 'Chrome'} for best
-          experience.
-          <br />
-          <a
-            className="underline"
-            href="https://gitlab.com/jam-systems/jam"
-            target="_blank"
-            rel="nofollow noreferrer"
-          >
-            Learn more
-          </a>
-          .
-        </div>
 
         <div style={{height:'128px'}}></div>
+
+        <div className="w-full">
+          <RoomSlides
+            colors={roomColor}
+            {...{
+              roomSlides,
+              currentSlide,
+            }}
+          />
+        </div>
+
         <div className="hidden m-0 p-0" style={{backgroundColor: audienceBarBG, color: audienceBarFG}}>
           MOTD: None set
         </div>
+
 
         {/* Main Area */}
         <div className="h-full rounded-lg mx-4">
@@ -293,13 +290,14 @@ export default function Room({room, roomId, uxConfig}) {
             </>
           )}
         </div>
+
         <div className="h-24"></div>
       </div>
       <Navigation
         {...{
           room,
-          editSelf,
-          setEditSelf,
+          showMyNavMenu,
+          setShowMyNavMenu,
         }}
       />
     </div>

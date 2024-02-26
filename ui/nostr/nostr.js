@@ -1,4 +1,4 @@
-import {nip19, getPublicKey} from 'nostr-tools';
+import {nip19, validateEvent, verifySignature, getPublicKey} from 'nostr-tools';
 import {RelayPool} from 'nostr-relaypool';
 import {nanoid} from 'nanoid';
 import crypto from 'crypto-js';
@@ -47,6 +47,67 @@ export async function signInExtension(
     console.log('There was an error logging in with extension: ', error);
     return undefined;
   }
+}
+
+export async function getUserEvent(pubkey, relays, id) {
+  return new Promise((res, rej) => {
+    try {
+      const defaultRelays = [
+        'wss://nos.lol',
+        'wss://relay.damus.io',
+        'wss://nostr-pub.wellorder.net',
+        'wss://nostr.mutinywallet.com',
+        'wss://relay.snort.social',
+        'wss://relay.primal.net',
+      ];
+
+      const relaysSet = Object.keys(relays).length !== 0;
+
+      const userRelays = [];
+
+      if (relaysSet) {
+        for (const relay in relays) {
+          if (relays[relay].read) {
+            const startWithWss = relay.startsWith('wss://');
+
+            startWithWss
+              ? userRelays.push(relay)
+              : userRelays.push('wss://' + relay);
+          }
+        }
+      }
+
+      const relaysToUse = [...userRelays, ...defaultRelays];
+      const filter = [{kinds: [1], authors: [pubkey], ids: [id]}];
+      const npub = nip19.npubEncode(pubkey);
+
+      //check if i can use a variable set to true or false
+      let userEvents = [];
+
+      const timeoutRelays = setTimeout(() => {
+        if (userEvents.length === 0) {
+          res(undefined);
+          console.log('Nostr relays did not return any events');
+        }
+      }, 2700);
+
+      pool.subscribe(
+        filter,
+        relaysToUse,
+        (event, afterEose, url) => {
+          clearTimeout(timeoutRelays);
+          userEvents.push(event);
+          res(event);
+        },
+        undefined,
+        undefined,
+        {unsubscribeOnEose: true}
+      );
+    } catch (error) {
+      rej(undefined);
+      console.log('There was an error when getting user events: ', error);
+    }
+  });
 }
 
 export async function getUserMetadata(pubkey, relays, id) {
@@ -263,25 +324,24 @@ export async function signInPrivateKey(
 
 export async function sendZaps(npub, comment, amount, state, signEvent) {
   try {
-    const receiverPubkey = nip19.decode(npub).data;
-    const id = null;
-    const metadata = await getUserMetadata(receiverPubkey, {}, id);
-    let lightningAddress = null;
-
+    // Validate and set sats
     let satsAmount = parseInt(amount);
-
     if (!(satsAmount > 0)) {
       throw new Error('Sats amount must be higher than 0');
     }
-
     satsAmount = satsAmount * 1000;
 
+    // Get metadata to lookup lightning address for users npub
+    const receiverPubkey = nip19.decode(npub).data;
+    const id = null;
+    const metadata = await getUserMetadata(receiverPubkey, {}, id);
     if (!metadata) {
       throw new Error('Relays did not find any kind 0 event for this npub.');
     }
 
+    // Determine lightning address to use
+    let lightningAddress = null;
     if (metadata.lud06 !== '') lightningAddress = metadata.lud06;
-
     if (metadata.lud16 !== '') lightningAddress = metadata.lud16;
 
     if (!lightningAddress) {
@@ -309,6 +369,7 @@ export async function sendZaps(npub, comment, amount, state, signEvent) {
         LnService,
         satsAmount
       );
+      console.log('ui/nostr/nostr.js', lnInvoice);
       return [true, lnInvoice.pr];
     }
 
@@ -626,4 +687,41 @@ function updateCache(iFollow, npub, followList) {
 
   sessionStorage.setItem(npub, newCache);
   sessionStorage.setItem('myFollowList', newFollowingList);
+}
+
+export const isValidNostr = (info) => {
+  let r = false;
+  try {
+    let jamid = info.id;
+    let j = info?.identities || [];
+    for (let k = 0; k < j.length; k ++) {
+      let t = j[k].type || '';
+      if (t == 'nostr') {
+        let n = j[k].id || '';
+        let c = j[k].loginTime || 0;
+        let i = j[k].loginId || '';
+        let s = j[k].loginSig || '';
+        let p = nip19.decode(n).data;
+        let tags = (j[k].verificationInfo ? [] : [[]]);
+//        console.log('n',n, 'c',c, 'i',i, 's', s, 'p', p, 'jamid', jamid);
+        let e = {
+          id: i,
+          pubkey: p,
+          created_at: c,
+          kind: 1,
+          tags: tags,
+          content: jamid,
+          sig: s,
+        };
+        let u = validateEvent(e);
+        let v = verifySignature(e);
+        r = (u && v);
+//        console.log(u, v, r, e);
+      }
+    }
+  }
+  catch(err) {
+    console.log('error in isValidNostr',info,err);
+  }
+  return r;
 }

@@ -98,9 +98,9 @@ const colorThemes = {
       dark: darkColor,
     },
     buttons: {
-      primary: '#ff592a',
+      primary: '#3276b9',
     },
-    avatarBg: '#3276b9',
+    avatarBg: '#ff592a',
     icons: {
       light: lightColor,
       dark: darkColor,
@@ -121,6 +121,21 @@ const colorThemes = {
       dark: darkColor,
     },
   },
+  corn: {
+    background: '#212121',
+    text: {
+      light: lightColor,
+      dark: darkColor,
+    },
+    buttons: {
+      primary: '#fbed5e',
+    },
+    avatarBg: '#71a92c',
+    icons: {
+      light: lightColor,
+      dark: darkColor,
+    },
+  },
 };
 
 const colors = (room, customColor) => {
@@ -135,6 +150,8 @@ const colors = (room, customColor) => {
       return colorThemes.orange;
     case 'blackGray':
       return colorThemes.blackGray;
+    case 'corn':
+      return colorThemes.corn;
     case 'customColor':
       return customColor;
     default:

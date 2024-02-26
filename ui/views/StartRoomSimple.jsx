@@ -13,8 +13,9 @@ export default function StartRoomSimple({
     const userCount = roomInfo?.userCount ?? -1;
 
     var coloringStyle = {
-        backgroundColor: '#204080',
-        color: '#ffffcc',
+        backgroundColor: 'rgb(1,111,210)',
+        backgroundImage: 'linear-gradient(rgb(1, 111, 210), rgb(0, 0, 0))',
+        color: 'rgb(255,255,255)',
         width: '300px',
         cursor: 'pointer',
         display: 'inline-block',
@@ -31,10 +32,14 @@ export default function StartRoomSimple({
                 <img src={roomLogo}
                      style={{width: '128px', height: '128px', objectFit: 'cover'}} />
               </td>
-              <td className="text-xl">{roomName}</td>
+              <td className="text-xl" style={{width: '160px'}}>
+                <div style={{width: '160px', height: '96px', overflowY: 'clip'}} >
+                  {roomName}
+                </div>
+              </td>
             </tr>
             <tr>
-              <td className="text-md">Join {userCount} other users</td>
+              <td className="text-md">{userCount} users</td>
             </tr>
           </table>
           <ReactMarkdown

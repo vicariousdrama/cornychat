@@ -14,6 +14,7 @@
     <link rel="apple-touch-icon" href="<%= metaInfo.favIcon %>" />
     <link href="/css/tailwind.css" rel="stylesheet" />
     <link href="/css/main.css" rel="stylesheet" />
+    <link href="/css/hearts.css" rel="stylesheet" />
     <link rel="manifest" href="<%= metaInfo.ogUrl %>/manifest.json">
     <link
             rel="alternate"
@@ -29,20 +30,53 @@
     window.existingRoomInfo = <%- roomInfoString %>;
     window.existingRoomId = <%- roomIdString %>;
 
+    const animationsEnabled = localStorage.getItem('animationsEnabled') ?? 'true';
+
     var script_snowflakes = document.createElement('script');
     script_snowflakes.setAttribute('src','https://unpkg.com/magic-snowflakes/dist/snowflakes.min.js');
     document.head.appendChild(script_snowflakes);
-    function load_snow() {
-        var showSnow = false;
-        if (showSnow) {
-            var mysnowflakes = new Snowflakes({color: "#d7c1f9",minOpacity: 0.4,maxOpacity: 0.8,maxSize:50,speed:3});
+    let animInterval = '';
+    function load_animation() {
+        const thed = new Date();
+        // Valentines
+        if (thed.getDate() == 14 && thed.getMonth() == 1) {
+            animInterval = setInterval(createHeart, 1500);
+            // to stop: clearInterval(animInterval);
+        }
+        // var mysnowflakes = new Snowflakes({color: "#d7c1f9",minOpacity: 0.4,maxOpacity: 0.8,maxSize:50,speed:3});
+    }
+    if (animationsEnabled == 'true') {
+        if(window.addEventListener) {
+            window.addEventListener('load', load_animation, false);
+        } else {
+            window.attachEvent('load', load_animation);
         }
     }
-    if(window.addEventListener) {
-        window.addEventListener('load', load_snow, false);
-    } else {
-        window.attachEvent('load', load_snow);
+
+    function createHeart() {
+        const e_rose = '🌹';
+        const e_heart = '💗';
+        const heart = document.createElement('div');
+        heart.classList.add('heart');
+        heart.style.left = Math.random() * 100 + "vw";
+        heart.style.animationDuration = Math.random() * 2 + 3 + "s";
+        switch (Math.round(Math.random() * 3)) {
+          case 0:
+            heart.innerText = e_rose;
+            break;
+          case 1:
+            heart.innerText = e_heart;
+            break;
+          default:
+            heart.innerText = 'Happy Valentines Day';
+            break;
+        }
+        document.body.appendChild(heart);
+        setTimeout(() => {
+            heart.remove();
+        }, 5000);
     }
+
 </script>
 <script type="module" src="/js/App.js"></script>
 </body>

@@ -13,6 +13,7 @@ import {createJam} from './jam-core';
 import {ShowInteractionModal} from './views/InteractionModal';
 import {parseUrlConfig} from './lib/url-utils';
 import {colors} from './lib/theme.js';
+import About from './views/About';
 
 let urlConfig = parseUrlConfig(location.search, location.hash);
 
@@ -49,6 +50,8 @@ function JamUI({style, className, route = null, dynamicConfig = {}, ...props}) {
         return <Start newRoom={{...defaultRoom, ...dynamicConfig.room}} />;
       case 'me':
         return <Me />;
+      case 'about':
+        return <About />;
       default:
         roomId = route;
         return (

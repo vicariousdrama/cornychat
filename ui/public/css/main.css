@@ -390,3 +390,10 @@ img.pictureImage {
     top:-2.5vmin;
   }
 }
+
+div.emojiText {
+  z-index:15;
+  color: white;
+  background-color: white;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}

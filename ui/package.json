@@ -36,6 +36,8 @@
   },
   "license": "AGPL-3.0",
   "dependencies": {
+    "@coreui/coreui": "^4.3.2",
+    "@coreui/react": "^4.11.1",
     "@vvo/tzdb": "^6.5.1",
     "bech32": "^2.0.0",
     "buffer": "^6.0.3",
@@ -54,6 +56,7 @@
     "react-colorful": "^5.6.1",
     "react-dom": "^17.0.1",
     "react-markdown": "^5.0.3",
+    "react-slideshow-image": "^4.3.0",
     "remark-gfm": "1.0.0",
     "slugify": "^1.4.6",
     "spark-md5": "^3.0.1",

@@ -51,7 +51,7 @@ export default function AppState({hasMediasoup}) {
     let {room, iAmSpeaker, iAmModerator, iAmPresenter, hasRoom} = roomState;
     let inRoom = use(InRoom, {roomState, autoJoin, autoRejoin});
 
-    declare(ModeratorState, {swarm, moderators: room.moderators, handRaised, handType});
+    declare(ModeratorState, {swarm, moderators: room.moderators, owners: room.owners, handRaised, handType});
 
     let remoteStreams = use(ConnectMedia, {roomState, hasMediasoup, swarm});
 
@@ -76,6 +76,7 @@ export default function AppState({hasMediasoup}) {
         iAmSpeaker,
         iAmModerator,
         moderators: room.moderators,
+        owners: room.owners,
         swarm,
         remoteStreams,
         userInteracted,

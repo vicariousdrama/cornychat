@@ -1,9 +1,10 @@
 import React, {useEffect, useState} from 'react';
 import {avatarUrl, displayName} from '../lib/avatar';
+import {isValidNostr} from '../nostr/nostr';
 import animateEmoji from '../lib/animate-emoji';
 import {useMqParser} from '../lib/tailwind-mqp';
 import {colors, isDark} from '../lib/theme';
-import {ModeratorIcon} from './Svg';
+import {ModeratorIcon, GuyFawkes} from './Svg';
 import {InvoiceModal} from './Invoice';
 import {openModal} from './Modal';
 import {useApiQuery} from '../jam-core-react';
@@ -14,6 +15,7 @@ export function StageAvatar({
   speaking,
   canSpeak,
   moderators,
+  owners,
   peerId,
   peerState,
   reactions,
@@ -28,6 +30,7 @@ export function StageAvatar({
   info = info || {id: peerId};
   let isSpeaking = speaking.has(peerId);
   let isModerator = moderators.includes(peerId);
+  let isOwner = owners?.includes(peerId) || false;
   let [peerAdminStatus] = useApiQuery(`/admin/${peerId}`, {fetchOnMount: true});
   let isAdmin = peerAdminStatus?.admin ?? false;
   const colorTheme = room?.color ?? 'default';
@@ -67,6 +70,16 @@ export function StageAvatar({
   const adminSymbol = '🛠️';
   const ownerSymbol = '🧯';
   const moderatorSymbol = '📛';
+  const valentineSymbol = '🌹';
+  let userDisplayName = info?.name ?? '';
+  if (userDisplayName.length == 0) {
+    userDisplayName = displayName(info, room);
+  }
+  const isValentine = userDisplayName.startsWith('Marie') || userDisplayName.startsWith('TheNoshole');
+  const checkSymbol = '✔️';
+  let isChecked = isValidNostr(info);
+  const drinkSymbol = '🥃';
+  let isDrinker = userDisplayName.startsWith('island');
 
   return (
     inRoom && (
@@ -89,7 +102,7 @@ export function StageAvatar({
 
 
           <table><tr><td width="25%">
-            {hasNostrIdentity ? (
+            {(false && hasNostrIdentity) ? (
               <div
                 className="flex justify-center cursor-pointer"
                 onClick={() => {
@@ -101,27 +114,41 @@ export function StageAvatar({
                   <span>⚡</span>
                 </div>
               </div>
-            ) : (
-              <div
-                className="flex justify-center"
-              >
-                <div className="w-5 h-5 rounded-full bg-gray-600 flex items-center justify-center">
-                  <span style={{color:dimSatSymbolColor}}>⚡</span>
-                </div>
-              </div>
-
-            )}
+            ) : null }
 
             {isAdmin ? (
-              <div title="Admin">
+              <div title="Admin" style={{marginTop:'-4px'}}>
               {adminSymbol}
               </div>
             ) : null }
-            {isModerator && !isAdmin ? (
-              <div style={{color:roomColor.buttons.primary}} title="Moderator">
+            {(!isValentine && !isDrinker && isModerator && !isAdmin) ? (
+              <div style={{color:roomColor.buttons.primary,marginTop:'-4px'}} title="Moderator">
               {moderatorSymbol}
               </div>
             ) : null}
+            {isValentine && (
+              <div style={{color:roomColor.buttons.primary,marginTop:'-4px'}} title="Valentine">
+              {valentineSymbol}
+              </div>
+            )}
+            {isDrinker && (
+              <div style={{color:roomColor.buttons.primary,marginTop:'-4px'}} title="Likes Bourbon">
+              {drinkSymbol}
+              </div>
+            )}
+            {isChecked ? (
+              <img
+                style={{marginTop:'-2px',width:'24px',height:'24px'}}
+                alt={'Verified Signature by Nostr Pubkey'}
+                src={'/img/nostr-icon-purple-256x256.png'}
+              />
+            ) : (
+              <img
+                style={{marginTop:'-2px',width:'24px',height:'24px'}}
+                alt={'Anonymous'}
+                src={'/img/guyfawkes.png'}
+              />
+            )}
 
           </td><td width="75%">
           <div
@@ -225,8 +252,9 @@ export function StageAvatar({
         <div
           className="overflow-hidden whitespace-nowrap text-s mt-0 w-24"
           style={{color: textColor, width: '95px',overflow:'hidden',paddingLeft:'2px',paddingRight:'2px'}}
+          title={userDisplayName}
         >
-          {displayName(info, room)}
+          {userDisplayName}
         </div>
 
 
@@ -240,6 +268,7 @@ export function AudienceAvatar({
   peerId,
   peerState,
   moderators,
+  owners,
   reactions,
   info,
   handRaised,
@@ -251,6 +280,7 @@ export function AudienceAvatar({
   let reactions_ = reactions[peerId];
   info = info || {id: peerId};
   let isModerator = moderators.includes(peerId);
+  let isOwner = owners?.includes(peerId) || false;
   let [peerAdminStatus] = useApiQuery(`/admin/${peerId}`, {fetchOnMount: true});
   let isAdmin = peerAdminStatus?.admin ?? false;
   let isHandRH = handRaised && (handType == 'RH');
@@ -274,6 +304,16 @@ export function AudienceAvatar({
   const adminSymbol = '🛠️';
   const ownerSymbol = '🧯';
   const moderatorSymbol = '📛';
+  const valentineSymbol = '🌹';
+  let userDisplayName = info?.name ?? '';
+  if (userDisplayName.length == 0) {
+    userDisplayName = displayName(info, room);
+  }
+  const isValentine = userDisplayName.startsWith('Marie') || userDisplayName.startsWith('TheNoshole');
+  const checkSymbol = '✔️';
+  let isChecked = isValidNostr(info);
+  const drinkSymbol = '🥃';
+  let isDrinker = userDisplayName.startsWith('island');
 
   function checkNostrIdentity(identities) {
     const hasNostrIdentity = identities?.some(
@@ -301,7 +341,7 @@ export function AudienceAvatar({
         />
 
           <table><tr><td width="25%">
-            {hasNostrIdentity ? (
+            {(false && hasNostrIdentity) ? (
               <div
                 className="flex justify-center cursor-pointer"
                 onClick={() => {
@@ -313,27 +353,41 @@ export function AudienceAvatar({
                   <span>⚡</span>
                 </div>
               </div>
-            ) : (
-              <div
-                className="flex justify-center"
-              >
-                <div className="w-5 h-5 rounded-full bg-gray-600 flex items-center justify-center">
-                  <span style={{color:dimSatSymbolColor}}>⚡</span>
-                </div>
-              </div>
-
-            )}
+            ) : null }
 
             {isAdmin ? (
-              <div title="Admin">
+              <div title="Admin" style={{marginTop:'-4px'}}>
               {adminSymbol}
               </div>
             ) : null }
-            {isModerator && !isAdmin ? (
-              <div style={{color:roomColor.buttons.primary}} title="Moderator">
+            {(!isValentine && !isDrinker && isModerator && !isAdmin) ? (
+              <div style={{color:roomColor.buttons.primary,marginTop:'-4px'}} title="Moderator">
               {moderatorSymbol}
               </div>
             ) : null}
+            {isValentine && (
+              <div style={{color:roomColor.buttons.primary,marginTop:'-4px'}} title="Valentine">
+              {valentineSymbol}
+              </div>
+            )}
+            {isDrinker && (
+              <div style={{color:roomColor.buttons.primary,marginTop:'-4px'}} title="Likes Bourbon">
+              {drinkSymbol}
+              </div>
+            )}
+            {isChecked ? (
+              <img
+                style={{marginTop:'-2px',width:'24px',height:'24px'}}
+                alt={'Verified Signature by Nostr Pubkey'}
+                src={'/img/nostr-icon-purple-256x256.png'}
+              />
+            ) : (
+              <img
+                style={{marginTop:'-2px',width:'24px',height:'24px'}}
+                alt={'Anonymous'}
+                src={'/img/guyfawkes.png'}
+              />
+            )}
 
 
           </td><td width="75%">
@@ -346,7 +400,7 @@ export function AudienceAvatar({
           >
             <img
               className="w-full h-full human-radius cursor-pointer"
-              alt={displayName(info, room)}
+              alt={userDisplayName}
               src={avatarUrl(info, room)}
               onClick={onClick}
             />
@@ -407,8 +461,9 @@ export function AudienceAvatar({
         <div
           className="overflow-hidden whitespace-nowrap text-s mt-0 w-24"
           style={{color: textColor, width: '95px',overflow:'hidden',paddingLeft:'2px',paddingRight:'2px'}}
+          title={userDisplayName}
         >
-          {displayName(info, room)}
+          {userDisplayName}
         </div>
 
       </div>
@@ -443,7 +498,7 @@ function AnimatedEmoji({emoji, ...props}) {
   useEffect(() => {
     if (element) animateEmoji(element);
   }, [element]);
-  if (emoji.startsWith('E')) {
+  if (emoji.startsWith('E') && emoji.length > 1) {
     return (
       <div
         ref={setElement}
@@ -467,10 +522,27 @@ function AnimatedEmoji({emoji, ...props}) {
       </div>
     );
   } else {
-    return (
-      <div ref={setElement} {...props} style={{zIndex: '15'}}>
-        {emoji}
-      </div>
-    );
+    if (emoji.charCodeAt(0) > 255) {
+      return (
+        <div ref={setElement} {...props} style={{
+          zIndex: '15',
+          color: 'yellow',
+          textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'
+        }} >
+          {emoji}
+        </div>
+      );
+    } else {
+      return (
+        <div ref={setElement} {...props} style={{
+          zIndex: '15',
+          color: 'yellow',
+          fontSize: '2em',
+          textShadow: '-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000'
+        }} >
+          {emoji}
+        </div>
+      );
+    }
   }
 }

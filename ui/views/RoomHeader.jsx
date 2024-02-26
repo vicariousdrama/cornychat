@@ -13,6 +13,7 @@ export default function RoomHeader({
   roomLinks,
   showLinks,
   setShowLinks,
+  currentSlide,
   audience,
   closed,
 }) {
@@ -99,6 +100,7 @@ export default function RoomHeader({
 
   return (
     <div className="flex justify-between my-2 mx-4">
+
       <div className="flex">
         {logoURI && (
           <div className="flex-none">
@@ -128,6 +130,7 @@ export default function RoomHeader({
           {displayDescription ? <RoomDescription /> : null}
         </div>
       </div>
+
       <div className="flex-none justify-end">
         <div
           className="flex rounded-lg m-auto px-2 py-2 mx-1.5 justify-between cursor-pointer align-center text-sm"
@@ -168,7 +171,12 @@ export default function RoomHeader({
         </div>
         {isRecording && (
           <div aria-label="Recording" className="flex items-center w-8 h-6">
+            <div>
             <MicOnSvg className="h-5" stroke="#f80000" />
+            </div>
+            <div style={{color:'#f80000',fontSize:'.5em'}}>
+              recording
+            </div>
           </div>
         )}
         {closed ? (
@@ -177,6 +185,7 @@ export default function RoomHeader({
           </div>
         ) : null}
       </div>
+
     </div>
   );
 }
