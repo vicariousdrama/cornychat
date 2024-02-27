@@ -10,17 +10,30 @@ const isAnyInList = (tokens, publicKeys) => {
 const hasAccessToRoom = async (req, roomId) => {
   const roomInfo = await get('rooms/' + roomId);
   if (!roomInfo) return false;
+  // TODO: Check req.ssrIdentities, lookup any npubs and compare that way
   return isAnyInList(
     req.ssrIdentities,
     (roomInfo.access && roomInfo.access.identities) || []
   );
 };
 
+const isOwner = async (req, roomId) => {
+  if (await isAdmin(req)) return true;
+  const roomInfo = await get('rooms/' + roomId);
+  if (!roomInfo) return false;
+  // TODO: Check req.ssrIdentities, lookup any npubs and compare that way
+  return isAnyInList(req.ssrIdentities, (roomInfo.owners ?? []));
+};
+
 const isModerator = async (req, roomId) => {
   if (await isAdmin(req)) return true;
   const roomInfo = await get('rooms/' + roomId);
   if (!roomInfo) return false;
-  return isAnyInList(req.ssrIdentities, roomInfo['moderators']);
+  // TODO: Check req.ssrIdentities, lookup any npubs and compare that way
+  //return isAnyInList(req.ssrIdentities, roomInfo['moderators']);
+  let o = isAnyInList(req.ssrIdentities, (roomInfo.owners ?? []));
+  let m = isAnyInList(req.ssrIdentities, (roomInfo.moderators ?? []));
+  return o || m;
 };
 
 const identityIsAdmin = async identityKeys => {
@@ -29,6 +42,7 @@ const identityIsAdmin = async identityKeys => {
 };
 
 const isAdmin = async req => {
+  // TODO: Check req.ssrIdentities, lookup any npubs and compare that way
   return await identityIsAdmin(req.ssrIdentities);
 };
 
@@ -77,10 +91,43 @@ const roomAuthenticator = {
       res.sendStatus(401);
       return;
     }
+
+    // OLD WAY
+    /*
     if (!(await isModerator(req, roomId))) {
       res.sendStatus(403);
       return;
     }
+    */
+
+    // NEW WAY
+    const roomInfo = await get('rooms/' + roomId);
+    // room must exist to be updated
+    if (!roomInfo) {
+      console.log("unable to update room: roomInfo does not exist");
+      res.sendStatus(403);
+      return;
+    }
+    if(roomInfo.owners == undefined) {
+      // add first moderator as owner
+      console.log("adding first moderator as room owner");
+      roomInfo.owners = [roomInfo.moderators[0]];
+    }
+    let a = await isAdmin(req);
+    let o = isAnyInList(req.ssrIdentities, (roomInfo.owners ?? []));
+    let m = isAnyInList(req.ssrIdentities, (roomInfo.moderators ?? []));
+    // Must be a moderator to update the room
+    if(!m && !a) {
+      console.log("must be an admin or moderator to update room");
+      res.sendStatus(403);
+      return;
+    }
+    if(!o) {
+      // TODO: Moderators should only be able to modify roomLinks, roomSlides, closed
+
+    }
+
+    // ok
     next();
   },
 };
@@ -118,6 +165,7 @@ const identityAuthenticator = {
 };
 
 module.exports = {
+  isOwner,
   isModerator,
   identityIsAdmin,
   isAdmin,

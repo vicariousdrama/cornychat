@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {use} from 'use-minimal-state';
-import {EditSelf} from './EditRole';
+import {MyNavMenu} from './MenuNavigation';
 import {colors, isDark} from '../lib/theme';
 import {
   MicOffSvg,
@@ -12,7 +12,7 @@ import {
 } from './Svg';
 import {useJam} from '../jam-core-react';
 
-export default function Navigation({room, editSelf, setEditSelf}) {
+export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
   let talk = () => {
     if (micOn) {
       setProps('micMuted', !micMuted);
@@ -152,6 +152,146 @@ export default function Navigation({room, editSelf, setEditSelf}) {
     );
   }
 
+  let [leaving, setLeaving] = useState(false);
+  const splitEmoji = (string) => [...new Intl.Segmenter().segment(string)].map(x => x.segment);
+  async function byeEmojiExitOld() {
+    if (leaving) {
+      setLeaving(false);
+      leaving = false;
+      leaveRoom();
+    } else {
+      leaving = true;
+      let byeEmoji = localStorage.getItem('byeEmoji') ?? '';
+      let byeAmount = Math.floor(localStorage.getItem('byeAmount') ?? '0');
+      if (byeAmount > 0) {
+        if (byeAmount > 20) {
+          byeAmount = 20;
+        }
+        let byeEmojiParts = byeEmoji.split(',');
+        let bepl = byeEmojiParts.length;
+        let bec = 0;
+        for (let er = 0; er < byeAmount; er ++) {
+          for (let bepi = 0; bepi < bepl; bepi ++) {
+            bec = bec + 1;
+            sendReaction(byeEmojiParts[bepi]);
+            await new Promise((resolve,reject) => setTimeout(resolve, 100));
+          }
+        }
+        if (bec > 1) {
+          await new Promise((resolve,reject) => setTimeout(resolve, 2000));
+        }
+      }
+      setLeaving(false);
+      leaving = false;
+      leaveRoom();
+    }
+  }
+
+  async function byeEmojiExitNew() {
+    if (leaving) {
+      setLeaving(false);
+      leaving = false;
+      leaveRoom();
+    } else {
+      setLeaving(true);
+      leaving = true;
+      let maxReactions = 50;
+      let ignoredChars = ',';
+      let byeEmoji = localStorage.getItem('byeEmoji') ?? '';
+      let doexit = true;
+      if (byeEmoji.indexOf('-') == 0) {
+        doexit = false;
+      }
+      //let byeAmount = Math.floor(localStorage.getItem('byeAmount') ?? '1');
+      let byeAmount = 1;
+      if (byeAmount > 0) {
+        if (byeAmount > 20) {
+          byeAmount = 20;
+        }
+        let byeEmojiParts = [];
+        let byeEmojiSplit = splitEmoji(byeEmoji);
+        if (!doexit) {
+          byeEmojiSplit = splitEmoji(byeEmoji.substr(1));
+        }
+        let besl = byeEmojiSplit.length;
+        let ce = false;
+        let cen = '';
+        for (let besi = 0; besi < besl; besi ++) {
+          let cc = byeEmojiSplit[besi];
+          //if (cc != ',' && cc != '') {
+            if (cc == 'E') {
+              ce = true;
+              cen = '';
+            } else {
+              if (ce) {
+                // custom emoji
+                if (isNaN(Number(cc))) {
+                  // custom emoji ended
+                  byeEmojiParts.push('E' + cen);
+                  cen = '';
+                  ce = false;
+                  // regular emoji
+                  if (cc.length > 0 && ignoredChars.indexOf(cc) < 0) {
+                    byeEmojiParts.push(cc);
+                  }
+                } else {
+                  // custom emoji continues
+                  cen = '' + cen + '' + cc;
+                }
+              } else {
+                // single emoji
+                if (cc.length > 0 && ignoredChars.indexOf(cc) < 0) {
+                  byeEmojiParts.push(cc);
+                }
+              }
+            }
+          //}
+        }
+        if (ce) {
+          byeEmojiParts.push('E' + cen);
+        }
+        let bepl = byeEmojiParts.length;
+        let bec = 0;
+        for (let er = 0; (er < byeAmount); er ++) {
+          for (let bepi = 0; (bepi < bepl); bepi ++) {
+            let bepr = byeEmojiParts[bepi];
+            if (!leaving) {
+              break;
+            }
+            if (bec > maxReactions) {
+              break;
+            }
+            if (bepr.length == 0 || bepr == '') {
+              continue;
+            }
+            bec = bec + 1;
+            let st = (bepr.length > 1) ? 100 : 250;
+            if (bepr == ' ') {
+              st = 500;
+            } else {
+              sendReaction(bepr);
+            }
+            await new Promise((resolve,reject) => setTimeout(resolve, st));
+          }
+        }
+        if (bec > 1) {
+          await new Promise((resolve,reject) => setTimeout(resolve, 2000));
+        }
+      }
+      if (leaving) {
+        setLeaving(false);
+        leaving=false;
+        if (doexit) {
+          leaveRoom();
+        }
+      }
+    }
+  }
+
+  async function ByeEmojiExit() {
+    byeEmojiExitNew();
+  }
+
   const [state, {leaveRoom, sendReaction, retryMic, setProps}] = useJam();
   let [myAudio, micMuted, handRaised, handType, iSpeak] = use(state, [
     'myAudio',
@@ -176,8 +316,7 @@ export default function Navigation({room, editSelf, setEditSelf}) {
     ? roomColor.icons.light
     : roomColor.icons.dark;
   const iconColorBad = `rgba(240,40,40,.80)`;
-  let [leaving, setLeaving] = useState(false);
-  
+
   return (
     <div style={{zIndex: '5',position:'absolute',bottom:'96px',width:'100%',backgroundColor:roomColor.avatarBg}}>
       <div class="flex justify-center align-center mx-2">
@@ -197,9 +336,9 @@ export default function Navigation({room, editSelf, setEditSelf}) {
             <ReactionsEmojis />
           </div>
         )}
-        {editSelf && (
+        {showMyNavMenu && (
           <div className="items-center">
-            <EditSelf close={setEditSelf} roomColor={roomColor} />
+            <MyNavMenu close={setShowMyNavMenu} roomColor={roomColor} />
           </div>
         )}
       </div>
@@ -210,13 +349,9 @@ export default function Navigation({room, editSelf, setEditSelf}) {
             class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
             style={{backgroundColor: roomColor.buttons.primary}}
             onClick={() => {
-              if (showReactions) {
-                setShowReactions(false);
-              }
-              if (showStickies) {
-                setShowStickies(false);
-              }
-              setEditSelf(!editSelf);
+              setShowReactions(false);
+              setShowStickies(false);
+              setShowMyNavMenu(!showMyNavMenu);
             }}
           >
             <ThreeDots color={iconColor} />
@@ -262,12 +397,8 @@ export default function Navigation({room, editSelf, setEditSelf}) {
                   class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
                   style={{backgroundColor: roomColor.buttons.primary, color:iconColor}}
                   onClick={() => {
-                    if (editSelf) {
-                      setEditSelf(false);
-                    }
-                    if (showReactions) {
-                      setShowReactions(false);
-                    }
+                    setShowMyNavMenu(false);
+                    setShowReactions(false);
                     setShowStickies(s => !s);
                   }}
                 >
@@ -280,12 +411,8 @@ export default function Navigation({room, editSelf, setEditSelf}) {
                   class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
                   style={{backgroundColor: roomColor.buttons.primary}}
                   onClick={() => {
-                    if (editSelf) {
-                      setEditSelf(false);
-                    }
-                    if (showReactions) {
-                      setShowReactions(false);
-                    }
+                    setShowMyNavMenu(false);
+                    setShowReactions(false);
                     setShowStickies(s => !s);
                   }}
                 >
@@ -348,12 +475,8 @@ export default function Navigation({room, editSelf, setEditSelf}) {
               class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
               style={{backgroundColor: roomColor.buttons.primary}}
               onClick={() => {
-                if (editSelf) {
-                  setEditSelf(false);
-                }
-                if (showStickies) {
-                  setShowStickies(false);
-                }
+                setShowMyNavMenu(false);
+                setShowStickies(false);
                 setShowReactions(s => !s);
               }}
             >
@@ -367,34 +490,7 @@ export default function Navigation({room, editSelf, setEditSelf}) {
           <button
             class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center transition-all hover:opacity-80"
             onClick={async() => {
-              if (leaving) {
-                setLeaving(false);
-                leaveRoom();
-              } else {
-                setLeaving(true);
-                let byeEmoji = localStorage.getItem('byeEmoji') ?? '';
-                let byeAmount = Math.floor(localStorage.getItem('byeAmount') ?? '0');
-                if (byeAmount > 0) {
-                  if (byeAmount > 20) {
-                    byeAmount = 20;
-                  }
-                  let byeEmojiParts = byeEmoji.split(',');
-                  let bepl = byeEmojiParts.length;
-                  let bec = 0;
-                  for (let er = 0; er < byeAmount; er ++) {
-                    for (let bepi = 0; bepi < bepl; bepi ++) {
-                      bec = bec + 1;
-                      sendReaction(byeEmojiParts[bepi]);
-                      await new Promise((resolve,reject) => setTimeout(resolve, 100));
-                    }
-                  }
-                  if (bec > 1) {
-                    await new Promise((resolve,reject) => setTimeout(resolve, 2000));
-                  }
-                }
-                setLeaving(false);
-                leaveRoom();
-              }
+              ByeEmojiExit();
             }}
           >
             <Leave />

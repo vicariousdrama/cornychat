@@ -54,14 +54,18 @@ type RoomType = {
   speakers: string[];
   moderators: string[];
   presenters: string[];
+  owners: string[];
   customColor: CustomColor;
   stageOnly?: boolean;
   videoCall?: boolean;
+  isPrivate?: boolean;
+  isRecordingAllowed?: boolean;
   color?: string;
   logoURI?: string;
   roomEmojis?: string[];
   backgroundURI?: string;
   access?: AccessType;
+  currentSlide?: number;
 };
 type PeerState = {
   inRoom: boolean;
@@ -83,6 +87,7 @@ const defaultState = {
     speakers: [],
     moderators: [],
     presenters: [],
+    owners: [],
     customColor: {
       background: `rgba(0,0,0,1)`,
       text: {
@@ -98,12 +103,15 @@ const defaultState = {
         dark: '#111111',
       },
     },
+    isPrivate: true,
+    isRecordingAllowed: false,
   } as RoomType,
   hasRoom: false,
   isRoomLoading: false,
   iAmSpeaker: false,
   iAmModerator: false,
-  iAmPresenter: true,
+  iAmPresenter: false,
+  iAmOwner: false,
   identities: {} as Record<string, IdentityInfo>,
   otherDeviceInRoom: false,
 

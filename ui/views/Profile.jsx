@@ -36,7 +36,8 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
 
   function userIdentity(info) {
     const hasIdentity = info?.hasOwnProperty('identities');
-    if (hasIdentity) {
+//    console.log('in Profile.userIdentity',info?.name, info?.identities);
+    if (hasIdentity && (info?.identities?.length > 0)) {
       return info.identities[0]?.id;
     }
 
@@ -180,9 +181,6 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
         iFollowUser(iFollow);
       } else {
         obj.iFollow = 'npub not found';
-        console.log(
-          `user npub: ${userNpub}\nactor npub: ${actorNpub}\nOne or both of them does not have an npub set up`
-        );
       }
 
       if (userMetadata) {
@@ -295,14 +293,26 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
                 {(peerAdminStatus?.admin && (
                   <button
                     className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs text-white"
-                    onClick={() => removeAdmin(peerId).then(close)}
+                    onClick={() => {
+                      let result = confirm('Are you sure you want to remove Admin permissions?');
+                      if (result != true) {
+                        return;
+                      }
+                      removeAdmin(peerId).then(close);
+                    }}
                   >
                     ❌ Remove Admin
                   </button>
                 )) || (
                   <button
                     className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs text-white"
-                    onClick={() => addAdmin(peerId).then(close)}
+                    onClick={() => {
+                      let result = confirm('Are you sure you want to grant Admin permissions?');
+                      if (result != true) {
+                        return;
+                      }
+                      addAdmin(peerId).then(close)
+                    }}
                   >
                     👑️ Make Admin
                   </button>
@@ -328,7 +338,7 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
               </button>
             ) : null}
 
-            {isSpeaker && (iModerate || myAdminStatus?.admin) && (
+            {isSpeaker && !isModerator && (iModerate || myAdminStatus?.admin) && (
               <button
                 className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
                 onClick={() => addModerator(roomId, peerId).then(close)}
@@ -340,7 +350,13 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
             {isModerator && (iModerate || myAdminStatus?.admin) && (
               <button
                 className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
-                onClick={() => removeModerator(roomId, peerId).then(close)}
+                onClick={() => {
+                  let result = confirm('Are you sure you want to remove Moderator status?');
+                  if (result != true) {
+                    return;
+                  }
+                  removeModerator(roomId, peerId).then(close)
+                }}
               >
                 ❌ Demote Moderator
               </button>
@@ -361,6 +377,10 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
               <button
                 className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
                 onClick={() => {
+                  let result = confirm('Are you sure you want to unfollow this user?');
+                  if (result != true) {
+                    return;
+                  }
                   handleUnfollowBtn(userNpub, state, signEvent);
                 }}
               >
@@ -376,7 +396,7 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
                   openModal(EditIdentity);
                 }}
               >
-                Edit profile
+                Edit your personal settings
               </button>
             ) : null}
 

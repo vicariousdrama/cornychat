@@ -16,12 +16,17 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
   const [eventList, setEventList] = useState([]);
   const [{room}, {enterRoom, setProps, createRoom, listRooms, listStaticRooms, listStaticEvents}] = useJam();
   let {stageOnly = false} = newRoom;
+  const mainroomonly = [{"roomId":"mainchat","name":"Main Chat","description":"","logoURI":"","userCount":"Unknown","userInfo":[]}];
 
   useEffect(() => {
     const loadRooms = async () => {
       setLoadingRooms(true);
       let roomlist = await(listRooms()); // listStaticRooms
-      setRoomList(roomlist[0]);
+      if (roomlist[0].length > 0) {
+        setRoomList(roomlist[0]);
+      } else {
+        setRoomList(mainroomonly);
+      }
       setLoadingRooms(false);
       console.log(roomlist);
     };
@@ -70,7 +75,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
             : 'hidden'
         }
       >
-        The Room ID{' '}
+        The Room ID{' no current rooms '}
         <code className="text-gray-900 bg-yellow-200">{urlRoomId}</code> is not
         valid.
         <br />
@@ -80,7 +85,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
       </div>
 
       <br />
-      <img src="https://i.nostr.build/jkBj.png" />
+      <img src="/img/homepage-header.png" />
 
       <div>
         <div style={{color: textColor}} className="jam">
@@ -95,20 +100,24 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
         <div style={{display:'block',color:`rgb(244,244,244)`}}>
         <h1>Live Rooms</h1>
         </div>
-        { loadingRooms ? (<h4>Loading...</h4>) : (roomList?.map((roomInfo) => {
-          return <StartRoomSimple roomInfo={roomInfo} key={roomInfo.roomId} />
-          }))
-        }
+        { loadingRooms ? (<h4>Loading...</h4>) : (
+          roomList?.length > 0 && roomList?.map((roomInfo) => {
+            return <StartRoomSimple roomInfo={roomInfo} key={roomInfo.roomId} />
+          })
+        )}
+        { roomList?.length == 0 ? 'no current rooms' : '' }
         </div>
 
         <div style={{align: 'center'}}>
         <div style={{display:'block',color:`rgb(244,244,244)`}}>
         <h1>Scheduled Events</h1>
         </div>
+        <div className="flex flex-wrap justify-center">
         { loadingEvents ? (<h4>Loading...</h4>) : (eventList?.map((eventInfo) => {
           return <StartEventSimple eventInfo={eventInfo} key={eventInfo.eventId} />
           }))
         }
+        </div>
         </div>
 
         <br /><br />
@@ -133,10 +142,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
           For event rooms and support, contact <a href="https://nostrudel.ninja/#/u/npub1yx6pjypd4r7qh2gysjhvjd9l2km6hnm4amdnjyjw3467fy05rf0qfp7kza">Vic</a> on Nostr
           </p>
           <p style={{color: textColor, backgroundColor: roomColors.background}} className="room-header">
-          Built by Nostr Live Audio Spaces Developers as a fork of Jam by Jam Systems Developers.
-          </p>
-          <p style={{color: textColor, backgroundColor: roomColors.background}} className="room-header">
-          Download from <a href="https://github.com/vicariousdrama/cornychat">github.com/vicariousdrama/cornychat</a> to host and run your own instance.
+          <a href="/about">About Corny Chat</a>
           </p>
         </div>
       </div>

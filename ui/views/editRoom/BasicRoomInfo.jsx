@@ -8,6 +8,14 @@ export function BasicRoomInfo({
   setDescription,
   logoURI,
   setLogoURI,
+  closed,
+  setClosed,
+  isPrivate,
+  setIsPrivate,
+  isRecordingAllowed,
+  setIsRecordingAllowed,
+  stageOnly,
+  setStageOnly,
 }) {
   let mqp = useMqParser();
   return (
@@ -80,6 +88,101 @@ export function BasicRoomInfo({
           }}
         ></textarea>
       </div>
+
+      <div className="mt-2">
+        <input
+          className="ml-2"
+          type="checkbox"
+          name="jam-room-closed"
+          id="jam-room-closed"
+          onChange={() => {
+            setClosed(!closed);
+          }}
+          defaultChecked={closed}
+        />
+        <label
+          className="pl-3 ml-0.5 text-sm font-medium text-gray-500 p-2"
+          htmlFor="jam-room-closed"
+        >
+          Close the room
+          <div className="p-2 pl-9 text-gray-400 text-sm">
+            Closed rooms can only be joined by administrators, owners and moderators.
+            Everyone else sees the description and the&nbsp;
+            {`'call to action'`} button.
+          </div>
+        </label>
+      </div>
+
+      <div className="mt-2">
+        <input
+          className="ml-2"
+          type="checkbox"
+          name="jam-room-isprivate"
+          id="jam-room-isprivate"
+          onChange={() => {
+            setIsPrivate(!isPrivate);
+          }}
+          defaultChecked={isPrivate}
+        />
+        <label
+          className="pl-3 ml-0.5 text-sm font-medium text-gray-500 p-2"
+          htmlFor="jam-room-isprivate"
+        >
+          Make room private
+          <div className="p-2 pl-9 text-gray-400 text-sm">
+            Private rooms are not displayed on the landing page, nor announced by the Corny Chat bot.
+            Anyone can join a private room by navigating to the room url.
+          </div>
+        </label>
+      </div>
+
+      <div className="mt-2">
+        <input
+          className="ml-2"
+          type="checkbox"
+          name="jam-room-isrecordingallowed"
+          id="jam-room-isrecordingallowed"
+          onChange={() => {
+            setIsRecordingAllowed(!isRecordingAllowed);
+          }}
+          defaultChecked={isRecordingAllowed}
+        />
+        <label
+          className="pl-3 ml-0.5 text-sm font-medium text-gray-500 p-2"
+          htmlFor="jam-room-isrecordingallowed"
+        >
+          Allow Recordings
+          <div className="p-2 pl-9 text-gray-400 text-sm">
+            If recordings are allowed, then any moderator of the room can begin a recording
+            in their client. Participants in the room are notified that a recording is in progress.
+            If unchecked, the Start Recording option will not be present in the menu choices.
+          </div>
+        </label>
+      </div>
+
+      <div className="mt-2">
+        <input
+          className="ml-2"
+          type="checkbox"
+          name="jam-room-stageonly"
+          id="jam-room-stageonly"
+          onChange={() => {
+            setStageOnly(!stageOnly);
+          }}
+          defaultChecked={stageOnly}
+        />
+        <label
+          className="pl-3 ml-0.5 text-sm font-medium text-gray-500 p-2"
+          htmlFor="jam-room-stageonly"
+        >
+          Stage Only room
+          <div className="p-2 pl-9 text-gray-400 text-sm">
+            When enabled, users entering the room will be brought on stage by default.
+            A moderator can still move a user to the audience.
+          </div>
+        </label>
+      </div>
+
     </div>
   );
 }

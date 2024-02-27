@@ -1,4 +1,6 @@
 import React, {useState} from 'react';
+import {Modal, openModal} from './Modal';
+import {avatarUrl, displayName} from '../lib/avatar';
 import {use} from 'use-minimal-state';
 import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
@@ -6,6 +8,7 @@ import {useMqParser, useWidth} from '../lib/tailwind-mqp';
 import {useJam} from '../jam-core-react';
 import {colors, isDark} from '../lib/theme.js';
 import {signInExtension, signInPrivateKey} from '../nostr/nostr';
+import EditIdentity from './EditIdentity';
 
 const iOS =
   /^iP/.test(navigator.platform) ||
@@ -25,6 +28,9 @@ export default function EnterRoom({
     state,
     {enterRoom, setProps, updateInfo, addNostrPrivateKey},
   ] = useJam();
+
+  let [myIdentity] = use(state, ['myIdentity']);
+
   let mqp = useMqParser();
   let otherDevice = use(state, 'otherDeviceInRoom');
   let room = use(state, 'room');
@@ -37,6 +43,9 @@ export default function EnterRoom({
     width < 720 ? 'w-full bg-white p-10' : 'w-9/12 bg-white p-10';
   const colorTheme = room?.color ?? 'default';
   const roomColor = colors(colorTheme, room.customColor);
+
+  let usersDisplayName = displayName(myIdentity.info, room);
+  let usersAvatarUrl = avatarUrl(myIdentity.info, room);
 
   const textColor = isDark(roomColor.buttons.primary)
     ? roomColor.text.light
@@ -110,10 +119,10 @@ export default function EnterRoom({
               'mt-5 mb--1 p-4 text-gray-700 rounded-lg border border-yellow-100 bg-yellow-50'
             }
           >
+            ⚠️
             <span className="text-gray-900 bg-yellow-200">Warning:</span> You
             already joined this room from a different device or browser tab.
-            Click {`'`}
-            Join Room{`'`} to switch to this tab.
+            Joining here will log you out of the other tab.
           </div>
         )}
         {forbidden && (
@@ -134,6 +143,28 @@ export default function EnterRoom({
             <ReactMarkdown className="text-sm opacity-70" plugins={[gfm]}>
               Room Description: {description || ''}
             </ReactMarkdown>
+          </div>
+        </div>
+
+        <div className="text-center my-3">
+          On this device you are currently known as
+
+          <div className="w-16 h-16 border-2 human-radius mx-auto">
+          <img
+            className="w-full h-full human-radius cursor-pointer"
+            alt={usersDisplayName}
+            src={usersAvatarUrl}
+            onClick={() => {
+              openModal(EditIdentity);
+            }}
+           />
+          </div>
+          {usersDisplayName}
+          <div className="text-sm">
+            Click your avatar to make changes.
+          </div>
+          <div class="text-sm">
+            Use a VPN like Mullvad for better privacy.
           </div>
         </div>
 
@@ -201,14 +232,13 @@ export default function EnterRoom({
         </div>
         )}
 
-        <div className={'hidden'}>
 
+        <div className={'hidden'}>
         <div
           className={closed || forbidden ? 'hidden' : 'my-3 w-full text-center'}
         >
           <p>Or</p>
         </div>
-
         <div
           className={
             closed || forbidden ? 'hidden' : 'flex w-full justify-between'
@@ -249,6 +279,21 @@ export default function EnterRoom({
           </p>
         </div>
         </div>
+
+
+        <button
+          onClick={() => {
+            window.location.href = window.location.href.replace(window.location.pathname, '/');
+          }}
+          className={'mt-5 select-none w-full h-12 px-6 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'}
+          style={{
+            backgroundColor: roomColor.buttons.primary,
+            color: textColor,
+          }}
+        >
+          Return to Homepage
+        </button>
+
 
         <a
           className={

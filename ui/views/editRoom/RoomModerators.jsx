@@ -5,6 +5,8 @@ import {Trash} from '../Svg';
 export function RoomModerators({
   moderators,
   setModerators,
+  textColor,
+  roomColor,
 }) {
   let mqp = useMqParser();
 

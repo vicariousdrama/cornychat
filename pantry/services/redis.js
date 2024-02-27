@@ -14,6 +14,7 @@ let _exports = {
     Object.keys(localStore).filter(key => key.startsWith('rooms/')).length,
   identityCount: () =>
     Object.keys(localStore).filter(key => key.startsWith('identities/')).length,
+  mget: (keys) => Object.keys(localStore).filter(key => keys.includes(key)),
 };
 
 if (!local) {
@@ -32,6 +33,7 @@ if (!local) {
   const get = async key => JSON.parse(await client.get(key));
   const del = key => client.del(key);
   const list = prefix => client.keys(`${prefix}*`);
+  const mget = async keys => JSON.parse(await client.mget(keys));
 
   _exports = {
     get,
@@ -40,6 +42,7 @@ if (!local) {
     list,
     roomCount,
     identityCount,
+    mget,
   };
 }
 

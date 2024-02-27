@@ -119,6 +119,8 @@ async function createRoom(state, roomId, room = {}) {
     color = 'default',
     stageOnly = false,
     videoCall = false,
+    isPrivate = true,
+    isRecordingAllowed = false,
   } = room;
 
   const customEmojis = reactionEmojis;
@@ -153,6 +155,7 @@ async function createRoom(state, roomId, room = {}) {
     videoCall: !!videoCall,
     moderators: [myId],
     speakers: [myId],
+    owners: [myId],
   };
   let ok = await post(state, `/rooms/${roomId}`, newRoom);
   if (ok) populateCache(API + `/rooms/${roomId}`, newRoom);
@@ -165,12 +168,50 @@ async function updateRoom(state, roomId, room) {
   // don't accept updates that delete the moderator/speaker array
   // (=> explicitly set to [] if that is the intention)
   if (!room?.moderators || !room?.speakers) return false;
+  // fetch current state
+  let currentroom = await getRoom(roomId);
+  // get id from state
+  let {myId} = state;
+  // check if legacy room
+  let islegacy = (!currentroom?.updateTime);
+  if (islegacy && !room?.owners) {
+    // set owner to first moderator in list
+    console.log("Assigning first moderator id as room owner", currentroom.moderators[0]);
+    room.owners = [currentroom.moderators[0]];
+  }
+  // don't accept updates that delete the owner array
+  //if (!room?.owners || room?.owners.length == 0) {
+  //  console.log("Room owners can not be emptied");
+  //  return false;
+  //}
+  // don't accept updates if updateTime doesn't match
+  //if (!islegacy && currentroom?.updateTime != room?.updateTime) {
+  //  console.log("Room update time does not match expected value");
+  //  return false;
+  //}
+  // set the update time to now
+  room.updateTime = Date.now();
+
+  // ok to save
   return await put(state, `/rooms/${roomId}`, room);
 }
 
 async function getRoom(roomId) {
   if (!roomId) return undefined;
-  return (await get(`/rooms/${roomId}`))[0];
+  let currentroom = (await get(`/rooms/${roomId}`))[0];
+  // check if legacy room
+  let islegacy = (!currentroom?.updateTime);
+  if (islegacy) {
+    // Force update time to a consistent time
+    currentroom.updateTime = 1702506180; // Corny Chat Creation Date
+    if (!currentroom?.owners) {
+      // set owner to first moderator in list
+      let firstModerator = currentroom.moderators[0];
+      console.log("Assuming first moderator id is the room owner", firstModerator);
+      currentroom.owners = [firstModerator];
+    }
+  }
+  return currentroom;
 }
 
 async function recordingsDownloadLink({myIdentity}, roomId) {
