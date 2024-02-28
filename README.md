@@ -6,11 +6,10 @@ Users can quickly login with existing Nostr accounts and have name and avatar im
 
 Roadmap
 
-- ☑️ Login Enhancements
+- ✅ Login Enhancements
   - ✅ Anon login
   - ✅ Nostr Login with NIP-07 extension
   - ✅ Nostr Login with user provided NSEC
-  - ⬜ Nostr Login with newly generated NSEC for onboarding (NIP-06 generate from seed words)
 - ✅ Recognition of User Profile (kind 0)
   - ✅ Fetch and display Name (kind 0)
   - ✅ Fetch and display Avatar Image from picture (kind 0)
@@ -24,12 +23,12 @@ Roadmap
   - ✅ Set Room Emoji Reactions vs Default
   - ✅ Allow multiple avatars per row to fit on desktop
   - ✅ Add Collapse/Expand to hide/show the room description
-- ☑️ User Avatar
+- ✅ User Avatar
   - ✅ Allow Users to set their in room status (e.g. AFK, BRB, Present)
   - ✅ Raise Hand as Audience member and Speaker
   - ✅ Show microphone on/muted for speakers
   - ✅ Show indication when speaker is speaking
-  - ⬜ Show indication of verified Nostr login
+  - ✅ Show indication of verified Nostr login
 - ✅ View User Profile
   - ✅ Display name, about, avatar, nostr address on popup
   - ✅ Verify nostr address
@@ -67,10 +66,10 @@ Roadmap
     - ⬜ Highlight rooms on the current instance
     - ⬜ Show Icon from server favicon if live activity has no image set
   - ⬜ Server Message of the Day when user accesses first time during day
-- ⬜ About Page
-  - ⬜ Link to this git repository for source code
-  - ⬜ List of code contributors, supporters, producers.. contact and links
-  - ⬜ Contact information for server operator
+- ✅ About Page
+  - ✅ Link to this git repository for source code
+  - ✅ List of code contributors, supporters, producers.. contact and links
+  - ✅ Contact information for server operator
 
 ## About Nostr:
 

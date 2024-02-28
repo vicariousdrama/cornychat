@@ -1,0 +1,170 @@
+version: '3'
+networks:
+  jam:
+services:
+  coturn:
+    image: coturn/coturn:alpine
+    volumes:
+      - "./turnserver.conf:/etc/coturn/turnserver.conf"
+    network_mode: host
+    restart: always
+    ports:
+      - "3478:3478/udp" # STUN/TURN UDP
+      - "3478:3478/tcp" # STUN/TURN TCP
+      - "3479:3479/udp" # STUN/TURN UDP Alt port (RFC5780 support)
+      - "3479:3479/tcp" # STUN/TURN TCP Alt port (RFC5780 support)
+      - "5349:5349/udp" # STUN/TURN DTLS
+      - "5349:5349/tcp" # STUN/TURN TLS
+      - "5350:5350/udp" # STUN/TURN DTLS Alt port (RFC5780 support)
+      - "5350:5350/tcp" # STUN/TURN TLS Alt port (RFC5780 support)
+      - "49152:65535/udp" # UDP media ports for TURN relay    
+    profiles: ["coturn"]
+  prometheus:
+    networks:
+      - jam
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--storage.tsdb.retention.time=1y'
+    restart: always
+    profiles: [ "metrics" ]
+  grafana:
+    networks:
+      - jam
+    image: grafana/grafana
+    user: "472"
+    depends_on:
+      - prometheus
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_ADMIN_PASSWORD}"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_ROOT_URL: "https://${JAM_HOST}/_/grafana"
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+    restart: always
+    labels:
+      - traefik.http.routers.grafana.rule=(Host(`${JAM_HOST}`) && PathPrefix(`/_/grafana`))
+      - traefik.http.routers.grafana.tls=true
+#      - traefik.http.routers.grafana.tls.certresolver=letsencrypt
+      - traefik.enable=true
+    profiles: [ "metrics" ]
+  ui:
+    networks:
+      - jam
+    image: diamsa/ui:${CHANNEL}
+    restart: always
+    environment:
+      - DEFAULT_AVATAR
+      - JAM_HOST
+      - JAM_STUN_SERVER
+      - JAM_TURN_SERVER
+      - JAM_TURN_SERVER_USERNAME
+      - JAM_TURN_SERVER_CREDENTIAL
+      - JAM_RESTRICT_ROOM_CREATION
+      - JAM_SFU
+      - JAM_HIDE_JAM_INFO
+      - SERVER_FAVICON
+      - SERVER_IMAGE
+      - SERVER_LOGO
+      - SERVER_NAME
+      - SERVER_OPERATOR
+      - SLACK_CLIENT_ID
+      - SLACK_CLIENT_SECRET
+      - SLACK_API_URL
+    labels:
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}_ui.rule=Host(`${JAM_HOST}`)
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}_ui.tls=true
+#      - traefik.http.routers.${COMPOSE_PROJECT_NAME}_ui.tls.certresolver=letsencrypt
+      - traefik.enable=true
+    volumes:
+      - "../jam-config:/jam-config"
+  pantryredis:
+    networks:
+      - jam
+    image: library/redis
+    volumes:
+      - "../data/pantryredis:/data"
+    command: "redis-server --appendonly yes"
+  pantry-sfu:
+    #build: ../pantry-sfu
+    image: registry.gitlab.com/jam-systems/jam/pantry-sfu:${CHANNEL}
+    restart: always
+    network_mode: host
+    depends_on:
+      - pantry
+    environment:
+      - JAM_HOST
+      - JAM_SFU_EXTERNAL_IP
+      - MEDIASOUP_MIN_PORT
+      - MEDIASOUP_MAX_PORT
+    profiles: [ "sfu" ]
+    volumes:
+      - recordings:/pantry-sfu/records
+  pantry:
+    networks:
+      - jam
+    #build: ../pantry
+    image: diamsa/pantry:${CHANNEL}
+    restart: always
+    depends_on:
+      - pantryredis
+    environment:
+      - JAM_HOST
+      - JAM_RESTRICT_ROOM_CREATION
+      - SERVER_NSEC
+    labels:
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}_pantry.rule=(Host(`${JAM_HOST}`) && PathPrefix(`/_/pantry`))
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}_pantry.middlewares=${COMPOSE_PROJECT_NAME}_pantry_stripprefix
+      - traefik.http.middlewares.${COMPOSE_PROJECT_NAME}_pantry_stripprefix.stripprefix.prefixes=/_/pantry
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}_pantry.tls=true
+#      - traefik.http.routers.${COMPOSE_PROJECT_NAME}_pantry.tls.certresolver=letsencrypt
+      - traefik.enable=true
+    volumes:
+      - "../jam-config:/jam-config"
+      - recordings:/pantry/records
+  traefik:
+    networks:
+      jam:
+        aliases:
+          - ${JAM_HOST}
+    hostname: traefik
+    image: traefik
+    restart: always
+    command:
+      - "--entryPoints.web.address=:80"
+      - "--entryPoints.websecure.address=:443"
+      - "--entryPoints.metrics.address=:8080"
+#      - "--certificatesResolvers.letsencrypt.acme.email=admin@${JAM_HOST}"
+#      - "--certificatesResolvers.letsencrypt.acme.storage=/acme/acme.json"
+#      - "--certificatesResolvers.letsencrypt.acme.httpChallenge.entryPoint=web"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedByDefault=false"
+      - "--metrics.prometheus.entryPoint=metrics"
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.addEntryPointsLabels=true"
+      - "--metrics.prometheus.addServicesLabels=true"
+    labels:
+      - traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)
+      - traefik.http.routers.http-catchall.entrypoints=web
+      - traefik.http.routers.http-catchall.middlewares=redirect-to-https@docker
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+      - traefik.enable=true
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../data/traefik/acme:/acme
+    profiles: [ "web" ]
+volumes:
+  prometheus_data: {}
+  grafana_data: {}
+  recordings: {}
