@@ -170,14 +170,6 @@ docker-compose --version
 
 ## Install Node, NPM, and Yarn
 
-**These common tools are also required for Jams**
-
-```sh
-sudo apt install nodejs
-node -v
-sudo apt install npm
-sudo npm install -g yarn
-```
 
 **Install newer version of node**
 
@@ -190,6 +182,14 @@ NODE_MAJOR=20
 echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
 sudo apt-get update
 sudo apt-get install nodejs -y
+```
+
+**These common tools are also required for Jams**
+
+```sh
+node -v
+sudo apt install npm
+sudo npm install -g yarn
 ```
 
 ## Nostr Live Audio Spaces: Jam Edition
@@ -261,4 +261,22 @@ docker build -t diamsa/pantry:stable .
 ```sh
 cd ~/jam/deployment
 docker-compose up -d
+```
+
+**For development**
+
+A local instance can be run by using the dev-docker-compose.yml file which disables the letsencrypt portion and assumes localhost access.  You'll still need to configure the `.env` file to set the following
+
+```ini
+JAM_HOST=localhost
+CHANNEL=stable
+COMPOSE_PROFILES=web
+GRAFANA_ADMIN_PASSWORD=foobar
+```
+
+Run docker-compose using the dev-docker-compose.yml file
+
+```sh
+cd ~/jam/deployment
+docker-compose -f dev-docker-compose.yml up -d
 ```
