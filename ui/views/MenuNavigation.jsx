@@ -21,9 +21,10 @@ export function MyNavMenu({close, roomColor}) {
       updateRoom,
     },
   ] = useJam();
-  let [iSpeak, iModerate, room, myId, roomId, isRecording] = use(state, [
+  let [iSpeak, iModerate, iOwn, room, myId, roomId, isRecording] = use(state, [
     'iAmSpeaker',
     'iAmModerator',
+    'iAmOwner',
     'room',
     'myId',
     'roomId',
@@ -60,10 +61,10 @@ export function MyNavMenu({close, roomColor}) {
       className="max-w-lg max-h-128 mx-auto flex flex-wrap justify-center rounded-lg"
       style={{backgroundColor: roomColor.avatarBg, color: textColor}}
     >
-      {iModerate && (
+      {(iModerate || iOwn) && (
         <div
           onClick={() => {
-            openModal(EditRoomModal, {roomId, room, roomColor});
+            openModal(EditRoomModal, {roomId, iOwn, room, roomColor});
             close(false);
           }}
           className="p-2 flex items-center"
@@ -73,7 +74,7 @@ export function MyNavMenu({close, roomColor}) {
         </div>
       )}
 
-      {!stageOnly && iModerate && !iSpeak && (
+      {!stageOnly && (iModerate || iOwn) && !iSpeak && (
         <div
           onClick={() => addSpeaker(roomId, myId).then(close(false))}
           className="p-2"
@@ -95,7 +96,7 @@ export function MyNavMenu({close, roomColor}) {
         </div>
       )}
 
-      {iModerate && isRecordingAllowed && (
+      {(iOwn || iModerate) && isRecordingAllowed && (
         <div
           onClick={() => {
             if (isRecording) {
@@ -125,24 +126,14 @@ export function MyNavMenu({close, roomColor}) {
         </p>
       </div>
 
-      {!stageOnly && iModerate && iSpeak && (
+      {!stageOnly && (iOwn || iModerate) && iSpeak && (
         <div
           onClick={() => removeSpeaker(roomId, myId).then(close(false))}
           className="p-2"
         >
-          <p className="text-md text-red-500 cursor-pointer">Leave Stage</p>
+          <p className="text-md cursor-pointer">Leave Stage</p>
         </div>
       )}
-
-      <div onClick={async () => {
-        location.reload(true);
-        //history.pushState(null, null, window.location.href);
-      }} className="p-2 flex items-center">
-        <p className="text-md ml-1 cursor-pointer" style={{color: textColor}}>
-          Refresh Page
-        </p>
-      </div>
-
       {!stageOnly && !iModerate && iSpeak && (
         <div
           onClick={() => {
@@ -151,11 +142,28 @@ export function MyNavMenu({close, roomColor}) {
           }}
           className="p-2"
         >
-          <p className="text-md text-red-500 cursor-pointer">Leave stage</p>
+          <p className="text-md cursor-pointer">Leave stage</p>
         </div>
       )}
 
-      {iModerate && hasSlides && (
+      <div onClick={async () => {
+        // new way to force a reload without client cache
+        const testform = document.createElement('form');
+        testform.method = "POST";
+        testform.action = location.href;
+        document.body.appendChild(testform);
+        testform.submit();
+        // old ways 1
+        //location.reload(true);
+        // old ways 2
+        //history.pushState(null, null, window.location.href);
+      }} className="p-2 flex items-center">
+        <p className="text-md ml-1 cursor-pointer" style={{color: textColor}}>
+          Refresh Page
+        </p>
+      </div>
+
+      {(iOwn || iModerate) && hasSlides && (
         <div
           onClick={async () => {
             if (room.currentSlide > 0) {

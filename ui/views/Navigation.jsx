@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {use} from 'use-minimal-state';
 import {MyNavMenu} from './MenuNavigation';
 import {colors, isDark} from '../lib/theme';
+import {useMqParser} from '../lib/tailwind-mqp';
 import {
   MicOffSvg,
   MicOnSvg,
@@ -13,6 +14,8 @@ import {
 import {useJam} from '../jam-core-react';
 
 export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
+
+  let mqp = useMqParser();
   let talk = () => {
     if (micOn) {
       setProps('micMuted', !micMuted);
@@ -37,9 +40,9 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
                 height: '48px',
               }}
             >
-              {r.toString().startsWith('E') ? (
+              {r.toString().toUpperCase().startsWith('E') ? (
                 <img
-                  src={`/img/emoji-${r}.png`}
+                  src={`/img/emoji-${r.toString().toUpperCase()}.png`}
                   style={{
                     width: '100%',
                     height: 'auto',
@@ -70,9 +73,9 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
 
   function StickyStatus() {
     return (
-      <div>
+      <div class="flex">
         <button class="human-radius text-xs select-none"
-          style={{width:'48px',height:'48px','color':'yellow'}}
+          style={{width:'48px',height:'48px','color':'yellow',lineHeight: '.95'}}
           onClick={() => {
             handRaised = false;
             handType = '';
@@ -130,64 +133,57 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
           style={{width:'48px',height:'48px',backgroundColor:`rgb(17,17,170)`,color:'yellow'}}
           onClick={() => {
             handRaised = true;
-            handType = '☕';
+            handType = localStorage.getItem('stickyEmoji1') ?? '☕';
             setProps('handRaised', handRaised);
             setProps('handType', handType);
             //setHandType(handType);
             setShowStickies(s => !s);
           }}
-        >☕</button>
+        >{(localStorage.getItem('stickyEmoji1') ?? '☕').toString().toUpperCase().startsWith('E') ? (
+          <img
+            src={`/img/emoji-${(localStorage.getItem('stickyEmoji1') ?? '☕').toString().toUpperCase()}.png`}
+            style={{
+              width: '100%',
+              height: 'auto',
+              border: '0px',
+              display: 'inline',
+            }}
+          />
+        ) : (
+          localStorage.getItem('stickyEmoji1') ?? '☕'
+        )}</button>
         <button class="human-radius text-xl select-none"
           style={{width:'48px',height:'48px',backgroundColor:`rgb(17,17,170)`,color:'yellow'}}
           onClick={() => {
             handRaised = true;
-            handType = '🌽';
+            handType = localStorage.getItem('stickyEmoji2') ?? '🌽';
             setProps('handRaised', handRaised);
             setProps('handType', handType);
             //setHandType(handType);
             setShowStickies(s => !s);
           }}
-        >🌽</button>
+        >{(localStorage.getItem('stickyEmoji2') ?? '🌽').toString().toUpperCase().startsWith('E') ? (
+            <img
+              src={`/img/emoji-${(localStorage.getItem('stickyEmoji2') ?? '🌽').toString().toUpperCase()}.png`}
+              style={{
+                width: '100%',
+                height: 'auto',
+                border: '0px',
+                display: 'inline',
+              }}
+            />
+          ) : (
+            localStorage.getItem('stickyEmoji2') ?? '🌽'
+          )}</button>
       </div>
     );
   }
 
   let [leaving, setLeaving] = useState(false);
-  const splitEmoji = (string) => [...new Intl.Segmenter().segment(string)].map(x => x.segment);
-  async function byeEmojiExitOld() {
-    if (leaving) {
-      setLeaving(false);
-      leaving = false;
-      leaveRoom();
-    } else {
-      leaving = true;
-      let byeEmoji = localStorage.getItem('byeEmoji') ?? '';
-      let byeAmount = Math.floor(localStorage.getItem('byeAmount') ?? '0');
-      if (byeAmount > 0) {
-        if (byeAmount > 20) {
-          byeAmount = 20;
-        }
-        let byeEmojiParts = byeEmoji.split(',');
-        let bepl = byeEmojiParts.length;
-        let bec = 0;
-        for (let er = 0; er < byeAmount; er ++) {
-          for (let bepi = 0; bepi < bepl; bepi ++) {
-            bec = bec + 1;
-            sendReaction(byeEmojiParts[bepi]);
-            await new Promise((resolve,reject) => setTimeout(resolve, 100));
-          }
-        }
-        if (bec > 1) {
-          await new Promise((resolve,reject) => setTimeout(resolve, 2000));
-        }
-      }
-      setLeaving(false);
-      leaving = false;
-      leaveRoom();
-    }
-  }
+  const splitEmoji = (string) => [...string];
+  //const splitEmoji = (string) => [...new Intl.Segmenter().segment(string)].map(x => x.segment);
 
-  async function byeEmojiExitNew() {
+  async function byeEmojiExit() {
     if (leaving) {
       setLeaving(false);
       leaving = false;
@@ -197,7 +193,7 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
       leaving = true;
       let maxReactions = 50;
       let ignoredChars = ',';
-      let byeEmoji = localStorage.getItem('byeEmoji') ?? '';
+      let byeEmoji = localStorage.getItem('byeEmoji') ?? 'Goodbye';
       let doexit = true;
       if (byeEmoji.indexOf('-') == 0) {
         doexit = false;
@@ -209,9 +205,9 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
           byeAmount = 20;
         }
         let byeEmojiParts = [];
-        let byeEmojiSplit = splitEmoji(byeEmoji);
+        let byeEmojiSplit = (byeEmoji.length > 0) ? splitEmoji(byeEmoji) : [];
         if (!doexit) {
-          byeEmojiSplit = splitEmoji(byeEmoji.substr(1));
+          byeEmojiSplit = (byeEmoji.length > 1) ? splitEmoji(byeEmoji.substr(1)) : [];
         }
         let besl = byeEmojiSplit.length;
         let ce = false;
@@ -288,10 +284,6 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
     }
   }
 
-  async function ByeEmojiExit() {
-    byeEmojiExitNew();
-  }
-
   const [state, {leaveRoom, sendReaction, retryMic, setProps}] = useJam();
   let [myAudio, micMuted, handRaised, handType, iSpeak] = use(state, [
     'myAudio',
@@ -318,7 +310,7 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
   const iconColorBad = `rgba(240,40,40,.80)`;
 
   return (
-    <div style={{zIndex: '5',position:'absolute',bottom:'96px',width:'100%',backgroundColor:roomColor.avatarBg}}>
+    <div style={{zIndex: '5',position:'absolute',bottom:'72px',width:'100%',backgroundColor:roomColor.avatarBg}}>
       <div class="flex justify-center align-center mx-2">
         {showStickies && (
           <div
@@ -330,8 +322,8 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
         )}
         {showReactions && (
           <div
-            class="text-4xl items-center max-w-md max-h-28 flex flex-wrap overflow-y-scroll text-black text-center rounded-lg left-0 bottom-14"
-            style={{backgroundColor: roomColor.avatarBg}}
+            class="text-4xl items-center max-w-md flex flex-wrap overflow-y-scroll text-black text-center rounded-lg left-0 bottom-14"
+            style={{backgroundColor: roomColor.avatarBg, maxHeight: '3.25em'}}
           >
             <ReactionsEmojis />
           </div>
@@ -402,7 +394,28 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
                     setShowStickies(s => !s);
                   }}
                 >
-                {handType === 'RH' ? '✋' :( handType === 'TU' ? '👍' :( handType === 'TD' ? '👎' : handType ))}
+                {handType === 'RH' ? (
+                  <span class="text-lg" style={{textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'}}>✋</span>
+                ):( handType === 'TU' ? (
+                  <span class="text-lg" style={{textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'}}>👍</span>
+                ):( handType === 'TD' ? ( 
+                  <span class="text-lg" style={{textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'}}>👎</span>
+                ):( handType.toString().toUpperCase().startsWith('E') ? (
+                  <img
+                    src={`/img/emoji-${handType.toString().toUpperCase()}.png`}
+                    style={{
+                      width: '100%',
+                      height: 'auto',
+                      border: '0px',
+                      display: 'inline',
+                    }}
+                  />
+                ):(
+                  <span className={mqp(handType.toString().charCodeAt(0) < 255 ? 'text-xs' : 'text-lg')}
+                    style={{textShadow: handType.toString().charCodeAt(0) > 255 ? '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000': ''}}
+                  >{handType}</span>
+                )
+                )))}
                 </button>
               </div>
             ) : (
@@ -490,7 +503,7 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
           <button
             class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center transition-all hover:opacity-80"
             onClick={async() => {
-              ByeEmojiExit();
+              byeEmojiExit();
             }}
           >
             <Leave />

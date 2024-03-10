@@ -2,13 +2,14 @@ import React, {useState} from 'react';
 import {useMqParser} from '../../lib/tailwind-mqp';
 
 export function Slides({
+  iOwn,
   roomSlides,
   setRoomSlides,
   textColor,
   roomColor,
 }) {
   let mqp = useMqParser();
-
+  let [expanded, setExpanded] = useState(false);
   let [slideURI, setSlideURI] = useState('');
   let [slideText, setSlideText] = useState('');
 
@@ -88,10 +89,10 @@ export function Slides({
 
   return (
     <div>
-      <p className="text-lg font-medium text-gray-500 px-2">
-        Manage Slides
+      <p className="text-lg font-medium text-gray-500 cursor-pointer" onClick={() => setExpanded(!expanded)}>
+      {expanded ? '🔽' : '▶️'} Manage Slides
       </p>
-
+      <div className={expanded ? '' : 'hidden'}>
       <div className="mb-2">
         <p className="text-sm font-medium text-gray-500 p-2">
           Add a slide to the end of the list:
@@ -130,7 +131,7 @@ export function Slides({
             }}
           ></input>
           <button
-            className="px-5 h-12 text-sm"
+            className="px-5 h-12 text-sm rounded-md"
             style={{
               color: textColor,
               backgroundColor: roomColor.buttons.primary,
@@ -148,7 +149,7 @@ export function Slides({
           <RoomSlides />
         </div>
       </div>
-
+      </div>
     </div>
   );
 }

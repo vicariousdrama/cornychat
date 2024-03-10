@@ -44,6 +44,12 @@
             // to stop: clearInterval(animInterval);
         }
         // var mysnowflakes = new Snowflakes({color: "#d7c1f9",minOpacity: 0.4,maxOpacity: 0.8,maxSize:50,speed:3});
+        // April First
+        if (thed.getDate() == 1 && thed.getMonth() == 3) {
+            if(Math.round(Math.random() * 10) > 7) {
+                flipit();
+            }
+        }
     }
     if (animationsEnabled == 'true') {
         if(window.addEventListener) {
@@ -75,6 +81,11 @@
         setTimeout(() => {
             heart.remove();
         }, 5000);
+    }
+
+    function flipit() {
+        document.getElementById('root').classList.add("flipdiv");
+        window.scrollTo(0, document.body.scrollHeight);
     }
 
 </script>

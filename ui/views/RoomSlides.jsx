@@ -64,15 +64,16 @@ export default function RoomSlides({
       return (
         <div className="mb-2" style={{color: textColor, backgroundColor: colors.avatarBg}}>
           {isImage && (
-          <img src={slideUrl} style={{maxHeight: '320px', maxWidth: '800px', margin: 'auto'}} />
+          <img src={slideUrl} style={{height: '320px', width: 'auto', maxWidth: '100%', margin: 'auto', align: 'center'}} />
           )}
           {(isVideo || isIFrame) && (
           <p>
           This slide cannot be shown at this time. Resource: {slideUrl}
           </p>
           )}
-          <div className="flex justify-center items-center" style={{color: textColor, backgroundColor: colors.avatarBg}}>
+          <div className="flex" style={{color: textColor, backgroundColor: colors.avatarBg}}>
             {iModerate && (
+            <div class="flex-none">
             <button className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
             onClick={async () => {
               currentSlide -= 1;
@@ -83,11 +84,13 @@ export default function RoomSlides({
             >
               <Previous color={iconColor} />
             </button>
+            </div>
             )}
-            <div className="text-sm" style={{width: '360px', color: textColor, backgroundColor: colors.avatarBg}}>
+            <div className="text-sm flex-grow" style={{color: textColor, backgroundColor: colors.avatarBg}}>
             {slideText}
             </div>
             {iModerate && (
+            <div class="flex-none">
             <button className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
             onClick={async () => {
               currentSlide += 1;
@@ -98,6 +101,7 @@ export default function RoomSlides({
             >
               <Next color={iconColor} />
             </button>
+            </div>
             )}
           </div>
         </div>
@@ -167,13 +171,13 @@ export default function RoomSlides({
 
   if (rsl > 0 && (parseInt(currentSlide, 10) > 0)) {
     return (
-      <div className="flex justify-center my-2 mx-4">
+      <div className="justify-center">
         <RoomSlide />
       </div>
     );
   } else {
     return (
-      <div className="flex justify-center my-2 mx-4 hidden"></div>
+      <div className="hidden"></div>
     );
   }
 }

@@ -11,6 +11,7 @@ const metricsRouter = require('./routes/metrics');
 const activityRouter = require('./routes/activity');
 const adminRouter = require('./routes/admin');
 const roomListRouter = require('./routes/roomListRouter');
+const scheduledEventsRouter = require('./routes/scheduledEventsRouter');
 const staticRoomsRouter = require('./routes/staticRoomsRouter');
 const staticEventsRouter = require('./routes/staticEventsRouter');
 const roomModeratorsRouter = require('./routes/roomModerators');
@@ -54,6 +55,7 @@ app.use('/api/v1/', controller('identities', identityAuthenticator));
 app.use('/api/v1/admin/', adminRouter);
 
 app.use('/api/v1/roomlist/', roomListRouter);
+app.use('/api/v1/scheduledevents/', scheduledEventsRouter);
 app.use('/api/v1/staticrooms/', staticRoomsRouter);
 app.use('/api/v1/staticevents/', staticEventsRouter);
 

@@ -19,6 +19,7 @@ export {
   recordingsDownloadLink,
   signNostrEvent,
   getRoomList,
+  getScheduledEvents,
   getStaticRoomsList,
   getStaticEventsList,
 };
@@ -184,13 +185,6 @@ async function updateRoom(state, roomId, room) {
   //  console.log("Room owners can not be emptied");
   //  return false;
   //}
-  // don't accept updates if updateTime doesn't match
-  //if (!islegacy && currentroom?.updateTime != room?.updateTime) {
-  //  console.log("Room update time does not match expected value");
-  //  return false;
-  //}
-  // set the update time to now
-  room.updateTime = Date.now();
 
   // ok to save
   return await put(state, `/rooms/${roomId}`, room);
@@ -222,6 +216,10 @@ async function recordingsDownloadLink({myIdentity}, roomId) {
 
 async function getRoomList() {
   return await get(`/roomlist/`);
+}
+
+async function getScheduledEvents() {
+  return await get(`/scheduledevents/`);
 }
 
 async function getStaticRoomsList() {

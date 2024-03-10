@@ -3,6 +3,7 @@ import {useMqParser} from '../../lib/tailwind-mqp';
 import {RgbaColorPicker} from 'react-colorful';
 
 export function DesignRoomInfo({
+  iOwn,
   backgroundURI,
   setBackgroundURI,
   paletteColors,
@@ -27,7 +28,7 @@ export function DesignRoomInfo({
   setTooltipStates,
 }) {
   let mqp = useMqParser();
-
+  let [expanded, setExpanded] = useState(false);
   let [colorType, setColorType] = useState('');
 
   function displayTooltip(index, colorType) {
@@ -98,13 +99,14 @@ export function DesignRoomInfo({
   return (
     <div>
 
-      <p className="text-lg font-medium text-gray-500 px-2">
-        Designer Settings
+      <p className="text-lg font-medium text-gray-500 cursor-pointer" onClick={() => setExpanded(!expanded)}>
+      {expanded ? '🔽' : '▶️'} Designer Settings
       </p>
-
-      <p className="text-sm font-medium text-gray-500 p-2">
-        Background Image URI:
+      <div className={expanded ? '' : 'hidden'}>
+      <p className="text-sm font-medium text-gray-500">
+        Background Image URI: {!iOwn && (backgroundURI)}
       </p>
+      {iOwn && (
       <input
         className={mqp(
           'rounded-lg placeholder-gray-400 bg-gray-100 border-4 m-2 pb-2 rounded-lg w-full md:w-96'
@@ -120,9 +122,11 @@ export function DesignRoomInfo({
           setBackgroundURI(e.target.value);
         }}
       ></input>
+      )}
 
+      {iOwn ? (
       <div className="my-2">
-        <span class="flex items-center text-sm font-medium text-gray-500 p-2">
+        <span class="flex items-center text-sm font-medium text-gray-500">
           Choose a Color Theme:  <b>{color}</b>
         </span>
         <div className="flex flex-wrap justify-between">
@@ -211,7 +215,14 @@ export function DesignRoomInfo({
         </div>
         </div>
         )}
-
+      </div>
+      ) : (
+      <div className="my-2">
+        <span class="flex items-center text-sm font-medium text-gray-500">
+          Color Theme:  <b>{color}</b>
+        </span>
+      </div>
+      )}
       </div>
     </div>
   );

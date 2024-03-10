@@ -38,10 +38,6 @@ Roadmap
   - ⬜ Edit Personal Profile to set name, picture, about, lud16, nip05
   - ⬜ Upload Banner image to common media uploaders
   - ⬜ Upload Avatar image to common media uploaders
-- ⬜ Avatar Layout Customizations
-  - ⬜ Room Arrangement of Avatars (Stage/Audience, Alphasort, other groupings...?)
-  - ⬜ Drag and Drop position of Avatars in room
-  - ⬜ Resize / Zoom avatars
 - ☑️ Reaction Customizations
   - ✅ Update Default Emoji Reactions
   - ⬜ Emoji sets (kind 30030)
@@ -53,18 +49,19 @@ Roadmap
   - ⬜ Confirm Zap paid (kind 9735)
   - ⬜ Animate Zap from payer to receiver
   - ⬜ Zap Default to target without confirmation (e.g. using Alby budget)
-- ⬜ Nostr Activity + Chat
+- ✅ Nostr Scheduled Events
+  - ✅ Allow rooms to schedule a future event
+  - ✅ Publish Nostr Calendar Time Event (kind 31923 per NIP-52)
+  - ✅ Publish Nostr Delete Event (kind 5 per NIP-9) 
+  - ✅ Periodically update cache of scheduled events
+- ⬜ Nostr Live Activity + Chat
   - ⬜ Create and Publish Nostr Live Activity for Rooms (kind 30311 per NIP-53)
   - ⬜ Live Chat Message tied to the Live Activity (kind 1311)
-  - ⬜ Live Chat Message language translations
-  - ⬜ Save/Export chat history
   - ⬜ Ability for user to react to chat message
   - ⬜ Ability for user to zap a chat message
-- ⬜ Landing Page
-  - ⬜ Update Page with name, description, guide user on Nostr
-  - ⬜ Show list of all Nostr Live Activities across instances
-    - ⬜ Highlight rooms on the current instance
-    - ⬜ Show Icon from server favicon if live activity has no image set
+- ☑️ Landing Page
+  - ✅ Show list of all Nostr Scheduled Audio Spaces across instances
+  - ⬜ Show list of all Nostr Live Audio Spaces across instances
   - ⬜ Server Message of the Day when user accesses first time during day
 - ✅ About Page
   - ✅ Link to this git repository for source code
