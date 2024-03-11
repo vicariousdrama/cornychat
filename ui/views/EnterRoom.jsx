@@ -29,7 +29,7 @@ export default function EnterRoom({
     {enterRoom, setProps, updateInfo, addNostrPrivateKey},
   ] = useJam();
 
-  let [myIdentity] = use(state, ['myIdentity']);
+  let [myIdentity, iOwn, iModerate] = use(state, ['myIdentity', 'iAmOwner', 'iAmModerator']);
 
   let mqp = useMqParser();
   let otherDevice = use(state, 'otherDeviceInRoom');
@@ -39,7 +39,7 @@ export default function EnterRoom({
   let [loadingNsec, setLoadingNsec] = useState(false);
   let width = useWidth();
   let leftColumn = width < 720 ? 'hidden' : 'w-full';
-  let rightColum =
+  let rightColumn =
     width < 720 ? 'w-full bg-white p-10' : 'w-9/12 bg-white p-10';
   const colorTheme = room?.color ?? 'default';
   const roomColor = colors(colorTheme, room.customColor);
@@ -112,7 +112,7 @@ export default function EnterRoom({
         className={leftColumn}
         style={{backgroundColor: roomColor.background, opacity: '90%'}}
       ></div>
-      <div className={rightColum}>
+      <div className={rightColumn}>
         {otherDevice && (
           <div
             className={
@@ -125,7 +125,7 @@ export default function EnterRoom({
             Joining here will log you out of the other tab.
           </div>
         )}
-        {forbidden && (
+        {forbidden && !closed && (
           <div
             className={
               'mt-5 mb--1 p-4 text-gray-700 rounded-lg border border-yellow-100 bg-yellow-50'
@@ -134,6 +134,15 @@ export default function EnterRoom({
             <span className="text-gray-900 bg-yellow-200">Warning:</span>
             <br />
             You are not allowed to enter this room. Move along!
+          </div>
+        )}
+        {closed && (
+          <div
+            className={
+              'mt-5 mb--1 p-4 text-red-500 rounded-lg border border-yellow-400 bg-red-50'
+            }
+          >
+            This room is currently closed.
           </div>
         )}
         <div className="text-center my-3">
@@ -163,9 +172,11 @@ export default function EnterRoom({
           <div className="text-sm">
             Click your avatar to make changes.
           </div>
+          {!closed && (
           <div class="text-sm">
             Use a VPN like Mullvad for better privacy.
           </div>
+          )}
         </div>
 
         <button
@@ -174,7 +185,7 @@ export default function EnterRoom({
             enterRoom(roomId);
           }}
           className={
-            closed || forbidden
+            (closed && !iOwn && !iModerate) || forbidden
               ? 'hidden'
               : 'mt-5 select-none w-full h-12 px-6 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
           }
@@ -192,7 +203,7 @@ export default function EnterRoom({
             handlerSignIn('extension');
           }}
           className={
-            closed || forbidden
+            (closed && !iOwn && !iModerate) || forbidden
               ? 'hidden'
               : 'mt-5 select-none w-full h-12 px-6 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
           }

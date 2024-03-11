@@ -15,7 +15,7 @@ import {use} from 'use-minimal-state';
 import {InvoiceModal} from './Invoice';
 import EditIdentity from './EditIdentity';
 
-export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
+export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, close}) {
   async function setUserMetadata() {
     if (!userNpub) return;
 
@@ -46,6 +46,7 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
 
   function iFollowUser(iFollow) {
     if (iFollow === 'npub not found') return;
+    if (!window.nostr) return; // dont show follow/unfollow if not nip07 extension
     if (iFollow) setShowUnfollowBtn(true);
     if (!iFollow) setShowFollowBtn(true);
   }
@@ -109,23 +110,25 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
   const {
     addSpeaker,
     addModerator,
+    addOwner,
     removeSpeaker,
     removeModerator,
+    removeOwner,
     addAdmin,
     removeAdmin,
     signEvent,
   } = api;
 
-  let stageOnly = false;
-
-  let {speakers, moderators} = room ?? {};
+  let stageOnly = !!room?.stageOnly;
+  let {speakers, moderators, owners} = room ?? {};
 
   let [myId, roomId] = use(state, ['myId', 'roomId']);
   let [myAdminStatus] = useApiQuery(`/admin/${myId}`, {fetchOnMount: true});
   let [peerAdminStatus] = useApiQuery(`/admin/${peerId}`, {fetchOnMount: true});
 
-  let isSpeaker = stageOnly || speakers.includes(peerId);
+  let isOwner = owners.includes(peerId);
   let isModerator = moderators.includes(peerId);
+  let isSpeaker = speakers.includes(peerId);
 
   const [isValidNip05, setIsValidNip05] = useState(false);
   const [lnAddress, setLnAddress] = useState('');
@@ -314,40 +317,47 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
                       addAdmin(peerId).then(close)
                     }}
                   >
-                    👑️ Make Admin
+                    🅰️ Make Admin
                   </button>
                 )}
               </div>
             )}
 
-            {isSpeaker && (iModerate || myAdminStatus?.admin) ? (
+
+            {!isOwner && (iOwn || myAdminStatus?.admin) && (
               <button
                 className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
-                onClick={() => removeSpeaker(roomId, peerId).then(close)}
+                onClick={() => addOwner(roomId, peerId).then(close)}
               >
-                ↓ Move to Audience
+                👑️ Add to room owners
               </button>
-            ) : null}
+            )}
 
-            {!isSpeaker && (iModerate || myAdminStatus?.admin) ? (
+            {isOwner && (iOwn || myAdminStatus?.admin) && (
               <button
                 className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
-                onClick={() => addSpeaker(roomId, peerId).then(close)}
+                onClick={() => {
+                  let result = confirm('Are you sure you want to remove Ownership status?');
+                  if (result != true) {
+                    return;
+                  }
+                  removeOwner(roomId, peerId).then(close)
+                }}
               >
-                Invite to stage
+                ❌ Revoke room ownership
               </button>
-            ) : null}
+            )}
 
-            {isSpeaker && !isModerator && (iModerate || myAdminStatus?.admin) && (
+            {!isModerator && (iOwn || myAdminStatus?.admin) && (
               <button
                 className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
                 onClick={() => addModerator(roomId, peerId).then(close)}
               >
-                Make moderator
+                🛡️ Make moderator
               </button>
             )}
 
-            {isModerator && (iModerate || myAdminStatus?.admin) && (
+            {isModerator && (iOwn || myAdminStatus?.admin) && (
               <button
                 className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
                 onClick={() => {
@@ -361,6 +371,24 @@ export function Profile({info, room, peerId, iModerate, actorIdentity, close}) {
                 ❌ Demote Moderator
               </button>
             )}
+
+            {!isSpeaker && !stageOnly && (iModerate || myAdminStatus?.admin) ? (
+              <button
+                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
+                onClick={() => addSpeaker(roomId, peerId).then(close)}
+              >
+                🎤 Invite to stage
+              </button>
+            ) : null}
+
+            {isSpeaker && (iModerate || myAdminStatus?.admin) ? (
+              <button
+                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
+                onClick={() => removeSpeaker(roomId, peerId).then(close)}
+              >
+                ↓ Move to Audience
+              </button>
+            ) : null}
 
             {showFollowBtn ? (
               <button

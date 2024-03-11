@@ -8,6 +8,7 @@ const debug = require('debug')('pantry:server');
 const http = require('http');
 const {addWebsocket} = require('../services/ws');
 const {setupCleaner} = require('../services/fileCleaner');
+const {scheduleUpdater} = require('../services/scheduleUpdater');
 
 /**
  * Get port from environment and store in Express.
@@ -29,6 +30,7 @@ server.on('error', onError);
 server.on('listening', onListening);
 addWebsocket(server)
 setupCleaner().then(() => 'Cleaner started.');
+scheduleUpdater().then(() => 'Schedule Updater started.');
 
 /**
  * Normalize a port into a number, string, or false.

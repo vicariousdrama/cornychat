@@ -2,13 +2,14 @@ import React, {useState} from 'react';
 import {useMqParser} from '../../lib/tailwind-mqp';
 
 export function Links({
+  iOwn,
   roomLinks,
   setRoomLinks,
   textColor,
   roomColor,
 }) {
   let mqp = useMqParser();
-
+  let [expanded, setExpanded] = useState(false);
   let [linkURI, setLinkURI] = useState('');
   let [linkText, setLinkText] = useState('');
 
@@ -86,10 +87,10 @@ export function Links({
 
   return (
     <div>
-      <p className="text-lg font-medium text-gray-500 px-2">
-        Manage Links
+      <p className="text-lg font-medium text-gray-500 cursor-pointer" onClick={() => setExpanded(!expanded)}>
+      {expanded ? '🔽' : '▶️'} Manage Links
       </p>
-
+      <div className={expanded ? '' : 'hidden'}>
       <div className="mb-2">
         <p className="text-sm font-medium text-gray-500 p-2">
           Add a link to the top of the list:
@@ -128,7 +129,7 @@ export function Links({
             }}
           ></input>
           <button
-            className="px-5 h-12 text-sm"
+            className="px-5 h-12 text-sm rounded-md"
             style={{
               color: textColor,
               backgroundColor: roomColor.buttons.primary,
@@ -146,7 +147,7 @@ export function Links({
           <RoomLinks />
         </div>
       </div>
-
+      </div>
     </div>
   );
 }

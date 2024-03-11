@@ -37,6 +37,7 @@ import {
   apiUrl,
   recordingsDownloadLink,
   getRoomList,
+  getScheduledEvents,
   getStaticRoomsList,
   getStaticEventsList,
 } from './jam-core/backend';
@@ -132,6 +133,7 @@ function createApi<T extends StateType>(
       updateRoom(state, roomId, room) as Promise<boolean>,
 
     listRooms: () => getRoomList(),
+    listScheduledEvents: () => getScheduledEvents(),
     listStaticRooms: () => getStaticRoomsList(),
     listStaticEvents: () => getStaticEventsList(),
     enterRoom: (roomId: string) => dispatch(actions.JOIN, roomId),

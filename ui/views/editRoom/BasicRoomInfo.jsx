@@ -1,7 +1,10 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {useMqParser} from '../../lib/tailwind-mqp';
+import ReactMarkdown from 'react-markdown';
+import gfm from 'remark-gfm';
 
 export function BasicRoomInfo({
+  iOwn,
   name,
   setName,
   description,
@@ -18,18 +21,21 @@ export function BasicRoomInfo({
   setStageOnly,
 }) {
   let mqp = useMqParser();
+  let [expanded, setExpanded] = useState(false);
   return (
     <div>
-      <p className="text-lg font-medium text-gray-500 px-2">
-        Basic Room Info
+      <p className="text-lg font-medium text-gray-500 cursor-pointer" onClick={() => setExpanded(!expanded)}>
+        {expanded ? '🔽' : '▶️'} Basic Room Info
       </p>
+      <div className={expanded ? '' : 'hidden'}>
       <div className="mb-2">
-        <p className="text-sm font-medium text-gray-500 px-2">
-          Room topic:
+        <p className="text-sm font-medium text-gray-500">
+          Room topic: {!iOwn && (<span className="text-gray-500">{name}</span>)}
         </p>
+        {iOwn && (
         <input
           className={mqp(
-            'rounded-lg placeholder-gray-400 bg-gray-100 border-4 m-2 pb-2 rounded-lg w-full md:w-96'
+            'rounded-lg placeholder-gray-400 bg-gray-100 border-4 pb-2 rounded-lg w-full md:w-96'
           )}
           type="text"
           placeholder="Room topic. Appears on the landing page when room is active."
@@ -43,15 +49,17 @@ export function BasicRoomInfo({
             setName(e.target.value);
           }}
         ></input>
+        )}
       </div>
 
       <div className="my-2">
-        <p className="text-sm font-medium text-gray-500 px-2">
-          Room logo URI:
+        <p className="text-sm font-medium text-gray-500">
+          Room logo URI: {!iOwn && (logoURI)}
         </p>
+        {iOwn && (
         <input
           className={mqp(
-            'rounded-lg placeholder-gray-400 bg-gray-100 border-4 m-2 pb-2 rounded-lg w-full md:w-96'
+            'rounded-lg placeholder-gray-400 bg-gray-100 border-4 pb-2 rounded-lg w-full md:w-96'
           )}
           type="text"
           placeholder="Logo URI. Displayed on the landing page when room is active."
@@ -65,15 +73,26 @@ export function BasicRoomInfo({
             setLogoURI(e.target.value);
           }}
         ></input>
+        )}
       </div>
 
       <div className="mt-2">
-        <p className="text-sm font-medium text-gray-500 px-2">
-          Room Description (markdown supported):
+        <p className="text-sm font-medium text-gray-500">
+          Room Description {iOwn && ('(markdown supported)')}:
+          {!iOwn && (
+          <ReactMarkdown
+          className="text-sm opacity-70 h-full mt-3 border-4"
+          plugins={[gfm]}
+          transformLinkUri={customUriTransformer}
+          >
+          {description}
+          </ReactMarkdown>
+          )}
         </p>
+        {iOwn && (
         <textarea
           className={mqp(
-            'rounded-lg placeholder-gray-400 bg-gray-100 border-4 m-2 pb-2 rounded-lg w-full md:w-96'
+            'rounded-lg placeholder-gray-400 bg-gray-100 border-4 pb-2 rounded-lg w-full md:w-96'
           )}
           placeholder="Room description. Supports markdown."
           value={description}
@@ -87,6 +106,7 @@ export function BasicRoomInfo({
             setDescription(e.target.value);
           }}
         ></textarea>
+        )}
       </div>
 
       <div className="mt-2">
@@ -107,13 +127,13 @@ export function BasicRoomInfo({
           Close the room
           <div className="p-2 pl-9 text-gray-400 text-sm">
             Closed rooms can only be joined by administrators, owners and moderators.
-            Everyone else sees the description and the&nbsp;
-            {`'call to action'`} button.
           </div>
         </label>
       </div>
 
       <div className="mt-2">
+        {iOwn && (
+          <>
         <input
           className="ml-2"
           type="checkbox"
@@ -134,9 +154,27 @@ export function BasicRoomInfo({
             Anyone can join a private room by navigating to the room url.
           </div>
         </label>
+        </>
+        )}
+        {!iOwn && isPrivate && (
+          <p className="text-gray-400 text-sm">
+          <span className="font-medium text-gray-500">Private Room</span> - not displayed on landing
+          page or announced by the Corny Chat bot. Anyone can join a private room by navigating
+          to the room url.
+          </p>
+        )}
+        {!iOwn && !isPrivate && (
+          <p className="text-gray-400 text-sm">
+          <span className="font-medium text-gray-500">Public Room</span> - displays on landing page and
+          announced by Corny Chat bot.
+          </p>
+        )}
+
       </div>
 
       <div className="mt-2">
+        {iOwn && (
+          <>
         <input
           className="ml-2"
           type="checkbox"
@@ -158,9 +196,24 @@ export function BasicRoomInfo({
             If unchecked, the Start Recording option will not be present in the menu choices.
           </div>
         </label>
+        </>
+        )}
+        {!iOwn && !isRecordingAllowed && (
+          <p className="text-gray-400 text-sm">
+            <span className="font-medium text-gray-500">Recordings Disabled</span>
+          </p>
+        )}
+        {!iOwn && isRecordingAllowed && (
+          <p className="text-gray-400 text-sm">
+            <span className="font-medium text-gray-500">Recordings Allowed</span> - An owner or moderator can start 
+            a recording and a visual indicator is shown to users in the room when a recording is in progress.
+          </p>
+        )}
       </div>
 
       <div className="mt-2">
+        {iOwn && (
+          <>
         <input
           className="ml-2"
           type="checkbox"
@@ -181,8 +234,31 @@ export function BasicRoomInfo({
             A moderator can still move a user to the audience.
           </div>
         </label>
+        </>
+        )}
+        {!iOwn && !stageOnly && (
+          <p className="text-gray-400 text-sm">
+            <span className="font-medium text-gray-500">Standard room</span> - Users will start in the
+            audience and a room owner or moderator may invite them to the stage.
+          </p>
+        )}
+        {!iOwn && stageOnly && (
+          <p className="text-gray-400 text-sm">
+            <span className="font-medium text-gray-500">Stage Only room</span> - Users will be placed on the stage and may speak freely.
+          </p>
+        )}
       </div>
-
+      </div>
     </div>
   );
+}
+
+function customUriTransformer(uri) {
+  const schemes = ['bitcoin:', 'lightning:'];
+  for (const scheme of schemes) {
+    if (uri.startsWith(scheme)) {
+      return uri;
+    }
+  }
+  return ReactMarkdown.uriTransformer(uri);
 }

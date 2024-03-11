@@ -101,8 +101,9 @@ export default function RoomHeader({
   return (
     <div className="flex justify-between my-2 mx-4">
 
-      <div className="flex">
-        {logoURI && (
+      <div className="flex-grow">
+        <div className="flex">
+          {logoURI && (
           <div className="flex-none">
             <img
               alt={'room icon'}
@@ -111,23 +112,24 @@ export default function RoomHeader({
               style={{objectFit: 'cover'}}
             />
           </div>
-        )}
-        <div className="cursor-pointer"
-          onClick={async () => {
-            setDisplayDescription(!displayDescription);
-            setShowLinks(false);
-          }}
-        >
-          {' '}
-          <div
-            className="flex flex-wrap px-1 py-1 rounded-lg"
-            style={{backgroundColor: colors.avatarBg, overflow: 'hidden', maxHeight: '116px'}}
+          )}
+          <div className="flex-grow cursor-pointer"
+            onClick={async () => {
+              setDisplayDescription(!displayDescription);
+              setShowLinks(false);
+            }}
           >
-            <p className="text-xl mr-2" style={{color: textColor}}>
-              {name} <InfoR />
-            </p>
+            {' '}
+            <div
+              className="flex flex-wrap px-1 py-1 rounded-lg"
+              style={{backgroundColor: colors.avatarBg, overflow: 'hidden', maxHeight: '116px'}}
+            >
+              <p className="text-xl mr-2" style={{color: textColor}}>
+                {name} <InfoR />
+              </p>
+            </div>
+            {displayDescription ? <RoomDescription /> : null}
           </div>
-          {displayDescription ? <RoomDescription /> : null}
         </div>
       </div>
 
@@ -180,8 +182,8 @@ export default function RoomHeader({
           </div>
         )}
         {closed ? (
-          <div className={'text-sm mr-2'} style={{color: textColor}}>
-            Room is closed
+          <div className={'text-sm mx-2 bg-red-50 text-red-500 border-yellow-400 border rounded-md'} >
+            CLOSED
           </div>
         ) : null}
       </div>
@@ -191,7 +193,7 @@ export default function RoomHeader({
 }
 
 function customUriTransformer(uri) {
-  const schemes = ['bitcoin:', 'ethereum:'];
+  const schemes = ['bitcoin:', 'lightning:'];
   for (const scheme of schemes) {
     if (uri.startsWith(scheme)) {
       return uri;

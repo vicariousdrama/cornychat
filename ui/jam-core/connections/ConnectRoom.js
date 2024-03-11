@@ -65,6 +65,8 @@ export default function ConnectRoom({myIdentity, swarm}) {
           let [data, ok] = await get(`/identities/${id}`);
           if (ok) {
             identities[id] = data;
+            // push to session storage
+            sessionStorage.setItem(id, JSON.stringify(data));
             update();
             return;
           } else {

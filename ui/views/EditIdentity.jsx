@@ -7,6 +7,8 @@ import {getUserMetadata, getUserEvent, setDefaultZapsAmount} from '../nostr/nost
 import {nip19} from 'nostr-tools';
 import {isDark, colors} from '../lib/theme';
 import {avatarUrl, displayName} from '../lib/avatar';
+import EmojiPicker from 'emoji-picker-react';
+import reactionEmojis from '../emojis';
 
 function addNostr(identities, nostrNpub, nostrNoteId, nostrEvent) {
   if (!nostrNpub) return;
@@ -60,7 +62,7 @@ export default function EditIdentity({close}) {
     localStorage.getItem('defaultZap') ?? ''
   );
   let [byeEmoji, setByeEmoji] = useState(
-    localStorage.getItem('byeEmoji') ?? 'E7'
+    localStorage.getItem('byeEmoji') ?? 'Goodbye'
   );
   let [animEnabled, setAnimEnabled] = useState(
     localStorage.getItem('animationsEnabled') ?? 'false'
@@ -72,6 +74,25 @@ export default function EditIdentity({close}) {
   }
   console.log('userType: ', userType);
 
+  let [stickyEmoji1, setStickyEmoji1] = useState(localStorage.getItem('stickyEmoji1') ?? '☕');
+  let [stickyEmoji2, setStickyEmoji2] = useState(localStorage.getItem('stickyEmoji2') ?? '🌽');
+  function setStickyEmoji(position, emoji) {
+    let theemoji = emoji.toString().toUpperCase().startsWith('E') ? emoji.toString().toUpperCase() : emoji;
+    if (position < 1) {
+      return;
+    }
+    let k = 'stickyEmoji' + position;
+    localStorage.setItem(k, theemoji);
+    if (position == 1) {setStickyEmoji1(theemoji)};
+    if (position == 2) {setStickyEmoji2(theemoji)};
+  }
+  function delStickyEmoji(position) {
+    let k = 'stickyEmoji' + position;
+    localStorage.removeItem(k);
+    if (position == 1) {setStickyEmoji1('')};
+    if (position == 2) {setStickyEmoji2('')};
+  }
+  
   async function copyIdToClipboard() {
     await window.navigator.clipboard.writeText(id);
     alert('Id copied to clipboard');
@@ -206,17 +227,13 @@ export default function EditIdentity({close}) {
         case 1:
           if (nostrNpub) {
             // Nostr info present. But only set identities if already prepared
-console.log('retrieving nostr profile data from kind 0 record');
             const pubkey = nip19.decode(nostrNpub).data;
             const metadata = await getUserMetadata(pubkey, [], null);
             if (!metadata) {
-console.log('no nostr profile found');
               let ok = false;
               if (!identities) {
-console.log('only updating name');
                 ok = await updateInfo({name});
               } else {
-console.log('setting name and identity verification info');
                 ok = await updateInfo({name, identities});
               }
               if (ok) {
@@ -225,15 +242,12 @@ console.log('setting name and identity verification info');
                 setErrorMsg('Error calling updateInfo with identities');
               }
             } else {
-console.log('nostr profile found, assigning name and avatar');
               const avatar = metadata.picture;
               const name = metadata.name;
               let ok = false;
               if (!identities) {
-console.log('setting only name and avatar from nostr kind 0');
                 ok = await updateInfo({name, avatar});
               } else {
-console.log('setting name and avatar from nostr kind 0 and identity verification info');
                 ok = await updateInfo({name, avatar, identities});
               }
               if (ok) {
@@ -313,7 +327,7 @@ console.log('setting name and avatar from nostr kind 0 and identity verification
       <form onSubmit={submit}>
 
       {userType == 'anon' && (
-      <div className="p-4 py-8 bg-gray-100 rounded-lg my-3">
+      <div className="p-4 py-2 bg-gray-100 rounded-lg my-3">
         <div className="p-2 text-gray-500 bold">
           Change Display Name
         </div>
@@ -372,7 +386,7 @@ console.log('setting name and avatar from nostr kind 0 and identity verification
       )}
 
       {userType != 'nostrExtension' && (
-      <div className="p-4 py-8 bg-gray-100 rounded-lg my-3">
+      <div className="p-4 py-2 bg-gray-100 rounded-lg my-3">
         <div className="p-2 text-gray-500 bold">
           Nostr Account Verification <span className="text-gray-300"> (optional)</span>
         </div>
@@ -424,7 +438,7 @@ console.log('setting name and avatar from nostr kind 0 and identity verification
       </div>
       )}
 
-      <div className="p-4 py-8 bg-gray-100 rounded-lg my-3">
+      <div className="p-4 py-2 bg-gray-100 rounded-lg my-3">
         <div className="p-2 text-gray-500 bold">
           Default Zap Amount
         </div>
@@ -443,14 +457,92 @@ console.log('setting name and avatar from nostr kind 0 and identity verification
         </div>
       </div>
 
-      <div className="p-4 py-8 bg-gray-100 rounded-lg my-3">
+      <div className="p-4 py-2 bg-gray-100 rounded-lg my-3">
         <div className="p-2 text-gray-500 bold">
-          Sequence of emojis to send when leaving the room
+          Sticky Emojis
+        </div>
+        <div className="p-2 text-gray-500 italic">
+          Sticky Emoji 1
+        </div>
+        {stickyEmoji1.length == 0 ? (
+        <EmojiPicker
+          width={'width:max-content'}
+          onEmojiClick={emoji => setStickyEmoji(1, emoji.emoji)}
+          previewConfig={{showPreview: false}}
+          autoFocusSearch={false}
+          searchPlaceHolder=''
+          customEmojis={[
+            {id: 'E1', names: ['Pepe 1'], imgUrl:'/img/emoji-E1.png'},
+            {id: 'E2', names: ['Pepe 2'], imgUrl:'/img/emoji-E2.png'},
+            {id: 'E3', names: ['Pepe 3'], imgUrl:'/img/emoji-E3.png'},
+            {id: 'E4', names: ['Pepe 4'], imgUrl:'/img/emoji-E4.png'},
+            {id: 'E5', names: ['Pepe 5'], imgUrl:'/img/emoji-E5.png'},
+            {id: 'E6', names: ['Pepe 6'], imgUrl:'/img/emoji-E6.png'},
+            {id: 'E7', names: ['Pepe 7'], imgUrl:'/img/emoji-E7.png'},
+          ]}
+        />
+        ) : (
+        <div className="p-2 m-2 bg-gray-200 rounded-lg hover:bg-red-500"
+          onClick={() => delStickyEmoji(1)}
+        ><p>{stickyEmoji1.toString().toUpperCase().startsWith('E') ? (
+          <img
+            src={`/img/emoji-${stickyEmoji1.toString().toUpperCase()}.png`}
+            style={{
+              width: '24px',
+              height: 'auto',
+              border: '0px',
+              display: 'inline',
+            }}
+          />
+        ) : (stickyEmoji1)}</p>
+        </div>
+        )}
+        <div className="p-2 text-gray-500 italic">
+          Sticky Emoji 2
+        </div>
+        {stickyEmoji2.length == 0 ? (
+        <EmojiPicker
+          width={'width:max-content'}
+          onEmojiClick={emoji => setStickyEmoji(2, emoji.emoji)}
+          previewConfig={{showPreview: false}}
+          autoFocusSearch={false}
+          searchPlaceHolder=''
+          customEmojis={[
+            {id: 'E1', names: ['Pepe 1'], imgUrl:'/img/emoji-E1.png'},
+            {id: 'E2', names: ['Pepe 2'], imgUrl:'/img/emoji-E2.png'},
+            {id: 'E3', names: ['Pepe 3'], imgUrl:'/img/emoji-E3.png'},
+            {id: 'E4', names: ['Pepe 4'], imgUrl:'/img/emoji-E4.png'},
+            {id: 'E5', names: ['Pepe 5'], imgUrl:'/img/emoji-E5.png'},
+            {id: 'E6', names: ['Pepe 6'], imgUrl:'/img/emoji-E6.png'},
+            {id: 'E7', names: ['Pepe 7'], imgUrl:'/img/emoji-E7.png'},
+          ]}
+        />
+        ) : (
+        <div className="p-2 m-2 bg-gray-200 rounded-lg hover:bg-red-500"
+          onClick={() => delStickyEmoji(2)}
+        ><p>{stickyEmoji2.toString().toUpperCase().startsWith('E') ? (
+          <img
+            src={`/img/emoji-${stickyEmoji2.toString().toUpperCase()}.png`}
+            style={{
+              width: '24px',
+              height: 'auto',
+              border: '0px',
+              display: 'inline',
+            }}
+          />
+        ) : (stickyEmoji2)}</p>
+        </div>
+        )}
+      </div>
+
+      <div className="p-4 py-2 bg-gray-100 rounded-lg my-3">
+        <div className="p-2 text-gray-500 bold">
+          Sequence of letters or emojis to send when leaving the room
         </div>
         <input
           className="rounded placeholder-gray-400 bg-gray-50 w-full"
           type="text"
-          placeholder="E7"
+          placeholder="Goodbye"
           value={byeEmoji ?? ''}
           onChange={e => {
             setByeEmoji(e.target.value);
@@ -462,7 +554,7 @@ console.log('setting name and avatar from nostr kind 0 and identity verification
         </div>
       </div>
 
-      <div className="p-4 py-8 bg-gray-100 rounded-lg my-3">
+      <div className="p-4 py-2 bg-gray-100 rounded-lg my-3">
         <div className="p-2 text-gray-500 bold">
         <input
           className="rounded placeholder-gray-400 bg-gray-50 w-8"
@@ -481,27 +573,27 @@ console.log('setting name and avatar from nostr kind 0 and identity verification
         </div>
       </div>
 
-        {showErrorMsg ? <p className="text-red-500">{showErrorMsg}</p> : null}
-        <div className="flex">
-          <button
-            onClick={submit}
-            className="flex-grow mt-5 h-12 px-6 text-lg rounded-lg"
-            style={{
-              color: isDark(roomColor.buttons.primary)
-                ? roomColor.text.light
-                : roomColor.text.dark,
-              backgroundColor: roomColor.buttons.primary,
-            }}
-          >
-            {isLoading ? <LoadingIcon /> : 'Done'}
-          </button>
-          <button
-            onClick={cancel}
-            className="flex-none mt-5 h-12 px-6 text-lg text-black bg-gray-100 rounded-lg focus:shadow-outline active:bg-gray-300"
-          >
-            Cancel
-          </button>
-        </div>
+      {showErrorMsg ? <p className="text-red-500">{showErrorMsg}</p> : null}
+      <div className="flex">
+        <button
+          onClick={submit}
+          className="flex-grow mt-5 h-12 px-6 text-lg rounded-lg"
+          style={{
+            color: isDark(roomColor.buttons.primary)
+              ? roomColor.text.light
+              : roomColor.text.dark,
+            backgroundColor: roomColor.buttons.primary,
+          }}
+        >
+          {isLoading ? <LoadingIcon /> : 'Done'}
+        </button>
+        <button
+          onClick={cancel}
+          className="flex-none mt-5 h-12 px-6 text-lg text-black bg-gray-100 rounded-lg focus:shadow-outline active:bg-gray-300"
+        >
+          Cancel
+        </button>
+      </div>
       </form>
     </Modal>
   );

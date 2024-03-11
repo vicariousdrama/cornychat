@@ -128,7 +128,7 @@ sudo sh -c 'sysctl fs.inotify.max_user_watches=524288 && sysctl -p'
 **Set limits**
 
 ```sh
-sudo /etc/security/limits.conf
+sudo nano /etc/security/limits.conf
 ```
 
 At bottom add the following
@@ -198,8 +198,8 @@ sudo npm install -g yarn
 
 ```sh
 cd ~
-git clone https://github.com/diamsa/jam.git
-cd ~/jam/deployment
+git clone https://github.com/vicariousdrama/cornychat.git
+cd ~/cornychat/deployment
 cp .env.example .env
 hostname -I
 # make note of the reported IP addresses
@@ -221,7 +221,7 @@ Press CTRL+O, CTRL+X to save and exit
 **Edit the turnserver.conf file**
 
 ```sh
-nano ~/jam/deployment/turnserver.conf
+nano ~/cornychat/deployment/turnserver.conf
 ```
 
 1. Set the `realm` value to the domain name
@@ -233,7 +233,7 @@ Press CTRL+O, CTRL+X to save and exit
 **Edit the jam-config.json file**
 
 ```sh
-nano ~/jam/resources/jam-config.json
+nano ~/cornychat/resources/jam-config.json
 ```
 
 1. Near the top of the file, update the domain name for the fields in the `urls` section.
@@ -243,23 +243,23 @@ Press CTRL+O, CTRL+X to save and exit
 **Build the UI**
 
 ```sh
-cd ~/jam/ui
+cd ~/cornychat/ui
 yarn
 ```
 
 **Create Docker Images**
 
 ```sh
-cd ~/jam/ui
+cd ~/cornychat/ui
 docker build -t diamsa/ui:stable .
-cd ~/jam/pantry
+cd ~/cornychat/pantry
 docker build -t diamsa/pantry:stable .
 ```
 
 **Start Docker**
 
 ```sh
-cd ~/jam/deployment
+cd ~/cornychat/deployment
 docker-compose up -d
 ```
 
@@ -277,6 +277,6 @@ GRAFANA_ADMIN_PASSWORD=foobar
 Run docker-compose using the dev-docker-compose.yml file
 
 ```sh
-cd ~/jam/deployment
+cd ~/cornychat/deployment
 docker-compose -f dev-docker-compose.yml up -d
 ```

@@ -103,9 +103,10 @@ async function handleMessage(connection, roomId, msg) {
     case 'moderator': {
       // send to all mods
       let outgoingMsg = {t: 'direct', d: data, p: senderId};
-      let {moderators = []} = (await get('rooms/' + roomId)) ?? {};
+      let {moderators = [], owners = []} = (await get('rooms/' + roomId)) ?? {};
       for (let receiver of getConnections(roomId)) {
-        if (moderators.includes(getPublicKey(receiver))) {
+        let rpubkey = getPublicKey(receiver);
+        if (moderators.includes(rpubkey) || owners.includes(rpubkey)) {
           sendMessage(receiver, outgoingMsg);
         }
       }

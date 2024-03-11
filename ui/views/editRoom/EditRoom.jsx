@@ -1,59 +1,54 @@
 import React, {useState} from 'react';
 import {Modal} from '../Modal';
-import {rawTimeZones} from '@vvo/tzdb';
 import {useJam} from '../../jam-core-react';
 import {colorThemes, isDark} from '../../lib/theme';
 import {BasicRoomInfo} from './BasicRoomInfo';
 import {DesignRoomInfo} from './DesignRoomInfo';
-import {ExtraRoomInfo} from './ExtraRoomInfo';
-import {RoomModerators} from './RoomModerators';
+import {UserList} from './UserList';
 import {Links} from './Links';
 import {Slides} from './Slides';
 import {CustomEmojis} from './CustomEmojis';
+import {Schedule} from './Schedule';
 import {getCustomColor, getRgbaObj, getColorPallete} from './utils';
 import {use} from 'use-minimal-state';
 
-export function EditRoomModal({roomId, room, roomColor, close}) {
-  const [state, {updateRoom}] = useJam();
-
+export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
+  const [state, api] = useJam();
+  const {
+    addModerator,
+    addOwner,
+    addSpeaker,
+    removeModerator,
+    removeOwner,
+    removeSpeaker,
+    updateRoom
+  } = api;
   let submitUpdate = async partialRoom => {
-    updateRoom(roomId, {...room, ...partialRoom});
+    return updateRoom(roomId, {...room, ...partialRoom});
   };
-
-  const textColor = isDark(roomColor.buttons.primary)
-    ? roomColor.text.light
-    : roomColor.text.dark;
-
-  const [showAdvanced, setShowAdvanced] = useState(
-    !!(room.logoURI || room.color)
-  );
-
-  //const [state] = useJam();
-  let [myId] = use(state, ['myId']);
-  const isAdmin = (myId == 'N0NUR5mmNAMuoif5eR_hoovEKuaTl_KhJyYcskU9QY4');
-
+  const textColor = isDark(roomColor.buttons.primary) ? roomColor.text.light : roomColor.text.dark;
+  let [myId, myIdentity] = use(state, ['myId', 'myIdentity']);
+  const info = myIdentity?.info;
+  const nostrIdentity = info?.identities?.find(i => i.type === 'nostr');
+  const nostrNpub = nostrIdentity?.id ?? '';
   let [name, setName] = useState(room.name || '');
   let [description, setDescription] = useState(room.description || '');
   let [color, setColor] = useState(room?.color ?? 'default');
   let [logoURI, setLogoURI] = useState(room.logoURI || '');
   let [backgroundURI, setBackgroundURI] = useState(room.backgroundURI || '');
   let [roomLinks, setRoomLinks] = useState(room.roomLinks || []);
+  let [owners, setOwners] = useState(room.owners || []);
+  let [ownersDeleting, setOwnersDeleting] = useState([]);
   let [moderators, setModerators] = useState(room.moderators || []);
+  let [moderatorsDeleting, setModeratorsDeleting] = useState([]);
+  let [speakers, setSpeakers] = useState(room.speakers || []);
+  let [speakersDeleting, setSpeakersDeleting] = useState([]);
   let [closed, setClosed] = useState(room.closed || false);
   let [isPrivate, setIsPrivate] = useState(room.isPrivate || false);
   let [isRecordingAllowed, setIsRecordingAllowed] = useState(room.isRecordingAllowed || false);
   let [stageOnly, setStageOnly] = useState(room.stageOnly || false);
   let [customEmojis, setCustomEmojis] = useState(room.customEmojis);
   let [roomSlides, setRoomSlides] = useState(room.roomSlides || []);
-
-  let [schedule, setSchedule] = useState(room.schedule);
-  let [scheduleCandidate, setScheduleCandidate] = useState({
-    date: `${new Date().toISOString().split('T')[0]}`,
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-  });
-  let [showTimezoneSelect, setShowTimezoneSelect] = useState(false);
-  let [showRepeatSelect, setShowRepeatSelect] = useState(false);
-
   let [colorPickerBg, setColorPickerBg] = useState(false);
   let [colorPickerAvatar, setColorPickerAvatar] = useState(false);
   let [colorPickerButton, setColorPickerButton] = useState(false);
@@ -66,58 +61,49 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
   let [customButtons, setCustomButtons] = useState(
     getRgbaObj(room.customColor?.buttons.primary ?? 'rgba(192,192,21,1)')
   );
-
   let styleBg = `rgba(${customBg.r},${customBg.g},${customBg.b},${customBg.a})`;
   let styleAvatar = `rgba(${customAvatar.r},${customAvatar.g},${customAvatar.b},${customAvatar.a})`;
   let styleButtons = `rgba(${customButtons.r},${customButtons.g},${customButtons.b},${customButtons.a})`;
-
   let customColor = getCustomColor(styleBg, styleAvatar, styleButtons);
-
   let paletteColors = getColorPallete({
     ...colorThemes,
     customColor,
   });
-
   const [tooltipStates, setTooltipStates] = useState(
     paletteColors?.map(() => false) ?? false
   );
+  let [schedule, setSchedule] = useState(room.schedule);
 
-  let completeSchedule = () => {
-    return scheduleCandidate?.date && scheduleCandidate?.time;
-  };
-
-  let handleScheduleChange = e => {
-    setScheduleCandidate({
-      ...scheduleCandidate,
-      [e.target.name]: e.target.value,
-    });
-    console.log(scheduleCandidate);
-  };
-
-  let removeSchedule = e => {
-    e.preventDefault();
-    setSchedule(undefined);
-    let schedule = undefined;
-
-    submitUpdate({schedule});
-  };
-
-  let submitSchedule = e => {
-    e.preventDefault();
-    if (scheduleCandidate) {
-      let schedule = scheduleCandidate;
-      setSchedule(scheduleCandidate);
-      submitUpdate({schedule});
-    }
-  };
+  function decodeHTMLEncoded(v) {
+    let o = v.replace('&amp;','&');
+    return o;
+  }
 
   let submit = async e => {
     e.preventDefault();
 
-    name = name.replace('&amp','&');
-    description = description.replace('&amp','&');
+    name          = decodeHTMLEncoded(name);
+    description   = decodeHTMLEncoded(description);
+    logoURI       = decodeHTMLEncoded(logoURI);
+    backgroundURI = decodeHTMLEncoded(backgroundURI);
+    //if (scheduleCandidate) {
+    //  let schedule = scheduleCandidate;
+    //  setSchedule(scheduleCandidate);
+    //}
 
-    await submitUpdate({
+    if (iOwn) {
+      ownersDeleting.forEach(jamId => {
+        removeOwner(roomId, jamId);
+      })
+      moderatorsDeleting.forEach(jamId => {
+        removeModerator(roomId, jamId);
+      })
+    }
+    speakersDeleting.forEach(jamId => {
+      removeSpeaker(roomId, jamId);
+    })
+
+    let ok = await submitUpdate({
       name,
       description,
       color,
@@ -131,16 +117,36 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
       isRecordingAllowed,
       stageOnly,
       moderators,
+      speakers,
       roomSlides,
+      schedule,
     });
-    close();
+    if (!ok) {
+      alert('An error occurred. Your changes were not saved. If another owner or moderator was making changes you will need to close and reopen the setttings to make your changes.');
+    } else {
+      close();
+    }
   };
 
   return (
     <Modal close={close}>
       <h1>Room Settings</h1>
-      <div className="p-4 py-8 bg-gray-100 rounded-lg my-3">
+
+      {iOwn && (
+      <div className="p-4 py-2 bg-gray-400 rounded-lg my-3 text-md">
+        As a room owner you can modify all settings. Moderators that you set may only modify links and slides, speakers, schedule next event, and close or open the room.
+      </div>
+      )}
+
+      {!iOwn && (
+      <div className="p-4 py-2 bg-gray-400 rounded-lg my-3 text-md">
+        As a room moderator you can manage speakers, view the room settings, make changes to the links and slides, schedule the next event, and close or open the room.
+      </div>
+      )}
+
+      <div className="px-4 py-2 bg-gray-100 rounded-lg my-3">
         <BasicRoomInfo
+          iOwn={iOwn}
           name={name}
           setName={setName}
           description={description}
@@ -158,8 +164,9 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
         />
       </div>
 
-      <div className="p-4 py-8 bg-gray-100 rounded-lg my-3">
+      <div className="px-4 py-2 bg-gray-100 rounded-lg my-3">
         <DesignRoomInfo
+          iOwn={iOwn}
           backgroundURI={backgroundURI}
           setBackgroundURI={setBackgroundURI}
           paletteColors={paletteColors}
@@ -185,8 +192,9 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
         />
       </div>
 
-      <div className="px-4 py-8 bg-gray-100 rounded-lg my-3">
+      <div className="px-4 py-2 bg-gray-100 rounded-lg my-3">
         <Links
+          iOwn={iOwn}
           roomLinks={roomLinks}
           setRoomLinks={setRoomLinks}
           textColor={textColor}
@@ -194,8 +202,9 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
         />
       </div>
 
-      <div className="px-4 py-8 bg-gray-100 rounded-lg my-3">
+      <div className="px-4 py-2 bg-gray-100 rounded-lg my-3">
         <Slides
+          iOwn={iOwn}
           roomSlides={roomSlides}
           setRoomSlides={setRoomSlides}
           textColor={textColor}
@@ -203,8 +212,9 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
         />
       </div>
 
-      <div className="px-4 py-8 bg-gray-100 rounded-lg my-3">
+      <div className="px-4 py-2 bg-gray-100 rounded-lg my-3">
         <CustomEmojis
+          iOwn={iOwn}
           customEmojis={customEmojis}
           setCustomEmojis={setCustomEmojis}
           textColor={textColor}
@@ -212,162 +222,89 @@ export function EditRoomModal({roomId, room, roomColor, close}) {
         />
       </div>
 
-      <div className="px-4 py-8 bg-gray-100 rounded-lg my-3 hidden">
-        <RoomModerators
-          moderators={moderators}
-          setModerators={setModerators}
-          textColor={textColor}
-          roomColor={roomColor}
+      <div className="px-4 py-2 bg-gray-100 rounded-lg my-3">
+        <UserList
+          allowDelete={iOwn}
+          room={room}
+          roomId={roomId}
+          userlist={owners}
+          setUserlist={setOwners}
+          userDeleteList={ownersDeleting}
+          setUserDeletelist={setOwnersDeleting}
+          label={'Owners'}
         />
       </div>
 
+      <div className="px-4 py-2 bg-gray-100 rounded-lg my-3">
+        <UserList
+          allowDelete={iOwn}
+          room={room}
+          roomId={roomId}
+          userlist={moderators}
+          setUserlist={setModerators}
+          userDeleteList={moderatorsDeleting}
+          setUserDeletelist={setModeratorsDeleting}
+          label={'Moderators'}
+        />
+      </div>
 
-      <div>
-        <div className="flex items-center absolute w-full" style={{
-            bottom: '96px', zIndex: '5'
+      <div className="px-4 py-2 bg-gray-100 rounded-lg my-3">
+        <UserList
+          allowDelete={true}
+          room={room}
+          roomId={roomId}
+          userlist={speakers}
+          setUserlist={setSpeakers}
+          userDeleteList={speakersDeleting}
+          setUserDeletelist={setSpeakersDeleting}
+          label={'Speakers'}
+        />
+      </div>
+
+      <div className="px-4 py-2 bg-gray-100 rounded-lg my-3">
+        <Schedule
+          myId={myId}
+          nostrNpub={nostrNpub}
+          iOwn={iOwn}
+          name={name}
+          description={description}
+          schedule={schedule}
+          setSchedule={setSchedule}
+          textColor={textColor}
+          roomColor={roomColor}
+        />
+      </div>      
+
+      <div className="px-4 py-2 rounded-lg my-3">
+        <div style={{
+            bottom: '72px', zIndex: '5', backgroundColor: roomColor.avatarBg
           }}>
-          <button
-            onClick={submit}
-            className="h-12 px-4 w-3/5 text-md rounded-lg mr-2"
-            style={{
-              color: textColor,
-              backgroundColor: roomColor.buttons.primary,
-            }}
-          >
-            Update Room
-          </button>
-          <button
-            onClick={close}
-            className="h-12 px-4 w-1/4 text-md text-black bg-gray-100 rounded-lg focus:shadow-outline active:bg-gray-300"
-          >
-            Cancel
-          </button>
-        </div>
-
-      <div className="px-4 py-8 bg-gray-100 rounded-lg my-3 hidden">
-        <form>
-          <div className="pb-1">🗓 Room Schedule (experimental)</div>
-          <div className="pb-3 text-gray-500">
-            Set the date and time for an upcoming event.
-          </div>
-
-          <div className={schedule ? 'hidden' : 'w-full'}>
+          <div className="flex p-4">
+            <div className="flex flex-grow">
+              <button
+                onClick={submit}
+                className="flex-grow h-12 px-4 text-md rounded-lg mr-2"
+                style={{
+                  color: textColor,
+                  backgroundColor: roomColor.buttons.primary,
+                }}
+              >
+                Update Room
+              </button>
+            </div>
             <div className="flex">
-              <input
-                type="date"
-                className="flex-grow p-2 border rounded"
-                name="date"
-                placeholder="yyyy-mm-dd"
-                min={`${
-                  new Date(new Date() - 86400000).toISOString().split('T')[0]
-                }`}
-                value={
-                  scheduleCandidate?.date ||
-                  `${new Date().toISOString().split('T')[0]}`
-                }
-                onChange={handleScheduleChange}
-              />
-              <input
-                type="time"
-                className="flex-none ml-3 p-2 border rounded"
-                name="time"
-                placeholder="hh:mm"
-                value={scheduleCandidate?.time || ''}
-                onChange={handleScheduleChange}
-              />
-            </div>
-            <div
-              className={
-                showTimezoneSelect ? 'hidden' : 'p-2 pt-4 text-gray-500'
-              }
-            >
-              {scheduleCandidate.timezone}{' '}
-              <span
-                className="underline"
-                onClick={() => setShowTimezoneSelect(true)}
+              <button
+                onClick={close}
+                className="h-12 px-4 text-md text-black bg-gray-100 rounded-lg focus:shadow-outline active:bg-gray-300"
               >
-                change
-              </span>
-            </div>
-            <select
-              name="timezone"
-              defaultValue={scheduleCandidate.timezone}
-              onChange={handleScheduleChange}
-              className={
-                showTimezoneSelect ? 'w-full border mt-3 p-2 rounded' : 'hidden'
-              }
-            >
-              {rawTimeZones.map(tz => {
-                return (
-                  <option key={tz.rawFormat} value={tz.name}>
-                    {tz.rawFormat}
-                  </option>
-                );
-              })}
-            </select>
-
-            <div className={showRepeatSelect ? 'hidden' : 'p-2 text-gray-500'}>
-              <span
-                className="underline"
-                onClick={() => setShowRepeatSelect(true)}
-              >
-                repeat?
-              </span>
-            </div>
-            <select
-              name="repeat"
-              defaultValue="never"
-              onChange={handleScheduleChange}
-              className={
-                showRepeatSelect ? 'border mt-3 p-2 rounded' : 'hidden'
-              }
-            >
-              {['never', 'weekly', 'monthly'].map(rep => {
-                return (
-                  <option key={rep} value={rep}>
-                    {rep}
-                  </option>
-                );
-              })}
-            </select>
-          </div>
-
-          <div
-            className={schedule ? 'rounded bg-gray-50 border w-full' : 'hidden'}
-          >
-            <div className="text-gray-500 p-3">
-              {schedule?.date} at {schedule?.time}
-              <br />
-              {schedule?.timezone}
-              <br />
-              {schedule?.repeat == 'weekly' || schedule?.repeat == 'monthly'
-                ? schedule?.repeat
-                : ''}
-            </div>
-            <div className={schedule ? 'p-3 text-gray-500' : 'hidden'}>
-              <span onClick={removeSchedule} className="underline">
-                Remove schedule
-              </span>
+                Cancel
+              </button>
             </div>
           </div>
-
-          <div className={!schedule && completeSchedule() ? 'flex' : 'hidden'}>
-            <button
-              onClick={submitSchedule}
-              className="flex-grow mt-5 h-12 px-6 text-lg bg-gray-600 rounded-lg mr-2"
-              style={{
-                color: textColor,
-                backgroundColor: roomColor.buttons.primary,
-              }}
-            >
-              Set Schedule
-            </button>
-          </div>
-        </form>
-      </div>
-
+        </div>
         <div className="h-28"></div>
-      </div>
+      </div>     
+
     </Modal>
   );
 }

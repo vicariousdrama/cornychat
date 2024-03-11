@@ -15,6 +15,7 @@ export default function RoomMembers({
   hasMicFailed,
   identities,
   iModerate,
+  iOwn,
   iSpeak,
   moderators,
   myIdentity,
@@ -55,6 +56,7 @@ export default function RoomMembers({
                       info: state.myIdentity.info,
                       room,
                       peerId: myPeerId,
+                      iOwn,
                       iModerate,
                       actorIdentity: myIdentity,
                     });
@@ -76,6 +78,7 @@ export default function RoomMembers({
                       info: identities[peerId],
                       room,
                       peerId,
+                      iOwn,
                       iModerate,
                       actorIdentity: myIdentity,
                     });
@@ -85,19 +88,18 @@ export default function RoomMembers({
             </ol>
           </div>
 
-          <br />
           {/* Audience */}
-          {!stageOnly && (!iSpeak || audiencePeers.length > 0) && (
-          <div className="m-0 p-0" style={{backgroundColor: audienceBarBG, color: audienceBarFG}}>
-            Audience
-          </div>
-          )}
           {!stageOnly &&  (!iSpeak || audiencePeers.length > 0) && (
             <>
+          <div className="rounded-md m-0 p-0 mt-2 mb-4" style={{backgroundColor: audienceBarBG, color: audienceBarFG}}>
+            Audience
+          </div>
+
               <ol className="flex flex-wrap justify-center">
                 {!iSpeak && (
                   <AudienceAvatar
                     {...{moderators, owners, reactions, room}}
+                    canSpeak={false}
                     peerId={myPeerId}
                     peerState={myPeerState}
                     info={myInfo}
@@ -108,6 +110,7 @@ export default function RoomMembers({
                         info: state.myIdentity.info,
                         room,
                         peerId: myPeerId,
+                        iOwn,
                         iModerate,
                         actorIdentity: myIdentity,
                       });
@@ -118,6 +121,7 @@ export default function RoomMembers({
                   <AudienceAvatar
                     key={peerId}
                     {...{peerId, peerState, moderators, owners, reactions, room}}
+                    canSpeak={false}
                     peerState={peerState[peerId]}
                     info={identities[peerId]}
                     handRaised={peerState[peerId]?.handRaised}
@@ -127,6 +131,7 @@ export default function RoomMembers({
                         info: identities[peerId],
                         room,
                         peerId,
+                        iOwn,
                         iModerate,
                         actorIdentity: myIdentity,
                       })

@@ -3,17 +3,15 @@ import {use} from 'use-minimal-state';
 import EnterRoom from './EnterRoom';
 import RoomHeader from './RoomHeader';
 import useWakeLock from '../lib/use-wake-lock';
-import {AudienceAvatar, StageAvatar} from './Avatar';
 import Navigation from './Navigation';
 import {userAgent} from '../lib/user-agent';
 import {colors, isDark} from '../lib/theme.js';
 import {usePushToTalk, useCtrlCombos} from '../lib/hotkeys';
 import {useJam} from '../jam-core-react';
-import {openModal} from './Modal';
-import {Profile} from './Profile';
 import RoomSlides from './RoomSlides';
 import RoomMembers from './RoomMembers';
 import {useJamState} from '../jam-core-react/JamContext';
+import {get} from '../jam-core/backend';
 
 const inWebView =
   userAgent.browser?.name !== 'JamWebView' &&
@@ -41,6 +39,7 @@ export default function Room({room, roomId, uxConfig}) {
     identities,
     speaking,
     iSpeak,
+    iOwn,
     iModerate,
     iMayEnter,
     myIdentity,
@@ -56,6 +55,7 @@ export default function Room({room, roomId, uxConfig}) {
     'identities',
     'speaking',
     'iAmSpeaker',
+    'iAmOwner',
     'iAmModerator',
     'iAmAuthorized',
     'myIdentity',
@@ -70,10 +70,11 @@ export default function Room({room, roomId, uxConfig}) {
   let hasEnteredRoom = inRoom === roomId;
 
   let [showMyNavMenu, setShowMyNavMenu] = useState(false);
-  const [audience, setAudience] = useState(state.peers.length + 1);
   const [showLinks, setShowLinks] = useState(false);
   const [showSlides, setShowSlides] = useState(false);
 
+  const nJoinedPeers = peers.filter(id => peerState[id]?.inRoom).length;
+  const [audience, setAudience] = useState(state.peers.length + 1);
   useMemo(() => setAudience(state.peers.length + 1), [state.peers]);
 
   let {
@@ -86,16 +87,37 @@ export default function Room({room, roomId, uxConfig}) {
     currentSlide,
     speakers,
     moderators,
+    owners,
     closed,
     stageOnly,
     shareUrl,
   } = room || {};
 
+  // Cache identities in session if I'm a moderator
+  function CacheIdentities(identities) {
+    for(let i = 0; i < identities.length; i ++) {
+      let jamId = identities[i];
+      const sessionStoreIdent = sessionStorage.getItem(jamId);
+      if (sessionStoreIdent == null) {
+        (async () => {
+          let [remoteIdent, ok] = await get(`/identities/${jamId}`);
+          if (ok) {
+            sessionStorage.setItem(jamId, JSON.stringify(remoteIdent));
+          }
+        })();
+      }
+    }
+  }
+  if (iModerate) {
+    CacheIdentities(moderators);
+    CacheIdentities(speakers);
+  }
+
   if (!iMayEnter) {
     return <EnterRoom roomId={roomId} name={name} forbidden={true} />;
   }
 
-  if (!iModerate && closed) {
+  if (!iModerate && !iOwn && closed) {
     return (
       <EnterRoom
         roomId={roomId}
@@ -119,12 +141,8 @@ export default function Room({room, roomId, uxConfig}) {
   }
 
   let myPeerId = myInfo.id;
-  let stagePeers = stageOnly
-    ? peers
-    : (speakers ?? []).filter(id => peers.includes(id));
-  let audiencePeers = stageOnly
-    ? []
-    : peers.filter(id => !stagePeers.includes(id));
+  let stagePeers = stageOnly ? peers : (speakers ?? []).filter(id => peers.includes(id));
+  let audiencePeers = stageOnly ? [] : peers.filter(id => !stagePeers.includes(id));
 
   () => setAudience(stagePeers.length + audiencePeers.length + 1);
 
@@ -132,10 +150,7 @@ export default function Room({room, roomId, uxConfig}) {
 
   const colorTheme = state.room?.color ?? 'default';
   const roomColor = colors(colorTheme, state.room.customColor);
-  const textColor = isDark(roomColor.avatarBg)
-    ? roomColor.text.light
-    : roomColor.text.dark;
-
+  const textColor = isDark(roomColor.avatarBg) ? roomColor.text.light : roomColor.text.dark;
   const audienceBarBG = roomColor.buttons.primary;
   const audienceBarFG = isDark(audienceBarBG) ? roomColor.text.light : roomColor.text.dark;
 
@@ -152,14 +167,14 @@ export default function Room({room, roomId, uxConfig}) {
             showLinks,
             setShowLinks,
             currentSlide,
-            audience,
             closed,
           }}
+          audience={(nJoinedPeers+1)}
         />
 
 
         {isRecording && (
-        <div className="w-full mx-4" style={{backgroundColor: 'red', color: 'white'}}>
+        <div className="rounded-md mx-4 mt-2 mb-4" style={{backgroundColor: 'red', color: 'white'}}>
           RECORDING IN PROGRESS
         </div>
         )}
@@ -171,7 +186,7 @@ export default function Room({room, roomId, uxConfig}) {
         // className={mqp('flex flex-col justify-between pt-2 md:pt-10 md:p-10')}
       >
 
-        <div style={{height:'128px'}}></div>
+        <div style={{height: isRecording ? '156px' : '128px'}}></div>
 
         <div className="w-full">
           <RoomSlides
@@ -183,113 +198,36 @@ export default function Room({room, roomId, uxConfig}) {
           />
         </div>
 
-        <div className="hidden m-0 p-0" style={{backgroundColor: audienceBarBG, color: audienceBarFG}}>
+        <div className="hidden rounded-md m-0 p-0 mt-2 mb-4" style={{backgroundColor: audienceBarBG, color: audienceBarFG}}>
           MOTD: None set
         </div>
 
-
-        {/* Main Area */}
-        <div className="h-full rounded-lg mx-4">
-          {/* Stage */}
-          <div className="">
-            <ol className="flex flex-wrap justify-center">
-              {iSpeak && (
-                <StageAvatar
-                  key={myPeerId}
-                  peerId={myPeerId}
-                  {...{speaking, moderators, reactions, room}}
-                  canSpeak={!hasMicFailed}
-                  peerState={myPeerState}
-                  info={myInfo}
-                  handRaised={handRaised}
-                  handType={handType}
-                  onClick={() => {
-                    openModal(Profile, {
-                      info: state.myIdentity.info,
-                      room,
-                      peerId: myPeerId,
-                      iModerate,
-                      actorIdentity: myIdentity,
-                    });
-                  }}
-                />
-              )}
-              {stagePeers.map(peerId => (
-                <StageAvatar
-                  key={peerId}
-                  {...{speaking, moderators, room}}
-                  {...{peerId, peerState, reactions}}
-                  canSpeak={true}
-                  peerState={peerState[peerId]}
-                  info={identities[peerId]}
-                  handRaised={peerState[peerId]?.handRaised}
-                  handType={peerState[peerId]?.handType}
-                  onClick={() => {
-                    openModal(Profile, {
-                      info: identities[peerId],
-                      room,
-                      peerId,
-                      iModerate,
-                      actorIdentity: myIdentity,
-                    });
-                  }}
-                />
-              ))}
-            </ol>
-          </div>
-
-          <br />
-          {/* Audience */}
-          {!stageOnly && (!iSpeak || audiencePeers.length > 0) && (
-          <div className="m-0 p-0" style={{backgroundColor: audienceBarBG, color: audienceBarFG}}>
-            Audience
-          </div>
-          )}
-          {!stageOnly &&  (!iSpeak || audiencePeers.length > 0) && (
-            <>
-              <ol className="flex flex-wrap justify-center">
-                {!iSpeak && (
-                  <AudienceAvatar
-                    {...{moderators, reactions, room}}
-                    peerId={myPeerId}
-                    peerState={myPeerState}
-                    info={myInfo}
-                    handRaised={handRaised}
-                    handType={handType}
-                    onClick={() => {
-                      openModal(Profile, {
-                        info: state.myIdentity.info,
-                        room,
-                        peerId: myPeerId,
-                        iModerate,
-                        actorIdentity: myIdentity,
-                      });
-                    }}
-                  />
-                )}
-                {audiencePeers.map(peerId => (
-                  <AudienceAvatar
-                    key={peerId}
-                    {...{peerId, peerState, moderators, reactions, room}}
-                    peerState={peerState[peerId]}
-                    info={identities[peerId]}
-                    handRaised={peerState[peerId]?.handRaised}
-                    handType={peerState[peerId]?.handType}
-                    onClick={() =>
-                      openModal(Profile, {
-                        info: identities[peerId],
-                        room,
-                        peerId,
-                        iModerate,
-                        actorIdentity: myIdentity,
-                      })
-                    }
-                  />
-                ))}
-              </ol>
-            </>
-          )}
-        </div>
+        <RoomMembers
+          {...{
+            audienceBarBG,
+            audienceBarFG,
+            audiencePeers,
+            handRaised,
+            handType,
+            hasMicFailed,
+            identities,
+            iModerate,
+            iSpeak,
+            moderators,
+            myIdentity,
+            myInfo,
+            myPeerId,
+            myPeerState,
+            owners,
+            peerState,
+            reactions,
+            room,
+            speaking,
+            stageOnly,
+            stagePeers,
+            state,            
+          }}
+        />
 
         <div className="h-24"></div>
       </div>

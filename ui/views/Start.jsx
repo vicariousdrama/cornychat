@@ -4,19 +4,17 @@ import {useJam} from '../jam-core-react';
 import {colors, isDark} from '../lib/theme';
 import * as bip39 from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english';
-import StartRoomCard from './StartRoomCard';
 import StartRoomSimple from './StartRoomSimple';
-import StartEventCard from './StartEventCard';
-import StartEventSimple from './StartEventSimple';
+import StartScheduledEvent from './StartScheduledEvent';
 
 export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
   const [loadingRooms, setLoadingRooms] = useState(false);
   const [roomList, setRoomList] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [eventList, setEventList] = useState([]);
-  const [{room}, {enterRoom, setProps, createRoom, listRooms, listStaticRooms, listStaticEvents}] = useJam();
+  const [{room}, {enterRoom, setProps, createRoom, listRooms, listStaticRooms, listStaticEvents, listScheduledEvents}] = useJam();
   let {stageOnly = false} = newRoom;
-  const mainroomonly = [{"roomId":"mainchat","name":"Main Chat","description":"","logoURI":"","userCount":"Unknown","userInfo":[]}];
+  const mainroomonly = [{"roomId":"mainchat","name":"Main Chat","description":"","logoURI":"","userCount":"0","userInfo":[]}];
 
   useEffect(() => {
     const loadRooms = async () => {
@@ -32,7 +30,8 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
     };
     const loadEvents = async () => {
       setLoadingEvents(true);
-      let eventlist = await(listStaticEvents());
+      //let eventlist = await(listStaticEvents());
+      let eventlist = await(listScheduledEvents());
       setEventList(eventlist[0]);
       setLoadingEvents(false);
       console.log(eventlist);
@@ -114,9 +113,10 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
         </div>
         <div className="flex flex-wrap justify-center">
         { loadingEvents ? (<h4>Loading...</h4>) : (eventList?.map((eventInfo) => {
-          return <StartEventSimple eventInfo={eventInfo} key={eventInfo.eventId} />
+          return <StartScheduledEvent eventInfo={eventInfo} key={eventInfo.location} />
           }))
         }
+        { eventList?.length == 0 ? 'There are scheduled events for the next week' : ''}
         </div>
         </div>
 
@@ -139,7 +139,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
 
         <div style={{color: textColor}} className="jam">
           <p style={{color: textColor, backgroundColor: roomColors.background}} className="room-header">
-          For event rooms and support, contact <a href="https://nostrudel.ninja/#/u/npub1yx6pjypd4r7qh2gysjhvjd9l2km6hnm4amdnjyjw3467fy05rf0qfp7kza">Vic</a> on Nostr
+          For event rooms and support, contact <a href="https://njump.me/npub1yx6pjypd4r7qh2gysjhvjd9l2km6hnm4amdnjyjw3467fy05rf0qfp7kza">Vic</a> on Nostr
           </p>
           <p style={{color: textColor, backgroundColor: roomColors.background}} className="room-header">
           <a href="/about">About Corny Chat</a>

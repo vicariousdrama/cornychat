@@ -47,8 +47,8 @@ export const avatarUrl = (info, room, defaultAvatar = DEFAULT_AVATAR) => {
 };
 
 export const displayName = (info, room) => {
-  const infoName = info.name || info.displayName;
-  if (infoName && !room.access?.lockedIdentities) {
+  const infoName = info?.name || info?.displayName;
+  if (infoName && !room?.access?.lockedIdentities) {
     return infoName;
   } else if (room) {
     return roomDisplayName(info, room);

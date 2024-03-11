@@ -167,15 +167,6 @@
   text-decoration: underline;
 }
 
-.jam .room-header a[href^='ethereum:'] {
-  background-image: url('/img/bazaar/ethereum-logo.svg');
-  background-repeat: no-repeat;
-  background-size: 10px;
-  background-position: 4px;
-  padding-left: 23px;
-  text-decoration: underline;
-}
-
 .jam .room-header a[href^='https://cash.app']
 {
   background-image: url('/img/bazaar/cashapp-logo.svg');
@@ -295,13 +286,6 @@
   padding-left: 48px;
 }
 
-.jam .room-header .call-to-action a[href^='ethereum:'] {
-  background-image: url('/img/bazaar/ethereum-logo.svg');
-  background-position: 22px 50%;
-  background-size: 12px;
-  padding-left: 48px;
-}
-
 .jam .room-header .call-to-action a[href^='https://cash.app']
 {
   background-image: url('/img/bazaar/cashapp-logo.svg');
@@ -396,4 +380,14 @@ div.emojiText {
   color: white;
   background-color: white;
   text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+
+.flipdiv {
+  width: 100%;
+  height: 100%;
+  -moz-transform: rotate(180deg);
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  -o-transform: rotate(180deg);
+  transform: rotate(180deg);
 }

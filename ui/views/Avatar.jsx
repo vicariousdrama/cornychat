@@ -4,11 +4,7 @@ import {isValidNostr} from '../nostr/nostr';
 import animateEmoji from '../lib/animate-emoji';
 import {useMqParser} from '../lib/tailwind-mqp';
 import {colors, isDark} from '../lib/theme';
-import {ModeratorIcon, GuyFawkes} from './Svg';
-import {InvoiceModal} from './Invoice';
-import {openModal} from './Modal';
 import {useApiQuery} from '../jam-core-react';
-import {validateEvent, verifySignature} from 'nostr-tools';
 
 export function StageAvatar({
   room,
@@ -24,148 +20,173 @@ export function StageAvatar({
   handType,
   onClick,
 }) {
-  let mqp = useMqParser();
+  return (
+    <Avatar {...{
+      room,
+      moderators,
+      owners,
+      speaking,
+      canSpeak,    
+      peerId,
+      peerState,
+      reactions,
+      info,
+      handRaised,
+      handType,
+      onClick,    
+    }}
+    />
+  );
+}
+
+export function AudienceAvatar({
+  room,
+  moderators,
+  owners,
+  peerId,
+  peerState,
+  reactions,
+  info,
+  handRaised,
+  handType,
+  onClick,
+}) {
+  let speaking = undefined;
+  let canSpeak = false;
+  return (
+    <Avatar {...{
+      room,
+      moderators,
+      owners,
+      speaking,
+      canSpeak,    
+      peerId,
+      peerState,
+      reactions,
+      info,
+      handRaised,
+      handType,
+      onClick,
+    }}
+    />
+  );
+}
+
+function Avatar({
+  room,
+  moderators,
+  owners,
+  speaking,
+  canSpeak,
+  peerId,
+  peerState,
+  reactions,
+  info,
+  handRaised,
+  handType,
+  onClick,
+}) {
+  let isSpeaking = false;
+  if (speaking) {
+    if (speaking.has(peerId)) {
+      isSpeaking = true;
+    }
+  }
   let {micMuted, inRoom = null} = peerState || {};
+
+  let mqp = useMqParser();
   let reactions_ = reactions[peerId];
   info = info || {id: peerId};
-  let isSpeaking = speaking.has(peerId);
-  let isModerator = moderators.includes(peerId);
+
+  let isModerator = moderators?.includes(peerId) || false;
   let isOwner = owners?.includes(peerId) || false;
   let [peerAdminStatus] = useApiQuery(`/admin/${peerId}`, {fetchOnMount: true});
   let isAdmin = peerAdminStatus?.admin ?? false;
+
   const colorTheme = room?.color ?? 'default';
   const roomColor = colors(colorTheme, room.customColor);
-  let isHandRH = (handType == 'RH');
-  let isHandTU = (handType == 'TU');
-  let isHandTD = (handType == 'TD');
-  let isHandOther = (handRaised && !isHandRH && !isHandTU && !isHandTD);
-  if (handRaised && !isHandTU && !isHandTD && !isHandOther) {
-    isHandRH = true;
-  }
-
-
-  const textColor = isDark(roomColor.avatarBg)
-    ? roomColor.text.light
-    : roomColor.text.dark;
-
-  const iconColor = isDark(roomColor.background)
-    ? roomColor.icons.light
-    : roomColor.icons.dark;
-
-  const dimSatSymbolColor = `rgba(80,80,80,.15)`;
-
-  const hasNostrIdentity = checkNostrIdentity(info.identities);
-
-  function checkNostrIdentity(identities) {
-    const hasNostrIdentity = identities?.some(
-      identity => identity.type === 'nostr'
-    );
-
-    return hasNostrIdentity;
-  }
-
-  //const adminSymbol = '🐲';
-  //const ownerSymbol = '♔';
-  //const moderatorSymbol = '👁️';
-  const adminSymbol = '🛠️';
-  const ownerSymbol = '🧯';
-  const moderatorSymbol = '📛';
-  const valentineSymbol = '🌹';
+  const iconColor = isDark(roomColor.background) ? roomColor.icons.light : roomColor.icons.dark;
+  const avatarCardBG = isSpeaking ? roomColor.buttons.primary : roomColor.avatarBg;
+  const avatarCardFG = isDark(avatarCardBG) ? roomColor.text.light : roomColor.text.dark;
+  const roleName = (isAdmin ? 'Admin' : (isOwner ? 'Room Owner' : (isModerator ? 'Moderator' : (canSpeak ? 'Speaker' : 'Audience'))));
+  const roleSymbol = (isAdmin ? '🅰️' : (isOwner ? '👑' : (isModerator ? '🛡️' : (canSpeak ? '🎤' : '👂'))));
   let userDisplayName = info?.name ?? '';
   if (userDisplayName.length == 0) {
     userDisplayName = displayName(info, room);
   }
-  const isValentine = userDisplayName.startsWith('Marie') || userDisplayName.startsWith('TheNoshole');
-  const checkSymbol = '✔️';
-  let isChecked = isValidNostr(info);
-  const drinkSymbol = '🥃';
-  let isDrinker = userDisplayName.startsWith('island');
+  const nameSymbols = [
+    {"name":"Marie","symbol":"🌹","title":"Valentine"},
+    {"name":"TheNoshole","symbol":"🌹","title":"Puzzles Valentine"},
+    {"name":"island","symbol":"🥃","title":"Likes Bourbon"},
+    {"name":"Sai","symbol":"🎭","title":"Tragic Comedy"},
+  ];
+  let hasNameSymbol = false;
+  let userSymbol = null;
+  let userSymbolTitle = null;
+  for(let nsi = 0; nsi < nameSymbols.length; nsi ++) {
+    if (nameSymbols[nsi].name == userDisplayName) {
+      hasNameSymbol = true;
+      userSymbol = nameSymbols[nsi].symbol;
+      userSymbolTitle = nameSymbols[nsi].title;
+    }
+  }
 
   return (
     inRoom && (
       <div
         className="py-0 w-24 mr-2 mb-2 rounded-lg"
-        style={{
-              backgroundColor: isSpeaking ? roomColor.buttons.primary : roomColor.avatarBg,
-        }}
+        style={{backgroundColor: avatarCardBG, color: avatarCardFG}}
       >
         <div className="relative flex flex-col items-center">
 
-        <Reactions
-          reactions={reactions_}
-          className={mqp(
-            'absolute text-5xl pt-0 md:pt-0 human-radius w-20 h-20 md:w-16 md:h-16 text-center'
-          )}
-          emojis={room.customEmojis}
-          style={{backgroundColor: roomColor.buttons.primary, zIndex: '15'}}
-        />
-
-
-          <table><tr><td width="25%">
-            {(false && hasNostrIdentity) ? (
-              <div
-                className="flex justify-center cursor-pointer"
-                onClick={() => {
-                  close();
-                  openModal(InvoiceModal, {info: info, room: room});
-                }}
-              >
-                <div className="w-5 h-5 rounded-full bg-gray-600 flex items-center justify-center">
-                  <span>⚡</span>
-                </div>
-              </div>
-            ) : null }
-
-            {isAdmin ? (
-              <div title="Admin" style={{marginTop:'-4px'}}>
-              {adminSymbol}
-              </div>
-            ) : null }
-            {(!isValentine && !isDrinker && isModerator && !isAdmin) ? (
-              <div style={{color:roomColor.buttons.primary,marginTop:'-4px'}} title="Moderator">
-              {moderatorSymbol}
-              </div>
-            ) : null}
-            {isValentine && (
-              <div style={{color:roomColor.buttons.primary,marginTop:'-4px'}} title="Valentine">
-              {valentineSymbol}
-              </div>
+          <Reactions
+            reactions={reactions_}
+            className={mqp(
+              'absolute text-5xl  pt-4 md:pt-5 human-radius w-20 h-20 md:w-16 md:h-16 text-center'
             )}
-            {isDrinker && (
-              <div style={{color:roomColor.buttons.primary,marginTop:'-4px'}} title="Likes Bourbon">
-              {drinkSymbol}
-              </div>
-            )}
-            {isChecked ? (
+            emojis={room.customEmojis}
+            style={{backgroundColor: roomColor.buttons.primary, zIndex: '15'}}
+          />
+
+          <table><tr><td width="25%" style={{borderWidth: '0px', textAlign:'center'}} >
+            <div title={roleName} style={{marginTop:'-2px',
+            textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'
+            }}>
+              {roleSymbol}
+            </div>
+            {isValidNostr(info) ? (
+            <div title={'Verified Signature by Nostr Pubkey'} style={{marginTop:'-2px'}}>
               <img
-                style={{marginTop:'-2px',width:'24px',height:'24px'}}
+                style={{width:'24px',height:'auto'}}
                 alt={'Verified Signature by Nostr Pubkey'}
                 src={'/img/nostr-icon-purple-256x256.png'}
               />
+            </div>
             ) : (
+            <div title={'Anonymous'} style={{marginTop:'-2px'}}>
               <img
-                style={{marginTop:'-2px',width:'24px',height:'24px'}}
+                style={{width:'24px',height:'auto'}}
                 alt={'Anonymous'}
                 src={'/img/guyfawkes.png'}
               />
+            </div>
             )}
+            {hasNameSymbol && (
+            <div title={userSymbolTitle} style={{marginTop:'-2px'}}>
+              {userSymbol}
+            </div>
+            )}
+          </td><td width="75%" style={{borderWidth: '0px', textAlign:'center'}}>
+            <div className="w-16 h-16 human-radius mx-auto">
+              <img
+                className="w-full h-full human-radius cursor-pointer"
+                alt={userDisplayName}
+                src={avatarUrl(info, room)}
+                onClick={onClick}
+              />
+            </div>
 
-          </td><td width="75%">
-          <div
-            className="w-16 h-16 border-2 human-radius mx-auto"
-            style={{
-              borderColor: isSpeaking ? roomColor.buttons.primary : `rgba(255,255,255,0)`,
-            }}
-          >
-            <img
-              className="w-full h-full human-radius cursor-pointer"
-              alt={displayName(info, room)}
-              src={avatarUrl(info, room)}
-              onClick={onClick}
-            />
-          </div>
-
-          {(!!micMuted || !canSpeak) && (
+            {canSpeak && micMuted /*(!!micMuted || !canSpeak)*/ && (
             <div
               className="absolute mt-0 rounded-full p-1"
               style={{backgroundColor: roomColor.background, top: '0px', right: '0px'}}
@@ -184,7 +205,6 @@ export function StageAvatar({
                   stroke={iconColor}
                   d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"
                 />
-
                 <line
                   y1="4.5"
                   x2="40"
@@ -194,95 +214,37 @@ export function StageAvatar({
                 />
               </svg>
             </div>
-          )}
+            )}
 
-          {handRaised && isHandRH && (
-          <div className={isHandRH ? 'relative' : 'hidden'}>
-            <div
-              className={mqp(
-                'absolute w-6 h-6 rounded-full bg-white text-xl border-2 border-gray-400 flex items-center justify-center'
-              )}
-              style={{backgroundColor: roomColor.background, top: '-69px', right: '18px'}}
-            >
-              ✋
-            </div>
-          </div>
-          )}
-          {handRaised && isHandTU && (
-          <div className={isHandTU ? 'relative' : 'hidden'}>
-            <div
-              className={mqp(
-                'absolute w-6 h-6 rounded-full bg-white text-xl border-2 border-gray-400 flex items-center justify-center'
-              )}
-              style={{backgroundColor: `rgb(17,170,17)`, top: '-69px', right: '18px'}}
-            >
-              👍
-            </div>
-          </div>
-          )}
-          {handRaised && isHandTD && (
-          <div className={isHandTD ? 'relative' : 'hidden'}>
-            <div
-              className={mqp(
-                'absolute w-6 h-6 rounded-full bg-white text-xl border-2 border-gray-400 flex items-center justify-center'
-              )}
-              style={{backgroundColor: `rgb(170,17,17)`, top: '-69px', right: '18px'}}
-            >
-              👎
-            </div>
-          </div>
-          )}
-          {handRaised && isHandOther && (
-          <div className={isHandOther ? 'relative' : 'hidden'}>
-            <div
-              className={mqp(
-                'absolute w-6 h-6 rounded-full bg-white text-xs border-2 border-gray-400 flex items-center justify-center'
-              )}
-              style={{backgroundColor: `rgb(17,17,170)`, color: 'yellow', top: '-69px', right: '18px'}}
-            >
-              {handType}
-            </div>
-          </div>
-          )}
+            <StickyHand {...{
+              handRaised,
+              handType,
+              roomColor,
+            }}
+            />
 
           </td></tr></table>
         </div>
 
-
         <div
           className="overflow-hidden whitespace-nowrap text-s mt-0 w-24"
-          style={{color: textColor, width: '95px',overflow:'hidden',paddingLeft:'2px',paddingRight:'2px'}}
+          style={{color: avatarCardFG, width: '95px',overflow:'hidden',paddingLeft:'2px',paddingRight:'2px'}}
           title={userDisplayName}
         >
           {userDisplayName}
         </div>
-
 
       </div>
     )
   );
 }
 
-export function AudienceAvatar({
-  room,
-  peerId,
-  peerState,
-  moderators,
-  owners,
-  reactions,
-  info,
+function StickyHand({
   handRaised,
   handType,
-  onClick,
+  roomColor,
 }) {
   let mqp = useMqParser();
-  let {inRoom = null} = peerState || {};
-  let reactions_ = reactions[peerId];
-  info = info || {id: peerId};
-  let isModerator = moderators.includes(peerId);
-  let isOwner = owners?.includes(peerId) || false;
-  let [peerAdminStatus] = useApiQuery(`/admin/${peerId}`, {fetchOnMount: true});
-  let isAdmin = peerAdminStatus?.admin ?? false;
   let isHandRH = handRaised && (handType == 'RH');
   let isHandTU = handRaised && (handType == 'TU');
   let isHandTD = handRaised && (handType == 'TD');
@@ -290,190 +252,77 @@ export function AudienceAvatar({
   if (handRaised && !isHandTU && !isHandTD && !isHandOther) {
     isHandRH = true;
   }
-  const colorTheme = room?.color ?? 'default';
-  const roomColor = colors(colorTheme, room.customColor);
-  const textColor = isDark(roomColor.avatarBg)
-    ? roomColor.text.light
-    : roomColor.text.dark;
-  const dimSatSymbolColor = `rgba(80,80,80,.15)`;
-
-  const hasNostrIdentity = checkNostrIdentity(info.identities);
-
-  //const adminSymbol = '🐲';
-  //const moderatorSymbol = '👁️';
-  const adminSymbol = '🛠️';
-  const ownerSymbol = '🧯';
-  const moderatorSymbol = '📛';
-  const valentineSymbol = '🌹';
-  let userDisplayName = info?.name ?? '';
-  if (userDisplayName.length == 0) {
-    userDisplayName = displayName(info, room);
-  }
-  const isValentine = userDisplayName.startsWith('Marie') || userDisplayName.startsWith('TheNoshole');
-  const checkSymbol = '✔️';
-  let isChecked = isValidNostr(info);
-  const drinkSymbol = '🥃';
-  let isDrinker = userDisplayName.startsWith('island');
-
-  function checkNostrIdentity(identities) {
-    const hasNostrIdentity = identities?.some(
-      identity => identity.type === 'nostr'
-    );
-
-    return hasNostrIdentity;
-  }
 
   return (
-    inRoom && (
-      <div
-        className="py-0 w-24 mr-2 mb-2 rounded-lg"
-        style={{backgroundColor: roomColor.avatarBg}}
-      >
-        <div className="flex flex-col items-center">
-
-        <Reactions
-          reactions={reactions_}
-          className={mqp(
-            'absolute text-5xl  pt-4 md:pt-5 human-radius w-20 h-20 md:w-16 md:h-16 text-center'
-          )}
-          emojis={room.customEmojis}
-          style={{backgroundColor: roomColor.buttons.primary, zIndex: '15'}}
-        />
-
-          <table><tr><td width="25%">
-            {(false && hasNostrIdentity) ? (
-              <div
-                className="flex justify-center cursor-pointer"
-                onClick={() => {
-                  close();
-                  openModal(InvoiceModal, {info: info, room: room});
-                }}
-              >
-                <div className="w-5 h-5 rounded-full bg-gray-600 flex items-center justify-center">
-                  <span>⚡</span>
-                </div>
-              </div>
-            ) : null }
-
-            {isAdmin ? (
-              <div title="Admin" style={{marginTop:'-4px'}}>
-              {adminSymbol}
-              </div>
-            ) : null }
-            {(!isValentine && !isDrinker && isModerator && !isAdmin) ? (
-              <div style={{color:roomColor.buttons.primary,marginTop:'-4px'}} title="Moderator">
-              {moderatorSymbol}
-              </div>
-            ) : null}
-            {isValentine && (
-              <div style={{color:roomColor.buttons.primary,marginTop:'-4px'}} title="Valentine">
-              {valentineSymbol}
-              </div>
-            )}
-            {isDrinker && (
-              <div style={{color:roomColor.buttons.primary,marginTop:'-4px'}} title="Likes Bourbon">
-              {drinkSymbol}
-              </div>
-            )}
-            {isChecked ? (
-              <img
-                style={{marginTop:'-2px',width:'24px',height:'24px'}}
-                alt={'Verified Signature by Nostr Pubkey'}
-                src={'/img/nostr-icon-purple-256x256.png'}
-              />
-            ) : (
-              <img
-                style={{marginTop:'-2px',width:'24px',height:'24px'}}
-                alt={'Anonymous'}
-                src={'/img/guyfawkes.png'}
-              />
-            )}
-
-
-          </td><td width="75%">
-
-          <div
-            className="w-16 h-16 border-2 human-radius mx-auto"
-            style={{
-              borderColor: 'white',
-            }}
-          >
-            <img
-              className="w-full h-full human-radius cursor-pointer"
-              alt={userDisplayName}
-              src={avatarUrl(info, room)}
-              onClick={onClick}
-            />
-          </div>
-
-          {handRaised && isHandRH && (
-          <div className={isHandRH ? 'relative' : 'hidden'}>
-            <div
-              className={mqp(
-                'absolute w-6 h-6 rounded-full bg-white text-xl border-2 border-gray-400 flex items-center justify-center'
-              )}
-              style={{backgroundColor: roomColor.background, top: '-69px', right: '18px'}}
-            >
-              ✋
-            </div>
-          </div>
-          )}
-          {handRaised && isHandTU && (
-          <div className={isHandTU ? 'relative' : 'hidden'}>
-            <div
-              className={mqp(
-                'absolute w-6 h-6 rounded-full bg-white text-xl border-2 border-gray-400 flex items-center justify-center'
-              )}
-              style={{backgroundColor: `rgb(17,170,17)`, top: '-69px', right: '18px'}}
-            >
-              👍
-            </div>
-          </div>
-          )}
-          {handRaised && isHandTD && (
-          <div className={isHandTD ? 'relative' : 'hidden'}>
-            <div
-              className={mqp(
-                'absolute w-6 h-6 rounded-full bg-white text-xl border-2 border-gray-400 flex items-center justify-center'
-              )}
-              style={{backgroundColor: `rgb(170,17,17)`, top: '-69px', right: '18px'}}
-            >
-              👎
-            </div>
-          </div>
-          )}
-          {handRaised && isHandOther && (
-          <div className={isHandOther ? 'relative' : 'hidden'}>
-            <div
-              className={mqp(
-                'absolute w-6 h-6 rounded-full bg-white text-xs border-2 border-gray-400 flex items-center justify-center'
-              )}
-              style={{backgroundColor: `rgb(17,17,170)`, color: 'yellow', top: '-69px', right: '18px'}}
-            >
-              {handType}
-            </div>
-          </div>
-          )}
-
-          </td></tr></table>
-        </div>
-
+    <>
+    {handRaised && isHandRH && (
+      <div className={isHandRH ? 'relative' : 'hidden'}>
         <div
-          className="overflow-hidden whitespace-nowrap text-s mt-0 w-24"
-          style={{color: textColor, width: '95px',overflow:'hidden',paddingLeft:'2px',paddingRight:'2px'}}
-          title={userDisplayName}
+          className={mqp(
+            'absolute w-7 h-7 rounded-full bg-white text-xl border-1 border-gray-400 flex items-center justify-center'
+          )}
+          style={{backgroundColor: roomColor.background, top: '-69px', right: '18px'}}
         >
-          {userDisplayName}
+          ✋
         </div>
-
       </div>
-    )
+      )}
+      {handRaised && isHandTU && (
+      <div className={isHandTU ? 'relative' : 'hidden'}>
+        <div
+          className={mqp(
+            'absolute w-7 h-7 rounded-full bg-white text-xl border-1 border-gray-400 flex items-center justify-center'
+          )}
+          style={{backgroundColor: `rgb(17,170,17)`, top: '-69px', right: '18px'}}
+        >
+          👍
+        </div>
+      </div>
+      )}
+      {handRaised && isHandTD && (
+      <div className={isHandTD ? 'relative' : 'hidden'}>
+        <div
+          className={mqp(
+            'absolute w-7 h-7 rounded-full bg-white text-xl border-1 border-gray-400 flex items-center justify-center'
+          )}
+          style={{backgroundColor: `rgb(170,17,17)`, top: '-69px', right: '18px'}}
+        >
+          👎
+        </div>
+      </div>
+      )}
+      {handRaised && isHandOther && (
+      <div className={isHandOther ? 'relative' : 'hidden'}>
+        <div
+          className={mqp(
+            'absolute w-7 h-7 rounded-full bg-white border-1 border-gray-400 flex items-center justify-center'
+          )}
+          style={{backgroundColor: `rgb(217,217,217)`, color: 'red', top: '-64px', right: '22px'}}
+        >
+          {handType.toString().toUpperCase().startsWith('E') ? (
+          <img
+            src={`/img/emoji-${handType.toString().toUpperCase()}.png`}
+            style={{
+              width: '24px',
+              height: 'auto',
+              border: '0px',
+              display: 'inline',
+            }}
+          />
+          ) : (
+            <span className={mqp(handType.toString().charCodeAt(0) < 255 ? 'text-xs' : 'text-lg')}
+              style={{textShadow: handType.toString().charCodeAt(0) > 255 ? '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000': ''}}
+            >{handType}</span>
+          )}
+        </div>
+      </div>
+      )}
+    </>
   );
 }
 
 function Reactions({reactions, className, emojis}) {
   if (!reactions) return null;
-
   return (
     <>
       {reactions.map(
@@ -498,7 +347,7 @@ function AnimatedEmoji({emoji, ...props}) {
   useEffect(() => {
     if (element) animateEmoji(element);
   }, [element]);
-  if (emoji.startsWith('E') && emoji.length > 1) {
+  if (emoji.toUpperCase().startsWith('E') && emoji.length > 1) {
     return (
       <div
         ref={setElement}
@@ -511,7 +360,7 @@ function AnimatedEmoji({emoji, ...props}) {
         {...props}
       >
         <img
-          src={`/img/emoji-${emoji}.png`}
+          src={`/img/emoji-${emoji.toString().toUpperCase()}.png`}
           style={{
             width: '100%',
             height: 'auto',

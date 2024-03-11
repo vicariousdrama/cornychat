@@ -39,7 +39,7 @@ export default function StartRoomSimple({
               </td>
             </tr>
             <tr>
-              <td className="text-md">{userCount} users</td>
+              <td className="text-md">{userCount > 0 ? (`{userCount} users`) : `Nobody Present`}</td>
             </tr>
           </table>
           <ReactMarkdown

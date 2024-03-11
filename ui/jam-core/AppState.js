@@ -115,6 +115,7 @@ function InRoom() {
       hasRoom,
       room: {closed},
       iAmModerator,
+      iAmOwner,
     } = roomState;
 
     let [isJoinRoom, joinedRoomId] = useAction(actions.JOIN);
@@ -124,7 +125,7 @@ function InRoom() {
       autoJoinCount = 1;
     }
 
-    if (!roomId || (closed && !iAmModerator)) {
+    if (!roomId || (closed && !iAmModerator && !iAmOwner)) {
       inRoom = null;
     } else {
       if (isJoinRoom) {
