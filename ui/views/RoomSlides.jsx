@@ -1,11 +1,8 @@
 import React, {useState} from 'react';
 import {use} from 'use-minimal-state';
 import {colors, isDark} from '../lib/theme';
-import {useJamState} from '../jam-core-react/JamContext';
 import {useJam, useApiQuery} from '../jam-core-react';
-import { Slide } from 'react-slideshow-image';
 import 'react-slideshow-image/dist/styles.css';
-import { Alert, CCarousel, CCarouselItem, CCarouselCaption, CImage } from '@coreui/react';
 import '@coreui/coreui/dist/css/coreui.min.css';
 import {
   Previous,
@@ -18,26 +15,16 @@ export default function RoomSlides({
   currentSlide,
 }) {
 
-  const [
-    state,
-    {
-      updateRoom,
-    },
-  ] = useJam();
-  let [iModerate, room, myId, roomId] = use(state, ['iAmModerator', 'room','myId','roomId']);
+  const [state, {updateRoom}] = useJam();
+  let [iOwn, iModerate, room, roomId] = use(state, ['iAmOwner','iAmModerator', 'room','roomId']);
   let submitUpdate = async partialRoom => {
     updateRoom(roomId, {...room, ...partialRoom});
   };
 
   const rsl = roomSlides?.length ?? 0;
 
-  const textColor = isDark(colors.avatarBg)
-    ? colors.text.light
-    : colors.text.dark;
-
-  const iconColor = isDark(colors.avatarBg)
-    ? colors.icons.light
-    : colors.icons.dark;
+  const textColor = isDark(colors.avatarBg) ? colors.text.light : colors.text.dark;
+  const iconColor = isDark(colors.avatarBg) ? colors.icons.light : colors.icons.dark;
 
   function RoomSlide() {
     let sn = parseInt(currentSlide, 10) - 1;
@@ -72,7 +59,7 @@ export default function RoomSlides({
           </p>
           )}
           <div className="flex" style={{color: textColor, backgroundColor: colors.avatarBg}}>
-            {iModerate && (
+            {(iOwn || iModerate) && (
             <div class="flex-none">
             <button className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
             onClick={async () => {
@@ -89,7 +76,7 @@ export default function RoomSlides({
             <div className="text-sm flex-grow" style={{color: textColor, backgroundColor: colors.avatarBg}}>
             {slideText}
             </div>
-            {iModerate && (
+            {(iOwn || iModerate) && (
             <div class="flex-none">
             <button className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
             onClick={async () => {
@@ -125,48 +112,6 @@ export default function RoomSlides({
     justifyContent: 'center',
     backgroundSize: 'cover',
     height: '350px'
-  }
-
-  function DoAsSlides() {
-    return (
-      <>
-        <Slide indicators={true} autoplay={false}>
-        {roomSlides && roomSlides.length > 0 ? (
-          roomSlides.map((slide,index) => {
-            let slideNumber = 1 + index;
-            let slideUrl = slide[0];
-            let slideText = slide[1];
-            return (
-              <div style={{ ...divStyle, 'backgroundImage': `url(${slideUrl})` }}>
-                <span style={spanStyle}>{slideText}</span>
-              </div>
-            );
-          })
-        ) : null}
-        </Slide>
-      </>
-    );
-  }
-
-  function DoAsCarousel() {
-    return (
-      <>
-        <CCarousel controls indicators>
-        {roomSlides && roomSlides.length > 0 ? (
-          roomSlides.map((slide,index) => {
-            let slideNumber = 1 + index;
-            let slideUrl = slide[0];
-            let slideText = slide[1];
-            return (
-              <CCarouselItem>
-                <CImage className="d-block w-100" src={slideUrl} alt={slideText} height="320" />
-              </CCarouselItem>
-            );
-          })
-        ) : null}
-        </CCarousel>
-      </>
-    );
   }
 
   if (rsl > 0 && (parseInt(currentSlide, 10) > 0)) {
