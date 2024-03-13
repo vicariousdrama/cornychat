@@ -32,17 +32,26 @@ const deleteNostrSchedule = async (roomId) => {
 const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => {
 
     // Validate
+    console.log("Validating schedule to be posted");
     // - must have a schedule
     if (schedule == undefined) return;
     // - must have an npub
     if (schedule.setByNpub == undefined) return;
+    if (schedule.setByNpub == '') return;
 
+    console.log("We have a schedule to publish for room", roomId);
     const scheduledByPubkey = nip19.decode(schedule.setByNpub).data;
+    console.log("a");
     const eventUUID = `cornychat-${roomId}`;
+    console.log("b");
     const roomUrl = `https://${jamHost}/${roomId}`;
+    console.log("c");
     const title = schedule?.title ?? `Corny Chat: ${roomId}`;
+    console.log("d");
     const content = (schedule?.summary ?? `This event is scheduled on Corny Chat in room: ${roomId}`) + `\n\n${roomUrl}`;
+    console.log("e");
     const timezone = schedule?.timezone ?? 'Europe/London';
+    console.log("Processing tags");
     const tags = [
         ["d", eventUUID],
         ["title", title],
@@ -59,7 +68,9 @@ const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => 
         ["r", roomUrl],
         ["p", scheduledByPubkey, "", "host"],
     ]
+    console.log("f");
     const includedPubkeys = [scheduledByPubkey];
+    console.log("Adding moderators");
     for (let moderatorid of moderatorids) {
         const info = await get('identities/' + moderatorid);
         if (info?.identities) {
@@ -76,6 +87,7 @@ const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => 
         }
     }
 
+    console.log("Signing event");
     const sk = nip19.decode(serverNsec).data;
     const event = finalizeEvent({
         created_at: Math.floor(Date.now() / 1000),
@@ -84,6 +96,7 @@ const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => 
         content: content,
     }, sk);
 
+    console.log('event to be published', JSON.stringify(event));
     pool.publish(event, relaysToUse);
 }
 
