@@ -12,7 +12,7 @@ export function Schedule({
   textColor,
   roomColor,
 }) {
-  let iCanSchedule = true; // iOwn
+  let iCanSchedule = (nostrNpub.length > 0); // iOwn
   let [scheduleCandidate, setScheduleCandidate] = useState({
     title: schedule?.title ?? name,
     summary: schedule?.summary ?? description,
@@ -311,6 +311,11 @@ export function Schedule({
               Set Schedule
             </button>
           </div>
+          )}
+          {(nostrNpub.length == 0) && (
+            <div className="text-gray-500 p-3">
+            You must identify with nostr to schedule an event
+            </div>
           )}
         </form>
       </div>

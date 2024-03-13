@@ -107,6 +107,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
         { roomList?.length == 0 ? 'no current rooms' : '' }
         </div>
 
+        { eventList?.length > 0 && (
         <div style={{align: 'center'}}>
         <div style={{display:'block',color:`rgb(244,244,244)`}}>
         <h1>Scheduled Events</h1>
@@ -116,9 +117,9 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
           return <StartScheduledEvent eventInfo={eventInfo} key={eventInfo.location} />
           }))
         }
-        { eventList?.length == 0 ? 'There are scheduled events for the next week' : ''}
         </div>
         </div>
+        )}
 
         <br /><br />
 
