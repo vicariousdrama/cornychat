@@ -99,6 +99,7 @@ const getScheduledEvents = async () => {
             let events = [];
             let currentTime = Math.floor(Date.now() / 1000);
             let daySeconds = 86400; // 24 * 60 * 60
+            let hourSeconds = 3600;
             let maxTime = currentTime + (7 * daySeconds);
             let waitForEvents = 2500; // 2.5 seconds
             let matchedEvents = [];
@@ -124,7 +125,7 @@ const getScheduledEvents = async () => {
                         if (eventTag[0] == 'end') {
                             try {
                                 endTime = parseInt(eventTag[1]);
-                                if (endTime < currentTime) {
+                                if ((endTime + hourSeconds) < currentTime) {
                                     continue;
                                 }
                             } catch(error) {
@@ -155,6 +156,9 @@ const getScheduledEvents = async () => {
                         //console.log('skipping event that is not tagged as audiospace')
                         continue;
                     }
+                    // Reject based on erroneous time
+                    if (startTime > endTime) continue;
+                    if (endTime - startTime > daySeconds) continue;
                     // check for required fields
                     if (!(title && location && startTime && endTime)) {
                         console.log('skipping event that is missing one of title, location, startTime, endTime');

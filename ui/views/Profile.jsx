@@ -126,9 +126,9 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
   let [myAdminStatus] = useApiQuery(`/admin/${myId}`, {fetchOnMount: true});
   let [peerAdminStatus] = useApiQuery(`/admin/${peerId}`, {fetchOnMount: true});
 
-  let isOwner = owners.includes(peerId);
-  let isModerator = moderators.includes(peerId);
-  let isSpeaker = speakers.includes(peerId);
+  let isOwner = owners?.includes(peerId) || false;
+  let isModerator = moderators?.includes(peerId) || false;
+  let isSpeaker = speakers?.includes(peerId) || false;
 
   const [isValidNip05, setIsValidNip05] = useState(false);
   const [lnAddress, setLnAddress] = useState('');

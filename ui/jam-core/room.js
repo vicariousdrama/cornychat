@@ -43,8 +43,7 @@ function RoomState({roomId, myIdentity, peerState, myPeerState}) {
   let iAmOwner = owners?.includes(myId) || false;
   let iAmSpeaker = !!stageOnly || speakers.includes(myId);
   let iAmPresenter = !!videoCall || (presenters && presenters.includes(myId));
-  let iAmAuthorized =
-    !accessRestricted || room.access?.identities.includes(myId);
+  let iAmAuthorized = !accessRestricted || room.access?.identities.includes(myId);
 
   return {
     roomId,
