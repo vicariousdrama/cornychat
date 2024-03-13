@@ -149,7 +149,7 @@ function Avatar({
           />
 
           <table><tr><td width="25%" style={{borderWidth: '0px', textAlign:'center'}} >
-            <div title={roleName} style={{marginTop:'-2px',
+            <div title={roleName} style={{marginTop:'1px',
             textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'
             }}>
               {roleSymbol}
@@ -177,7 +177,7 @@ function Avatar({
             </div>
             )}
           </td><td width="75%" style={{borderWidth: '0px', textAlign:'center'}}>
-            <div className="w-16 h-16 human-radius mx-auto">
+            <div className="w-16 h-16 human-radius mx-auto" style={{marginTop: '3px'}}>
               <img
                 className="w-full h-full human-radius cursor-pointer"
                 alt={userDisplayName}
