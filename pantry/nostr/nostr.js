@@ -59,6 +59,7 @@ const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => 
         ["r", roomUrl],
         ["p", scheduledByPubkey, "", "host"],
     ]
+    const includedPubkeys = [scheduledByPubkey];
     for (let moderatorid of moderatorids) {
         const info = await get('identities/' + moderatorid);
         if (info?.identities) {
@@ -66,7 +67,10 @@ const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => 
                 if ('nostr' == (ident.type || '')) {
                     let modNpub = ident.id || '';
                     let modPubkey = nip19.decode(modNpub).data;
-                    tags.push(["p",modPubkey,"","moderator"]);
+                    if (!includedPubkeys.includes(modPubkey)) {
+                        includedPubkeys.push(modPubkey);
+                        tags.push(["p",modPubkey,"","moderator"]);
+                    }
                 }
             }
         }
