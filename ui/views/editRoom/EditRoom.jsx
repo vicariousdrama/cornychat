@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {Modal} from '../Modal';
-import {useJam} from '../../jam-core-react';
+import {useJam, useApiQuery} from '../../jam-core-react';
 import {colorThemes, isDark} from '../../lib/theme';
 import {BasicRoomInfo} from './BasicRoomInfo';
 import {DesignRoomInfo} from './DesignRoomInfo';
