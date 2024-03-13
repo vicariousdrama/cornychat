@@ -28,6 +28,8 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
   };
   const textColor = isDark(roomColor.buttons.primary) ? roomColor.text.light : roomColor.text.dark;
   let [myId, myIdentity] = use(state, ['myId', 'myIdentity']);
+  let [myAdminStatus] = useApiQuery(`/admin/${myId}`, {fetchOnMount: true});
+  let iAdmin = myAdminStatus?.admin || false;
   const info = myIdentity?.info;
   const nostrIdentity = info?.identities?.find(i => i.type === 'nostr');
   const nostrNpub = nostrIdentity?.id ?? '';
@@ -91,7 +93,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
     //  setSchedule(scheduleCandidate);
     //}
 
-    if (iOwn) {
+    if (iOwn || iAdmin) {
       ownersDeleting.forEach(jamId => {
         removeOwner(roomId, jamId);
       })
@@ -132,13 +134,13 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
     <Modal close={close}>
       <h1>Room Settings</h1>
 
-      {iOwn && (
+      {(iOwn || iAdmin) && (
       <div className="p-4 py-2 bg-gray-400 rounded-lg my-3 text-md">
         As a room owner you can modify all settings. Moderators that you set may only modify links and slides, speakers, schedule next event, and close or open the room.
       </div>
       )}
 
-      {!iOwn && (
+      {!(iOwn || iAdmin) && (
       <div className="p-4 py-2 bg-gray-400 rounded-lg my-3 text-md">
         As a room moderator you can manage speakers, view the room settings, make changes to the links and slides, schedule the next event, and close or open the room.
       </div>

@@ -30,6 +30,8 @@ export function MyNavMenu({close, roomColor}) {
     'roomId',
     'isRecording',
   ]);
+  let [myAdminStatus] = useApiQuery(`/admin/${myId}`, {fetchOnMount: true});
+  let iAdmin = myAdminStatus?.admin || false;
   let submitUpdate = async partialRoom => {
     updateRoom(roomId, {...room, ...partialRoom});
   };
@@ -61,7 +63,7 @@ export function MyNavMenu({close, roomColor}) {
       className="max-w-lg max-h-128 mx-auto flex flex-wrap justify-center rounded-lg"
       style={{backgroundColor: roomColor.avatarBg, color: textColor}}
     >
-      {(iModerate || iOwn) && (
+      {(iModerate || iOwn || iAdmin) && (
         <div
           onClick={() => {
             openModal(EditRoomModal, {roomId, iOwn, room, roomColor});
@@ -74,7 +76,7 @@ export function MyNavMenu({close, roomColor}) {
         </div>
       )}
 
-      {!stageOnly && (iModerate || iOwn) && !iSpeak && (
+      {!stageOnly && (iModerate || iOwn || iAdmin) && !iSpeak && (
         <div
           onClick={() => addSpeaker(roomId, myId).then(close(false))}
           className="p-2"
@@ -96,7 +98,7 @@ export function MyNavMenu({close, roomColor}) {
         </div>
       )}
 
-      {(iOwn || iModerate) && isRecordingAllowed && (
+      {(iOwn || iModerate || iAdmin) && isRecordingAllowed && (
         <div
           onClick={() => {
             if (isRecording) {
@@ -126,7 +128,7 @@ export function MyNavMenu({close, roomColor}) {
         </p>
       </div>
 
-      {!stageOnly && (iOwn || iModerate) && iSpeak && (
+      {!stageOnly && (iOwn || iModerate || iAdmin) && iSpeak && (
         <div
           onClick={() => removeSpeaker(roomId, myId).then(close(false))}
           className="p-2"
@@ -163,7 +165,7 @@ export function MyNavMenu({close, roomColor}) {
         </p>
       </div>
 
-      {(iOwn || iModerate) && hasSlides && (
+      {(iOwn || iModerate || iAdmin) && hasSlides && (
         <div
           onClick={async () => {
             if (room.currentSlide > 0) {
