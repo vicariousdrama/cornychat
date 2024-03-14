@@ -106,10 +106,10 @@ function Avatar({
   const colorTheme = room?.color ?? 'default';
   const roomColor = colors(colorTheme, room.customColor);
   const iconColor = isDark(roomColor.background) ? roomColor.icons.light : roomColor.icons.dark;
-  const avatarCardBG = isSpeaking ? roomColor.buttons.primary : roomColor.avatarBg;
-  const avatarCardFG = isDark(avatarCardBG) ? roomColor.text.light : roomColor.text.dark;
-  const roleName = (isAdmin ? 'Admin' : (isOwner ? 'Room Owner' : (isModerator ? 'Moderator' : (canSpeak ? 'Speaker' : 'Audience'))));
-  const roleSymbol = (isAdmin ? '🅰️' : (isOwner ? '👑' : (isModerator ? '🛡️' : (canSpeak ? '🎤' : '👂'))));
+  const avatarCardBG = !inRoom ? 'rgba(21,21,21,.5)' : (isSpeaking ? roomColor.buttons.primary : roomColor.avatarBg);
+  const avatarCardFG = !inRoom ? 'rgba(69,69,69,.75)' : (isDark(avatarCardBG) ? roomColor.text.light : roomColor.text.dark);
+  const roleName = (!inRoom ? 'Outside' : (isAdmin ? 'Admin' : (isOwner ? 'Room Owner' : (isModerator ? 'Moderator' : (canSpeak ? 'Speaker' : 'Audience')))));
+  const roleSymbol = (!inRoom ? '🚪' : (isAdmin ? '🅰️' : (isOwner ? '👑' : (isModerator ? '🛡️' : (canSpeak ? '🎤' : '👂')))));
   let userDisplayName = info?.name ?? '';
   if (userDisplayName.length == 0) {
     userDisplayName = displayName(info, room);
@@ -130,15 +130,17 @@ function Avatar({
       userSymbolTitle = nameSymbols[nsi].title;
     }
   }
+  hasNameSymbol = inRoom && hasNameSymbol;
 
   return (
-    inRoom && (
+    (
       <div
         className="py-0 w-24 mr-2 mb-2 rounded-lg"
         style={{backgroundColor: avatarCardBG, color: avatarCardFG}}
       >
         <div className="relative flex flex-col items-center">
 
+          {inRoom && (
           <Reactions
             reactions={reactions_}
             className={mqp(
@@ -147,6 +149,7 @@ function Avatar({
             emojis={room.customEmojis}
             style={{backgroundColor: roomColor.buttons.primary, zIndex: '15'}}
           />
+          )}
 
           <table><tr><td width="25%" style={{borderWidth: '0px', textAlign:'center'}} >
             <div title={roleName} style={{marginTop:'1px',
@@ -157,7 +160,7 @@ function Avatar({
             {isValidNostr(info) ? (
             <div title={'Verified Signature by Nostr Pubkey'} style={{marginTop:'-2px'}}>
               <img
-                style={{width:'24px',height:'auto'}}
+                style={{width:'24px',height:'auto',opacity:inRoom?1:.15}}
                 alt={'Verified Signature by Nostr Pubkey'}
                 src={'/img/nostr-icon-purple-256x256.png'}
               />
@@ -165,7 +168,7 @@ function Avatar({
             ) : (
             <div title={'Anonymous'} style={{marginTop:'-2px'}}>
               <img
-                style={{width:'24px',height:'auto'}}
+                style={{width:'24px',height:'auto',opacity:inRoom?1:.15}}
                 alt={'Anonymous'}
                 src={'/img/guyfawkes.png'}
               />
@@ -182,11 +185,12 @@ function Avatar({
                 className="w-full h-full human-radius cursor-pointer"
                 alt={userDisplayName}
                 src={avatarUrl(info, room)}
+                style={{opacity: inRoom ? 1 : .15}}
                 onClick={onClick}
               />
             </div>
 
-            {canSpeak && micMuted /*(!!micMuted || !canSpeak)*/ && (
+            {inRoom && canSpeak && micMuted /*(!!micMuted || !canSpeak)*/ && (
             <div
               className="absolute mt-0 rounded-full p-1"
               style={{backgroundColor: roomColor.background, top: '0px', right: '0px'}}
@@ -216,12 +220,14 @@ function Avatar({
             </div>
             )}
 
+            {inRoom && (
             <StickyHand {...{
               handRaised,
               handType,
               roomColor,
             }}
             />
+            )}
 
           </td></tr></table>
         </div>

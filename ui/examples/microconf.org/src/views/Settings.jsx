@@ -17,12 +17,14 @@ export const Settings = () => {
     myIdentity,
     myId,
     iAmModerator,
+    iAmOwner,
   ] = use(jamState, [
     'availableMicrophones',
     'selectedMicrophoneId',
     'myIdentity',
     'myId',
     'iAmModerator',
+    'iAmOwner',
   ]);
 
   const {selectMicrophone, switchCamera, updateInfo, updateRoom} = jamApi;
@@ -125,7 +127,7 @@ export const Settings = () => {
                   </ul>
                 )}
               </li>
-              {roomId && iAmModerator && (
+              {roomId && (iAmModerator || iAmOwner) && (
                 <li className="settings-category">
                   <h3 onClick={toggleShowRoom}>room</h3>
                   {showRoom && (

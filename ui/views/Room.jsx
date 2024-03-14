@@ -143,6 +143,7 @@ export default function Room({room, roomId, uxConfig}) {
   let myPeerId = myInfo.id;
   let stagePeers = stageOnly ? peers : (speakers ?? []).filter(id => peers.includes(id));
   let audiencePeers = stageOnly ? [] : peers.filter(id => !stagePeers.includes(id));
+  const nJoinedAudiencePeers = audiencePeers.filter(id => peerState[id]?.inRoom).length;
 
   () => setAudience(stagePeers.length + audiencePeers.length + 1);
 
@@ -212,6 +213,7 @@ export default function Room({room, roomId, uxConfig}) {
             hasMicFailed,
             identities,
             iModerate,
+            iOwn,
             iSpeak,
             moderators,
             myIdentity,

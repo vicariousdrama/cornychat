@@ -48,7 +48,7 @@ export default function AppState({hasMediasoup}) {
       peerState,
       myPeerState,
     });
-    let {room, iAmSpeaker, iAmModerator, iAmPresenter, hasRoom} = roomState;
+    let {room, iAmSpeaker, iAmModerator, iAmOwner, iAmPresenter, hasRoom} = roomState;
     let inRoom = use(InRoom, {roomState, autoJoin, autoRejoin});
 
     declare(ModeratorState, {swarm, moderators: room.moderators, owners: room.owners, handRaised, handType});
@@ -76,6 +76,7 @@ export default function AppState({hasMediasoup}) {
         iAmSpeaker,
         iAmModerator,
         moderators: room.moderators,
+        iAmOwner,
         owners: room.owners,
         swarm,
         remoteStreams,

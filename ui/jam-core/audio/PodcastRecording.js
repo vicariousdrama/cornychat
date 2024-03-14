@@ -50,6 +50,8 @@ export default function PodcastRecording({swarm}) {
     iAmSpeaker,
     iAmModerator,
     moderators,
+    iAmOwner,
+    owners,
   }) {
     // events to start/stop/cleanup local recording on speakers' client
     let [isPodcasterEvent, podcasterId, type] = useEvent(
@@ -58,7 +60,8 @@ export default function PodcastRecording({swarm}) {
     );
     if (isPodcasterEvent) {
       let isModerator = moderators?.includes(podcasterId);
-      if (type === 'start' && isModerator) {
+      let isOwner = owners?.includes(podcasterId);
+      if (type === 'start' && (isModerator || isOwner)) {
         localRecordings[podcasterId] = localRecordings[podcasterId] ?? {};
         localRecordings[podcasterId].state = 'start';
       } else if (type === 'stop') {
@@ -92,9 +95,9 @@ export default function PodcastRecording({swarm}) {
     let [isStart] = useAction('start-podcast-recording');
     let [isStop] = useAction('stop-podcast-recording');
 
-    // only moderators can start; if someone stops to be a moderator, stop the recording
-    isStart = iAmModerator && isStart;
-    isStop = isStop || (isPodcasting && !iAmModerator);
+    // only owners and moderators can start; if someone stops being an owner or moderator, stop the recording
+    isStart = (iAmOwner || iAmModerator) && isStart;
+    isStop = isStop || (isPodcasting && !iAmModerator && !iAmOwner);
 
     if (isStart && !isStop && !isPodcasting) {
       isPodcasting = true;

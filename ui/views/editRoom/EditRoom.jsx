@@ -93,17 +93,20 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
     //  setSchedule(scheduleCandidate);
     //}
 
-    if (iOwn || iAdmin) {
-      ownersDeleting.forEach(jamId => {
-        removeOwner(roomId, jamId);
-      })
-      moderatorsDeleting.forEach(jamId => {
-        removeModerator(roomId, jamId);
+    let removeDeleted = false;
+    if (removeDeleted) {
+      if (iOwn || iAdmin) {
+        ownersDeleting.forEach(jamId => {
+          removeOwner(roomId, jamId);
+        })
+        moderatorsDeleting.forEach(jamId => {
+          removeModerator(roomId, jamId);
+        })
+      }
+      speakersDeleting.forEach(jamId => {
+        removeSpeaker(roomId, jamId);
       })
     }
-    speakersDeleting.forEach(jamId => {
-      removeSpeaker(roomId, jamId);
-    })
 
     let ok = await submitUpdate({
       name,

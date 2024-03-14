@@ -15,11 +15,12 @@ export const ParticipantList = ({entries, type}) => {
 
   let [contextMenuPeerId, setContextMenuPeerId] = useState(null);
 
-  let [room, myIdentity, identities, iAmModerator] = use(jamState, [
+  let [room, myIdentity, identities, iAmModerator, iAmOwner] = use(jamState, [
     'room',
     'myIdentity',
     'identities',
     'iAmModerator',
+    'iAmOwner',
   ]);
 
   const getInfo = id =>
@@ -82,7 +83,7 @@ export const ParticipantList = ({entries, type}) => {
             }}
           />
           <DisplayName {...{peerId: id}} />
-          {iAmModerator && contextMenuPeerId === id && (
+          {(iAmModerator || iAmOwner) && contextMenuPeerId === id && (
             <ContextMenu
               title={getInfo(id).name}
               show={true}

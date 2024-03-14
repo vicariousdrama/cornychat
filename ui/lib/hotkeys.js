@@ -70,10 +70,10 @@ export function useCtrlCombos() {
 
 const handleCtrlCombo = {
   r: async (
-    {iAmModerator, isRecording},
+    {iAmModerator, iAmOwner, isRecording},
     {startRecording, stopRecording, downloadRecording}
   ) => {
-    if (!iAmModerator) return;
+    if (!iAmModerator && !iAmOwner) return;
     if (isRecording) {
       stopRecording();
       downloadRecording('my-recording');
