@@ -33,6 +33,8 @@ export default function RoomMembers({
 }) {
 
 
+  const nJoinedAudiencePeers = audiencePeers.filter(id => peerState[id]?.inRoom).length;
+
   return (
     <div>
 
@@ -89,7 +91,7 @@ export default function RoomMembers({
           </div>
 
           {/* Audience */}
-          {!stageOnly &&  (!iSpeak || audiencePeers.length > 0) && (
+          {!stageOnly &&  (!iSpeak || nJoinedAudiencePeers > 0 || (audiencePeers.length > 0 && (iOwn || iModerate))) && (
             <>
           <div className="rounded-md m-0 p-0 mt-2 mb-4" style={{backgroundColor: audienceBarBG, color: audienceBarFG}}>
             Audience

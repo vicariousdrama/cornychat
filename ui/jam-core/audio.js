@@ -40,6 +40,7 @@ function AudioState({swarm}) {
     inRoom,
     iAmSpeaker,
     iAmModerator,
+    iAmOwner,
     moderators,
     userInteracted,
     micMuted,
@@ -130,6 +131,7 @@ function AudioState({swarm}) {
         myAudio,
         iAmSpeaker,
         iAmModerator,
+        iAmOwner,
         moderators,
       })
     );

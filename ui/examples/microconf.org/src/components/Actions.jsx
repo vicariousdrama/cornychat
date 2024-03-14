@@ -14,6 +14,7 @@ export const Actions = () => {
     iAmSpeaker,
     iAmPresenter,
     iAmModerator,
+    iAmOwner,
     isServerRecording,
   ] = use(jamState, [
     'myId',
@@ -23,6 +24,7 @@ export const Actions = () => {
     'iAmSpeaker',
     'iAmPresenter',
     'iAmModerator',
+    'iAmOwner',
     'isServerRecording',
   ]);
 
@@ -74,7 +76,7 @@ export const Actions = () => {
           </button>
         ))}
       {roomId &&
-        iAmModerator &&
+        (iAmModerator || iAmOwner) &&
         (isServerRecording ? (
           <button className="main-button" onClick={jamApi.stopServerRecording}>
             Stop Recording

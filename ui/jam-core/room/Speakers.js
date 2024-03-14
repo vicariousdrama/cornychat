@@ -53,9 +53,10 @@ export default function Speakers() {
     if (isLeftStage) {
       if (state.leftStage) {
         leftStagePeers.add(peerId);
-        // if I'm moderator and someone else left stage, I remove him from speakers
+        // if I'm moderator or owner and someone else left stage, I remove him from speakers
         let iAmModerator = room.moderators.includes(myId);
-        if (iAmModerator && room.speakers.includes(peerId)) {
+        let iAmOwner = room.owners.includes(myId);
+        if ((iAmOwner || iAmModerator) && room.speakers.includes(peerId)) {
           removeSpeaker({myIdentity}, roomId, peerId);
         }
       } else {
