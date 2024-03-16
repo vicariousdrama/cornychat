@@ -72,6 +72,7 @@ type PeerState = {
   micMuted: boolean;
   leftStage: boolean;
   isRecording: boolean;
+  handRaised: boolean;
   handType: string;
 };
 

@@ -34,8 +34,6 @@ export default function Room({room, roomId, uxConfig}) {
 
   let [
     reactions,
-    handRaised,
-    handType,
     identities,
     speaking,
     iSpeak,
@@ -50,8 +48,6 @@ export default function Room({room, roomId, uxConfig}) {
     hasMicFailed,
   ] = use(state, [
     'reactions',
-    'handRaised',
-    'handType',
     'identities',
     'speaking',
     'iAmSpeaker',
@@ -208,8 +204,6 @@ export default function Room({room, roomId, uxConfig}) {
             audienceBarBG,
             audienceBarFG,
             audiencePeers,
-            handRaised,
-            handType,
             hasMicFailed,
             identities,
             iModerate,
@@ -231,7 +225,7 @@ export default function Room({room, roomId, uxConfig}) {
           }}
         />
 
-        <div className="h-24"></div>
+        <div className="h-40"></div>
       </div>
       <Navigation
         {...{

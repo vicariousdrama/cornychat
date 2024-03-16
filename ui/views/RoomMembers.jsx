@@ -10,8 +10,6 @@ export default function RoomMembers({
   audienceBarBG,
   audienceBarFG,
   audiencePeers,
-  handRaised,
-  handType,
   hasMicFailed,
   identities,
   iModerate,
@@ -51,8 +49,6 @@ export default function RoomMembers({
                   canSpeak={!hasMicFailed}
                   peerState={myPeerState}
                   info={myInfo}
-                  handRaised={handRaised}
-                  handType={handType}
                   onClick={() => {
                     openModal(Profile, {
                       info: state.myIdentity.info,
@@ -73,8 +69,6 @@ export default function RoomMembers({
                   canSpeak={true}
                   peerState={peerState[peerId]}
                   info={identities[peerId]}
-                  handRaised={peerState[peerId]?.handRaised}
-                  handType={peerState[peerId]?.handType}
                   onClick={() => {
                     openModal(Profile, {
                       info: identities[peerId],
@@ -105,8 +99,6 @@ export default function RoomMembers({
                     peerId={myPeerId}
                     peerState={myPeerState}
                     info={myInfo}
-                    handRaised={handRaised}
-                    handType={handType}
                     onClick={() => {
                       openModal(Profile, {
                         info: state.myIdentity.info,
@@ -126,8 +118,6 @@ export default function RoomMembers({
                     canSpeak={false}
                     peerState={peerState[peerId]}
                     info={identities[peerId]}
-                    handRaised={peerState[peerId]?.handRaised}
-                    handType={peerState[peerId]?.handType}
                     onClick={() =>
                       openModal(Profile, {
                         info: identities[peerId],

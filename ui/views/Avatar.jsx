@@ -16,8 +16,6 @@ export function StageAvatar({
   peerState,
   reactions,
   info,
-  handRaised,
-  handType,
   onClick,
 }) {
   return (
@@ -31,8 +29,6 @@ export function StageAvatar({
       peerState,
       reactions,
       info,
-      handRaised,
-      handType,
       onClick,    
     }}
     />
@@ -47,8 +43,6 @@ export function AudienceAvatar({
   peerState,
   reactions,
   info,
-  handRaised,
-  handType,
   onClick,
 }) {
   let speaking = undefined;
@@ -64,8 +58,6 @@ export function AudienceAvatar({
       peerState,
       reactions,
       info,
-      handRaised,
-      handType,
       onClick,
     }}
     />
@@ -82,8 +74,6 @@ function Avatar({
   peerState,
   reactions,
   info,
-  handRaised,
-  handType,
   onClick,
 }) {
   let isSpeaking = false;
@@ -92,7 +82,7 @@ function Avatar({
       isSpeaking = true;
     }
   }
-  let {micMuted, inRoom = null} = peerState || {};
+  let {micMuted, inRoom = null, handType} = peerState || {};
 
   let mqp = useMqParser();
   let reactions_ = reactions[peerId];
@@ -131,6 +121,13 @@ function Avatar({
     }
   }
   hasNameSymbol = inRoom && hasNameSymbol;
+
+  let ghostsEnabled = ((localStorage.getItem('ghostsEnabled') ?? 'false') == 'true');
+  if (!inRoom && !ghostsEnabled) {
+    return (
+      <></>
+    );
+  }
 
   return (
     (
@@ -221,11 +218,8 @@ function Avatar({
             )}
 
             {inRoom && (
-            <StickyHand {...{
-              handRaised,
-              handType,
-              roomColor,
-            }}
+            <StickyHand 
+              {...{roomColor, handType}}
             />
             )}
 
@@ -246,23 +240,19 @@ function Avatar({
 }
 
 function StickyHand({
-  handRaised,
   handType,
   roomColor,
 }) {
   let mqp = useMqParser();
-  let isHandRH = handRaised && (handType == 'RH');
-  let isHandTU = handRaised && (handType == 'TU');
-  let isHandTD = handRaised && (handType == 'TD');
-  let isHandOther = (handRaised && !isHandRH && !isHandTU && !isHandTD);
-  if (handRaised && !isHandTU && !isHandTD && !isHandOther) {
-    isHandRH = true;
-  }
+  let isHandRH = (handType == 'RH');
+  let isHandTU = (handType == 'TU');
+  let isHandTD = (handType == 'TD');
+  let isHandOther = (handType.length > 0 && !isHandRH && !isHandTU && !isHandTD);
 
   return (
     <>
-    {handRaised && isHandRH && (
-      <div className={isHandRH ? 'relative' : 'hidden'}>
+      {isHandRH && (
+      <div className={'relative'}>
         <div
           className={mqp(
             'absolute w-7 h-7 rounded-full bg-white text-xl border-1 border-gray-400 flex items-center justify-center'
@@ -273,8 +263,8 @@ function StickyHand({
         </div>
       </div>
       )}
-      {handRaised && isHandTU && (
-      <div className={isHandTU ? 'relative' : 'hidden'}>
+      {isHandTU && (
+      <div className={'relative'}>
         <div
           className={mqp(
             'absolute w-7 h-7 rounded-full bg-white text-xl border-1 border-gray-400 flex items-center justify-center'
@@ -285,8 +275,8 @@ function StickyHand({
         </div>
       </div>
       )}
-      {handRaised && isHandTD && (
-      <div className={isHandTD ? 'relative' : 'hidden'}>
+      {isHandTD && (
+      <div className={'relative'}>
         <div
           className={mqp(
             'absolute w-7 h-7 rounded-full bg-white text-xl border-1 border-gray-400 flex items-center justify-center'
@@ -297,8 +287,8 @@ function StickyHand({
         </div>
       </div>
       )}
-      {handRaised && isHandOther && (
-      <div className={isHandOther ? 'relative' : 'hidden'}>
+      {isHandOther && (
+      <div className={'relative'}>
         <div
           className={mqp(
             'absolute w-7 h-7 rounded-full bg-white border-1 border-gray-400 flex items-center justify-center'

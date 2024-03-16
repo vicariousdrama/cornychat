@@ -74,13 +74,12 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
             : 'hidden'
         }
       >
-        The Room ID{' no current rooms '}
-        <code className="text-gray-900 bg-yellow-200">{urlRoomId}</code> is not
-        valid.
+        The Room ID <code className="text-gray-900 bg-yellow-200">{urlRoomId}</code> is not valid.
         <br />
-        <br />
-        <br />
-        You can use the button below to start a room.
+        {urlRoomId.length < 4 && (
+          <>The room length must be at least 4 characters.<br /></>
+        )}
+        You can use the button below to start a new room.
       </div>
 
       <br />
@@ -91,9 +90,16 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
           <p style={{color: textColor, backgroundColor: roomColors.background}} className="room-header">
             Corny Chat is your place for chatting with friends!
           </p>
-          <a className={'hidden'} href=".">.</a>
+          <div style={{color: textColor}} className="jam">
+            <p style={{color: textColor, backgroundColor: roomColors.background}} className="room-header">
+            For event rooms and support, contact <a href="https://njump.me/npub1yx6pjypd4r7qh2gysjhvjd9l2km6hnm4amdnjyjw3467fy05rf0qfp7kza">Vic</a> on Nostr
+            </p>
+            <p style={{color: textColor, backgroundColor: roomColors.background}} className="room-header">
+            <a href="/about">About Corny Chat</a>
+            </p>
+          </div>
+          <a className={'hidden'} href="me">identity</a>
         </div>
-        <br />
 
         <div style={{align: 'center'}}>
         <div style={{display:'block',color:`rgb(244,244,244)`}}>
@@ -121,8 +127,6 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
         </div>
         )}
 
-        <br /><br />
-
         <button
           onClick={submit}
           className="select-none h-12 px-6 text-lg rounded-lg mt-3"
@@ -136,16 +140,6 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
           Start a new room
         </button>
 
-        <br /><br /><br />
-
-        <div style={{color: textColor}} className="jam">
-          <p style={{color: textColor, backgroundColor: roomColors.background}} className="room-header">
-          For event rooms and support, contact <a href="https://njump.me/npub1yx6pjypd4r7qh2gysjhvjd9l2km6hnm4amdnjyjw3467fy05rf0qfp7kza">Vic</a> on Nostr
-          </p>
-          <p style={{color: textColor, backgroundColor: roomColors.background}} className="room-header">
-          <a href="/about">About Corny Chat</a>
-          </p>
-        </div>
       </div>
     </div>
   );

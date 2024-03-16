@@ -4,6 +4,9 @@ COPY yarn.lock package.json ./
 
 RUN yarn
 COPY . .
+ARG BUILD_DATE=0
+RUN sed -i "s/BUILD_DATE/${BUILD_DATE}/g" ./views/About.jsx
+RUN sed -i "s/BUILD_DATE/${BUILD_DATE}/g" ./views/EnterRoom.jsx
 RUN yarn build
 
 FROM node:alpine

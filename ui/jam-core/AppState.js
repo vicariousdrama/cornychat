@@ -24,6 +24,7 @@ export default function AppState({hasMediasoup}) {
     micMuted: true,
     leftStage: false,
     isRecording: false,
+    handRaised: false,
     handType: '',
   });
 
@@ -69,6 +70,8 @@ export default function AppState({hasMediasoup}) {
         swarm,
         myIdentity,
         roomState,
+        handRaised,
+        handType,
       }),
       declare(AudioState, {
         myId,

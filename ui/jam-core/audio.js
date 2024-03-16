@@ -45,6 +45,7 @@ function AudioState({swarm}) {
     userInteracted,
     micMuted,
     handRaised,
+    handType,
     remoteStreams,
     customStream,
   }) {
