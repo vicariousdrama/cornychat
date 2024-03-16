@@ -115,21 +115,22 @@ const getScheduledEvents = async () => {
             // This allows other services like Nostr Nests to publish scheduled events if they want to
             // be included on the schedule
             //const filter = [{kinds: [31923], '#t':['audiospace']}]; 
-            const filter = [{kinds: [5,31923]}];
-
-            let events = [];
+            const calendarFilter = [{kinds: [31923], '#t':['audiospace'], limit: 500}];
+            let calendarEvents = [];
             let currentTime = Math.floor(Date.now() / 1000);
             let daySeconds = 86400; // 24 * 60 * 60
             let hourSeconds = 3600;
             let maxTime = currentTime + (7 * daySeconds);
-            let waitForEvents = 2500; // 2.5 seconds
+            let waitForEvents = 5000; // 5 seconds
             let matchedEvents = [];
+            const deleteFilter = [{kinds: [5], limit: 500}];
+            let deleteEvents = [];
 
             setTimeout(() => {
                 let deletedAudiospaces = [];
                 // Build deleted event list. Some relays do not acknowledge delete types, and some do,
                 // so we do a best effort to track deleted calendar events here
-                for (let event of events) {
+                for (let event of deleteEvents) {
                     if (event.kind != 5) continue;
                     const eventTags = event.tags;
                     for (let eventTag of eventTags) {
@@ -145,12 +146,13 @@ const getScheduledEvents = async () => {
                     }
                 }
                 // Build events within range, that aren't deleted
-                for (let event of events) {
+                console.log('number of audiospace calendar events: ', calendarEvents.length);
+                for (let event of calendarEvents) {
                     if (event.kind != 31923) continue;
                     const eventTags = event.tags;                    
                     let isDeleted = false;
                     let endTime = undefined;
-                    let image = 'https://cornychat.com/img/cornychat-app-icon.jpg';
+                    let image = '';    // default image, TODO: externalize
                     let location = undefined;
                     let startTime = undefined;
                     let title = undefined;
@@ -186,20 +188,38 @@ const getScheduledEvents = async () => {
                         if (das.d == dTag) isDeleted = true;
                     }
                     if (isDeleted) {
-                        console.log('skipping event that was deleted');
+                        //console.log('skipping event that was deleted');
                         continue;
                     }
                     // Reject based on erroneous time
-                    if (startTime == undefined) continue;               // must have a time
-                    if (endTime == undefined) continue;                 // must have a time
-                    if (startTime > endTime) continue;                  // must begin before ending
-                    if (endTime - startTime > daySeconds) continue;     // exclude events lasting more than 1 day
-                    if ((startTime < currentTime) && (endTime + hourSeconds < currentTime)) continue;
-                    if (startTime > maxTime) continue;                  // must start within 1 week
+                    if (startTime == undefined) {
+                        //console.log('skipping event that has no start time');
+                        continue;               // must have a time
+                    }
+                    if (endTime == undefined) {
+                        //console.log('skipping event that has no end time');
+                        continue;                 // must have a time
+                    }
+                    if (startTime > endTime) {
+                        //console.log('skipping event that starts after it ends');
+                        continue;                  // must begin before ending
+                    }
+                    if (endTime - startTime > daySeconds) {
+                        //console.log('skipping event that lasts more than 1 day')
+                        continue;     // exclude events lasting more than 1 day
+                    }
+                    if ((startTime < currentTime) && (endTime + hourSeconds < currentTime)) {
+                        //console.log('skipping event that has ended more than an hour ago');
+                        continue;
+                    }
+                    if (startTime > maxTime) {
+                        //console.log('skipping event that starts more than a week from now');
+                        continue;                  // must start within 1 week
+                    }
                     // check for required fields
                     if (!isAudioSpace) continue;
                     if (!(title && location && startTime && endTime)) {
-                        console.log('skipping event that is missing one of title, location, startTime, endTime');
+                        //console.log('skipping event that is missing one of title, location, startTime, endTime');
                         continue;
                     }
                     console.log(`adding a matched event: ${title} (${location} starting ${startTime})`);
@@ -224,20 +244,9 @@ const getScheduledEvents = async () => {
 
             }, waitForEvents);
 
-            pool.subscribe(
-                filter,
-                relaysToUse,
-                (event, onEose, url) => {
-                    events.push(event);
-                },
-                undefined,
-                undefined,
-                {
-                    unsubscribeOnEose: true,
-                    allowDuplicateEvents: false,
-                    allowOlderEvents: false,
-                }
-            );
+            let options = {unsubscribeOnEose: true, allowDuplicateEvents: false, allowOlderEvents: false};
+            pool.subscribe(calendarFilter, relaysToUse, (event, onEose, url) => {calendarEvents.push(event)}, undefined, undefined, options);
+            pool.subscribe(deleteFilter, relaysToUse, (event, onEose, url) => {deleteEvents.push(event)}, undefined, undefined, options);
         } catch (error) {
             rej(undefined);
             console.log('There was an error while fetching scheduled events: ', error);

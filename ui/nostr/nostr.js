@@ -15,7 +15,7 @@ export async function signInExtension(
 ) {
   try {
     if (!window.nostr) {
-      throw new Error('There is not nostr extension available');
+      throw new Error('A nostr extension is not available');
     }
     let id = state.id;
     let roomId = state.roomId;
@@ -150,7 +150,7 @@ export async function getUserMetadata(pubkey, relays, id) {
           res(undefined);
           console.log('Nostr relays did not return any events');
         }
-      }, 2700);
+      }, 3000);
 
       pool.subscribe(
         filter,
@@ -160,12 +160,7 @@ export async function getUserMetadata(pubkey, relays, id) {
           userMetadata.push(JSON.parse(event.content));
 
           const userInfo = {
-            name:
-              userMetadata[0].display_name === ''
-                ? userMetadata[0].name === ''
-                  ? null
-                  : userMetadata[0].name
-                : userMetadata[0].display_name,
+            name: (userMetadata[0].display_name === '' ? (userMetadata[0].name === '' ? null : userMetadata[0].name) : userMetadata[0].display_name),
             id: id,
             picture: userMetadata[0]?.picture,
             npub: npub,

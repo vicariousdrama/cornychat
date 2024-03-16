@@ -180,11 +180,6 @@ async function updateRoom(state, roomId, room) {
     console.log("Assigning first moderator id as room owner", currentroom.moderators[0]);
     room.owners = [currentroom.moderators[0]];
   }
-  // don't accept updates that delete the owner array
-  //if (!room?.owners || room?.owners.length == 0) {
-  //  console.log("Room owners can not be emptied");
-  //  return false;
-  //}
 
   // ok to save
   return await put(state, `/rooms/${roomId}`, room);

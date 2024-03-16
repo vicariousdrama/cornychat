@@ -349,6 +349,9 @@ export default function EnterRoom({
             The service may go down for prolonged periods of time.
             This service is built as a fork of JAM and the <a href="https://github.com/vicariousdrama/cornychat/blob/main/PRIVACY.md">Privacy Considerations for Jam</a> also apply.
           </p>
+          <p class="mt-4 text-gray-600 text-xs">
+            Build Date: BUILD_DATE
+          </p>
         </div>
         {/*
             if it is a future/scheduled room this button could be replaced with

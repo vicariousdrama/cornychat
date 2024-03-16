@@ -67,12 +67,15 @@ export default function EditIdentity({close}) {
   let [animEnabled, setAnimEnabled] = useState(
     localStorage.getItem('animationsEnabled') ?? 'false'
   );
+  let [ghostsEnabled, setGhostsEnabled] = useState(
+    localStorage.getItem('ghostsEnabled') ?? 'false'
+  );
+
 
   let userType = (nostrIdentity == undefined ? 'anon' : 'nostr');
   if (userType == 'nostr') {
     userType = (nostrNoteId == undefined ? 'nostrExtension' : 'nostrManual');
   }
-  console.log('userType: ', userType);
 
   let [stickyEmoji1, setStickyEmoji1] = useState(localStorage.getItem('stickyEmoji1') ?? '☕');
   let [stickyEmoji2, setStickyEmoji2] = useState(localStorage.getItem('stickyEmoji2') ?? '🌽');
@@ -283,11 +286,10 @@ export default function EditIdentity({close}) {
     const selectedFile = undefined; // document.querySelector('.edit-profile-file-input').files[0];
     setDefaultZapsAmount(defaultZap);
     localStorage.setItem('byeEmoji',byeEmoji);
-    console.log('animEnabled',animEnabled);
     localStorage.setItem('animationsEnabled',animEnabled);
+    localStorage.setItem('ghostsEnabled',ghostsEnabled);
 
     if (verifyingNpub) {
-      console.log('verifying npub');
       let identities = [];
       const pubkey = nip19.decode(nostrNpub).data;
       const nip19Decoded = nip19.decode(nostrNoteId);
@@ -304,7 +306,6 @@ export default function EditIdentity({close}) {
           setErrorMsg('Nostr verification event was not found');
           setIsLoading(false);
         } else {
-          console.log('Found nostr verification event',verEvent);
           addNostr(identities, nostrNpub, nostrNoteId, verEvent);
           await updateValues(selectedFile, identities);
         }
@@ -572,6 +573,25 @@ export default function EditIdentity({close}) {
           <span className="text-gray-300"> (optional)</span>
         </div>
       </div>
+
+      <div className="p-4 py-2 bg-gray-100 rounded-lg my-3">
+        <div className="p-2 text-gray-500 bold">
+        <input
+          className="rounded placeholder-gray-400 bg-gray-50 w-8"
+          type="checkbox"
+          checked={ghostsEnabled == 'true' ? true : false}
+          onChange={e => {
+            setGhostsEnabled(e.target.checked ? 'true' : 'false');
+          }}
+        />
+          Enable Ghost Users
+        </div>
+        <div className="p-2 text-gray-500 italic">
+          {`When enabled, users who are at the room entry screen, but not in the room will appear with a low opacity`}
+          <span className="text-gray-300"> (optional)</span>
+        </div>
+      </div>
+
 
       {showErrorMsg ? <p className="text-red-500">{showErrorMsg}</p> : null}
       <div className="flex">
