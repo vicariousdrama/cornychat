@@ -1,22 +1,23 @@
 FROM node:alpine AS builder
+ARG BUILD_DATE=0
 
 COPY yarn.lock package.json ./
 
 RUN yarn
 COPY . .
-ARG BUILD_DATE=0
 RUN sed -i "s/BUILD_DATE/${BUILD_DATE}/g" ./views/About.jsx
 RUN sed -i "s/BUILD_DATE/${BUILD_DATE}/g" ./views/EnterRoom.jsx
 RUN yarn build
 
 FROM node:alpine
-
+ARG BUILD_DATE=0
 ENV JAM_CONFIG_DIR=/jam-config
 
 RUN mkdir /app
 WORKDIR /app
 
 COPY public ./public/
+RUN sed -i "s/BUILD_DATE/${BUILD_DATE}/g" ./public/builddate.js
 COPY server ./server/
 COPY server-package.json package.json
 COPY --from=builder /public/js ./public/js/
