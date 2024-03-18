@@ -37,7 +37,7 @@ export default function EditIdentity({close}) {
   const roomColor = colors(colorTheme, state.room.customColor);
   let nostrNote = nostrIdentity?.verificationInfo;
 
-  let [name, setName] = useState(info?.name); // ?? info?.displayName);
+  let [name, setName] = useState(info?.name);
   let [avatar, setAvatar] = useState(info?.avatar);
   let [verifyingNpub, setVerifyingNpub] = useState(false);
   let [nostrNpub, setNostrNpub] = useState(nostrIdentity?.id);
