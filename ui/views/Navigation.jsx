@@ -24,6 +24,18 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
     }
   };
 
+  let limitReactions = true;
+  let reactionQueue = [];
+  function queueReaction(r) {
+    if (!limitReactions) { sendReaction(r); return }
+    if (limitReactions && reactionQueue.length < 10) reactionQueue.push(r);
+  }
+  function sendReactions() {
+    let r = reactionQueue.shift();
+    if (r) sendReaction(r);
+  }
+  if (limitReactions) { setInterval(sendReactions, 250); }
+
   function ReactionsEmojis() {
     return (
       <div>
@@ -33,7 +45,7 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
               class="human-radius text-2xl select-none"
               key={r}
               onClick={() => {
-                sendReaction(r);
+                queueReaction(r);
               }}
               style={{
                 width: '48px',
@@ -265,7 +277,7 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
             if (bepr == ' ') {
               st = 500;
             } else {
-              sendReaction(bepr);
+              queueReaction(bepr);
             }
             await new Promise((resolve,reject) => setTimeout(resolve, st));
           }
@@ -285,15 +297,23 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
   }
 
   const [state, {leaveRoom, sendReaction, retryMic, setProps}] = useJam();
-  let [myAudio, micMuted, handRaised, handType, iSpeak] = use(state, [
+  let [myAudio, micMuted, handRaised, handType, iSpeak, myIdentity] = use(state, [
     'myAudio',
     'micMuted',
     'handRaised',
     'handType',
     'iAmSpeaker',
+    'myIdentity',
   ]);
   const emojis = room?.customEmojis;
-  const areEmojisSet = emojis ? emojis.length : undefined;
+  let areEmojisSet = emojis ? true : false;
+
+  // OnlyZaps don't like reactions
+  let emojisEnabled = true;
+  let onlyZapUsers = ["puzzles"];
+  for (let onlyZapUser of onlyZapUsers) {
+    if (myIdentity?.info?.name?.indexOf(onlyZapUser) > -1) emojisEnabled = false;
+  }
 
   let micOn = myAudio?.active;
 
@@ -486,11 +506,13 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
           <div class="mx-2 ">
             <button
               class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
-              style={{backgroundColor: roomColor.buttons.primary}}
+              style={{backgroundColor: roomColor.buttons.primary, opacity: emojisEnabled ? '1' : '.25' }}
               onClick={() => {
-                setShowMyNavMenu(false);
-                setShowStickies(false);
-                setShowReactions(s => !s);
+                if (emojisEnabled) {
+                  setShowMyNavMenu(false);
+                  setShowStickies(false);
+                  setShowReactions(s => !s);
+                }
               }}
             >
               <EmojiFace color={iconColor} />
