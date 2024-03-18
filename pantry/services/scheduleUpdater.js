@@ -7,7 +7,9 @@ const scheduleUpdater = async () => {
     console.log(`Caching scheduled audiospace events from relays`);
     let scheduledEvents = await getScheduledEvents();
     if (scheduledEvents) {
-        const ok = await set('server/scheduledEvents', scheduledEvents);
+        if (scheduledEvents.length > 0) {
+            const ok = await set('server/scheduledEvents', scheduledEvents);
+        }
         console.log(`Scheduled events cached from relays`)
     } else {
         console.log(`No scheduled audiospace events found on relays`);
@@ -18,7 +20,9 @@ const scheduleUpdater = async () => {
         console.log(`Updating list of upcoming audiospace events`);
         let scheduledEvents = await getScheduledEvents();
         if (scheduledEvents) {
-            const ok = await set('server/scheduledEvents', scheduledEvents);
+            if (scheduledEvents.length > 0) {
+                const ok = await set('server/scheduledEvents', scheduledEvents);
+            }
             console.log(`Scheduled events cached from relays`)
         } else {
             console.log(`No scheduled audiospace events found on relays`);

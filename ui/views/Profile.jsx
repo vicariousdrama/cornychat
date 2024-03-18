@@ -21,7 +21,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
 
     const pubkey = nip19.decode(userNpub).data;
 
-    const userMetadata = await getUserMetadata(pubkey, [], null);
+    const userMetadata = await getUserMetadata(pubkey, null);
 
     return userMetadata;
   }
@@ -429,18 +429,17 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
             ) : null}
 
             {hasNostrIdentity ? (
-              <div
-                className="flex justify-center cursor-pointer"
+              <button
+                className="rounded-lg bg-yellow-200 px-3 py-2 mx-1 my-1 text-xs"
                 onClick={() => {
                   close();
                   openModal(InvoiceModal, {info: info, room: room});
                 }}
               >
-                <div className="w-6 h-6 rounded-full bg-yellow-200 flex items-center justify-center">
-                  <span>⚡</span>
-                </div>
-              </div>
+                ⚡ {window.nostr ? ('Zap some sats!') : ('Send sats anonymously via lightning')}
+              </button>
             ) : null}
+
           </div>
         </div>
         <div style={{maxWidth: '568px'}}>
