@@ -45,21 +45,18 @@
     document.head.appendChild(script_builddate);
     // Once builddate has loaded, we can reliably get the other resources in a deterministic way
     script_builddate.onload = function(){
-        console.log('Linking /js/App.js as preload with builddate', builddate);
         var link_app = document.createElement('link');
         link_app.rel = "modulepreload";
         link_app.href = "/js/App.js?bd=" + builddate;
         link_app.as = "script";
         document.head.appendChild(link_app);
 
-        console.log('Linking /js/<%= preloadScript %> as preload with builddate', builddate);
         var link_chunk = document.createElement('link');
         link_chunk.rel = "modulepreload";
         link_chunk.href = "/js/<%= preloadScript %>?bd=" + builddate;
         link_chunk.as = "script";
         document.head.appendChild(link_chunk);
 
-        console.log('script /js/App.js with builddate', builddate);
         var script_app = document.createElement('script');
         script_app.id = "script_app";
         script_app.src = "/js/App.js?bd=" + builddate;

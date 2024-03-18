@@ -5,7 +5,29 @@ import crypto from 'crypto-js';
 import {bech32} from 'bech32';
 import {Buffer} from 'buffer';
 
-const pool = new RelayPool();
+async function getUserRelays() {
+  let userRelays = [];
+  if (window.nostr) {
+    const relays = await window.nostr.getRelays();
+    const relaysSet = Object.keys(relays).length !== 0;
+    if (relaysSet) {
+      for (const relay in relays) {
+        if (relays[relay].read) {
+          if (relay.indexOf('nostr-pub.wellorder.net') > -1) continue;
+          if (relay.indexOf('nostr1.tunnelsats.com') > -1) continue;
+          if (relay.indexOf('relayer.fiatjaf.com') > -1) continue;
+          if (relay.indexOf('relay.nostr.info') > -1) continue;
+          if (relay.indexOf('nostr-relay.wlvs.space') > -1) continue;
+          const startWithWss = relay.startsWith('wss://');
+          startWithWss
+            ? userRelays.push(relay)
+            : userRelays.push('wss://' + relay);
+        }
+      }
+    }
+  }
+  return userRelays;
+}
 
 export async function signInExtension(
   state,
@@ -28,8 +50,7 @@ export async function signInExtension(
     let signedLogin = await window.nostr.signEvent(loginEvent);
     let npub = nip19.npubEncode(pubkey);
     let identities = [{type: 'nostr', id: npub, loginTime: created_at, loginId: signedLogin.id, loginSig: signedLogin.sig}];
-    let relays = await window.nostr.getRelays();
-    let metadata = await getUserMetadata(pubkey, relays, id);
+    let metadata = await getUserMetadata(pubkey, id);
     setProps({userInteracted: true});
     if (!metadata) {
       await updateInfo({identities});
@@ -49,33 +70,21 @@ export async function signInExtension(
   }
 }
 
-export async function getUserEvent(pubkey, relays, id) {
+export async function getUserEvent(pubkey, id) {
   return new Promise((res, rej) => {
     try {
+      const pool = new RelayPool();
+
       const defaultRelays = [
         'wss://nos.lol',
         'wss://relay.damus.io',
-        'wss://nostr-pub.wellorder.net',
+        //'wss://nostr-pub.wellorder.net',
         'wss://nostr.mutinywallet.com',
         'wss://relay.snort.social',
         'wss://relay.primal.net',
       ];
 
-      const relaysSet = Object.keys(relays).length !== 0;
-
-      const userRelays = [];
-
-      if (relaysSet) {
-        for (const relay in relays) {
-          if (relays[relay].read) {
-            const startWithWss = relay.startsWith('wss://');
-
-            startWithWss
-              ? userRelays.push(relay)
-              : userRelays.push('wss://' + relay);
-          }
-        }
-      }
+      const userRelays = []; // getUserRelays();
 
       const relaysToUse = [...userRelays, ...defaultRelays];
       const filter = [{kinds: [1], authors: [pubkey], ids: [id]}];
@@ -110,33 +119,21 @@ export async function getUserEvent(pubkey, relays, id) {
   });
 }
 
-export async function getUserMetadata(pubkey, relays, id) {
+export async function getUserMetadata(pubkey, id) {
   return new Promise((res, rej) => {
     try {
+      const pool = new RelayPool();
+
       const defaultRelays = [
         'wss://nos.lol',
         'wss://relay.damus.io',
-        'wss://nostr-pub.wellorder.net',
         'wss://nostr.mutinywallet.com',
         'wss://relay.snort.social',
         'wss://relay.primal.net',
       ];
 
-      const relaysSet = Object.keys(relays).length !== 0;
-
-      const userRelays = [];
-
-      if (relaysSet) {
-        for (const relay in relays) {
-          if (relays[relay].read) {
-            const startWithWss = relay.startsWith('wss://');
-
-            startWithWss
-              ? userRelays.push(relay)
-              : userRelays.push('wss://' + relay);
-          }
-        }
-      }
+      const userRelays = []; // getUserRelays();
+      //console.log(userRelays);
 
       const relaysToUse = [...userRelays, ...defaultRelays];
       const filter = [{kinds: [0], authors: [pubkey]}];
@@ -156,11 +153,9 @@ export async function getUserMetadata(pubkey, relays, id) {
         filter,
         relaysToUse,
         (event, afterEose, url) => {
-          clearTimeout(timeoutRelays);
           userMetadata.push(JSON.parse(event.content));
-
           const userInfo = {
-            name: (userMetadata[0].display_name === '' ? (userMetadata[0].name === '' ? null : userMetadata[0].name) : userMetadata[0].display_name),
+            name: userMetadata[0]?.name, // (userMetadata[0].display_name === '' ? (userMetadata[0].name === '' ? null : userMetadata[0].name) : userMetadata[0].display_name),
             id: id,
             picture: userMetadata[0]?.picture,
             npub: npub,
@@ -186,34 +181,18 @@ export async function getUserMetadata(pubkey, relays, id) {
 export async function isOnFollowList(actorPubkey, userPubkey) {
   return new Promise(async (res, rej) => {
     try {
-      let userRelays = [];
+      const pool = new RelayPool();
+
+      let userRelays = []; //getUserRelays();
 
       const defaultRelays = [
         'wss://nos.lol',
         'wss://relay.damus.io',
-        'wss://nostr-pub.wellorder.net',
+        //'wss://nostr-pub.wellorder.net',
         'wss://nostr.mutinywallet.com',
         'wss://relay.snort.social',
         'wss://relay.primal.net',
       ];
-
-      if (window.nostr) {
-        const relays = await window.nostr.getRelays();
-
-        const relaysSet = Object.keys(relays).length !== 0;
-
-        if (relaysSet) {
-          for (const relay in relays) {
-            if (relays[relay].read) {
-              const startWithWss = relay.startsWith('wss://');
-
-              startWithWss
-                ? userRelays.push(relay)
-                : userRelays.push('wss://' + relay);
-            }
-          }
-        }
-      }
 
       const relaysToUse = [...userRelays, ...defaultRelays];
 
@@ -294,7 +273,7 @@ export async function signInPrivateKey(
 
     const userId = state.myId;
     const userPubkey = getPublicKey(nostrPrivateKey);
-    let metadata = await getUserMetadata(userPubkey, [], userId);
+    let metadata = await getUserMetadata(userPubkey, userId);
 
     if (!metadata) {
       const npub = nip19.npubEncode(userPubkey);
@@ -329,7 +308,7 @@ export async function sendZaps(npub, comment, amount, state, signEvent) {
     // Get metadata to lookup lightning address for users npub
     const receiverPubkey = nip19.decode(npub).data;
     const id = null;
-    const metadata = await getUserMetadata(receiverPubkey, {}, id);
+    const metadata = await getUserMetadata(receiverPubkey, id);
     if (!metadata) {
       throw new Error('Relays did not find any kind 0 event for this npub.');
     }
@@ -404,18 +383,20 @@ export async function unFollowUser(
   roomId,
   signEvent
 ) {
+  const pool = new RelayPool();
+
   const userPubkey = nip19.decode(npub).data;
 
   const defaultRelays = [
     'wss://nos.lol',
     'wss://relay.damus.io',
-    'wss://nostr-pub.wellorder.net',
+    //'wss://nostr-pub.wellorder.net',
     'wss://nostr.mutinywallet.com',
     'wss://relay.snort.social',
     'wss://relay.primal.net',
   ];
 
-  let userRelays = [];
+  let userRelays = []; // getUserRelays();
 
   const indexToRemove = myFollowList.findIndex(childArray =>
     childArray.includes(userPubkey)
@@ -436,21 +417,6 @@ export async function unFollowUser(
   };
 
   if (window.nostr) {
-    const relays = await window.nostr.getRelays();
-
-    const relaysSet = Object.keys(relays).length !== 0;
-
-    if (relaysSet) {
-      for (const relay in relays) {
-        if (relays[relay].read) {
-          const startWithWss = relay.startsWith('wss://');
-
-          startWithWss
-            ? userRelays.push(relay)
-            : userRelays.push('wss://' + relay);
-        }
-      }
-    }
 
     const relaysToUse = [...userRelays, ...defaultRelays];
 
@@ -479,6 +445,7 @@ export async function unFollowUser(
 }
 
 export async function followUser(npub, myFollowList, state, roomId, signEvent) {
+  const pool = new RelayPool();
   const userPubkey = nip19.decode(npub).data;
 
   myFollowList.push(['p', userPubkey]);
@@ -486,13 +453,13 @@ export async function followUser(npub, myFollowList, state, roomId, signEvent) {
   const defaultRelays = [
     'wss://nos.lol',
     'wss://relay.damus.io',
-    'wss://nostr-pub.wellorder.net',
+    //'wss://nostr-pub.wellorder.net',
     'wss://nostr.mutinywallet.com',
     'wss://relay.snort.social',
     'wss://relay.primal.net',
   ];
 
-  let userRelays = [];
+  let userRelays = []; // await getUserRelays();
 
   const event = {
     id: null,
@@ -505,21 +472,6 @@ export async function followUser(npub, myFollowList, state, roomId, signEvent) {
   };
 
   if (window.nostr) {
-    const relays = await window.nostr.getRelays();
-
-    const relaysSet = Object.keys(relays).length !== 0;
-
-    if (relaysSet) {
-      for (const relay in relays) {
-        if (relays[relay].read) {
-          const startWithWss = relay.startsWith('wss://');
-
-          startWithWss
-            ? userRelays.push(relay)
-            : userRelays.push('wss://' + relay);
-        }
-      }
-    }
 
     const relaysToUse = [...userRelays, ...defaultRelays];
 
@@ -637,7 +589,7 @@ async function getZapEvent(content, receiver, amount, state, signEvent) {
         'relays',
         'wss://relay.damus.io',
         'wss://nos.lol',
-        'wss://nostr-pub-wellorder.net/',
+        //'wss://nostr-pub-wellorder.net/',
         'wss://nostr.pleb.network',
       ],
       ['amount', `${amount}`],

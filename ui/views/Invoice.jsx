@@ -52,6 +52,9 @@ export const InvoiceModal = ({info, room, close}) => {
   const npub = findNpub(info.identities);
   const shortLnInvoice = invoice.substring(0, 17);
 
+  const userMetadata = JSON.parse(sessionStorage.getItem(npub));
+  const lightningAddress = userMetadata?.lightningAddress;
+
   let colorTheme = room?.color ?? 'default';
   let roomColors = colors(colorTheme, room.customColor);
 
@@ -128,7 +131,7 @@ export const InvoiceModal = ({info, room, close}) => {
         />
       ) : (
         <div className="bg-white p-6 rounded-lg">
-          <h2 className="text-2xl font-bold">Send some sats: </h2>
+          <h2 className="text-2xl font-bold">Send some sats {lightningAddress ? `to ${lightningAddress}` : null } : </h2>
 
           <div className="flex mb-5 w-full justify-between">
             <div className="mx-2 w-2/4">

@@ -3,7 +3,6 @@ const {get} = require('../services/redis');
 const {nip19, getPublicKey, finalizeEvent} = require('nostr-tools');
 const {RelayPool} = require('nostr-relaypool');
 
-const pool = new RelayPool();
 const relaysToUse = [
     'wss://nos.lol',
     'wss://relay.damus.io',
@@ -18,6 +17,7 @@ function sleep(ms) {
 }
   
 const deleteNostrSchedule = async (roomId) => {
+    const pool = new RelayPool();
     const eventUUID = `cornychat-${roomId}`;
     const sk = nip19.decode(serverNsec).data;
     const pk = getPublicKey(sk);
@@ -49,7 +49,7 @@ const deleteNostrSchedule = async (roomId) => {
 }
 
 const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => {
-
+    const pool = new RelayPool();
     // Validate
     console.log("Validating schedule to be posted");
     // - must have a schedule
@@ -109,13 +109,14 @@ const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => 
 }
 
 const getScheduledEvents = async () => {
+    const pool = new RelayPool();
     return new Promise(async (res, rej) => {
         try {
             // Look for any calendar time event with the tag 'audiospace' to be implementation agnostic
             // This allows other services like Nostr Nests to publish scheduled events if they want to
             // be included on the schedule
             //const filter = [{kinds: [31923], '#t':['audiospace']}]; 
-            const calendarFilter = [{kinds: [31923], '#t':['audiospace'], limit: 500}];
+            const calendarFilter = [{kinds: [31923], '#t':['audiospace'], limit: 5000}];
             let calendarEvents = [];
             let currentTime = Math.floor(Date.now() / 1000);
             let daySeconds = 86400; // 24 * 60 * 60
@@ -123,7 +124,7 @@ const getScheduledEvents = async () => {
             let maxTime = currentTime + (7 * daySeconds);
             let waitForEvents = 5000; // 5 seconds
             let matchedEvents = [];
-            const deleteFilter = [{kinds: [5], limit: 500}];
+            const deleteFilter = [{kinds: [5], limit: 5000}];
             let deleteEvents = [];
 
             setTimeout(() => {

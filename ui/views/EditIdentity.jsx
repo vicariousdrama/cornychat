@@ -231,7 +231,7 @@ export default function EditIdentity({close}) {
           if (nostrNpub) {
             // Nostr info present. But only set identities if already prepared
             const pubkey = nip19.decode(nostrNpub).data;
-            const metadata = await getUserMetadata(pubkey, [], null);
+            const metadata = await getUserMetadata(pubkey, null);
             if (!metadata) {
               let ok = false;
               if (!identities) {
@@ -301,7 +301,7 @@ export default function EditIdentity({close}) {
         setErrorMsg(nip19Type + ' type of note or event id not handled');
         setIsLoading(false);
       } else {
-        const verEvent = await getUserEvent(pubkey, [], noteid);
+        const verEvent = await getUserEvent(pubkey, noteid);
         if (!verEvent) {
           setErrorMsg('Nostr verification event was not found');
           setIsLoading(false);
