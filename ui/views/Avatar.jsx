@@ -113,11 +113,11 @@ function Avatar({
   let hasNameSymbol = false;
   let userSymbol = null;
   let userSymbolTitle = null;
-  for(let nsi = 0; nsi < nameSymbols.length; nsi ++) {
-    if (nameSymbols[nsi].name == userDisplayName) {
+  for(let nameSymbol of nameSymbols) {
+    if (userDisplayName.trim().indexOf(nameSymbol.name) > -1) {
       hasNameSymbol = true;
-      userSymbol = nameSymbols[nsi].symbol;
-      userSymbolTitle = nameSymbols[nsi].title;
+      userSymbol = nameSymbol.symbol;
+      userSymbolTitle = nameSymbol.title;
     }
   }
   hasNameSymbol = inRoom && hasNameSymbol;
