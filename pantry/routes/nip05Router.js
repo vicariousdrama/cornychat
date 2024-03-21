@@ -10,7 +10,7 @@ router.get('', async function (req, res) {
     //      {"names":{"vicariousdrama":"21b419102da8fc0ba90484aec934bf55b7abcf75eedb39124e8d75e491f41a5e"}}
     // if not found
     //      {"names":{}}
-    let resObj = {name:{}};
+    let resObj = {names:{}};
     // Get the requested name
     let name = req.query.name;
     // Empty result if none provided
@@ -29,7 +29,7 @@ router.get('', async function (req, res) {
         }
         let sk = nip19.decode(roomNsec).data;
         let pk = getPublicKey(sk);
-        resObj.name[name] = pk;
+        resObj.names[name] = pk;
         res.send(resObj);
         return;
     }
@@ -40,7 +40,7 @@ router.get('', async function (req, res) {
         res.send(resObj);
         return;
     }
-    resObj.name[name] = pk;
+    resObj.names[name] = pk;
     res.send(resObj);
     return;
 });
