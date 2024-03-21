@@ -271,7 +271,7 @@ const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => 
     let humanDate = new Intl.DateTimeFormat('en-us',dateOptions).format(edate);
     let timeOptions = { timeStyle: 'short'};
     let humanTime = new Intl.DateTimeFormat('en-us',timeOptions).format(edate);
-    const kind1content = `The next scheduled event for this room is\n\n${title}\n\non ${humanDate} at ${humanTime} (${timeZoneAbbrev}) in\n${roomUrl}`;
+    const kind1content = `The next scheduled event for this audiospace room is on ${humanDate} at ${humanTime} (${timeZoneAbbrev})\n\n${title}\n\n${summary}\n\nin\n${roomUrl}`;
     const kind1event = finalizeEvent({
         created_at: Math.floor(Date.now() / 1000),
         kind: 1,

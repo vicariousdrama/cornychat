@@ -4,7 +4,7 @@ const { nip19, getPublicKey } = require('nostr-tools');
 const router = express.Router({mergeParams: true});
 
 router.get('', async function (req, res) {
-    res.appendHeader("Access-Control-Allow-Origin", "*");
+    //res.appendHeader("Access-Control-Allow-Origin", "*");
     res.type('application/json');
     // example result format ...
     //      {"names":{"vicariousdrama":"21b419102da8fc0ba90484aec934bf55b7abcf75eedb39124e8d75e491f41a5e"}}
