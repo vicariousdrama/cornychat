@@ -12,34 +12,6 @@ export function Schedule({
   textColor,
   roomColor,
 }) {
-  let iCanSchedule = (nostrNpub.length > 0); // iOwn
-  let [scheduleCandidate, setScheduleCandidate] = useState({
-    title: schedule?.title ?? name,
-    summary: schedule?.summary ?? description,
-    startdate: schedule?.startdate ?? `${new Date().toISOString().split('T')[0]}`,
-    starttime: schedule?.starttime ?? `00:00`,
-    timezone: schedule?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
-    enddate: schedule?.enddate ?? `${new Date().toISOString().split('T')[0]}`,
-    endtime: schedule?.endtime ?? `00:00`,
-  });
-  let [expanded, setExpanded] = useState(false);
-  let [editing, setEditing] = useState(false);
-  let [showTimezoneSelect, setShowTimezoneSelect] = useState(false);
-  let [showRepeatSelect, setShowRepeatSelect] = useState(false);
-  let completeSchedule = () => {
-    return scheduleCandidate?.date && scheduleCandidate?.time;
-  };
-  let handleScheduleChange = e => {
-    setScheduleCandidate({
-      ...scheduleCandidate,
-      [e.target.name]: e.target.value,
-    });
-  };
-  let removeSchedule = e => {
-    e.preventDefault();
-    setSchedule(undefined);
-    let schedule = undefined;
-  };
   let makeUnixTime = (d,t,z) => {
     let ny = parseInt(d.split('-')[0]);
     let nm = parseInt(d.split('-')[1]) - 1; // month index is zero based
@@ -53,7 +25,7 @@ export function Schedule({
     if(z != undefined) {
       for (let r of rawTimeZones) {
         if (r.name == z) {
-          console.log(`Using ltzo ${r.abbreviation} with offset ${r.rawOffsetInMinutes}`);
+          //console.log(`Using ltzo ${r.abbreviation} with offset ${r.rawOffsetInMinutes}`);
           nz = r.rawOffsetInMinutes * 60;
         }
       }
@@ -61,20 +33,54 @@ export function Schedule({
     // Get local time zone offset
     let ltz = Intl.DateTimeFormat().resolvedOptions().timeZone; // Europe/London
     let ltzo = 0;
-    let timeZoneAbbrev = 'UTC';
     for (let r of rawTimeZones) {
       if (r.name == ltz) {
-        console.log(`Using ltzo ${r.abbreviation} with offset ${r.rawOffsetInMinutes}`);
+        //console.log(`Using ltzo ${r.abbreviation} with offset ${r.rawOffsetInMinutes}`);
         ltzo = r.rawOffsetInMinutes * 60;
       }
     }
-    console.log(`making unix time from ${d} ${t} ${z} -> year: ${ny}, month: ${nm}, day: ${nd}, hour: ${nh}, minute: ${nn}, offset seconds: ${nz}, ltzo seconds: ${ltzo}`)
+    //console.log(`making unix time from ${d} ${t} ${z} -> year: ${ny}, month: ${nm}, day: ${nd}, hour: ${nh}, minute: ${nn}, offset seconds: ${nz}, ltzo seconds: ${ltzo}`)
     let o = new Date(ny,nm,nd,nh,nn);
     let p = (o.getTime() / 1000);
     let u = (o.getTime() / 1000) + (ltzo - nz);
-    console.log(`computed unix utc time: ${u} (local timestamp ${p} + (localoffset ${ltzo} - utc offset ${nz}))`);
+    //console.log(`computed unix utc time: ${u} (local timestamp ${p} + (localoffset ${ltzo} - utc offset ${nz}))`);
     return u;
   }
+
+  let iCanSchedule = (nostrNpub.length > 0); // iOwn
+  let sd = schedule?.startdate ?? new Date().toISOString().split('T')[0];
+  let st = schedule?.starttime ?? '00:00';
+  let sz = schedule?.timezone ?? "Europe/London";
+  let sut = makeUnixTime(sd,st,sz);
+  let ed = schedule?.enddate ?? new Date().toISOString().split('T')[0];
+  let et = schedule?.endtime ?? '00:00';
+  let ez = schedule?.timezone ?? "Europe/London";
+  let eut = makeUnixTime(ed,et,ez);
+  let [scheduleCandidate, setScheduleCandidate] = useState({
+    title: schedule?.title ?? name,
+    summary: schedule?.summary ?? description,
+    startdate: sd,
+    starttime: st,
+    startUnixTime: sut,
+    timezone: sz,
+    enddate: ed,
+    endtime: et,
+    endUnixTime: eut,
+  });
+  let [expanded, setExpanded] = useState(false);
+  let [editing, setEditing] = useState(false);
+  let [showTimezoneSelect, setShowTimezoneSelect] = useState(false);
+  let [showRepeatSelect, setShowRepeatSelect] = useState(false);
+  let handleScheduleChange = e => {
+    setScheduleCandidate({
+      ...scheduleCandidate,
+      [e.target.name]: e.target.value,
+    });
+  };
+  let removeSchedule = e => {
+    e.preventDefault();
+    setSchedule(undefined);
+  };
   let submitSchedule = e => {
     e.preventDefault();
     if (scheduleCandidate) {
@@ -91,7 +97,6 @@ export function Schedule({
       scheduleCandidate.setByNpub = nostrNpub;
       scheduleCandidate.setOn = Date.now();
       let data = sessionStorage.getItem(myId);
-      //console.log(scheduleCandidate);
       setSchedule(scheduleCandidate);
       setEditing(false);
     }

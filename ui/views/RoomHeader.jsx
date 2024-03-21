@@ -130,6 +130,7 @@ export default function RoomHeader({
               onClick={() => {
                 openModal(InvoiceModal, {info: roomInfo, room: room});
               }}
+              title="Send sats to the lightning address set by the owner of this room"
               >⚡ Tip</div>
             )}
           </div>
