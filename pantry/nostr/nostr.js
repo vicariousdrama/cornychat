@@ -2,6 +2,7 @@ const {jamHost, serverNsec} = require('../config');
 const {get, set} = require('../services/redis');
 const {nip19, getPublicKey, finalizeEvent, generateSecretKey} = require('nostr-tools');
 const {RelayPool} = require('nostr-relaypool');
+const {rawTimeZones} = require('@vvo/tzdb');
 
 const relaysToUse = [
     'wss://nos.lol',
@@ -256,11 +257,28 @@ const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => 
 
     let roomNsec = await getRoomNSEC(roomId);
     let roomSk = nip19.decode(roomNsec).data;
-    const kind1content = `Next scheduled event for this room is\n\n${title}\n\non ${schedule.startDate} at ${schedule.startTime} (${schedule.timezone})in\n${roomUrl}`;
+    let timeZoneName = "Europe/London"; // Intl.DateTimeFormat().resolvedOptions().timeZone; // Europe/London
+    let timeZoneOffset = 0;
+    let timeZoneAbbrev = 'UTC';
+    for(let r =0; r < rawTimeZones.length; r++) {
+        if(rawTimeZones[r].name == timeZoneName) {
+            timeZoneOffset = rawTimeZones[r].rawOffsetInMinutes * -60;
+            timeZoneAbbrev = rawTimeZones[r].abbreviation;
+        }
+    }
+    let edate = new Date(schedule?.startUnixTime * 1000);
+    let dateOptions = { weekday: 'long', month: 'long', day: 'numeric' }; 
+    let humanDate = new Intl.DateTimeFormat('en-us',dateOptions).format(edate);
+    let timeOptions = { timeStyle: 'short'};
+    let humanTime = new Intl.DateTimeFormat('en-us',timeOptions).format(edate);
+    const kind1content = `The next scheduled event for this room is\n\n${title}\n\non ${humanDate} at ${humanTime} (${timeZoneAbbrev}) in\n${roomUrl}`;
     const kind1event = finalizeEvent({
         created_at: Math.floor(Date.now() / 1000),
         kind: 1,
-        tags: [],
+        tags: [
+            ["r", roomUrl],
+            ["t", "audiospace"],
+        ],
         content: kind1content,
     }, roomSk);
     pool.publish(kind1event, relaysToUse);
