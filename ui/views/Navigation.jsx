@@ -15,6 +15,33 @@ import {useJam} from '../jam-core-react';
 
 export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
 
+  const [state, {leaveRoom, sendReaction, retryMic, setProps}] = useJam();
+  let [myAudio, micMuted, handRaised, handType, iSpeak, myIdentity] = use(state, [
+    'myAudio',
+    'micMuted',
+    'handRaised',
+    'handType',
+    'iAmSpeaker',
+    'myIdentity',
+  ]);
+
+  // OnlyZaps don't like reactions or special stickies
+  let reactionsEnabled = true;
+  let stickiesEnabled = true;
+  const nostrIdentity = myIdentity?.info?.identities?.find(i => i.type === 'nostr');
+  const myNpub = nostrIdentity?.id;
+  const myName = myIdentity?.info?.name;
+  let onlyZapUsers = [
+    "puzzles", 
+    "npub12r0yjt8723ey2r035qtklhmdj90f0j6an7xnan8005jl7z5gw80qat9qrx",
+    "Austin ₿",
+    "npub1e3mx09yq53gyh9368qyuhfstgk8t7p5vvfcnvgwa4994y7rqg37s20qvr5",
+  ];
+  for (let onlyZapUser of onlyZapUsers) {
+    if (myName?.indexOf(onlyZapUser) > -1) { reactionsEnabled = false; stickiesEnabled = false; break; }
+    if (myNpub?.indexOf(onlyZapUser) > -1) { reactionsEnabled = false; stickiesEnabled = false; break; }
+  }
+
   let mqp = useMqParser();
   let talk = () => {
     if (micOn) {
@@ -24,9 +51,10 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
     }
   };
 
-  let limitReactions = true;
+  let limitReactions = false;
   let reactionQueue = [];
   function queueReaction(r) {
+    if (!reactionsEnabled) { r = "⚡" };
     if (!limitReactions) { sendReaction(r); return }
     if (limitReactions && reactionQueue.length < 10) reactionQueue.push(r);
   }
@@ -84,6 +112,7 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
   }
 
   function StickyStatus() {
+    let noSticky = '💩';
     return (
       <div class="flex">
         <button class="human-radius text-xs select-none"
@@ -93,7 +122,6 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
             handType = '';
             setProps('handRaised', handRaised);
             setProps('handType', handType);
-            //setHandType(handType);
             setShowStickies(s => !s);
           }}
         >Lower Hand</button>
@@ -104,7 +132,6 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
             handType = 'RH';
             setProps('handRaised', handRaised);
             setProps('handType', handType);
-            //setHandType(handType);
             setShowStickies(s => !s);
           }}
         >✋</button>
@@ -112,10 +139,9 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
           style={{width:'48px',height:'48px',backgroundColor:`rgb(17,170,17)`,color:'yellow'}}
           onClick={() => {
             handRaised = true;
-            handType = 'TU';
+            handType = stickiesEnabled ? 'TU' : noSticky;
             setProps('handRaised', handRaised);
             setProps('handType', handType);
-            //setHandType(handType);
             setShowStickies(s => !s);
           }}
         >👍</button>
@@ -123,10 +149,9 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
           style={{width:'48px',height:'48px',backgroundColor:`rgb(170,17,17)`,color:'yellow'}}
           onClick={() => {
             handRaised = true;
-            handType = 'TD';
+            handType = stickiesEnabled ? 'TD' : noSticky;
             setProps('handRaised', handRaised);
             setProps('handType', handType);
-            //setHandType(handType);
             setShowStickies(s => !s);
           }}
         >👎</button>
@@ -134,10 +159,9 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
           style={{width:'48px',height:'48px',backgroundColor:`rgb(17,17,170)`,color:'yellow'}}
           onClick={() => {
             handRaised = true;
-            handType = 'BRB';
+            handType = stickiesEnabled ? 'BRB' : noSticky;
             setProps('handRaised', handRaised);
             setProps('handType', handType);
-            //setHandType(handType);
             setShowStickies(s => !s);
           }}
         >BRB</button>
@@ -145,10 +169,9 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
           style={{width:'48px',height:'48px',backgroundColor:`rgb(17,17,170)`,color:'yellow'}}
           onClick={() => {
             handRaised = true;
-            handType = localStorage.getItem('stickyEmoji1') ?? '☕';
+            handType = stickiesEnabled ? (localStorage.getItem('stickyEmoji1') ?? '☕') : noSticky;
             setProps('handRaised', handRaised);
             setProps('handType', handType);
-            //setHandType(handType);
             setShowStickies(s => !s);
           }}
         >{(localStorage.getItem('stickyEmoji1') ?? '☕').toString().toUpperCase().startsWith('E') ? (
@@ -168,10 +191,9 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
           style={{width:'48px',height:'48px',backgroundColor:`rgb(17,17,170)`,color:'yellow'}}
           onClick={() => {
             handRaised = true;
-            handType = localStorage.getItem('stickyEmoji2') ?? '🌽';
+            handType = stickiesEnabled ? (localStorage.getItem('stickyEmoji2') ?? '🌽') : noSticky;
             setProps('handRaised', handRaised);
             setProps('handType', handType);
-            //setHandType(handType);
             setShowStickies(s => !s);
           }}
         >{(localStorage.getItem('stickyEmoji2') ?? '🌽').toString().toUpperCase().startsWith('E') ? (
@@ -186,7 +208,7 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
             />
           ) : (
             localStorage.getItem('stickyEmoji2') ?? '🌽'
-          )}</button>
+        )}</button>
       </div>
     );
   }
@@ -210,7 +232,6 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
       if (byeEmoji.indexOf('-') == 0) {
         doexit = false;
       }
-      //let byeAmount = Math.floor(localStorage.getItem('byeAmount') ?? '1');
       let byeAmount = 1;
       if (byeAmount > 0) {
         if (byeAmount > 20) {
@@ -226,34 +247,32 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
         let cen = '';
         for (let besi = 0; besi < besl; besi ++) {
           let cc = byeEmojiSplit[besi];
-          //if (cc != ',' && cc != '') {
-            if (cc == 'E') {
-              ce = true;
-              cen = '';
-            } else {
-              if (ce) {
-                // custom emoji
-                if (isNaN(Number(cc))) {
-                  // custom emoji ended
-                  byeEmojiParts.push('E' + cen);
-                  cen = '';
-                  ce = false;
-                  // regular emoji
-                  if (cc.length > 0 && ignoredChars.indexOf(cc) < 0) {
-                    byeEmojiParts.push(cc);
-                  }
-                } else {
-                  // custom emoji continues
-                  cen = '' + cen + '' + cc;
-                }
-              } else {
-                // single emoji
+          if (cc == 'E') {
+            ce = true;
+            cen = '';
+          } else {
+            if (ce) {
+              // custom emoji
+              if (isNaN(Number(cc))) {
+                // custom emoji ended
+                byeEmojiParts.push('E' + cen);
+                cen = '';
+                ce = false;
+                // regular emoji
                 if (cc.length > 0 && ignoredChars.indexOf(cc) < 0) {
                   byeEmojiParts.push(cc);
                 }
+              } else {
+                // custom emoji continues
+                cen = '' + cen + '' + cc;
+              }
+            } else {
+              // single emoji
+              if (cc.length > 0 && ignoredChars.indexOf(cc) < 0) {
+                byeEmojiParts.push(cc);
               }
             }
-          //}
+          }
         }
         if (ce) {
           byeEmojiParts.push('E' + cen);
@@ -296,30 +315,13 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
     }
   }
 
-  const [state, {leaveRoom, sendReaction, retryMic, setProps}] = useJam();
-  let [myAudio, micMuted, handRaised, handType, iSpeak, myIdentity] = use(state, [
-    'myAudio',
-    'micMuted',
-    'handRaised',
-    'handType',
-    'iAmSpeaker',
-    'myIdentity',
-  ]);
   const emojis = room?.customEmojis;
   let areEmojisSet = emojis ? true : false;
-
-  // OnlyZaps don't like reactions
-  let emojisEnabled = true;
-  let onlyZapUsers = ["puzzles"];
-  for (let onlyZapUser of onlyZapUsers) {
-    if (myIdentity?.info?.name?.indexOf(onlyZapUser) > -1) emojisEnabled = false;
-  }
 
   let micOn = myAudio?.active;
 
   let [showReactions, setShowReactions] = useState(false);
   let [showStickies, setShowStickies] = useState(false);
-  //let [handType, setHandType] = useState('');
 
   const colorTheme = state.room?.color ?? 'default';
   const roomColor = colors(colorTheme, state.room.customColor);
@@ -370,90 +372,55 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
           </button>
         </div>
 
-        {/* hand raised - original */}
-        {false && (
-          <>
-            {handRaised ? (
-              <div class="mx-2">
-                <button
-                  class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
-                  style={{backgroundColor: roomColor.buttons.primary}}
-                  onClick={
-                    /*iSpeak ? talk :*/ () => setProps('handRaised', !handRaised)
-                  }
-                >
-                     ✋
-                </button>
-              </div>
-            ) : (
-              <div class="mx-2">
-                <button
-                  class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
-                  style={{backgroundColor: roomColor.buttons.primary}}
-                  onClick={
-                    /*iSpeak ? talk :*/ () => setProps('handRaised', !handRaised)
-                  }
-                >
-                  <HandRaised color={iconColor} />
-                </button>
-              </div>
-            )}
-          </>
-        )}
-        {/* hand raised - choices */}
-        {true && (
-          <>
-            {handRaised ? (
-              <div class="mx-2">
-                <button
-                  class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
-                  style={{backgroundColor: roomColor.buttons.primary, color:iconColor}}
-                  onClick={() => {
-                    setShowMyNavMenu(false);
-                    setShowReactions(false);
-                    setShowStickies(s => !s);
-                  }}
-                >
-                {handType === 'RH' ? (
-                  <span class="text-lg" style={{textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'}}>✋</span>
-                ):( handType === 'TU' ? (
-                  <span class="text-lg" style={{textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'}}>👍</span>
-                ):( handType === 'TD' ? ( 
-                  <span class="text-lg" style={{textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'}}>👎</span>
-                ):( handType.toString().toUpperCase().startsWith('E') ? (
-                  <img
-                    src={`/img/emoji-${handType.toString().toUpperCase()}.png`}
-                    style={{
-                      width: '100%',
-                      height: 'auto',
-                      border: '0px',
-                      display: 'inline',
-                    }}
-                  />
-                ):(
-                  <span className={mqp(handType.toString().charCodeAt(0) < 255 ? 'text-xs' : 'text-lg')}
-                    style={{textShadow: handType.toString().charCodeAt(0) > 255 ? '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000': ''}}
-                  >{handType}</span>
-                )
-                )))}
-                </button>
-              </div>
-            ) : (
-              <div class="mx-2">
-                <button
-                  class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
-                  style={{backgroundColor: roomColor.buttons.primary}}
-                  onClick={() => {
-                    setShowMyNavMenu(false);
-                    setShowReactions(false);
-                    setShowStickies(s => !s);
-                  }}
-                >
-                  <HandRaised color={iconColor} />
-                </button>
-              </div>
-            )}
-          </>
+        {handRaised ? (
+          <div class="mx-2">
+            <button
+              class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
+              style={{backgroundColor: roomColor.buttons.primary, color:iconColor}}
+              onClick={() => {
+                setShowMyNavMenu(false);
+                setShowReactions(false);
+                setShowStickies(s => !s);
+              }}
+            >
+            {handType === 'RH' ? (
+              <span class="text-lg" style={{textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'}}>✋</span>
+            ):( handType === 'TU' ? (
+              <span class="text-lg" style={{textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'}}>👍</span>
+            ):( handType === 'TD' ? ( 
+              <span class="text-lg" style={{textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'}}>👎</span>
+            ):( handType.toString().toUpperCase().startsWith('E') ? (
+              <img
+                src={`/img/emoji-${handType.toString().toUpperCase()}.png`}
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  border: '0px',
+                  display: 'inline',
+                }}
+              />
+            ):(
+              <span className={mqp(handType.toString().charCodeAt(0) < 255 ? 'text-xs' : 'text-lg')}
+                style={{textShadow: handType.toString().charCodeAt(0) > 255 ? '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000': ''}}
+              >{handType}</span>
+            )
+            )))}
+            </button>
+          </div>
+        ) : (
+          <div class="mx-2">
+            <button
+              class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
+              style={{backgroundColor: roomColor.buttons.primary}}
+              onClick={() => {
+                setShowMyNavMenu(false);
+                setShowReactions(false);
+                setShowStickies(s => !s);
+              }}
+            >
+              <HandRaised color={iconColor} />
+            </button>
+          </div>
         )}
 
         {iSpeak ? (
@@ -506,13 +473,11 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
           <div class="mx-2 ">
             <button
               class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
-              style={{backgroundColor: roomColor.buttons.primary, opacity: emojisEnabled ? '1' : '.25' }}
+              style={{backgroundColor: roomColor.buttons.primary}}
               onClick={() => {
-                if (emojisEnabled) {
-                  setShowMyNavMenu(false);
-                  setShowStickies(false);
-                  setShowReactions(s => !s);
-                }
+                setShowMyNavMenu(false);
+                setShowStickies(false);
+                setShowReactions(s => !s);
               }}
             >
               <EmojiFace color={iconColor} />

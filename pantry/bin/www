@@ -9,6 +9,7 @@ const http = require('http');
 const {addWebsocket} = require('../services/ws');
 const {setupCleaner} = require('../services/fileCleaner');
 const {scheduleUpdater} = require('../services/scheduleUpdater');
+const {nip05Initializer} = require('../services/nip05Initializer');
 
 /**
  * Get port from environment and store in Express.
@@ -31,6 +32,7 @@ server.on('listening', onListening);
 addWebsocket(server)
 setupCleaner().then(() => 'Cleaner started.');
 scheduleUpdater().then(() => 'Schedule Updater started.');
+nip05Initializer().then(() => 'NIP05 Initialized.');
 
 /**
  * Normalize a port into a number, string, or false.

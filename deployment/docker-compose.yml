@@ -126,6 +126,9 @@ services:
       - traefik.http.middlewares.${COMPOSE_PROJECT_NAME}_pantry_stripprefix.stripprefix.prefixes=/_/pantry
       - traefik.http.routers.${COMPOSE_PROJECT_NAME}_pantry.tls=true
       - traefik.http.routers.${COMPOSE_PROJECT_NAME}_pantry.tls.certresolver=letsencrypt
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}_nip05.rule=(Host(`${JAM_HOST}`) && PathPrefix(`/.well-known/nostr.json`))
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}_nip05.tls=true
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}_nip05.tls.certresolver=letsencrypt
       - traefik.enable=true
     volumes:
       - "../jam-config:/jam-config"

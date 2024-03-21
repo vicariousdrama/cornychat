@@ -20,7 +20,7 @@ export default function About() {
       <h2>Contributors</h2>
       <p>Developers: Diego, Vic</p>
       <p>Art: Kajoozie, Noshole, Puzzles</p>
-      <p>Known Financial Supporters: Frank, Kajoozie, New1, Noshole, Propaganda Daily, Ralf, Sai, Séimí, Vic</p>
+      <p>Known Financial Supporters: Bevo, Frank, Kajoozie, New1, Noshole, Propaganda Daily, Ralf, Sai, Séimí, Vic</p>
 
       <h2>Build Date</h2>
       <p>This version of Corny Chat was built on BUILD_DATE</p>

@@ -129,12 +129,30 @@ function handleConnection(ws, req) {
   }
   console.log('ws open', roomId, peerId, subs);
   let lastPing = Date.now();
+  let pingCount = 0;
   let interval = setInterval(() => {
     let timeSincePing = Date.now() - lastPing;
     if (timeSincePing > PING_MAX_INTERVAL) {
       console.log(`killing ws after ${timeSincePing}ms`, roomId, peerId);
       ws.close();
       closeWs();
+    }
+    if ((pingCount % 60) == 9) {
+      const recordTime = async () => {
+        let userId = peerId.slice(0, -5);
+        let dt = new Date();
+        let dti = dt.toISOString();
+        let dts = dti.replaceAll('-','').replace('T','').slice(0,10);
+        let k = `usagetracking/${dts}/${roomId}`;
+        let v = await get(k);
+        if (v == undefined || v == null) {
+          set(k, [userId]);
+        } else if (!v.includes(userId)) {
+          v.push(userId);
+          set(k, v);
+        }
+      };
+      recordTime();
     }
   }, PING_CHECK_INTERVAL);
 
@@ -157,8 +175,12 @@ function handleConnection(ws, req) {
     let msg = parseMessage(jsonMsg);
     // console.log('ws message', msg);
     if (msg !== undefined) {
-      if (msg.t === 'ping') lastPing = Date.now();
-      else handleMessage(connection, roomId, msg);
+      if (msg.t === 'ping') {
+        pingCount = pingCount + 1;
+        lastPing = Date.now();
+      } else {
+        handleMessage(connection, roomId, msg);
+      }
     }
   });
 

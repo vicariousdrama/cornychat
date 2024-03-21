@@ -1,6 +1,6 @@
 const {jamHost, serverNsec} = require('../config');
-const {get} = require('../services/redis');
-const {nip19, getPublicKey, finalizeEvent} = require('nostr-tools');
+const {get, set} = require('../services/redis');
+const {nip19, getPublicKey, finalizeEvent, generateSecretKey} = require('nostr-tools');
 const {RelayPool} = require('nostr-relaypool');
 
 const relaysToUse = [
@@ -18,7 +18,7 @@ function sleep(ms) {
   
 const deleteNostrSchedule = async (roomId) => {
     const pool = new RelayPool();
-    const eventUUID = `cornychat-${roomId}`;
+    const eventUUID = `${jamHost}-${roomId}`;
     const sk = nip19.decode(serverNsec).data;
     const pk = getPublicKey(sk);
     const aTagValue = `a:${pk}:${eventUUID}`;
@@ -46,66 +46,6 @@ const deleteNostrSchedule = async (roomId) => {
         content: 'This event is no longer scheduled',
     }, sk);
     pool.publish(deleteEvent, relaysToUse);
-}
-
-const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => {
-    const pool = new RelayPool();
-    // Validate
-    console.log("Validating schedule to be posted");
-    // - must have a schedule
-    if (schedule == undefined) return;
-    // - must have an npub
-    if (schedule.setByNpub == undefined) return;
-    if (schedule.setByNpub == '') return;
-
-    console.log("Preparing schedule to publish for room", roomId);
-    const scheduledByPubkey = nip19.decode(schedule.setByNpub).data;
-    const eventUUID = `cornychat-${roomId}`;
-    const roomUrl = `https://${jamHost}/${roomId}`;
-    const title = schedule?.title ?? `Corny Chat: ${roomId}`;
-    const content = (schedule?.summary ?? `This event is scheduled on Corny Chat in room: ${roomId}`) + `\n\n${roomUrl}`;
-    const timezone = schedule?.timezone ?? 'Europe/London';
-    const tags = [
-        ["d", eventUUID],
-        ["title", title],
-        ["name", title],                         // deprecated, but Flockstr depends on
-        ["start", `${schedule?.startUnixTime}`],
-        ["end", `${schedule?.endUnixTime}`],
-        ["start_tzid", timezone],
-        ["end_tzid", timezone],
-        ["location", roomUrl],
-        ["about", content],                      // Undocumented Flockstr tag
-        ["image", logoURI],                      // Undocumented Flockstr tag
-        ["t", "cornychat"],
-        ["t", "audiospace"],                     // Need to document all these tags for sanity
-        ["r", roomUrl],
-        ["p", scheduledByPubkey, "", "host"],
-    ]
-    const includedPubkeys = [scheduledByPubkey];
-    for (let moderatorid of moderatorids) {
-        const info = await get('identities/' + moderatorid);
-        if (info?.identities) {
-            for (let ident of info.identities) {
-                if ('nostr' == (ident.type || '')) {
-                    let modNpub = ident.id || '';
-                    let modPubkey = nip19.decode(modNpub).data;
-                    if (!includedPubkeys.includes(modPubkey)) {
-                        includedPubkeys.push(modPubkey);
-                        tags.push(["p",modPubkey,"","moderator"]);
-                    }
-                }
-            }
-        }
-    }
-    const sk = nip19.decode(serverNsec).data;
-    const event = finalizeEvent({
-        created_at: Math.floor(Date.now() / 1000),
-        kind: 31923,
-        tags: tags,
-        content: content,
-    }, sk);
-    console.log('Event to be published', JSON.stringify(event));
-    pool.publish(event, relaysToUse);
 }
 
 const getScheduledEvents = async () => {
@@ -255,8 +195,112 @@ const getScheduledEvents = async () => {
     });
 }
 
+const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => {
+    const pool = new RelayPool();
+    // Validate
+    console.log("Validating schedule to be posted");
+    // - must have a schedule
+    if (schedule == undefined) return;
+    // - must have an npub
+    if (schedule.setByNpub == undefined) return;
+    if (schedule.setByNpub == '') return;
+
+    console.log("Preparing schedule to publish for room", roomId);
+    const scheduledByPubkey = nip19.decode(schedule.setByNpub).data;
+    const eventUUID = `${jamHost}-${roomId}`;
+    const roomUrl = `https://${jamHost}/${roomId}`;
+    const title = schedule?.title ?? `Corny Chat: ${roomId}`;
+    const content = (schedule?.summary ?? `This event is scheduled on Corny Chat in room: ${roomId}`) + `\n\n${roomUrl}`;
+    const timezone = schedule?.timezone ?? 'Europe/London';
+    const tags = [
+        ["d", eventUUID],
+        ["title", title],
+        ["name", title],                         // deprecated, but Flockstr depends on
+        ["start", `${schedule?.startUnixTime}`],
+        ["end", `${schedule?.endUnixTime}`],
+        ["start_tzid", timezone],
+        ["end_tzid", timezone],
+        ["location", roomUrl],
+        ["about", content],                      // Undocumented Flockstr tag
+        ["image", logoURI],                      // Undocumented Flockstr tag
+        ["t", jamHost],
+        ["t", "audiospace"],                     // Need to document all these tags for sanity
+        ["r", roomUrl],
+        ["p", scheduledByPubkey, "", "host"],
+    ]
+    const includedPubkeys = [scheduledByPubkey];
+    for (let moderatorid of moderatorids) {
+        const info = await get('identities/' + moderatorid);
+        if (info?.identities) {
+            for (let ident of info.identities) {
+                if ('nostr' == (ident.type || '')) {
+                    let modNpub = ident.id || '';
+                    let modPubkey = nip19.decode(modNpub).data;
+                    if (!includedPubkeys.includes(modPubkey)) {
+                        includedPubkeys.push(modPubkey);
+                        tags.push(["p",modPubkey,"","moderator"]);
+                    }
+                }
+            }
+        }
+    }
+    const sk = nip19.decode(serverNsec).data;
+    const event = finalizeEvent({
+        created_at: Math.floor(Date.now() / 1000),
+        kind: 31923,
+        tags: tags,
+        content: content,
+    }, sk);
+    console.log('Event to be published', JSON.stringify(event));
+    pool.publish(event, relaysToUse);
+
+    let roomNsec = await getRoomNSEC(roomId);
+    let roomSk = nip19.decode(roomNsec).data;
+    const kind1content = `Next scheduled event for this room is\n\n${title}\n\non ${schedule.startDate} at ${schedule.startTime} (${schedule.timezone})in\n${roomUrl}`;
+    const kind1event = finalizeEvent({
+        created_at: Math.floor(Date.now() / 1000),
+        kind: 1,
+        tags: [],
+        content: kind1content,
+    }, roomSk);
+    pool.publish(kind1event, relaysToUse);
+}
+
+const getRoomNSEC = async(roomId) => {
+    let nostrroomkey = 'nostrroomkey/' + roomId;
+    let roomNsec = await get(nostrroomkey);
+    if (roomNsec == undefined || roomNsec == null) {
+        let roomSk = generateSecretKey();
+        roomNsec = nip19.nsecEncode(roomSk);
+        await set(nostrroomkey, roomNsec);
+    }
+    return roomNsec;
+}
+
+const updateNostrProfile = async (roomId, name, description, logoURI, backgroundURI, lud16) => {
+    const pool = new RelayPool();
+    let roomNsec = await getRoomNSEC(roomId);
+    let roomSk = nip19.decode(roomNsec).data;
+    let profileObj = {nip05: `${roomId}-room@${jamHost}`}
+    if ((name ?? '').length > 0) profileObj.name = name;
+    if ((description ?? '').length > 0) profileObj.description = description;
+    if ((logoURI ?? '').length > 0) profileObj.picture = logoURI;
+    if ((backgroundURI ?? '').length > 0) profileObj.banner = backgroundURI;
+    if ((lud16 ?? '').length > 0) profileObj.lud16 = lud16;
+    let content = JSON.stringify(profileObj);
+    const event = finalizeEvent({
+        created_at: Math.floor(Date.now() / 1000),
+        kind: 0,
+        tags: [],
+        content: content,
+    }, roomSk);
+    pool.publish(event, relaysToUse);
+}
+
 module.exports = {
     deleteNostrSchedule,
+    getRoomNSEC,
     getScheduledEvents,
     publishNostrSchedule,
+    updateNostrProfile,
 };

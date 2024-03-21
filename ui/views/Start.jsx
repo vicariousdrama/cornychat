@@ -12,14 +12,14 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
   const [roomList, setRoomList] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [eventList, setEventList] = useState([]);
-  const [{room}, {enterRoom, setProps, createRoom, listRooms, listStaticRooms, listStaticEvents, listScheduledEvents}] = useJam();
+  const [{room}, {enterRoom, setProps, createRoom, listRooms, listScheduledEvents}] = useJam();
   let {stageOnly = false} = newRoom;
   const mainroomonly = [{"roomId":"mainchat","name":"Main Chat","description":"","logoURI":"","userCount":"0","userInfo":[]}];
 
   useEffect(() => {
     const loadRooms = async () => {
       setLoadingRooms(true);
-      let roomlist = await(listRooms()); // listStaticRooms
+      let roomlist = await(listRooms());
       if (roomlist[0].length > 0) {
         setRoomList(roomlist[0]);
       } else {
@@ -30,7 +30,6 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
     };
     const loadEvents = async () => {
       setLoadingEvents(true);
-      //let eventlist = await(listStaticEvents());
       let eventlist = await(listScheduledEvents());
       setEventList(eventlist[0]);
       setLoadingEvents(false);
@@ -89,10 +88,10 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
           </p>
           <div style={{color: textColor}} className="jam">
             <p style={{color: textColor, backgroundColor: roomColors.background}} className="room-header">
-            For event rooms and support, contact <a href="https://njump.me/npub1yx6pjypd4r7qh2gysjhvjd9l2km6hnm4amdnjyjw3467fy05rf0qfp7kza">Vic</a> on Nostr
+            For technical support, contact <a href="https://njump.me/npub1yx6pjypd4r7qh2gysjhvjd9l2km6hnm4amdnjyjw3467fy05rf0qfp7kza">Vic</a> on Nostr
             </p>
             <p style={{color: textColor, backgroundColor: roomColors.background}} className="room-header">
-            <a href="/about">About Corny Chat</a>
+            <a href="/about" style={{textDecoration: 'underline'}}>About Corny Chat</a>
             </p>
           </div>
           <a className={'hidden'} href="me">identity</a>

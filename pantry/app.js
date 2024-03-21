@@ -23,6 +23,7 @@ const liveRoomRouter = require('./routes/liveRoom');
 const recordingsRouter = require('./routes/recordings');
 const privateKeysRouter = require('./routes/privateKeys');
 const signEventRouter = require('./routes/signEvent');
+const nip05Router = require('./routes/nip05Router');
 const app = express();
 
 app.use(logger('dev'));
@@ -58,5 +59,7 @@ app.use('/api/v1/roomlist/', roomListRouter);
 app.use('/api/v1/scheduledevents/', scheduledEventsRouter);
 app.use('/api/v1/staticrooms/', staticRoomsRouter);
 app.use('/api/v1/staticevents/', staticEventsRouter);
+
+app.use('/.well-known/nostr.json', nip05Router);
 
 module.exports = app;
