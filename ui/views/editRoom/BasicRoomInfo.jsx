@@ -19,6 +19,8 @@ export function BasicRoomInfo({
   setIsRecordingAllowed,
   stageOnly,
   setStageOnly,
+  lud16,
+  setLud16,
 }) {
   let mqp = useMqParser();
   let [expanded, setExpanded] = useState(false);
@@ -71,6 +73,30 @@ export function BasicRoomInfo({
           }}
           onChange={e => {
             setLogoURI(e.target.value);
+          }}
+        ></input>
+        )}
+      </div>
+
+      <div className="my-2">
+        <p className="text-sm font-medium text-gray-500">
+          Lightning Address: {!iOwn && (lud16)}
+        </p>
+        {iOwn && (
+        <input
+          className={mqp(
+            'rounded-lg placeholder-gray-400 bg-gray-100 border-4 pb-2 rounded-lg w-full md:w-96'
+          )}
+          type="text"
+          placeholder="Lightning Address. When set, it will display a action to allow for tipping the room to the specified address."
+          value={lud16}
+          name="jam-room-lud16"
+          autoComplete="off"
+          style={{
+            fontSize: '15px',
+          }}
+          onChange={e => {
+            setLud16(e.target.value);
           }}
         ></input>
         )}

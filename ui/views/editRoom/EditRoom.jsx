@@ -37,6 +37,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
   let [description, setDescription] = useState(room.description || '');
   let [color, setColor] = useState(room?.color ?? 'default');
   let [logoURI, setLogoURI] = useState(room.logoURI || '');
+  let [lud16, setLud16] = useState(room.lud16 || '');
   let [backgroundURI, setBackgroundURI] = useState(room.backgroundURI || '');
   let [roomLinks, setRoomLinks] = useState(room.roomLinks || []);
   let [owners, setOwners] = useState(room.owners || []);
@@ -125,6 +126,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
       speakers,
       roomSlides,
       schedule,
+      lud16,
     });
     if (!ok) {
       alert('An error occurred. Your changes were not saved. If another owner or moderator was making changes you will need to close and reopen the setttings to make your changes.');
@@ -166,6 +168,8 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
           setIsRecordingAllowed={setIsRecordingAllowed}
           stageOnly={stageOnly}
           setStageOnly={setStageOnly}
+          lud16={lud16}
+          setLud16={setLud16}
         />
       </div>
 

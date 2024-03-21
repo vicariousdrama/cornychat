@@ -17,11 +17,23 @@ function AudioPlayerToast({close}) {
   let {name} = use(state, 'audioFile') ?? {};
   let audio = use(state, 'audioFileElement');
   let [element, setElement] = useState();
+  let vol = 1;
+  let volup = document.createElement('button');
+  volup.className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs";
+  volup.setAttribute("onclick", "if(audio.volume < .95) {audio.volume += .05} else {audio.volume = 1}");
+  volup.innerText="⬆️ Increase Volume";
+  let voldown = document.createElement('button');
+  voldown.className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs";
+  voldown.setAttribute("onclick", "if(audio.volume > .05) {audio.volume -= .05} else {audio.volume = 0}");
+  voldown.innerText="⬇️ Decrease Volume";
   useEffect(() => {
     if (element && audio) {
+      audio.id = 'audio';
       audio.controls = true;
       audio.style.width = '100%';
       element.appendChild(audio);
+      //element.appendChild(volup);
+      //element.appendChild(voldown);
       return () => {
         element.removeChild(audio);
       };
@@ -35,26 +47,26 @@ function AudioPlayerToast({close}) {
 
   return (
     <div
-      className="mt-40 w-96"
+      className="w-100"
       style={{
         position: 'absolute',
         zIndex: '10',
-        top: '24px',
-        left: '50%',
+        bottom: '0px',
+        left: '1%',
+        width: '98%',
       }}
     >
       <div
-        className="bg-gray-500 rounded-lg p-6"
+        className="bg-gray-500 rounded-lg p-2"
         ref={el => setElement(el)}
         style={{
-          position: 'relative',
-          left: '-50%',
           color: 'white',
         }}
       >
         <div
           style={{
-            display: 'flex',
+            display: 'none',
+            flex: 'flex',
             justifyContent: 'space-between',
             marginBottom: '4px',
           }}
@@ -83,7 +95,8 @@ function AudioPlayerToast({close}) {
             <CloseSvg color="white" />
           </div>
         </div>
-        <div className="mb-3 text-gray-200 text-center">{name ?? ''}</div>
+        <div className="hidden mb-1 text-gray-200 text-center">{name ?? ''}</div>
+        <div className="text-md flex" onClick={end} style={{cursor: 'pointer'}}><div className="flex"><CloseSvg color="white" /></div><div className="flex-grow"> Streaming to the room</div></div>
       </div>
     </div>
   );

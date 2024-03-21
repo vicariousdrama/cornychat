@@ -86,7 +86,7 @@ export default function Room({room, roomId, uxConfig}) {
     owners,
     closed,
     stageOnly,
-    shareUrl,
+    lud16,
   } = room || {};
 
   // Cache identities in session if I'm a moderator
@@ -165,6 +165,8 @@ export default function Room({room, roomId, uxConfig}) {
             setShowLinks,
             currentSlide,
             closed,
+            lud16,
+            room,
           }}
           audience={(nJoinedPeers+1)}
         />

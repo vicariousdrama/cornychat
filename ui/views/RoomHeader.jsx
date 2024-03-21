@@ -4,6 +4,8 @@ import gfm from 'remark-gfm';
 import {isDark} from '../lib/theme';
 import {useJamState} from '../jam-core-react/JamContext';
 import {MicOnSvg, Links, Audience, InfoR} from './Svg';
+import {Modal, openModal} from './Modal';
+import {InvoiceModal} from './Invoice';
 
 export default function RoomHeader({
   colors,
@@ -16,11 +18,21 @@ export default function RoomHeader({
   currentSlide,
   audience,
   closed,
+  lud16,
+  room,
 }) {
   let [isRecording, isPodcasting] = useJamState([
     'isSomeoneRecording',
     'isSomeonePodcasting',
   ]);
+
+  let {npub} = room || {};
+  let roomInfo = {};
+  roomInfo["identities"] = [];
+  let roomInfoId = {};
+  roomInfoId["type"] = "nostr";
+  roomInfoId["id"] = npub;
+  roomInfo["identities"].push(roomInfoId);
 
   const [displayDescription, setDisplayDescription] = useState(false);
 
@@ -99,18 +111,27 @@ export default function RoomHeader({
   }
 
   return (
-    <div className="flex justify-between my-2 mx-4">
+    <div className="flex justify-between my-2 ml-2">
 
       <div className="flex-grow">
         <div className="flex">
-          {logoURI && (
-          <div className="flex-none">
+          {(logoURI || lud16) && (
+          <div className="flex-none mr-2">
+            {logoURI && (
             <img
               alt={'room icon'}
               className="w-12 h-12 rounded p-0 m-0 mt-0"
               src={logoURI}
               style={{objectFit: 'cover'}}
             />
+            )}
+            {lud16 && (
+              <div className="w-12 cursor-pointer rounded bg-yellow-200"
+              onClick={() => {
+                openModal(InvoiceModal, {info: roomInfo, room: room});
+              }}
+              >⚡ Tip</div>
+            )}
           </div>
           )}
           <div className="flex-grow cursor-pointer"
