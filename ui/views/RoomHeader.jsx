@@ -127,6 +127,7 @@ export default function RoomHeader({
             )}
             {lud16 && (
               <div className="w-12 cursor-pointer rounded bg-yellow-200"
+              style={{backgroundColor:'rgba(21,21,21,1)',color:'rgba(221,142,42,.8'}}              
               onClick={() => {
                 openModal(InvoiceModal, {info: roomInfo, room: room});
               }}
