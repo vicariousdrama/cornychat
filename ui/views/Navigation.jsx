@@ -26,22 +26,9 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
   ]);
 
   // OnlyZaps don't like reactions or special stickies
-  let reactionsEnabled = true;
-  let stickiesEnabled = true;
-  const nostrIdentity = myIdentity?.info?.identities?.find(i => i.type === 'nostr');
-  const myNpub = nostrIdentity?.id;
-  const myName = myIdentity?.info?.name;
-  let onlyZapUsers = [
-    "puzzles", 
-    "npub12r0yjt8723ey2r035qtklhmdj90f0j6an7xnan8005jl7z5gw80qat9qrx",
-    "Austin ₿",
-    "npub1e3mx09yq53gyh9368qyuhfstgk8t7p5vvfcnvgwa4994y7rqg37s20qvr5",
-  ];
-  for (let onlyZapUser of onlyZapUsers) {
-    if (myName?.indexOf(onlyZapUser) > -1) { reactionsEnabled = false; stickiesEnabled = false; break; }
-    if (myNpub?.indexOf(onlyZapUser) > -1) { reactionsEnabled = false; stickiesEnabled = false; break; }
-  }
-
+  let onlyZapsMode = ((localStorage.getItem('onlyZapsEnabled') ?? 'false') == 'true');
+  let reactionsEnabled = !onlyZapsMode;
+  let stickiesEnabled = !onlyZapsMode;
   let mqp = useMqParser();
   let talk = () => {
     if (micOn) {
@@ -139,7 +126,7 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
           style={{width:'48px',height:'48px',backgroundColor:`rgb(17,170,17)`,color:'yellow'}}
           onClick={() => {
             handRaised = true;
-            handType = stickiesEnabled ? 'TU' : noSticky;
+            handType = 'TU';
             setProps('handRaised', handRaised);
             setProps('handType', handType);
             setShowStickies(s => !s);
@@ -149,7 +136,7 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
           style={{width:'48px',height:'48px',backgroundColor:`rgb(170,17,17)`,color:'yellow'}}
           onClick={() => {
             handRaised = true;
-            handType = stickiesEnabled ? 'TD' : noSticky;
+            handType = 'TD';
             setProps('handRaised', handRaised);
             setProps('handType', handType);
             setShowStickies(s => !s);
@@ -159,7 +146,7 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
           style={{width:'48px',height:'48px',backgroundColor:`rgb(17,17,170)`,color:'yellow'}}
           onClick={() => {
             handRaised = true;
-            handType = stickiesEnabled ? 'BRB' : noSticky;
+            handType = 'BRB';
             setProps('handRaised', handRaised);
             setProps('handType', handType);
             setShowStickies(s => !s);

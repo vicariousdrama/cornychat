@@ -70,6 +70,9 @@ export default function EditIdentity({close}) {
   let [ghostsEnabled, setGhostsEnabled] = useState(
     localStorage.getItem('ghostsEnabled') ?? 'false'
   );
+  let [onlyZapsEnabled, setOnlyZapsEnabled] = useState(
+    localStorage.getItem('onlyZapsEnabled') ?? 'false'
+  );
 
 
   let userType = (nostrIdentity == undefined ? 'anon' : 'nostr');
@@ -288,6 +291,7 @@ export default function EditIdentity({close}) {
     localStorage.setItem('byeEmoji',byeEmoji);
     localStorage.setItem('animationsEnabled',animEnabled);
     localStorage.setItem('ghostsEnabled',ghostsEnabled);
+    localStorage.setItem('onlyZapsEnabled',onlyZapsEnabled);
 
     if (verifyingNpub) {
       let identities = [];
@@ -592,6 +596,23 @@ export default function EditIdentity({close}) {
         </div>
       </div>
 
+      <div className="p-4 py-2 bg-gray-100 rounded-lg my-3">
+        <div className="p-2 text-gray-500 bold">
+        <input
+          className="rounded placeholder-gray-400 bg-gray-50 w-8"
+          type="checkbox"
+          checked={onlyZapsEnabled == 'true' ? true : false}
+          onChange={e => {
+            setOnlyZapsEnabled(e.target.checked ? 'true' : 'false');
+          }}
+        />
+          Enable Only Zaps Mode
+        </div>
+        <div className="p-2 text-gray-500 italic">
+          {`When enabled, you'll only send the lightning bolt emoji as reactions from the nav menu, and most of your static stickies will appear as the poo emoji`}
+          <span className="text-gray-300"> (optional)</span>
+        </div>
+      </div>
 
       {showErrorMsg ? <p className="text-red-500">{showErrorMsg}</p> : null}
       <div className="flex">
