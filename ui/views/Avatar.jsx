@@ -64,6 +64,16 @@ export function AudienceAvatar({
   );
 }
 
+function userIdentity(info) {
+  const hasIdentity = info?.hasOwnProperty('identities');
+//    console.log('in Profile.userIdentity',info?.name, info?.identities);
+  if (hasIdentity && (info?.identities?.length > 0)) {
+    return info.identities[0]?.id;
+  }
+
+  return undefined;
+}
+
 function Avatar({
   room,
   moderators,
@@ -106,18 +116,38 @@ function Avatar({
   }
   const nameSymbols = [
     {"name":"Marie","symbol":"🌹","title":"Valentine"},
+    {"npub":"npub1el3mgvtdjpfntdkwq446pmprpdv85v6rs85zh7dq9gvy7tgx37xs2kl27r","symbol":"🌹","title":"Valentine"},
     {"name":"TheNoshole","symbol":"🌹","title":"Puzzles Valentine"},
+    {"npub":"npub1ymt2j3n8tesrlr0yhaheem6yyqmmwrr7actslurw6annls6vnrcslapxnz","symbol":"🌹","title":"Puzzles Valentine"},
     {"name":"island","symbol":"🥃","title":"Likes Bourbon"},
+    {"npub":"npub1jzuma368395gu523y4vk4d34p0lxgctk436hggn4qcuj93075qgqtn3vm0","symbol":"🥃","title":"Likes Bourbon"},
     {"name":"Sai","symbol":"🎭","title":"Tragic Comedy"},
+    {"npub":"npub16tnq9ruem6evwmywhu69xxl0qk802f03vf8hftvkuvw0n7mmz83stxcvw5","symbol":"🎭","title":"Tragic Comedy"},
+    {"name":"puzzles","symbol":"🧩","title":"Retired Puzzle Maker"},
+    {"npub":"npub12r0yjt8723ey2r035qtklhmdj90f0j6an7xnan8005jl7z5gw80qat9qrx","symbol":"🧩","title":"Retired Puzzle Maker"},
   ];
   let hasNameSymbol = false;
   let userSymbol = null;
   let userSymbolTitle = null;
+  let userNpub = userIdentity(info);
   for(let nameSymbol of nameSymbols) {
-    if (userDisplayName.trim().indexOf(nameSymbol.name) > -1) {
-      hasNameSymbol = true;
-      userSymbol = nameSymbol.symbol;
-      userSymbolTitle = nameSymbol.title;
+    if (nameSymbol.name != undefined) {
+      if (userDisplayName.trim().indexOf(nameSymbol.name) > -1) {
+        hasNameSymbol = true;
+        userSymbol = nameSymbol.symbol;
+        userSymbolTitle = nameSymbol.title;
+        break;
+      }
+    }
+    if (nameSymbol.npub != undefined) {
+      if (userNpub != undefined) {
+        if (userNpub.trim().indexOf(nameSymbol.npub) > -1) {
+          hasNameSymbol = true;
+          userSymbol = nameSymbol.symbol;
+          userSymbolTitle = nameSymbol.title;
+          break;  
+        }
+      }
     }
   }
   hasNameSymbol = inRoom && hasNameSymbol;
