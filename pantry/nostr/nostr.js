@@ -23,14 +23,16 @@ const deleteNostrSchedule = async (roomId) => {
     const sk = nip19.decode(serverNsec).data;
     const pk = getPublicKey(sk);
     const aTagValue = `a:${pk}:${eventUUID}`;
-
+    const timestamp = Math.floor(Date.now() / 1000);
     console.log(`updating event ${eventUUID} as no longer scheduled`)
     const cleanseEvent = finalizeEvent({
-        created_at: Math.floor(Date.now() / 1000),
+        created_at: timestamp,
         kind: 31923,
         tags: [
             ["d", eventUUID],
-            ["deleted", "deleted"],
+            ["L", "com.cornychat"],
+            ["l", "deleted"],
+            ["expiration", `${timestamp}`],
             ["title", "Deleted Event"],
             ["start", `0`],
             ["end", `0`],
@@ -38,15 +40,26 @@ const deleteNostrSchedule = async (roomId) => {
         content: 'This event is no longer scheduled',
     }, sk);
     pool.publish(cleanseEvent, relaysToUse);
+
     await sleep(100);
     console.log(`deleting event ${eventUUID}`)
     const deleteEvent = finalizeEvent({
-        created_at: Math.floor(Date.now() / 1000),
+        created_at: timestamp,
         kind: 5,
         tags: [["a", aTagValue]],
         content: 'This event is no longer scheduled',
     }, sk);
     pool.publish(deleteEvent, relaysToUse);
+
+    await sleep(100);
+    const kind1content = `The previously scheduled event for this audiospace room has been deleted.`;
+    const kind1event = finalizeEvent({
+        created_at: timestamp,
+        kind: 1,
+        tags: [],
+        content: kind1content,
+    }, sk);
+    pool.publish(kind1event, relaysToUse);
 }
 
 const getScheduledEvents = async () => {
@@ -57,7 +70,7 @@ const getScheduledEvents = async () => {
             // This allows other services like Nostr Nests to publish scheduled events if they want to
             // be included on the schedule
             //const filter = [{kinds: [31923], '#t':['audiospace']}]; 
-            const calendarFilter = [{kinds: [31923], '#t':['audiospace'], limit: 5000}];
+            const calendarFilter = [{kinds: [31923], limit: 5000}];
             let calendarEvents = [];
             let currentTime = Math.floor(Date.now() / 1000);
             let daySeconds = 86400; // 24 * 60 * 60
@@ -70,6 +83,7 @@ const getScheduledEvents = async () => {
             const liveactivitiesFilter = [{kinds: [30311], limit: 5000}];
             let liveActivitiesEvents = [];
             let scheduledEventLimit = 12;
+            let audioSpaceCount = 0;
 
             setTimeout(() => {
                 let deletedAudiospaces = [];
@@ -117,11 +131,20 @@ const getScheduledEvents = async () => {
                                 continue;
                             }
                         }
-                        if (eventTag[0] == 't' && eventTag[1] == 'audiospace') { isAudioSpace = true; }
+                        if (eventTag[0] == 't' && eventTag[1] == 'audiospace') { isAudioSpace = true; } // backwards compatible, can remove after 20240401
+                        if (eventTag[0] == 'l' && eventTag[1] == 'audiospace') { isAudioSpace = true; }
                         if (eventTag[0] == 'location' && eventTag[1].length > 0)  { location = eventTag[1]; }
                         if (eventTag[0] == 'title' && eventTag[1].length > 0)     { title = eventTag[1]; }
                         if (eventTag[0] == 'image' && eventTag[1].length > 0)     { image = eventTag[1]; }
-                        if (eventTag[0] == 'deleted' && eventTag[1].length > 0)   { isDeleted = true; }
+                        if (eventTag[0] == 'deleted' && eventTag[1].length > 0)   { isDeleted = true; } // backwards compatible, can remove after 20240401
+                        if (eventTag[0] == 'expiration' && eventTag[1].length > 0) {
+                            try {
+                                let expirationTime = parseInt(eventTag[1]);
+                                if (expirationTime < timestamp) {
+                                    isDeleted = ture;
+                                }
+                            } catch(error) { continue; }
+                        }
                         if (eventTag[0] == 'd' && eventTag[1].length > 0)         { dTag = eventTag[1]; }
                     }
                     // Check for deleted
@@ -162,7 +185,9 @@ const getScheduledEvents = async () => {
                         continue;                  // must start within 1 week
                     }
                     // check for required fields
-                    if (!isAudioSpace) continue;
+                    if (!isAudioSpace) {
+                        continue;
+                    }
                     if (!(title && location && startTime && endTime)) {
                         //console.log('skipping event that is missing one of title, location, startTime, endTime');
                         continue;
@@ -176,6 +201,7 @@ const getScheduledEvents = async () => {
                         location,
                         title,
                     }
+                    audioSpaceCount += 1;
                     matchedEvents.push(matchedEvent);
                 }
 
@@ -348,6 +374,7 @@ const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => 
     const title = schedule?.title ?? `Corny Chat: ${roomId}`;
     const content = (schedule?.summary ?? `This event is scheduled on Corny Chat in room: ${roomId}`) + `\n\n${roomUrl}`;
     const timezone = schedule?.timezone ?? 'Europe/London';
+    const labelNamespace = "com.cornychat";      // Other instances SHOULD NOT change this
     const tags = [
         ["d", eventUUID],
         ["title", title],
@@ -359,8 +386,9 @@ const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => 
         ["location", roomUrl],
         ["about", content],                      // Undocumented Flockstr tag
         ["image", logoURI],                      // Undocumented Flockstr tag
-        ["t", jamHost],
-        ["t", "audiospace"],                     // Need to document all these tags for sanity
+        ["L", labelNamespace],                   // Need to document all these tags for sanity
+        ["l", jamHost, labelNamespace],
+        ["l", "audiospace", labelNamespace],
         ["r", roomUrl],
         ["p", scheduledByPubkey, "", "host"],
     ]
@@ -412,6 +440,9 @@ const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => 
         created_at: Math.floor(Date.now() / 1000),
         kind: 1,
         tags: [
+            ["L", labelNamespace],
+            ["l", jamHost, labelNamespace],
+            ["l", "audiospace", labelNamespace],
             ["r", roomUrl],
             ["t", "audiospace"],
         ],
