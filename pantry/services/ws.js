@@ -127,7 +127,7 @@ function handleConnection(ws, req) {
     handleForwardingConnection(ws, req);
     return;
   }
-  console.log('ws open', roomId, peerId, subs);
+  //console.log('ws open', roomId, peerId, subs); // ws open mainchat 9v32sRPpNqbpe0RYLlYdjtTeOxqXoMIvdpqTB3GQ1OM.da4f [ 'all' ]
   let lastPing = Date.now();
   let pingCount = 0;
   let interval = setInterval(() => {
@@ -230,21 +230,10 @@ function activeUserCount() {
     .reduce((aggregate, current) => aggregate + current, 0);
 }
 function activeUsersInRoom(roomId) {
-  return activeUsersInRoomOLD(roomId);
-}
-function activeUsersInRoomOLD(roomId) {
   let peersInRoom = getPeers(roomId).map(
     combinedPeerId => combinedPeerId.split('.')[0]
   );
   // make list unique
-  return [...new Set(peersInRoom)];
-}
-function activeUsersInRoomNEW(roomId) {
-  let peersInRoom = getConnections(roomId)
-    .filter(c => c.ws.readyState == WebSocket.OPEN)
-    .map(c => c.peerId)
-    .map(p => p.split('.')[0]);
-  console.log('room',roomId, 'peers',peersInRoom);
   return [...new Set(peersInRoom)];
 }
 
@@ -307,7 +296,7 @@ function addPeer(roomId, connection) {
     roomConnections.get(roomId) ??
     roomConnections.set(roomId, new Set()).get(roomId);
   connections.add(connection);
-  console.log('all peers:', getPeers(roomId));
+  //console.log('all peers:', getPeers(roomId));
 }
 function removePeer(roomId, connection) {
   let connections = roomConnections.get(roomId);
@@ -315,7 +304,7 @@ function removePeer(roomId, connection) {
     connections.delete(connection);
     if (connections.size === 0) roomConnections.delete(roomId);
   }
-  console.log('all peers:', getPeers(roomId));
+  //console.log('all peers:', getPeers(roomId));
 }
 
 async function removeKeys(roomId, userId) {

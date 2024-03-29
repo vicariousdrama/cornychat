@@ -71,11 +71,11 @@ const getScheduledEvents = async () => {
             // be included on the schedule
             //const filter = [{kinds: [31923], '#t':['audiospace']}]; 
             const calendarFilter = [{kinds: [31923], limit: 5000}];
+            const timestamp = Math.floor(Date.now() / 1000);
             let calendarEvents = [];
-            let currentTime = Math.floor(Date.now() / 1000);
             let daySeconds = 86400; // 24 * 60 * 60
             let hourSeconds = 3600;
-            let maxTime = currentTime + (7 * daySeconds);
+            let maxTime = timestamp + (30 * daySeconds);
             let waitForEvents = 5000; // 5 seconds
             let matchedEvents = [];
             const deleteFilter = [{kinds: [5], limit: 5000}];
@@ -176,7 +176,7 @@ const getScheduledEvents = async () => {
                         //console.log('skipping event that lasts more than 1 day')
                         continue;     // exclude events lasting more than 1 day
                     }
-                    if ((startTime < currentTime) && (endTime + hourSeconds < currentTime)) {
+                    if ((startTime < timestamp) && (endTime + hourSeconds < timestamp)) {
                         //console.log('skipping event that has ended more than an hour ago');
                         continue;
                     }
@@ -305,7 +305,7 @@ const getScheduledEvents = async () => {
                             //console.log('skipping event that lasts more than 1 day')
                             continue;     // exclude events lasting more than 1 day
                         }
-                        if ((startTime < currentTime) && (endTime + hourSeconds < currentTime)) {
+                        if ((startTime < timestamp) && (endTime + hourSeconds < timestamp)) {
                             //console.log('skipping event that has ended more than an hour ago');
                             continue;
                         }

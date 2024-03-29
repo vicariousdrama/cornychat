@@ -6,15 +6,21 @@ const router = express.Router({mergeParams: true});
 
 router.get('', async function (req, res) {
     res.type('application/json');
-    let roomKeys = await list('rooms/');
+
+    let dt = new Date();
+    let dti = dt.toISOString();
+    let dts = dti.replaceAll('-','').replace('T','').slice(0,10);
+    let k = `usagetracking/${dts}/`;
+    let activeRoomTrackingKeys = await list (k);
+//    let roomKeys = await list('rooms/');
     let rooms = [];
-    let privateRooms = await get('privaterooms');
+    let privateRooms = await get('privaterooms');   // deprecated
     if (privateRooms == null) {
         privateRooms = [];
     }
-    for(let i = 0; i < roomKeys.length; i++) {
-        let roomId = roomKeys[i].split('/')[1];
-        if (privateRooms.includes(roomId)) {
+    for(let activeRoomTrackingKey of activeRoomTrackingKeys) {
+        let roomId = activeRoomTrackingKey.split('/').slice(-1)[0];
+        if (privateRooms.includes(roomId)) {        // deprecated
             continue;
         }
         let peerIds = await activeUsersInRoom(roomId);
@@ -24,7 +30,8 @@ router.get('', async function (req, res) {
         //    userInfo = await Promise.all(peerIds.map(id => get(`identities/${id}`)));
         //}
         if(userCount > 0) {
-            let roomInfo = await get(roomKeys[i]);
+            let roomKey = "rooms/" + roomId;
+            let roomInfo = await get(roomKey);
             let isClosed = roomInfo?.closed ?? false;
             let isPrivate = roomInfo?.isPrivate ?? false;
             if (isPrivate || isClosed) {

@@ -214,6 +214,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
       <div className="px-4 py-2 bg-gray-100 rounded-lg my-3">
         <Slides
           iOwn={iOwn}
+          roomId={roomId}
           roomSlides={roomSlides}
           setRoomSlides={setRoomSlides}
           textColor={textColor}

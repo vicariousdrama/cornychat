@@ -1,8 +1,12 @@
 import React, {useState} from 'react';
 import {useMqParser} from '../../lib/tailwind-mqp';
+import {ExportSlidesModal} from './ExportSlides';
+import {ImportSlidesModal} from './ImportSlides';
+import {openModal} from '../Modal';
 
 export function Slides({
   iOwn,
+  roomId,
   roomSlides,
   setRoomSlides,
   textColor,
@@ -14,7 +18,6 @@ export function Slides({
   let [slideText, setSlideText] = useState('');
 
   function RoomSlides() {
-    let activeSlide = -1;
     if (roomSlides.length === 0) {
       return (
         <div>
@@ -70,13 +73,13 @@ export function Slides({
                 <p className="text-xs text-gray-500" style={{overflowWrap: 'anywhere'}}>{slideText}</p>
               </div>
               <div className="flex w-full justify-end" style={{width: '100px'}}>
-                <div onClick={() => promoteSlide(index)} className="cursor-pointer">
+                <div onClick={() => promoteSlide(index)} className="cursor-pointer text-xl">
                   ⬆️
                 </div>
-                <div onClick={() => demoteSlide(index)} className="cursor-pointer">
+                <div onClick={() => demoteSlide(index)} className="cursor-pointer text-xl">
                   ⬇️
                 </div>
-                <div onClick={() => removeSlide(index)} className="cursor-pointer">
+                <div onClick={() => removeSlide(index)} className="cursor-pointer text-xl">
                   🗑️
                 </div>
               </div>
@@ -94,6 +97,56 @@ export function Slides({
       </p>
       <div className={expanded ? '' : 'hidden'}>
       <div className="mb-2">
+        <div className="flex justify-between">
+          <button
+            className="px-5 h-12 text-sm rounded-md"
+            style={{
+              color: (roomSlides.length > 0) ? textColor : `rgba(244,244,244,1)`,
+              backgroundColor: (roomSlides.length > 0) ? roomColor.buttons.primary : `rgba(192,192,192,1)`,
+            }}
+            onClick={() => {
+              if (roomSlides.length == 0) return;
+              let result = confirm('Are you sure you want to clear all slides?');
+              if (result != true) return;
+              setRoomSlides([]);
+            }}
+          >
+            Clear all slides
+          </button>
+          {window.nostr && (
+          <button
+            className="px-5 h-12 text-sm rounded-md"
+            style={{
+              color: textColor,
+              backgroundColor: roomColor.buttons.primary,
+            }}
+            onClick={() => {
+              openModal(ImportSlidesModal, {textColor: textColor, roomColor: roomColor, roomSlides: roomSlides, setRoomSlides: setRoomSlides});
+              return;
+            }}
+          >
+            Import Slides
+          </button>
+          )}
+          {window.nostr && (
+          <button
+            className="px-5 h-12 text-sm rounded-md"
+            style={{
+              color: (roomSlides.length > 0) ? textColor : `rgba(244,244,244,1)`,
+              backgroundColor: (roomSlides.length > 0) ? roomColor.buttons.primary : `rgba(192,192,192,1)`,
+            }}
+            onClick={() => {
+              if (roomSlides.length > 0) {
+                close();
+                openModal(ExportSlidesModal, {roomId: roomId, textColor: textColor, roomColor: roomColor, roomSlides: roomSlides});
+              }
+              return;
+            }}
+          >
+            Export Slides
+          </button>
+          )}
+        </div>
         <p className="text-sm font-medium text-gray-500 p-2">
           Add a slide to the end of the list:
         </p>
