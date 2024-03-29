@@ -672,3 +672,146 @@ export const isValidNostr = (info) => {
   }
   return r;
 }
+
+function getLabelForKind(kind) {
+  switch(kind) {
+    case 30388: return "Corny Chat Slide Set";
+    case 31388: return "Corny Chat Link Set";
+    case 32388: return "Corny Chat Room Favorites";
+    default: return "Unlabeled Kind";
+  }
+}
+
+export async function saveList(dTagValue, name, about, image, kind, theList) {
+  const pool = new RelayPool();
+  const defaultRelays = [
+    'wss://nos.lol',
+    'wss://relay.damus.io',
+    //'wss://nostr-pub.wellorder.net',
+    'wss://nostr.mutinywallet.com',
+    'wss://relay.snort.social',
+    'wss://relay.primal.net',
+  ];
+  //let dTagValue = "cornychat-" + name.replace(/[^A-Za-z0-9]/g, '');
+  let l = getLabelForKind(kind);
+  let iUrl = 0;
+  let iCaption = 1;
+  switch(kind) {
+    case 30388: 
+      iUrl = 0;
+      iCaption = 1;
+      break;
+    case 31388:
+      iUrl = 1;
+      iCaption = 0;
+      break;
+    case 32388:
+      iUrl = 0;
+      iCaption = 1;
+      break;
+  }
+  let tags = [
+    ["name", name],
+    ["about", about],
+    ["image", image],
+    ["L", "com.cornychat"],
+    ["l", l, "com.cornychat"],
+    ["d", dTagValue],
+  ];
+  theList.map((obj, index) => {
+    let u = obj[iUrl];
+    let c = obj[iCaption];
+    tags.push(["r", u, c]);
+  })
+
+  let event = {
+    id: null,
+    pubkey: null,
+    created_at: Math.floor(Date.now() / 1000),
+    kind: kind,
+    tags: tags,
+    content: "",
+    sig: null,
+  };
+  const eventSigned = await window.nostr.signEvent(event);
+  if (!eventSigned) {
+    return [false, 'There was an error with your nostr extension'];
+  } else {
+    console.log(eventSigned);
+    // push to relays
+    pool.publish(eventSigned, defaultRelays);
+    return [true, ''];
+  }  
+}
+
+export async function loadList(kind, pubkey) {
+  return new Promise((res, rej) => {
+    try {
+      let events = [];
+      const pool = new RelayPool();
+      const defaultRelays = [
+        'wss://nos.lol',
+        'wss://relay.damus.io',
+        'wss://nostr.mutinywallet.com',
+        'wss://relay.snort.social',
+        'wss://relay.primal.net',
+      ];
+      const userRelays = []; // getUserRelays();
+      const relaysToUse = [...userRelays, ...defaultRelays];
+      const timestamp = Math.floor(Date.now() / 1000);
+      const filter = {kinds:[kind]}
+      if (pubkey != undefined) {
+        filter["authors"] = [pubkey];
+      }
+      const filters = [filter];
+      setTimeout(() => {
+        let validEvents = [];
+        for (let event of events) {
+          let foundLabel = false;
+          let foundNamespace = false;
+          for (let tag of event.tags) {
+            if (tag.length > 1) {
+              let k = tag[0];
+              let v = tag[1];
+              if (k == 'expiration') {
+                try {
+                  let expirationTime = parseInt(v);
+                  if (expirationTime < timestamp) {
+                    continue;
+                  }
+                } catch(error) { continue; }
+              }
+              if (k == 'L') {
+                if (v == 'com.cornychat') {
+                  foundNamespace = true;
+                }
+              }
+              if (k == 'l') {
+                if (v == getLabelForKind(kind)) {
+                  foundLabel = true;
+                }
+              }
+            }
+          }
+          if (!foundLabel) continue;
+          if (!foundNamespace) continue;
+          // if we got here, the event is valid
+          validEvents.push(event);
+        }
+        res(validEvents);
+      }, 3000);
+      pool.subscribe(
+        filters,
+        relaysToUse,
+        (event, onEose, url) => { events.push(event); },
+        undefined,
+        undefined,
+        { unsubscribeOnEose: true, allowDuplicateEvents: false, allowOlderEvents: false }
+      );
+    } catch (error) {
+      rej(undefined);
+      console.log('There was an error when getting user metadata: ', error);
+    }
+
+  });
+}

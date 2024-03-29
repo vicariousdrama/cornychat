@@ -68,13 +68,13 @@ export function Links({
                 <p className="text-xs text-gray-500" style={{overflowWrap: 'anywhere'}}>{linkText}</p>
               </div>
               <div className="flex w-full justify-end" style={{width: '100px'}}>
-                <div onClick={() => promoteLink(index)} className="cursor-pointer">
+                <div onClick={() => promoteLink(index)} className="cursor-pointer text-xl">
                   ⬆️
                 </div>
-                <div onClick={() => demoteLink(index)} className="cursor-pointer">
+                <div onClick={() => demoteLink(index)} className="cursor-pointer text-xl">
                   ⬇️
                 </div>
-                <div onClick={() => removeLink(index)} className="cursor-pointer">
+                <div onClick={() => removeLink(index)} className="cursor-pointer text-xl">
                   🗑️
                 </div>
               </div>

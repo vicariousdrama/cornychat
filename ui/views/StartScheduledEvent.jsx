@@ -1,25 +1,16 @@
 import React from 'react';
-import {rawTimeZones, getTimeZones} from '@vvo/tzdb';
 
 export default function StartScheduledEvent({
     eventInfo,
   }) {
     //available fields:  startTime, endTime, image, location, title
 
-    let timeZoneName = Intl.DateTimeFormat().resolvedOptions().timeZone; // Europe/London
-    let timeZoneOffset = 0;
-    let timeZoneAbbrev = 'UTC';
-    for(let r =0; r < rawTimeZones.length; r++) {
-        if(rawTimeZones[r].name == timeZoneName) {
-            timeZoneOffset = rawTimeZones[r].rawOffsetInMinutes * -60;
-            timeZoneAbbrev = rawTimeZones[r].abbreviation;
-        }
-    }
     const date = new Date(eventInfo.startTime * 1000);
     var dateOptions = { weekday: 'long', month: 'long', day: 'numeric' }; 
     const humanDate = new Intl.DateTimeFormat('en-us',dateOptions).format(date);
-    var timeOptions = { timeStyle: 'short'};
-    const humanTime = new Intl.DateTimeFormat('en-us',timeOptions).format(date);
+    var timeOptions = { timeStyle: 'long'};
+    const humanTimeL = new Intl.DateTimeFormat('en-us',timeOptions).format(date);
+    const humanTime = humanTimeL.split(":",2).join(":") + humanTimeL.slice(-7);
 
     var coloringStyle = {
         backgroundColor: 'rgb(7,74,40)',
@@ -57,7 +48,7 @@ export default function StartScheduledEvent({
                         style={{width: '64px', height: '64px', objectFit: 'cover'}} />
                 </td>
                 <td align="left">{eventInfo?.title ?? eventInfo.location}</td></tr>
-            <tr><td align="right" class="text-sm">{humanDate} at {humanTime} {timeZoneAbbrev}</td></tr>
+            <tr><td align="right" class="text-sm">{humanDate} at {humanTime}</td></tr>
             </table>
         </div>
         </a>
