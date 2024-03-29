@@ -78,7 +78,51 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
   let [schedule, setSchedule] = useState(room.schedule);
 
   function decodeHTMLEncoded(v) {
-    let o = v.replace('&amp;','&');
+    let o = v;
+    let goagain = false;
+    while (o.indexOf("&amp;") > -1) {
+      o = o.replaceAll("&amp;", "&");
+      goagain = true;
+    }
+    while (o.indexOf("&#38;") > -1) {
+      o = o.replaceAll("&#38;", "&");
+      goagain = true;
+    }
+    while (o.indexOf("&lt;") > -1) {
+      o = o.replaceAll("&lt;", "<");
+      goagain = true;
+    }
+    while (o.indexOf("&#60;") > -1) {
+      o = o.replaceAll("&#60;", "<");
+      goagain = true;
+    }
+    while (o.indexOf("&gt;") > -1) {
+      o = o.replaceAll("&gt;", ">");
+      goagain = true;
+    }
+    while (o.indexOf("&#62;") > -1) {
+      o = o.replaceAll("&#62;", ">");
+      goagain = true;
+    }
+    while (o.indexOf("&apos;") > -1) {
+      o = o.replaceAll("&apos;", "'");
+      goagain = true;
+    }
+    while (o.indexOf("&#39;") > -1) {
+      o = o.replaceAll("&#39;", "'");
+      goagain = true;
+    }
+    while (o.indexOf("&quot;") > -1) {
+      o = o.replaceAll("&quot;", "\"");
+      goagain = true;
+    }
+    while (o.indexOf("&#38;") > -1) {
+      o = o.replaceAll("&#38;", "\"");
+      goagain = true;
+    }
+    if (goagain) {
+      return decodeHTMLEncoded(o);
+    }
     return o;
   }
 
