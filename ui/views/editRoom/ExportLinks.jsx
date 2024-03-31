@@ -2,19 +2,18 @@ import React, {useState} from 'react';
 import {Modal} from '../Modal';
 import {saveList} from '../../nostr/nostr';
 
-export const ExportSlidesModal = ({
+export const ExportLinksModal = ({
     close,
     roomId,
     textColor,
     roomColor,
-    roomSlides,
+    roomLinks,
 }) => {
   const dt = new Date();
   const shortdate = dt.toISOString().replaceAll(':','-').replaceAll('T','.').replaceAll('-','').slice(0,13);
   const [dTagValue, setDTagValue] = useState(`cornychat-${roomId}`);
   const [name, setName] = useState('');
   const [about, setAbout] = useState('');
-  const [slideUrl, setSlideUrl] = useState('');
   const [displayError, setDisplayError] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -23,57 +22,22 @@ export const ExportSlidesModal = ({
     if (dTag.length == 0) {
         dTag = shortdate;
     }
-    let result = await saveList(dTag, name, about, slideUrl, 30388, roomSlides);
+    let imageUrl = jamConfig.urls.jam.replaceAll('/localhost/','/cornychat.com/') + '/img/cornychat-links.png';
+    let result = await saveList(dTag, name, about, imageUrl, 31388, roomLinks);
     if (!result[0]) {
         setErrorMsg(result[1]);
         setDisplayError(true);
     } else {
         close();
-        alert('Slide List published to relays');
+        alert('Link List published to relays');
         return;
     }
   }
 
-  function RoomSlideChoices() {
-    return (
-      <>
-      {roomSlides.map((roomSlide, index) => {
-        let roomSlideUrl = roomSlide[0];
-        let roomSlideChoiceUrl = roomSlideUrl;
-        if (roomSlideUrl == slideUrl) {
-        return (
-          <div
-            className="w-16 h-16 m-2 border-2 rounded-lg border-blue-500"
-          >
-            <img
-              src={roomSlideUrl}
-              className="w-full h-full"
-            />
-          </div>
-        );
-        } else {
-        return (
-          <div
-            onClick={() => setSlideUrl(roomSlideChoiceUrl)}
-            className="w-16 h-16 m-2 cursor-pointer hover:border-blue-500"
-          >
-            <img
-              src={roomSlideChoiceUrl}
-              className="w-full h-full"
-            />
-          </div>
-        );
-        }
-      })}
-      </>
-    );
-  }
-
-
   return (
     <Modal close={close}>
       <div className="bg-white p-6 rounded-lg">
-        <h2 className="text-2xl font-bold">Export Slides</h2>
+        <h2 className="text-2xl font-bold">Export Links</h2>
         <p>
           Unique ID
         </p>
@@ -113,12 +77,6 @@ export const ExportSlidesModal = ({
             setAbout(e.target.value);
           }}
         />
-        <p>
-            Choose the slide that should be the slide set cover
-        </p>
-        <div className="flex flex-wrap justify-between">
-          <RoomSlideChoices />
-        </div>
         <button
           className="py-2 px-4 rounded text-center w-full"
           style={{

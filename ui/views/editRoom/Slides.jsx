@@ -113,7 +113,8 @@ export function Slides({
           >
             Clear all slides
           </button>
-          {window.nostr && (
+          {window.nostr ? (
+          <>
           <button
             className="px-5 h-12 text-sm rounded-md"
             style={{
@@ -127,8 +128,6 @@ export function Slides({
           >
             Import Slides
           </button>
-          )}
-          {window.nostr && (
           <button
             className="px-5 h-12 text-sm rounded-md"
             style={{
@@ -145,6 +144,11 @@ export function Slides({
           >
             Export Slides
           </button>
+          </>
+          ) : (
+          <div className="h-12 mx-2 text-sm rounded-md border-2 border-gray-300 w-full">
+            Use a nostr extension for import/export capability
+          </div>
           )}
         </div>
         <p className="text-sm font-medium text-gray-500 p-2">

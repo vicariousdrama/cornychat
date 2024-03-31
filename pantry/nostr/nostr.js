@@ -233,7 +233,14 @@ const getScheduledEvents = async () => {
                             if (eventTag[0] == 'starts' && eventTag[1].length > 0) {
                                 try {
                                     startTime = parseInt(eventTag[1]);
-                                    endTime = startTime + 3600; // just force to an hour length
+                                    endTime = startTime + (hourSeconds * 2); // assume 2 hour length
+                                } catch(error) {
+                                    continue;
+                                }
+                            }
+                            if (eventTag[0] == 'ends' && eventTag[1].length > 0) {
+                                try {
+                                    endTime = parseInt(eventTag[1]);
                                 } catch(error) {
                                     continue;
                                 }
@@ -257,12 +264,12 @@ const getScheduledEvents = async () => {
                             if (das.d == dTag) isDeleted = true;
                         }
                         if (isDeleted) {
-                            //console.log('skipping activity that was deleted');
+                            console.log(`skipping activity ${dTag} that was deleted`);
                             continue;
                         }
                         // Must have service tag
                         if (service == undefined) {
-                            //console.log('skipping activity that has no service');
+                            console.log(`skipping activity ${dTag} that has no service`);
                             continue;
                         }
                         // SPECIAL FIX FOR NOSTRNESTS: Set location if service is nostrnests
@@ -290,32 +297,32 @@ const getScheduledEvents = async () => {
                         }
                         // Reject based on erroneous time
                         if (startTime == undefined) {
-                            //console.log('skipping event that has no start time');
+                            console.log(`skipping event ${dTag} that has no start time`);
                             continue;               // must have a time
                         }
                         if (endTime == undefined) {
-                            //console.log('skipping event that has no end time');
+                            console.log(`skipping event ${dTag} that has no end time`);
                             continue;                 // must have a time
                         }
                         if (startTime > endTime) {
-                            //console.log('skipping event that starts after it ends');
+                            console.log(`skipping event ${dTag} that starts after it ends`);
                             continue;                  // must begin before ending
                         }
                         if (endTime - startTime > daySeconds) {
-                            //console.log('skipping event that lasts more than 1 day')
+                            console.log(`skipping event ${dTag} that lasts more than 1 day`);
                             continue;     // exclude events lasting more than 1 day
                         }
                         if ((startTime < timestamp) && (endTime + hourSeconds < timestamp)) {
-                            //console.log('skipping event that has ended more than an hour ago');
+                            console.log(`skipping event ${dTag} that has ended more than an hour ago`);
                             continue;
                         }
                         if (startTime > maxTime) {
-                            //console.log('skipping event that starts more than a week from now');
+                            console.log(`skipping event ${dTag} that starts more than a week from now`);
                             continue;                  // must start within 1 week
                         }
                         // check for required fields
                         if (!(title && location && startTime && endTime)) {
-                            //console.log('skipping event that is missing one of title, location, startTime, endTime');
+                            console.log(`skipping event ${dTag} that is missing one of title, location, startTime, endTime`);
                             continue;
                         }
                         console.log(`adding a matched event: ${title} (${location} starting ${startTime})`);
