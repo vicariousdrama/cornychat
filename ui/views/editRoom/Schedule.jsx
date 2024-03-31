@@ -318,10 +318,10 @@ export function Schedule({
           </div>
           )}
           {(nostrNpub.length == 0) && (
-            <div className="text-gray-500 p-3">
-            You must identify with nostr to schedule an event
-            </div>
-          )}
+          <div className="h-12 mx-2 text-sm rounded-md border-2 border-gray-300 w-full text-gray-500">
+            Use a nostr extension to schedule an event
+          </div>
+        )}
         </form>
       </div>
       </div>

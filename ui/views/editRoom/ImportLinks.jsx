@@ -2,92 +2,95 @@ import React, {useState, useEffect} from 'react';
 import {Modal} from '../Modal';
 import {loadList} from '../../nostr/nostr';
 
-export const ImportSlidesModal = ({
+export const ImportLinksModal = ({
     close,
     textColor,
     roomColor,
-    roomSlides,
-    setRoomSlides,
+    roomLinks,
+    setRoomLinks,
 }) => {
   const [loadingData, setLoadingData] = useState(true);
-  const [slideListId, setSlideListId] = useState('');
-  const [slideLists, setSlideLists] = useState([]);
+  const [linkListId, setLinkListId] = useState('');
+  const [linkLists, setLinkLists] = useState([]);
 
   useEffect(() => {
     const loadData = async () => {
         setLoadingData(true);
         let pubkey = await window.nostr.getPublicKey();
-        let loadedSlideLists = await loadList(30388, pubkey);
-        setSlideLists(loadedSlideLists);
+        let loadedLinkLists = await loadList(31388, pubkey);
+        setLinkLists(loadedLinkLists);
         setLoadingData(false);
     };
     loadData();
   }, []);
 
-  async function addslides() {
-    if (slideLists == undefined || slideLinks.length == 0) {
-      close();
-      return;
+  async function addlinks() {
+    if (linkLists == undefined || linkLists.length == 0) {
+        close();
+        return;
     }
-    let newSlides = roomSlides;
-    slideLists.map((slideList, index) => {
-      if (slideList.id == slideListId) {
-        for (let tag of slideList.tags) {
+    let newLinks = roomLinks;
+    linkLists.map((linkList, index) => {
+      if (linkList.id == linkListId) {
+        for (let tag of linkList.tags) {
           if (tag.length < 3) continue;
           if (tag[0] != 'r') continue;
           let u = tag[1];
           let c = tag[2];
           // dont add duplicate urls
           let addit = true;
-          for (let s of newSlides) {
-            addit &= (s[0] != u);
+          if (u != '') { // links can have empty url for section groups
+            for (let l of newLinks) {
+              addit &= (l[1] != u);
+            }
           }
-          if (addit) newSlides.push([u,c]);
+          if (addit) newLinks.push([c,u]);
         }
       }
     });
-    setRoomSlides(newSlides);
+    setRoomLinks(newLinks);
     close();
     return;
   }
 
-  function SlideListChoices() {
-    if (slideLists == undefined || slideLists.length == 0) {
+  function LinkListChoices() {
+    if (linkLists == undefined || linkLists.length == 0) {
         return (
             <div className="text-md">
-                There were no slide lists found to import from.  
-                Use the export function to create a slide list before attempting to import it.
+                There were no link lists found on relays to import from.  
+                Use the export function to create a link list before attempting to import it.
             </div>            
         );
     }
-    let currentSlideListId = '';
+    let currentLinkListId = '';
     return (<>
-        {slideLists.map((slideList) => {
-            let created_at = slideList.created_at;
-            let id = slideList.id;
+        {linkLists.map((linkList) => {
+            let created_at = linkList.created_at;
+            let id = linkList.id;
             let dTag = '';
             let name = '';
             let about = '';
             let image = '';
-            let slidecount = 0;
-            for (let tag of slideList.tags) {
+            let linkcount = 0;
+            for (let tag of linkList.tags) {
                 if (tag.length < 2) continue;
                 if (tag[0] == 'd') dTag = tag[1];
                 if (tag[0] == 'name') name = tag[1];
                 if (tag[0] == 'about') about = tag[1];
                 if (tag[0] == 'image') image = tag[1];
-                if (tag[0] == 'r') slidecount += 1;
+                if (tag[0] == 'r') linkcount += 1;
             }
-            if (currentSlideListId == '') {
+            if (currentLinkListId == '') {
                 // assign first
-                currentSlideListId = id;
-                setSlideListId(currentSlideListId);
-            } 
+                currentLinkListId = id;
+                setLinkListId(currentLinkListId);
+            }
+            image = image.replaceAll('/localhost/','/cornychat.com/');
             const date = new Date(created_at * 1000);
             var dateOptions = { weekday: 'long', month: 'long', day: 'numeric' }; 
             const humanDate = new Intl.DateTimeFormat('en-us',dateOptions).format(date);
-            if (slidecount > 0) {
-                if (currentSlideListId == id) {
+            if (linkcount > 0) {
+                if (currentLinkListId == id) {
                     return (
                         <div className="select-none px-0 text-lg rounded-lg m-2 border-2 border-blue-500 w-full">
                             <table className="w-full" cellpadding="0" cellspacing="0" border="0" style={{maxWidth:'3500px'}}>
@@ -110,7 +113,7 @@ export const ImportSlidesModal = ({
                 } else {
                     return (
                         <div className="select-none px-0 text-lg rounded-lg m-2 border-2 hover:border-blue-500 w-full cursor-pointer"
-                            onClick={() => setSlideListId(id)}
+                            onClick={() => setLinkListId(id)}
                         >
                             <table className="w-full" cellpadding="0" cellspacing="0" border="0" style={{maxWidth:'3500px'}}>
                             <tr>
@@ -138,15 +141,15 @@ export const ImportSlidesModal = ({
   return (
     <Modal close={close}>
       <div className="bg-white p-6 rounded-lg">
-        <h2 className="text-2xl font-bold">Import Slides</h2>
+        <h2 className="text-2xl font-bold">Import Links</h2>
         <>
         <p>
-          Slide Lists
+          Link Lists
         </p>
         <div className="flex flex-wrap justify-between">
-          { loadingData ? (<h4>Loading...</h4>) : ( <SlideListChoices /> )}
+          { loadingData ? (<h4>Loading...</h4>) : ( <LinkListChoices /> )}
         </div>
-        {(slideLists.length > 0) && (
+        {(linkLists.length > 0) && (
         <button
           className="py-2 px-4 rounded text-center w-full"
           style={{
@@ -154,12 +157,12 @@ export const ImportSlidesModal = ({
             color: textColor,
           }}
           onClick={async () => {
-            if (slideLists != undefined) {
-                await addslides();
+            if (linkLists != undefined) {
+                await addlinks();
             }
           }}
         >
-          Add slides to room from selected slide list
+          Add links to room from selected link list
         </button>
         )}
         </>

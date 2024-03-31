@@ -33,7 +33,7 @@ export default function RoomSlides({
     if (roomSlides && (sn > -1) && (sn < rsl)) {
       let slideUrl = roomSlides[sn][0];
       let slideText = roomSlides[sn][1];
-      let isImage = true;
+      let isImage = true; // assume its an image
       let isVideo = false;
       let isIFrame = false;
       if (slideUrl.endsWith('.mp4')) {
@@ -74,6 +74,7 @@ export default function RoomSlides({
             </div>
             )}
             <div className="text-sm flex-grow" style={{color: textColor, backgroundColor: colors.avatarBg}}>
+            [{(sn+1)}/{rsl}]
             {slideText}
             </div>
             {(iOwn || iModerate) && (
