@@ -75,6 +75,12 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
       >
         The Room ID <code className="text-gray-900 bg-yellow-200">{urlRoomId}</code> is not valid.
         <br />
+        {((urlRoomId ?? '').length < 4) && (
+          <>
+          The Room ID must be at least 4 characters.
+          <br />
+          </>
+        )}
         You can use the button below to start a new room named room.
       </div>
 

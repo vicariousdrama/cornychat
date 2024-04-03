@@ -5,7 +5,7 @@ COPY yarn.lock package.json ./
 
 RUN yarn
 COPY . .
-RUN sed -i "s/BUILD_DATE/${BUILD_DATE}/g" ./views/About.jsx
+RUN sed -i "s/BUILD_DATE/${BUILD_DATE}/g" ./pages/About.jsx
 RUN sed -i "s/BUILD_DATE/${BUILD_DATE}/g" ./views/EnterRoom.jsx
 RUN yarn build
 

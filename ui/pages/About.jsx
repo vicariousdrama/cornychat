@@ -9,9 +9,9 @@ export default function About() {
       Corny Chat is built upon Nostr Live Audio Spaces as a fork of Jam.  The source of these projects is available at:
       </p>
       <ul>
-        <li>Corny Chat: <a href="https://github.com/vicariousdrama/cornychat">https://github.com/vicariousdrama/cornychat</a></li>
-        <li>Nostr Live Audio Spaces: <a href="https://github.com/diamsa/jam">https://github.com/diamsa/jam</a></li>
-        <li>Jam: <a href="https://gitlab.com/jam-systems/jam/">https://gitlab.com/jam-systems/jam/</a></li>
+        <li>Corny Chat: <a href="https://github.com/vicariousdrama/cornychat" style={{textDecoration: 'underline'}}>https://github.com/vicariousdrama/cornychat</a></li>
+        <li>Nostr Live Audio Spaces: <a href="https://github.com/diamsa/jam" style={{textDecoration: 'underline'}}>https://github.com/diamsa/jam</a></li>
+        <li>Jam: <a href="https://gitlab.com/jam-systems/jam/" style={{textDecoration: 'underline'}}>https://gitlab.com/jam-systems/jam/</a></li>
       </ul>
       <p className="text-lg">
       The software is licensed under GNU AGPLv3, an open source license.
@@ -22,8 +22,15 @@ export default function About() {
       <p>Art: Kajoozie, Noshole, Puzzles</p>
       <p>Known Financial Supporters: Bevo, Frank, Kajoozie, New1, Noshole, Propaganda Daily, Ralf, Sai, Séimí, Vic</p>
 
+      <h2>Development</h2>
+      <p><a href="/datatypes" style={{textDecoration: 'underline'}}>Corny Chat Data Types</a> - Detailed information about the 
+      nostr kind data types used in Corny Chat</p>
+
+
       <h2>Build Date</h2>
       <p>This version of Corny Chat was built on BUILD_DATE</p>
+
+      <p><a href="/" style={{textDecoration: 'underline'}}>Home</a></p>
     </div>
   );
 }
