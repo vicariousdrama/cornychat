@@ -22,7 +22,7 @@ export default function StartFromURL({roomId, newRoom}) {
   };
 
   return (
-    <div className={mqp('p-2 pt-60 md:p-10 md:pt-60')}>
+    <div className={mqp('p-2 pt-60 md:p-10 md:pt-60 text-white')}>
       <h1>Start a Room</h1>
       <p className="mb-6">
         The room with ID{' '}

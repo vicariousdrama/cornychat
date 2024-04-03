@@ -49,6 +49,10 @@ export default function PossibleRoom({
   if (shouldCreate && autoCreateLoading) return null;
 
   if (roomId.length < 4 || (shouldCreate && autoCreateError)) {
+    console.log('roomId: ', roomId);
+    console.log('shouldCreate: ', shouldCreate);
+    console.log('autoCreateError', autoCreateError);
+    console.log('onError', onError);
     return typeof onError === 'function'
       ? createElement(onError, {roomId, error: {createRoom: true}})
       : onError || <Error />;
