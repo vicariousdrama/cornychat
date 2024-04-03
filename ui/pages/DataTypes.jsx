@@ -52,7 +52,7 @@ export default function DataTypes() {
       <table style={{borderCollapse:'collapse', border: '1px solid #FF0000', margin: '20px'}}>
         <tr style={{borderCollapse:'collapse', border: '1px solid #FF0000', backgroundColor: '#0000C0'}}><td>Room Setting Field</td><td>Nostr Profile Field</td></tr>
         <tr style={{borderCollapse:'collapse', border: '1px solid #FF0000'}}><td>Room Topic (name)</td><td>name</td></tr>
-        <tr style={{borderCollapse:'collapse', border: '1px solid #FF0000'}}><td>Room Description (description)</td><td>description</td></tr>
+        <tr style={{borderCollapse:'collapse', border: '1px solid #FF0000'}}><td>Room Description (description)</td><td>about</td></tr>
         <tr style={{borderCollapse:'collapse', border: '1px solid #FF0000'}}><td>Room logo URI (logoURI)</td><td>picture</td></tr>
         <tr style={{borderCollapse:'collapse', border: '1px solid #FF0000'}}><td>Background Image URI (backgroundURI)</td><td>banner</td></tr>
         <tr style={{borderCollapse:'collapse', border: '1px solid #FF0000'}}><td>Lightning Address (lud16)</td><td>lud16</td></tr>
