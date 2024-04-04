@@ -16,77 +16,57 @@ export function Links({
   let [expanded, setExpanded] = useState(false);
   let [linkURI, setLinkURI] = useState('');
   let [linkText, setLinkText] = useState('');
+  let [editingLinkIndex, setEditingLinkIndex] = useState(-1);
+  let [editingLinkURI, setEditingLinkURI] = useState('');
+  let [editingLinkText, setEditingLinkText] = useState('');
 
-  function RoomLinks() {
-    if (roomLinks.length === 0) {
-      return (
-        <div>
-          <p className="text-sm text-gray-500 p-2">
-            There are no links set up.
-          </p>
-        </div>
-      );
+  function removeLink(indexLink) {
+    let result = confirm('Are you sure you want to remove this link?');
+    if (result != true) {
+      return;
     }
-
-    function removeLink(indexLink) {
-      let result = confirm('Are you sure you want to remove this link?');
-      if (result != true) {
-        return;
-      }
-      let newRoomLinks = roomLinks.filter((link, index) =>
-        index !== indexLink ? link : null
-      );
-      setRoomLinks(newRoomLinks);
-    }
-    function swapLinks(indexLink, indexLink2) {
-      let newRoomLinks = roomLinks;
-      let swapLink = newRoomLinks[indexLink];
-      newRoomLinks[indexLink] = newRoomLinks[indexLink2];
-      newRoomLinks[indexLink2] = swapLink;
-      setRoomLinks([...newRoomLinks]);
-    }
-    function promoteLink(indexLink) {
-      let indexLink2 = indexLink - 1;
-      if (indexLink2 >= 0) {
-        swapLinks(indexLink, indexLink2);
-      }
-    }
-    function demoteLink(indexLink) {
-      let indexLink2 = indexLink + 1;
-      if (indexLink2 < roomLinks.length) {
-        swapLinks(indexLink, indexLink2);
-      }
-    }
-
-    return (
-      <>
-        {roomLinks.map((link, index) => {
-          let linkText = link[1];
-          let linkDescription = link[0];
-
-          return (
-            <div className="flex w-full justify-between my-3">
-              <div style={{width: '400px'}}>
-                {' '}
-                <p className="text-sm text-black" style={{overflowWrap: 'break-word'}}>{linkDescription}</p>
-                <p className="text-xs text-gray-500" style={{overflowWrap: 'anywhere'}}>{linkText}</p>
-              </div>
-              <div className="flex w-full justify-end" style={{width: '100px'}}>
-                <div onClick={() => promoteLink(index)} className="cursor-pointer text-xl">
-                  ⬆️
-                </div>
-                <div onClick={() => demoteLink(index)} className="cursor-pointer text-xl">
-                  ⬇️
-                </div>
-                <div onClick={() => removeLink(index)} className="cursor-pointer text-xl">
-                  🗑️
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </>
+    let newRoomLinks = roomLinks.filter((link, index) =>
+      index !== indexLink ? link : null
     );
+    setRoomLinks(newRoomLinks);
+  }
+  function swapLinks(indexLink, indexLink2) {
+    let newRoomLinks = roomLinks;
+    let swapLink = newRoomLinks[indexLink];
+    newRoomLinks[indexLink] = newRoomLinks[indexLink2];
+    newRoomLinks[indexLink2] = swapLink;
+    setRoomLinks([...newRoomLinks]);
+  }
+  function promoteLink(indexLink) {
+    let indexLink2 = indexLink - 1;
+    if (indexLink2 >= 0) {
+      swapLinks(indexLink, indexLink2);
+    }
+  }
+  function demoteLink(indexLink) {
+    let indexLink2 = indexLink + 1;
+    if (indexLink2 < roomLinks.length) {
+      swapLinks(indexLink, indexLink2);
+    }
+  }
+  function editLink(indexLink) {
+    editingLinkIndex = indexLink
+    editingLinkText = roomLinks[indexLink][0];
+    editingLinkURI = roomLinks[indexLink][1];
+    setEditingLinkIndex(editingLinkIndex);
+    setEditingLinkText(editingLinkText);
+    setEditingLinkURI(editingLinkURI);
+  }
+  function saveLink(indexLink) {
+    roomLinks[indexLink] = [editingLinkText, editingLinkURI];
+    setRoomLinks(roomLinks);
+    editingLinkIndex = -1;
+    setEditingLinkIndex(editingLinkIndex);
+  }
+  function cancelLink() {
+    editingLinkIndex = -1;
+    setEditingLinkIndex(editingLinkIndex);
+    setRoomLinks(roomLinks);
   }
 
   return (
@@ -149,7 +129,9 @@ export function Links({
             Use a nostr extension for import/export capability
           </div>
           )}
-        </div>        
+        </div>
+        {(editingLinkIndex == -1) && (
+          <>
         <p className="text-sm font-medium text-gray-500 p-2">
           Add a link to the top of the list:
         </p>
@@ -201,8 +183,102 @@ export function Links({
             Add link
           </button>
         </div>
+        </>
+        )}
         <div className="bg-gray-200 py-2 px-0 my-5 rounded-lg">
-          <RoomLinks />
+          {(roomLinks.length == 0) ? (
+          <div>
+            <p className="text-sm text-gray-500 p-2">
+              There are no links set up.
+            </p>
+          </div>
+          ) : (
+          <>
+            {roomLinks.map((link, index) => {
+              let renderURI = link[1];
+              let renderText = link[0];
+
+              return (
+                <div className="flex w-full justify-between my-3">
+                  <div style={{width: '400px'}}>
+                    {(editingLinkIndex != index) && (
+                    <>
+                    <p className="text-sm text-black" style={{overflowWrap: 'break-word'}}>{renderText}</p>
+                    <p className="text-xs text-gray-500" style={{overflowWrap: 'anywhere'}}>{renderURI}</p>
+                    </>
+                    )}
+                    {(editingLinkIndex == index) && (
+                    <>
+                    <input
+                      key="inputEditingLinkText"
+                      className={mqp(
+                        'rounded placeholder-gray-400 bg-gray-50 w-full m-4 md:w-full'
+                      )}
+                      type="text"
+                      placeholder="Visit my website"
+                      value={editingLinkText}
+                      autoComplete="off"
+                      style={{
+                        borderWidth: '0px',
+                        fontSize: '15px',
+                      }}
+                      onChange={e => {
+                        setEditingLinkText(e.target.value);
+                      }}
+                    ></input>
+                    <input
+                      key="inputEditingLinkURI"
+                      className={mqp(
+                        'rounded placeholder-gray-400 bg-gray-50 w-full m-4 md:w-full'
+                      )}
+                      type="text"
+                      placeholder="http://cornychat.com"
+                      value={editingLinkURI}
+                      autoComplete="off"
+                      style={{
+                        borderWidth: '0px',
+                        fontSize: '15px',
+                      }}
+                      onChange={e => {
+                        setEditingLinkURI(e.target.value);
+                      }}
+                    ></input>                
+                    </>
+                    )}
+                  </div>
+                  <div className="flex w-full justify-end" style={{width: '100px'}}>
+                    {(editingLinkIndex == -1) && (
+                    <>
+                    <div onClick={() => editLink(index)} className="cursor-pointer text-xl">
+                      📝
+                    </div>
+                    <div onClick={() => promoteLink(index)} className="cursor-pointer text-xl">
+                      ⬆️
+                    </div>
+                    <div onClick={() => demoteLink(index)} className="cursor-pointer text-xl">
+                      ⬇️
+                    </div>
+                    <div onClick={() => removeLink(index)} className="cursor-pointer text-xl">
+                      🗑️
+                    </div>
+                    </>
+                    )}
+                    {(editingLinkIndex == index) && (
+                    <>
+                    <div onClick={() => saveLink(index)} className="cursor-pointer text-xl">
+                      💾
+                    </div>
+                    <div onClick={() => cancelLink()} className="cursor-pointer text-xl">
+                      ❌
+                    </div>
+                    </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </>
+          )}
         </div>
       </div>
       </div>
