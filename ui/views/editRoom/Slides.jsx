@@ -16,78 +16,57 @@ export function Slides({
   let [expanded, setExpanded] = useState(false);
   let [slideURI, setSlideURI] = useState('');
   let [slideText, setSlideText] = useState('');
+  let [editingSlideIndex, setEditingSlideIndex] = useState(-1);
+  let [editingSlideURI, setEditingSlideURI] = useState('');
+  let [editingSlideText, setEditingSlideText] = useState('');
 
-  function RoomSlides() {
-    if (roomSlides.length === 0) {
-      return (
-        <div>
-          <p className="text-sm text-gray-500 p-2">
-            There are no slides set up.
-          </p>
-        </div>
-      );
+  function removeSlide(indexSlide) {
+    let result = confirm('Are you sure you want to remove this slide?');
+    if (result != true) {
+      return;
     }
-    function removeSlide(indexSlide) {
-      let result = confirm('Are you sure you want to remove this slide?');
-      if (result != true) {
-        return;
-      }
-      let newRoomSlides = roomSlides.filter((slide, index) =>
-        index != indexSlide ? slide : null
-      );
-      setRoomSlides(newRoomSlides);
-    }
-    function swapSlides(indexSlide, indexSlide2) {
-      let newRoomSlides = roomSlides;
-      let swapSlide = newRoomSlides[indexSlide];
-      newRoomSlides[indexSlide] = newRoomSlides[indexSlide2];
-      newRoomSlides[indexSlide2] = swapSlide;
-      setRoomSlides([...newRoomSlides]);
-    }
-    function promoteSlide(indexSlide) {
-      let indexSlide2 = indexSlide - 1;
-      if (indexSlide2 >= 0) {
-        swapSlides(indexSlide, indexSlide2);
-      }
-    }
-    function demoteSlide(indexSlide) {
-      let indexSlide2 = indexSlide + 1;
-      if (indexSlide2 < roomSlides.length) {
-        swapSlides(indexSlide, indexSlide2);
-      }
-    }
-    return (
-      <>
-        {roomSlides.map((slide, index) => {
-          let slideURI = slide[0];
-          let slideText = slide[1];
-          return (
-            <div className="flex w-full justify-between my-3">
-              <div style={{width: '400px'}}>
-                {' '}
-                <img
-                  className="h-48"
-                  alt={slideText}
-                  src={slideURI}
-                />
-                <p className="text-xs text-gray-500" style={{overflowWrap: 'anywhere'}}>{slideText}</p>
-              </div>
-              <div className="flex w-full justify-end" style={{width: '100px'}}>
-                <div onClick={() => promoteSlide(index)} className="cursor-pointer text-xl">
-                  ⬆️
-                </div>
-                <div onClick={() => demoteSlide(index)} className="cursor-pointer text-xl">
-                  ⬇️
-                </div>
-                <div onClick={() => removeSlide(index)} className="cursor-pointer text-xl">
-                  🗑️
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </>
+    let newRoomSlides = roomSlides.filter((slide, index) =>
+      index != indexSlide ? slide : null
     );
+    setRoomSlides(newRoomSlides);
+  }
+  function swapSlides(indexSlide, indexSlide2) {
+    let newRoomSlides = roomSlides;
+    let swapSlide = newRoomSlides[indexSlide];
+    newRoomSlides[indexSlide] = newRoomSlides[indexSlide2];
+    newRoomSlides[indexSlide2] = swapSlide;
+    setRoomSlides([...newRoomSlides]);
+  }
+  function promoteSlide(indexSlide) {
+    let indexSlide2 = indexSlide - 1;
+    if (indexSlide2 >= 0) {
+      swapSlides(indexSlide, indexSlide2);
+    }
+  }
+  function demoteSlide(indexSlide) {
+    let indexSlide2 = indexSlide + 1;
+    if (indexSlide2 < roomSlides.length) {
+      swapSlides(indexSlide, indexSlide2);
+    }
+  }
+  function editSlide(indexSlide) {
+    editingSlideIndex = indexSlide
+    editingSlideText = roomSlides[indexSlide][1];
+    editingSlideURI = roomSlides[indexSlide][0];
+    setEditingSlideIndex(editingSlideIndex);
+    setEditingSlideText(editingSlideText);
+    setEditingSlideURI(editingSlideURI);
+  }
+  function saveSlide(indexSlide) {
+    roomSlides[indexSlide] = [editingSlideURI, editingSlideText];
+    setRoomSlides(roomSlides);
+    editingSlideIndex = -1;
+    setEditingSlideIndex(editingSlideIndex);
+  }
+  function cancelSlide() {
+    editingSlideIndex = -1;
+    setEditingSlideIndex(editingSlideIndex);
+    setRoomSlides(roomSlides);
   }
 
   return (
@@ -151,6 +130,8 @@ export function Slides({
           </div>
           )}
         </div>
+        {(editingSlideIndex == -1) && (
+          <>
         <p className="text-sm font-medium text-gray-500 p-2">
           Add a slide to the end of the list:
         </p>
@@ -202,8 +183,105 @@ export function Slides({
             Add slide
           </button>
         </div>
+        </>
+        )}
         <div className="bg-gray-200 py-2 px-0 my-5 rounded-lg">
-          <RoomSlides />
+        {(roomSlides.length == 0) ? (
+          <div>
+            <p className="text-sm text-gray-500 p-2">
+              There are no slides set up.
+            </p>
+          </div>
+          ) : (
+            <>
+            {roomSlides.map((slide, index) => {
+              let slideURI = slide[0];
+              let slideText = slide[1];
+              return (
+                <div className="flex w-full justify-between my-3">
+                  <div style={{width: '400px'}}>
+                  {(editingSlideIndex != index) && (
+                    <>
+                    <img
+                      className="h-48"
+                      alt={slideText}
+                      src={slideURI}
+                    />
+                    <p className="text-xs text-gray-500" style={{overflowWrap: 'anywhere'}}>{slideText}</p>
+                    </>
+                  )}
+                    {(editingSlideIndex == index) && (
+                    <>
+                    <input
+                      key="inputEditingSlideText"
+                      className={mqp(
+                        'rounded placeholder-gray-400 bg-gray-50 w-full m-4 md:w-full'
+                      )}
+                      type="text"
+                      placeholder="Caption for the image"
+                      value={editingSlideText}
+                      autoComplete="off"
+                      style={{
+                        borderWidth: '0px',
+                        fontSize: '15px',
+                      }}
+                      onChange={e => {
+                        setEditingSlideText(e.target.value);
+                      }}
+                    ></input>
+                    <input
+                      key="inputEditingSlideURI"
+                      className={mqp(
+                        'rounded placeholder-gray-400 bg-gray-50 w-full m-4 md:w-full'
+                      )}
+                      type="text"
+                      placeholder="http://cornychat.com"
+                      value={editingSlideURI}
+                      autoComplete="off"
+                      style={{
+                        borderWidth: '0px',
+                        fontSize: '15px',
+                      }}
+                      onChange={e => {
+                        setEditingSlideURI(e.target.value);
+                      }}
+                    ></input>                
+                    </>
+                    )}                  
+                  </div>
+                  <div className="flex w-full justify-end" style={{width: '100px'}}>
+                    {(editingSlideIndex == -1) && (
+                    <>
+                    <div onClick={() => editSlide(index)} className="cursor-pointer text-xl">
+                      📝
+                    </div>
+                    <div onClick={() => promoteSlide(index)} className="cursor-pointer text-xl">
+                      ⬆️
+                    </div>
+                    <div onClick={() => demoteSlide(index)} className="cursor-pointer text-xl">
+                      ⬇️
+                    </div>
+                    <div onClick={() => removeSlide(index)} className="cursor-pointer text-xl">
+                      🗑️
+                    </div>
+                    </>
+                    )}
+                    {(editingSlideIndex == index) && (
+                    <>
+                    <div onClick={() => saveSlide(index)} className="cursor-pointer text-xl">
+                      💾
+                    </div>
+                    <div onClick={() => cancelSlide()} className="cursor-pointer text-xl">
+                      ❌
+                    </div>
+                    </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </>
+          )}
         </div>
       </div>
       </div>

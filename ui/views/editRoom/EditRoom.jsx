@@ -133,10 +133,20 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
     description   = decodeHTMLEncoded(description);
     logoURI       = decodeHTMLEncoded(logoURI);
     backgroundURI = decodeHTMLEncoded(backgroundURI);
-    //if (scheduleCandidate) {
-    //  let schedule = scheduleCandidate;
-    //  setSchedule(scheduleCandidate);
-    //}
+    let decodedRoomLinks = [];
+    for (let roomLink of roomLinks) {
+      roomLink[0] = decodeHTMLEncoded(roomLink[0]);
+      roomLink[1] = decodeHTMLEncoded(roomLink[1]);
+      decodedRoomLinks.push(roomLink);
+    }
+    roomLinks = decodedRoomLinks;
+    let decodedRoomSlides = [];
+    for (let roomSlide of roomSlides) {
+      roomSlide[0] = decodeHTMLEncoded(roomSlide[0]);
+      roomSlide[1] = decodeHTMLEncoded(roomSlide[1]);
+      decodedRoomSlides.push(roomSlide);
+    }
+    roomSlides = decodedRoomSlides;
 
     let removeDeleted = false;
     if (removeDeleted) {
