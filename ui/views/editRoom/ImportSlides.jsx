@@ -10,8 +10,8 @@ export const ImportSlidesModal = ({
     setRoomSlides,
 }) => {
   const [loadingData, setLoadingData] = useState(true);
-  const [slideListId, setSlideListId] = useState('');
   const [slideLists, setSlideLists] = useState([]);
+  const [selectedListID, setSelectedListID] = useState('');
 
   useEffect(() => {
     const loadData = async () => {
@@ -25,13 +25,13 @@ export const ImportSlidesModal = ({
   }, []);
 
   async function addslides() {
-    if (slideLists == undefined || slideLinks.length == 0) {
+    if (slideLists == undefined || slideLists.length == 0) {
       close();
       return;
     }
     let newSlides = roomSlides;
     slideLists.map((slideList, index) => {
-      if (slideList.id == slideListId) {
+      if (slideList.id == selectedListID) {
         for (let tag of slideList.tags) {
           if (tag.length < 3) continue;
           if (tag[0] != 'r') continue;
@@ -60,7 +60,6 @@ export const ImportSlidesModal = ({
             </div>            
         );
     }
-    let currentSlideListId = '';
     return (<>
         {slideLists.map((slideList) => {
             let created_at = slideList.created_at;
@@ -78,16 +77,15 @@ export const ImportSlidesModal = ({
                 if (tag[0] == 'image') image = tag[1];
                 if (tag[0] == 'r') slidecount += 1;
             }
-            if (currentSlideListId == '') {
+            if (selectedListID == '') {
                 // assign first
-                currentSlideListId = id;
-                setSlideListId(currentSlideListId);
+                setSelectedListID(id);
             } 
             const date = new Date(created_at * 1000);
             var dateOptions = { weekday: 'long', month: 'long', day: 'numeric' }; 
             const humanDate = new Intl.DateTimeFormat('en-us',dateOptions).format(date);
             if (slidecount > 0) {
-                if (currentSlideListId == id) {
+                if (selectedListID == id) {
                     return (
                         <div className="select-none px-0 text-lg rounded-lg m-2 border-2 border-blue-500 w-full">
                             <table className="w-full" cellpadding="0" cellspacing="0" border="0" style={{maxWidth:'3500px'}}>
@@ -110,7 +108,7 @@ export const ImportSlidesModal = ({
                 } else {
                     return (
                         <div className="select-none px-0 text-lg rounded-lg m-2 border-2 hover:border-blue-500 w-full cursor-pointer"
-                            onClick={() => setSlideListId(id)}
+                            onClick={() => setSelectedListID(id)}
                         >
                             <table className="w-full" cellpadding="0" cellspacing="0" border="0" style={{maxWidth:'3500px'}}>
                             <tr>
