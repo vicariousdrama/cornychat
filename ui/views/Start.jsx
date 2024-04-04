@@ -94,7 +94,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
           </p>
           <div style={{color: textColor}} className="jam">
             <p style={{color: textColor, backgroundColor: roomColors.background}} className="room-header">
-            For technical support, contact <a href="https://njump.me/npub1yx6pjypd4r7qh2gysjhvjd9l2km6hnm4amdnjyjw3467fy05rf0qfp7kza">Vic</a> on Nostr
+            For technical support, contact <a href="https://njump.me/npub1yx6pjypd4r7qh2gysjhvjd9l2km6hnm4amdnjyjw3467fy05rf0qfp7kza" style={{textDecoration: 'underline'}}>Vic on Nostr</a>
             </p>
             <p style={{color: textColor, backgroundColor: roomColors.background}} className="room-header">
             <a href="/about" style={{textDecoration: 'underline'}}>About Corny Chat</a>

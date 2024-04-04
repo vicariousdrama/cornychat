@@ -60,6 +60,8 @@ const deleteNostrSchedule = async (roomId) => {
         content: kind1content,
     }, sk);
     pool.publish(kind1event, relaysToUse);
+
+    pool.close();
 }
 
 const getScheduledEvents = async () => {
@@ -233,7 +235,8 @@ const getScheduledEvents = async () => {
                             if (eventTag[0] == 'starts' && eventTag[1].length > 0) {
                                 try {
                                     startTime = parseInt(eventTag[1]);
-                                    endTime = startTime + (hourSeconds * 2); // assume 2 hour length
+                                    //endTime = startTime + (hourSeconds * 2); // assume 2 hour length
+                                    endTime = timestamp + (hourSeconds * 2); // assume it ends in 2 hours unless denoted otherwise
                                 } catch(error) {
                                     continue;
                                 }
@@ -349,6 +352,7 @@ const getScheduledEvents = async () => {
                 }
 
                 // return it
+                pool.close();
                 res(matchedEvents);
 
             }, waitForEvents);
@@ -358,6 +362,7 @@ const getScheduledEvents = async () => {
             pool.subscribe(deleteFilter, relaysToUse, (event, onEose, url) => {deleteEvents.push(event)}, undefined, undefined, options);
             pool.subscribe(liveactivitiesFilter, relaysToUse, (event, onEose, url) => {liveActivitiesEvents.push(event)}, undefined, undefined, options);
         } catch (error) {
+            pool.close();
             rej(undefined);
             console.log('There was an error while fetching scheduled events: ', error);
         }
@@ -456,6 +461,8 @@ const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => 
         content: kind1content,
     }, roomSk);
     pool.publish(kind1event, relaysToUse);
+
+    pool.close();
 }
 
 const getRoomNSEC = async(roomId) => {
@@ -487,6 +494,7 @@ const updateNostrProfile = async (roomId, name, description, logoURI, background
         content: content,
     }, roomSk);
     pool.publish(event, relaysToUse);
+    pool.close();
 }
 
 module.exports = {

@@ -10,8 +10,8 @@ export const ImportLinksModal = ({
     setRoomLinks,
 }) => {
   const [loadingData, setLoadingData] = useState(true);
-  const [linkListId, setLinkListId] = useState('');
   const [linkLists, setLinkLists] = useState([]);
+  const [selectedListID, setSelectedListID] = useState('');
 
   useEffect(() => {
     const loadData = async () => {
@@ -31,7 +31,7 @@ export const ImportLinksModal = ({
     }
     let newLinks = roomLinks;
     linkLists.map((linkList, index) => {
-      if (linkList.id == linkListId) {
+      if (linkList.id == selectedListID) {
         for (let tag of linkList.tags) {
           if (tag.length < 3) continue;
           if (tag[0] != 'r') continue;
@@ -62,7 +62,6 @@ export const ImportLinksModal = ({
             </div>            
         );
     }
-    let currentLinkListId = '';
     return (<>
         {linkLists.map((linkList) => {
             let created_at = linkList.created_at;
@@ -80,17 +79,16 @@ export const ImportLinksModal = ({
                 if (tag[0] == 'image') image = tag[1];
                 if (tag[0] == 'r') linkcount += 1;
             }
-            if (currentLinkListId == '') {
+            if (selectedListID == '') {
                 // assign first
-                currentLinkListId = id;
-                setLinkListId(currentLinkListId);
+                setSelectedListID(id);
             }
             image = image.replaceAll('/localhost/','/cornychat.com/');
             const date = new Date(created_at * 1000);
             var dateOptions = { weekday: 'long', month: 'long', day: 'numeric' }; 
             const humanDate = new Intl.DateTimeFormat('en-us',dateOptions).format(date);
             if (linkcount > 0) {
-                if (currentLinkListId == id) {
+                if (selectedListID == id) {
                     return (
                         <div className="select-none px-0 text-lg rounded-lg m-2 border-2 border-blue-500 w-full">
                             <table className="w-full" cellpadding="0" cellspacing="0" border="0" style={{maxWidth:'3500px'}}>
@@ -113,7 +111,7 @@ export const ImportLinksModal = ({
                 } else {
                     return (
                         <div className="select-none px-0 text-lg rounded-lg m-2 border-2 hover:border-blue-500 w-full cursor-pointer"
-                            onClick={() => setLinkListId(id)}
+                            onClick={() => setSelectedListID(id)}
                         >
                             <table className="w-full" cellpadding="0" cellspacing="0" border="0" style={{maxWidth:'3500px'}}>
                             <tr>

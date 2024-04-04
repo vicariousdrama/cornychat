@@ -59,14 +59,15 @@ export default function DataTypes() {
       </table>
       <p>
         When a room's profile is saved, it is automatically assigned the nip05 field based on a concatenation
-        of the room id, hyphenated to the string `room` at the host under which the service is running.
+        of the room id, hyphenated to the string `room` at the host under which the service is running. For example,
+        the room `mainchat` has a nip05 of mainchat-room@{location.hostname}
       </p>
 
       <a name="kind1extensionlogin"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 1 - Extension Login</h2>
       <p>
-        When a user logins with their extension, they will sign a kind 1 event with the content field set to the public
+        When a user logs in with their extension, they will sign a kind 1 event with the content field set to the public
         key generated for Corny Chat by the software. This is a completely different public key from the nostr public key.
-        Once the event is signed, it is parsed within fields saved in local storage in the browser profile as well as
+        Once the event is signed, it is parsed from fields saved in local storage in the browser profile as well as
         published to the Corny Chat server to support identity lookups and peer verification.  These server publications
         are also signed by the local client with a keypair independent of the nostr keys and is validated on the server.
         The details on this process are not important for nostr and originate from the Jam codebase.
@@ -94,8 +95,8 @@ export default function DataTypes() {
 
       <a name="kind3follow"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 3 - Follow List</h2>
       <p>
-        If a user has a nostr extension, they will also be presented with options to Follow or Unfollow a user when
-        viewing that user's profile. A user can view another user's profile by clicking on their avatar image while
+        If a user has a nostr extension, they will also be presented with options to Follow or Unfollow a participant when
+        viewing the participant avatar's profile. A user can view another's profile by clicking on their avatar image while
         in a Corny Chat audio room. For the first time during the browsing session, the client will fetch the 
         contact list and check if they are following the user whose profile they are viewing.  The current contact
         list is stored in session storage and updated based on follow/unfollow actions performed.  When a change
@@ -115,7 +116,7 @@ export default function DataTypes() {
 
       <a name="kind9734zaprequest"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 9734 - Zap Request</h2>
       <p>
-        Within the application users can zap or initiate lightning payments by clicking on another room participants
+        Within the application, users can zap or initiate lightning payments by clicking on another room participants
         avatar, or clicking the Tip button for a room that has it enabled. Users may zap other users if they have 
         a nostr extension enabled. If they don't have a nostr extension, then they can only send a direct lightning
         payment with an optional comment.  In either case, an invoice is requested following NIP-57 for nostr, which
@@ -127,7 +128,7 @@ export default function DataTypes() {
       <a name="kind30311liveactivities"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 30311 - Live Activities</h2>
       <p>
         Corny Chat promotes integrations with other like kind applications.  Corny Chat is a live audio space, and
-        lists active rooms on its landing page.  In an effort to promote greater discovery throug the Nostr universe,
+        lists active rooms on its landing page.  In an effort to promote greater discovery through the Nostr universe,
         Corny Chat also seeks to list live activities published to nostr that are presumably still active.  To do
         this, the list of scheduled events is periodically updated, and includes those of kind 30311 that meet the
         following requirements:
@@ -137,7 +138,7 @@ export default function DataTypes() {
         <li>The live activity must have a `title` tag with a value that isn't an empty string</li>
         <li>It must have started, or start within the next week as defined by a required `starts` tag.</li>
         <li>If it has started, it must not have ended more than an hour ago as defined by an optional `ends` tag.</li>
-        <li>If the live activity does not inclue an end time, it is assumed to have ended one hour after its start time</li>
+        <li>If the live activity does not include an end time, it is assumed to have ended an hour after the current timestamp</li>
         <li>The live activity must have a `service` tag.</li>
         <li>The live activity must have a `streaming` tag with the endpoint to link to, or be associated with the services
             `zap.stream` or `nostrnests.com` from which the location will be calculated based on the `d` tag and a known 
@@ -178,7 +179,7 @@ export default function DataTypes() {
       <a name="kind31388linkset"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 31388 - Link Sets</h2>
       <p>
         A link set is a collection of URLs that represent captioned hyperlinks or groupings of links which can be displayed 
-        within the links resources area of Corny Chat room.  Owners and moderators with a nostr extension can export and 
+        within the links resources area of a Corny Chat room.  Owners and moderators with a nostr extension can export and 
         import link sets from room settings.  As a replaceable event, a `d` tag is required to be set, and is defaulted by
         the application based on a concatenation of the string `cornychat`, the room identifier, and the date and time in
         ISO format.  Reusing the same value allows for replacing a prior published event when doing an export.  The 

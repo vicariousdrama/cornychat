@@ -72,9 +72,8 @@ export async function signInExtension(
 
 export async function getUserEvent(pubkey, id) {
   return new Promise((res, rej) => {
+    const pool = new RelayPool();
     try {
-      const pool = new RelayPool();
-
       const defaultRelays = [
         'wss://nos.lol',
         'wss://relay.damus.io',
@@ -95,6 +94,7 @@ export async function getUserEvent(pubkey, id) {
 
       const timeoutRelays = setTimeout(() => {
         if (userEvents.length === 0) {
+          pool.close();
           res(undefined);
           console.log('Nostr relays did not return any events');
         }
@@ -106,6 +106,7 @@ export async function getUserEvent(pubkey, id) {
         (event, afterEose, url) => {
           clearTimeout(timeoutRelays);
           userEvents.push(event);
+          pool.close();
           res(event);
         },
         undefined,
@@ -113,6 +114,7 @@ export async function getUserEvent(pubkey, id) {
         {unsubscribeOnEose: true}
       );
     } catch (error) {
+      pool.close();
       rej(undefined);
       console.log('There was an error when getting user events: ', error);
     }
@@ -121,9 +123,8 @@ export async function getUserEvent(pubkey, id) {
 
 export async function getUserMetadata(pubkey, id) {
   return new Promise((res, rej) => {
+    const pool = new RelayPool();
     try {
-      const pool = new RelayPool();
-
       const defaultRelays = [
         'wss://nos.lol',
         'wss://relay.damus.io',
@@ -144,6 +145,7 @@ export async function getUserMetadata(pubkey, id) {
 
       const timeoutRelays = setTimeout(() => {
         if (userMetadata.length === 0) {
+          pool.close();
           res(undefined);
           console.log('Nostr relays did not return any events');
         }
@@ -165,6 +167,7 @@ export async function getUserMetadata(pubkey, id) {
             lud06: userMetadata[0]?.lud06,
             banner: userMetadata[0]?.banner,
           };
+          pool.close();
           res(userInfo);
         },
         undefined,
@@ -172,6 +175,7 @@ export async function getUserMetadata(pubkey, id) {
         {unsubscribeOnEose: true}
       );
     } catch (error) {
+      pool.close();
       rej(undefined);
       console.log('There was an error when getting user metadata: ', error);
     }
@@ -180,9 +184,8 @@ export async function getUserMetadata(pubkey, id) {
 
 export async function isOnFollowList(actorPubkey, userPubkey) {
   return new Promise(async (res, rej) => {
+    const pool = new RelayPool();
     try {
-      const pool = new RelayPool();
-
       let userRelays = []; //getUserRelays();
 
       const defaultRelays = [
@@ -207,9 +210,15 @@ export async function isOnFollowList(actorPubkey, userPubkey) {
 
         const isOnList = isOnFollowList();
 
-        if (isOnList) res([true, followList]);
+        if (isOnList) {
+          pool.close();
+          res([true, followList]);
+        }
 
-        if (!isOnList) res([false, followList]);
+        if (!isOnList) {
+          pool.close();
+          res([false, followList]);
+        }
 
         function isOnFollowList() {
           for (let i = 0; i < followList.length; i++) {
@@ -237,6 +246,7 @@ export async function isOnFollowList(actorPubkey, userPubkey) {
         }
       );
     } catch (error) {
+      pool.close();
       rej(undefined);
       console.log('There was an error while fetching follow list: ', error);
     }
@@ -258,9 +268,7 @@ export async function signInPrivateKey(
       throw new Error('Invalid private key length');
     }
 
-    const nostrPrivateKey = privateKey.startsWith('nsec')
-      ? nip19.decode(privateKey).data
-      : privateKey;
+    const nostrPrivateKey = privateKey.startsWith('nsec') ? nip19.decode(privateKey).data : privateKey;
     const roomId = state.roomId;
     const {cipherText, encryptionKey} = encryptPrivatekey(nostrPrivateKey);
     const payload = [state.myId, cipherText, encryptionKey];
@@ -425,7 +433,7 @@ export async function unFollowUser(
       return [null, 'There was an error with your nostr extension'];
 
     pool.publish(EventSigned, relaysToUse);
-
+    pool.close();
     updateCache(false, npub, myFollowList);
 
     return [true];
@@ -438,7 +446,7 @@ export async function unFollowUser(
   if (hasError) return [null, signedEvent.error];
 
   pool.publish(signedEvent.nostrEvent, defaultRelays);
-
+  pool.close();
   updateCache(false, npub, myFollowList);
 
   return [true];
@@ -481,7 +489,7 @@ export async function followUser(npub, myFollowList, state, roomId, signEvent) {
       return [null, 'There was an error with your nostr extension'];
 
     pool.publish(EventSigned, relaysToUse);
-
+    pool.close();
     updateCache(true, npub, myFollowList);
 
     return [true];
@@ -493,7 +501,7 @@ export async function followUser(npub, myFollowList, state, roomId, signEvent) {
   if (hasError) return [null, signedEvent.error];
 
   pool.publish(signedEvent, defaultRelays);
-
+  pool.close();
   updateCache(true, npub, myFollowList);
 
   return [true];
@@ -735,20 +743,22 @@ export async function saveList(dTagValue, name, about, image, kind, theList) {
   };
   const eventSigned = await window.nostr.signEvent(event);
   if (!eventSigned) {
+    pool.close();
     return [false, 'There was an error with your nostr extension'];
   } else {
     console.log(eventSigned);
     // push to relays
     pool.publish(eventSigned, defaultRelays);
+    pool.close();
     return [true, ''];
   }  
 }
 
 export async function loadList(kind, pubkey) {
   return new Promise((res, rej) => {
+    const pool = new RelayPool();
     try {
       let events = [];
-      const pool = new RelayPool();
       const defaultRelays = [
         'wss://nos.lol',
         'wss://relay.damus.io',
@@ -798,6 +808,7 @@ export async function loadList(kind, pubkey) {
           // if we got here, the event is valid
           validEvents.push(event);
         }
+        pool.close();
         res(validEvents);
       }, 3000);
       pool.subscribe(
@@ -809,9 +820,9 @@ export async function loadList(kind, pubkey) {
         { unsubscribeOnEose: true, allowDuplicateEvents: false, allowOlderEvents: false }
       );
     } catch (error) {
+      pool.close();
       rej(undefined);
       console.log('There was an error when getting user metadata: ', error);
     }
-
   });
 }
