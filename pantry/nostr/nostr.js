@@ -4,6 +4,8 @@ const {nip19, getPublicKey, finalizeEvent, generateSecretKey} = require('nostr-t
 const {RelayPool} = require('nostr-relaypool');
 const {rawTimeZones} = require('@vvo/tzdb');
 
+const pmd = true;
+const pool = new RelayPool();
 const relaysToUse = [
     'wss://nos.lol',
     'wss://relay.damus.io',
@@ -18,7 +20,7 @@ function sleep(ms) {
 }
   
 const deleteNostrSchedule = async (roomId) => {
-    const pool = new RelayPool();
+    if(pmd) console.log("in deleteNostrSchedule");
     const eventUUID = `${jamHost}-${roomId}`;
     const sk = nip19.decode(serverNsec).data;
     const pk = getPublicKey(sk);
@@ -60,32 +62,31 @@ const deleteNostrSchedule = async (roomId) => {
         content: kind1content,
     }, sk);
     pool.publish(kind1event, relaysToUse);
-
-    pool.close();
 }
 
 const getScheduledEvents = async () => {
-    const pool = new RelayPool();
+    if(pmd) console.log("in getScheduledEvents");
     return new Promise(async (res, rej) => {
         try {
             // Look for any calendar time event with the tag 'audiospace' to be implementation agnostic
             // This allows other services like Nostr Nests to publish scheduled events if they want to
             // be included on the schedule
             //const filter = [{kinds: [31923], '#t':['audiospace']}]; 
-            const calendarFilter = [{kinds: [31923], limit: 5000}];
             const timestamp = Math.floor(Date.now() / 1000);
             let calendarEvents = [];
             let daySeconds = 86400; // 24 * 60 * 60
             let hourSeconds = 3600;
             let maxTime = timestamp + (30 * daySeconds);
+            let daysago30 = timestamp - (daySeconds * 30);
             let waitForEvents = 5000; // 5 seconds
             let matchedEvents = [];
-            const deleteFilter = [{kinds: [5], limit: 5000}];
             let deleteEvents = [];
-            const liveactivitiesFilter = [{kinds: [30311], limit: 5000}];
             let liveActivitiesEvents = [];
             let scheduledEventLimit = 12;
             let audioSpaceCount = 0;
+            const calendarFilter = [{kinds: [31923], limit: 5000, since: daysago30}];
+            const deleteFilter = [{kinds: [5], limit: 5000, since: daysago30}];
+            const liveactivitiesFilter = [{kinds: [30311], limit: 5000, since: daysago30}];
 
             setTimeout(() => {
                 let deletedAudiospaces = [];
@@ -352,7 +353,6 @@ const getScheduledEvents = async () => {
                 }
 
                 // return it
-                pool.close();
                 res(matchedEvents);
 
             }, waitForEvents);
@@ -362,7 +362,6 @@ const getScheduledEvents = async () => {
             pool.subscribe(deleteFilter, relaysToUse, (event, onEose, url) => {deleteEvents.push(event)}, undefined, undefined, options);
             pool.subscribe(liveactivitiesFilter, relaysToUse, (event, onEose, url) => {liveActivitiesEvents.push(event)}, undefined, undefined, options);
         } catch (error) {
-            pool.close();
             rej(undefined);
             console.log('There was an error while fetching scheduled events: ', error);
         }
@@ -370,7 +369,7 @@ const getScheduledEvents = async () => {
 }
 
 const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => {
-    const pool = new RelayPool();
+    if(pmd) console.log("in publishNostrSchedule");
     // Validate
     console.log("Validating schedule to be posted");
     // - must have a schedule
@@ -427,9 +426,10 @@ const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => 
         tags: tags,
         content: content,
     }, sk);
-    console.log('Event to be published', JSON.stringify(event));
+    if(pmd) console.log('Event to be published', JSON.stringify(event));
     pool.publish(event, relaysToUse);
 
+    if(pmd) console.log("Preparing kind 1 to publish event from room");
     let roomNsec = await getRoomNSEC(roomId);
     let roomSk = nip19.decode(roomNsec).data;
     let timeZoneName = "Europe/London"; // Intl.DateTimeFormat().resolvedOptions().timeZone; // Europe/London
@@ -460,12 +460,13 @@ const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => 
         ],
         content: kind1content,
     }, roomSk);
+    if(pmd) console.log('Event to be published', JSON.stringify(kind1event));
     pool.publish(kind1event, relaysToUse);
 
-    pool.close();
 }
 
 const getRoomNSEC = async(roomId) => {
+    if(pmd) console.log("in getRoomNSEC");
     let nostrroomkey = 'nostrroomkey/' + roomId;
     let roomNsec = await get(nostrroomkey);
     if (roomNsec == undefined || roomNsec == null) {
@@ -477,7 +478,7 @@ const getRoomNSEC = async(roomId) => {
 }
 
 const updateNostrProfile = async (roomId, name, description, logoURI, backgroundURI, lud16) => {
-    const pool = new RelayPool();
+    if(pmd) console.log("in updateNostrProfile");
     let roomNsec = await getRoomNSEC(roomId);
     let roomSk = nip19.decode(roomNsec).data;
     let profileObj = {nip05: `${roomId}-room@${jamHost}`}
@@ -493,8 +494,8 @@ const updateNostrProfile = async (roomId, name, description, logoURI, background
         tags: [],
         content: content,
     }, roomSk);
+    if(pmd) console.log('Event to be published', JSON.stringify(event));
     pool.publish(event, relaysToUse);
-    pool.close();
 }
 
 module.exports = {
