@@ -191,21 +191,21 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
 
   return (
     <Modal close={close}>
-      <h1>Room Settings</h1>
+      <h1 className="text-gray-200">Room Settings</h1>
 
       {(iOwn || iAdmin) && (
-      <div className="p-4 py-2 bg-gray-400 rounded-lg my-3 text-md">
+      <div className="p-4 py-2 bg-gray-700 text-gray-200 rounded-lg my-3 text-md">
         As a room owner you can modify all settings. Moderators that you set may only modify links and slides, speakers, schedule next event, and close or open the room.
       </div>
       )}
 
       {!(iOwn || iAdmin) && (
-      <div className="p-4 py-2 bg-gray-400 rounded-lg my-3 text-md">
+      <div className="p-4 py-2 bg-gray-700 text-gray-200 rounded-lg my-3 text-md">
         As a room moderator you can manage speakers, view the room settings, make changes to the links and slides, schedule the next event, and close or open the room.
       </div>
       )}
 
-      <div className="px-4 py-2 bg-gray-100 rounded-lg my-3">
+      <div className="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg my-3">
         <BasicRoomInfo
           iOwn={iOwn}
           name={name}
@@ -227,7 +227,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
         />
       </div>
 
-      <div className="px-4 py-2 bg-gray-100 rounded-lg my-3">
+      <div className="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg my-3">
         <DesignRoomInfo
           iOwn={iOwn}
           backgroundURI={backgroundURI}
@@ -255,7 +255,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
         />
       </div>
 
-      <div className="px-4 py-2 bg-gray-100 rounded-lg my-3">
+      <div className="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg my-3">
         <Links
           iOwn={iOwn}
           roomId={roomId}
@@ -266,7 +266,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
         />
       </div>
 
-      <div className="px-4 py-2 bg-gray-100 rounded-lg my-3">
+      <div className="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg my-3">
         <Slides
           iOwn={iOwn}
           roomId={roomId}
@@ -277,7 +277,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
         />
       </div>
 
-      <div className="px-4 py-2 bg-gray-100 rounded-lg my-3">
+      <div className="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg my-3">
         <CustomEmojis
           iOwn={iOwn}
           customEmojis={customEmojis}
@@ -287,7 +287,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
         />
       </div>
 
-      <div className="px-4 py-2 bg-gray-100 rounded-lg my-3">
+      <div className="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg my-3">
         <UserList
           allowDelete={iOwn}
           room={room}
@@ -300,7 +300,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
         />
       </div>
 
-      <div className="px-4 py-2 bg-gray-100 rounded-lg my-3">
+      <div className="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg my-3">
         <UserList
           allowDelete={iOwn}
           room={room}
@@ -313,7 +313,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
         />
       </div>
 
-      <div className="px-4 py-2 bg-gray-100 rounded-lg my-3">
+      <div className="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg my-3">
         <UserList
           allowDelete={true}
           room={room}
@@ -326,7 +326,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
         />
       </div>
 
-      <div className="px-4 py-2 bg-gray-100 rounded-lg my-3">
+      <div className="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg my-3">
         <Schedule
           myId={myId}
           nostrNpub={nostrNpub}

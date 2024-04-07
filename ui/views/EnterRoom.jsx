@@ -81,7 +81,7 @@ export default function EnterRoom({
   const handlerSignIn = async type => {
     if (type === 'nsec') {
       setLoadingNsec(true);
-      sessionStorage.clear();
+      //sessionStorage.clear();
       const ok = await signInPrivateKey(
         nostrPrivateKey,
         state,
@@ -95,7 +95,7 @@ export default function EnterRoom({
 
     if (type === 'extension') {
       setLoadingExtension(true);
-      sessionStorage.clear();
+      //sessionStorage.clear();
       const ok = await signInExtension(
         state,
         setProps,
@@ -107,12 +107,12 @@ export default function EnterRoom({
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen text-200" >
       <div
         className={leftColumn}
         style={{backgroundColor: roomColor.background, opacity: '90%'}}
       ></div>
-      <div className={rightColumn}>
+      <div className={rightColumn} style={{backgroundColor: '#031745'}}>
         {otherDevice && (
           <div
             className={
@@ -146,16 +146,16 @@ export default function EnterRoom({
           </div>
         )}
         <div className="text-center my-3">
-          <p className="text-xl">Topic: {name || 'General Discussion'}</p>
+          <p className="text-xl text-gray-300">Topic: {name || 'General Discussion'}</p>
 
           <div className="text-gray-600 max-h-96 overflow-y-scroll text-sm">
-            <ReactMarkdown className="text-sm opacity-70" plugins={[gfm]}>
+            <ReactMarkdown className="text-sm opacity-70 text-gray-300" plugins={[gfm]}>
               Room Description: {description || ''}
             </ReactMarkdown>
           </div>
         </div>
 
-        <div className="text-center my-3">
+        <div className="text-center my-3 text-gray-300">
           On this device you are currently known as
 
           <div className="w-16 h-16 border-2 human-radius mx-auto">
@@ -169,11 +169,11 @@ export default function EnterRoom({
            />
           </div>
           {usersDisplayName}
-          <div className="text-sm">
+          <div className="text-sm text-gray-300">
             Click your avatar to make changes.
           </div>
           {!closed && (
-          <div class="text-sm">
+          <div class="text-sm text-gray-300">
             Use a VPN like Mullvad for better privacy.
           </div>
           )}
@@ -217,7 +217,7 @@ export default function EnterRoom({
         )}
 
         {!window.nostr && (
-        <div className="mt-4 text-gray-600 text-sm">
+        <div className="mt-4 text-gray-300 text-sm">
           <button
             onClick={(e) => {
               e.preventDefault();
@@ -257,7 +257,7 @@ export default function EnterRoom({
         >
           <input
             className={mqp(
-              'rounded w-full placeholder-gray-400 bg-gray-50 w-full md:w-96'
+              'rounded w-full placeholder-black bg-gray-50 w-full md:w-96'
             )}
             value={nostrPrivateKey}
             type="text"
@@ -284,13 +284,12 @@ export default function EnterRoom({
         <div
           className={closed || forbidden ? 'hidden' : 'my-3 w-full text-center'}
         >
-          <p className="text-gray-600 text-sm">
+          <p className="text-gray-400 text-sm">
             This option should only be used for testing purposes. Do not use
             your primary user NSEC.
           </p>
         </div>
         </div>
-
 
         <button
           onClick={() => {
@@ -305,11 +304,10 @@ export default function EnterRoom({
           Return to Homepage
         </button>
 
-
         <a
           className={
             schedule
-              ? 'block mt-5 text-center h-12 p-3 px-6 text-lg text-gray-500'
+              ? 'block mt-5 text-center h-12 p-3 px-6 text-lg text-gray-300'
               : 'hidden'
           }
           href={`/${roomId}.ics`}
@@ -318,22 +316,22 @@ export default function EnterRoom({
           🗓 Add to Calendar
         </a>
         <div>
-          <div className={iOS ? 'mt-40 text-gray-800 text-center' : 'hidden'}>
+          <div className={iOS ? 'mt-40 text-gray-300 text-center' : 'hidden'}>
             🎧 Use headphones or earbuds
             <br />
             for the best audio experience on iOS
           </div>
 
-          <div className={macOS ? 'mt-40 text-gray-800 text-center' : 'hidden'}>
+          <div className={macOS ? 'mt-40 text-gray-300 text-center' : 'hidden'}>
             🎧 Use Chrome or Firefox instead of Safari
             <br />
             for the best audio experience on macOS
           </div>
           <hr />
-          <p className="mt-4 text-gray-600 text-md">
+          <p className="mt-4 text-gray-300 text-md">
             Corny Chat Simplified Terms of Service and Privacy Policy:
           </p>
-          <p class="text-gray-600 text-xs">
+          <p class="text-gray-500 text-xs">
             You may join rooms anonymously.
             There is no need to login, but using a Nostr account with NIP07 extension will provide an enhanced experience.
             Your data is not sold.

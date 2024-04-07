@@ -49,6 +49,7 @@ export default function RoomHeader({
   function RoomLinks() {
     return (
       <div
+        key="roomLinks"
         className="absolute z-10 w-72 mr-3 overflow-y-scroll p-3 rounded-lg"
         style={{backgroundColor: colors.avatarBg, maxHeight: '512px', top: '48px', left: '5%', width: '90%', border: '1px solid white'}}
         onClick={() => setShowLinks(false)}
@@ -122,7 +123,12 @@ export default function RoomHeader({
               alt={'room icon'}
               className="w-12 h-12 rounded p-0 m-0 mt-0"
               src={logoURI}
-              style={{objectFit: 'cover'}}
+              style={{objectFit: 'cover', cursor: lud16 ? 'pointer' : 'auto'}}
+              onClick={() => {
+                if(lud16) {
+                  openModal(InvoiceModal, {info: roomInfo, room: room});
+                }
+              }}
             />
             )}
             {lud16 && (
@@ -199,8 +205,8 @@ export default function RoomHeader({
             <div>
             <MicOnSvg className="h-5" stroke="#f80000" />
             </div>
-            <div style={{color:'#f80000',fontSize:'.5em'}}>
-              recording
+            <div style={{color:'#f80000',backgroundColor:'#000000',fontWeight:'bold',fontSize:'1em'}}>
+              REC
             </div>
           </div>
         )}

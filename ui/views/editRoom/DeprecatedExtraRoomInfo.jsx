@@ -4,7 +4,7 @@ import {Trash, Up, Down} from '../Svg';
 import EmojiPicker from 'emoji-picker-react';
 import reactionEmojis from '../../emojis';
 
-export function ExtraRoomInfo({
+export function DeprecatedExtraRoomInfo({
   roomLinks,
   setRoomLinks,
   roomSlides,
@@ -204,7 +204,7 @@ export function ExtraRoomInfo({
         <div className="flex">
           <input
             className={mqp(
-              'rounded placeholder-gray-400 bg-gray-50 w-full mx-1 md:w-full'
+              'rounded placeholder-black bg-gray-50 w-full mx-1 md:w-full'
             )}
             type="text"
             placeholder="Visit my website"
@@ -220,10 +220,10 @@ export function ExtraRoomInfo({
           ></input>
           <input
             className={mqp(
-              'rounded placeholder-gray-400 bg-gray-50 w-full mx-1 md:w-full'
+              'rounded placeholder-black bg-gray-50 w-full mx-1 md:w-full'
             )}
             type="text"
-            placeholder="http://google.com"
+            placeholder={jamConfig.urls.jam}
             value={linkURI}
             autoComplete="off"
             style={{
@@ -261,7 +261,7 @@ export function ExtraRoomInfo({
         <div className="flex">
           <input
             className={mqp(
-              'rounded placeholder-gray-400 bg-gray-50 w-full mx-1 md:w-full'
+              'rounded placeholder-black bg-gray-50 w-full mx-1 md:w-full'
             )}
             type="text"
             placeholder="Caption for this image"
@@ -277,7 +277,7 @@ export function ExtraRoomInfo({
           ></input>
           <input
             className={mqp(
-              'rounded placeholder-gray-400 bg-gray-50 w-full mx-1 md:w-full'
+              'rounded placeholder-black bg-gray-50 w-full mx-1 md:w-full'
             )}
             type="text"
             placeholder="Image URI for this slide"

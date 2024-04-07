@@ -2,10 +2,14 @@ import React, {useState, useEffect} from 'react';
 import {Modal, openModal} from './Modal';
 import {
   getUserMetadata,
-  isOnFollowList,
   followUser,
   unFollowUser,
   verifyNip05,
+  getUserEventsByKind,
+  getOutboxRelays,
+  makeLocalDate,
+  loadFollowList,
+  updateCacheOutboxRelays,
 } from '../nostr/nostr';
 import {nip19} from 'nostr-tools';
 import {avatarUrl, displayName} from '../lib/avatar';
@@ -18,25 +22,45 @@ import EditIdentity from './EditIdentity';
 export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, close}) {
   async function setUserMetadata() {
     if (!userNpub) return;
-
     const pubkey = nip19.decode(userNpub).data;
-
     const userMetadata = await getUserMetadata(pubkey, null);
-
     return userMetadata;
+  }
+
+  async function getUserPosts(actorNpub) {
+    setLoadingPosts(true);
+    if (!actorNpub) {
+      setLoadingPosts(false);
+      return undefined;
+    }
+
+    const kind = 1;
+    const pubkey = nip19.decode(actorNpub).data;
+    const currentTime = Math.floor(Date.now() / 1000); 
+    let checkFrequency = 60; // 1 minute must pass before rechecking
+    let userPostsTime = sessionStorage.getItem(`${pubkey}-kind${kind}events-retrieveTime`);
+    let userPosts = sessionStorage.getItem(`${pubkey}-kind${kind}events`);
+    if (userPostsTime == undefined || userPostsTime + checkFrequency < currentTime || userPosts == undefined) {
+      const timeSince = currentTime - 86400; // last day
+      userPosts = await getUserEventsByKind(pubkey, kind, timeSince);
+    } else {
+      userPosts = JSON.parse(userPosts);
+    }
+    //const userPosts = await getUserEventsByKind(pubkey, 1, timeSince);
+    setLoadingPosts(false);
+    return userPosts;
   }
 
   function checkNostrIdentity(identities) {
     const hasNostrIdentity = identities?.some(
       identity => identity.type === 'nostr'
     );
-
     return hasNostrIdentity;
   }
 
   function userIdentity(info) {
     const hasIdentity = info?.hasOwnProperty('identities');
-//    console.log('in Profile.userIdentity',info?.name, info?.identities);
+    //console.log('in Profile.userIdentity',info?.name, info?.identities);
     if (hasIdentity && (info?.identities?.length > 0)) {
       return info.identities[0]?.id;
     }
@@ -61,17 +85,14 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
       state.roomId,
       signEvent
     );
-
     const ok = updateBtn[0];
-
     if (!ok) {
       const errorMsg = updateBtn[1];
       alert(errorMsg);
       return;
     }
-
-    iFollowUser(false);
-    setShowUnfollowBtn(false);
+    iFollowUser(true);
+    setShowFollowBtn(false);
   }
 
   async function handleUnfollowBtn(userNpub, state, signEvent) {
@@ -84,15 +105,12 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
       state.roomId,
       signEvent
     );
-
     const ok = updateBtn[0];
-
     if (!ok) {
       const errorMsg = updateBtn[1];
       alert(errorMsg);
       return;
     }
-
     iFollowUser(false);
     setShowUnfollowBtn(false);
   }
@@ -138,25 +156,34 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
   const [showFollowBtn, setShowFollowBtn] = useState(false);
   const [showUnfollowBtn, setShowUnfollowBtn] = useState(false);
   const [copiedToClipboard, setCopiedToClipboard] = useState(false);
+  const [loadingFollows, setLoadingFollows] = useState(true);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [loadingPosts, setLoadingPosts] = useState(true);
+  const [userPosts, setUserPosts] = useState(undefined);
 
   const userNpub = userIdentity(info);
   const actorNpub = userIdentity(actorIdentity.info);
+  //console.log('userNpub: ', userNpub, ', actorNpub: ', actorNpub);
   const shortNpub = userNpub ? userNpub.substring(0, 20) : null;
   const hasNostrIdentity = checkNostrIdentity(info.identities);
   const isSameId = info.id === actorIdentity.info.id;
 
   useEffect(async () => {
     const wasMetadataFetched = sessionStorage.getItem(userNpub);
+    const timeToExpire = 3600; // 1 hour cache of profile and outbox relays
+    const myFollowListRetrieved = sessionStorage.getItem('myFollowListRetrieved');
+    const myFollowListExpired = (myFollowListRetrieved == undefined || ((myFollowListRetrieved + timeToExpire) < Math.floor(Date.now() / 1000)));
 
-    if (wasMetadataFetched) {
+    if (wasMetadataFetched && !myFollowListExpired) {
+      // Use the cached info
       const data = JSON.parse(sessionStorage.getItem(userNpub));
+      setLoadingFollows(false);
       const iFollowCache = data.iFollow;
       const aboutCache = data.about;
       const lightningAddressCache = data.lightningAddress;
       const isNip05ValidCache = data.nip05.isValid;
       const nip05AddressCache = data.nip05.nip05Address;
       const bannerCache = data.banner;
-
       iFollowUser(iFollowCache);
       setAbout(aboutCache);
       setIsValidNip05(isNip05ValidCache);
@@ -164,25 +191,45 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
       setLnAddress(lightningAddressCache);
       setbanner(bannerCache);
     } else {
+      // Repopulate the cache
       const userMetadata = await setUserMetadata();
-
       let obj = {};
-
       if (userNpub && actorNpub) {
         const actorPubkey = nip19.decode(actorNpub).data;
         const userPubkey = nip19.decode(userNpub).data;
 
-        const data = await isOnFollowList(actorPubkey, userPubkey);
+        // Reload follow list if expired, or not yet loaded
+        let iFollow = false;
+        let myFollowList = [];
+        if (myFollowListExpired || !wasMetadataFetched){
+          myFollowList = await loadFollowList();
+          if (myFollowList) {
+            sessionStorage.setItem('myFollowListRetrieved', Math.floor(Date.now() / 1000));
+            sessionStorage.setItem('myFollowList', JSON.stringify(myFollowList));
+          }
+        } else {
+          myFollowList = JSON.parse(sessionStorage.getItem('myFollowList'));
+        }
+        if (myFollowList) {
+          for (let tag of myFollowList) {
+            if (tag.length < 2) continue;
+            if (tag[0] != 'p') continue;
+            if (tag[1] == userPubkey) {
+              iFollow = true;
+              break;
+            }
+          }
+        }
 
-        const iFollow = data[0];
-        let myFollowList = data[1];
+        // refetch and set the outbox relays as well
+        let outboxRelays = await getOutboxRelays(actorPubkey);
+        updateCacheOutboxRelays(outboxRelays, userNpub);
 
         obj.iFollow = iFollow;
-        myFollowList = JSON.stringify(myFollowList);
-        sessionStorage.setItem('myFollowList', myFollowList);
-
         iFollowUser(iFollow);
+        setLoadingFollows(false);
       } else {
+        setLoadingFollows(false);
         obj.iFollow = 'npub not found';
       }
 
@@ -197,7 +244,6 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
             setLnAddress(userMetadata.lud06);
             return userMetadata.lud06;
           }
-
           return undefined;
         }
 
@@ -205,7 +251,6 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
         const lightningAddress = hasLnAddress(userMetadata);
 
         if (isNip05Valid) setIsValidNip05(true);
-
         setAbout(userMetadata.about);
         setNip05(userMetadata.nip05);
         setbanner(userMetadata.banner);
@@ -222,6 +267,11 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
         sessionStorage.setItem(userNpub, userMetadataCache);
       }
     }
+    setLoadingProfile(false);
+
+    // user posts
+    const recentUserPosts = await getUserPosts(userNpub);
+    setUserPosts(recentUserPosts);
   }, []);
 
   return (
@@ -247,7 +297,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
           />
           <div className="w-96 flex flex-col items-center">
             <div className="flex flex-wrap items-center">
-              <p className="text-xl mr-1 font-semibold">
+              <p className="text-xl mr-1 font-semibold text-gray-200">
                 {displayName(info, room)}
               </p>
             </div>
@@ -289,13 +339,13 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
         </div>
 
         <div>
-          <p className="text-xl mr-1 font-semibold">Actions:</p>
+          <p className="text-xl mr-1 font-semibold text-gray-200">Actions:</p>
           <div className="flex flex-wrap items-center my-2">
             {myAdminStatus?.admin && (
               <div>
                 {(peerAdminStatus?.admin && (
                   <button
-                    className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs text-white"
+                    className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
                     onClick={() => {
                       let result = confirm('Are you sure you want to remove Admin permissions?');
                       if (result != true) {
@@ -308,7 +358,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
                   </button>
                 )) || (
                   <button
-                    className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs text-white"
+                    className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
                     onClick={() => {
                       let result = confirm('Are you sure you want to grant Admin permissions?');
                       if (result != true) {
@@ -390,7 +440,9 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
               </button>
             ) : null}
 
-            {showFollowBtn ? (
+            {window.nostr ? (loadingFollows ? (<h4 className="text-sm text-gray-400">Loading Follow List...</h4>) : (
+            <>
+            {showFollowBtn && (
               <button
                 className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
                 onClick={() => {
@@ -399,9 +451,8 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
               >
                 Follow
               </button>
-            ) : null}
-
-            {showUnfollowBtn ? (
+            )}
+            {showUnfollowBtn && (
               <button
                 className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
                 onClick={() => {
@@ -414,7 +465,13 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
               >
                 ❌ Unfollow
               </button>
-            ) : null}
+            )}
+            </>
+            )) : (
+              <div className="h-12 mx-2 text-sm rounded-md border-2 border-gray-300 w-full text-center text-gray-200">
+                Use a nostr extension to follow/unfollow participants
+              </div>
+            )}
 
             {isSameId ? (
               <button
@@ -442,14 +499,32 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
 
           </div>
         </div>
+        { loadingProfile ? (<h4 className="text-sm text-gray-400">Loading Profile...</h4>) : (
         <div style={{maxWidth: '568px'}}>
-          <p className={about ? 'text-xl mr-1 font-semibold' : 'hidden'}>
+          <p className={about ? 'text-xl mr-1 font-semibold text-gray-200' : 'hidden'}>
             About
           </p>
-          <p className="text-sm text-gray-400 break-words mb-1"
+          <p className="text-sm text-gray-300 break-words mb-1"
              style={{whiteSpace:'pre-line'}}
           >{about}</p>
         </div>
+        )}
+        { loadingPosts ? (<h4 className="text-sm text-gray-400">Loading Recent Posts...</h4>) : userPosts && (
+        <div style={{maxWidth: '568px'}}>
+          <p className={userPosts ? 'text-xl mr-1 font-semibold text-gray-200' : 'hidden'}>
+            Recent Text Notes
+          </p>
+          { userPosts?.slice(0,3).map((event) => {
+            return <div>
+              <p className="text-sm text-gray-300 break-words mb-1"
+                 style={{whiteSpace:'pre-line'}}
+              >{event.content}</p>
+              <p className="text-sm text-gray-500 mb-4"
+                 style={{textAlign: 'right', borderBottom: 'solid gray'}}>posted on {makeLocalDate(event.created_at)}</p>
+            </div>
+          })}
+        </div>
+        )}
       </div>
     </Modal>
   );

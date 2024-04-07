@@ -20,13 +20,13 @@ const DisplayInvoice = ({invoice, shortInvoice, room}) => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg">
-      <h2 className="text-2xl font-bold">Here's your invoice:</h2>
-      <div className="flex justify-center">
+    <div className="p-6 rounded-lg bg-gray-700">
+      <h2 className="text-2xl font-bold text-gray-200">Here's your invoice:</h2>
+      <div className="flex justify-center bg-white m-4 p-4">
         <QRCodeSVG value={invoice} size={256} />
       </div>
       <div className="mt-5 text-center">
-        <p className="text-sm">{shortInvoice}...</p>
+        <p className="text-sm text-gray-200">{shortInvoice}...</p>
         <button
           onClick={handleCopy}
           className="select-none px-5 h-12 text-lg text-white focus:shadow-outline active:bg-gray-600"
@@ -130,7 +130,7 @@ export const InvoiceModal = ({info, room, close}) => {
           room={room}
         />
       ) : (
-        <div className="bg-white p-6 rounded-lg">
+        <div className="bg-white p-6 rounded-lg bg-gray-700 text-gray-200">
           <h2 className="text-2xl font-bold">Send some sats {lightningAddress ? `to ${lightningAddress}` : null } : </h2>
 
           <div className="flex mb-5 w-full justify-between">
@@ -185,7 +185,7 @@ export const InvoiceModal = ({info, room, close}) => {
           {/* Input 1 */}
           <input
             type="number"
-            className="w-full p-2 border border-gray-300 mb-4"
+            className="w-full p-2 border border-gray-300 bg-gray-400 text-black placeholder-black mb-4"
             placeholder="Custom amount"
             value={amount}
             onChange={e => {
@@ -196,7 +196,7 @@ export const InvoiceModal = ({info, room, close}) => {
           {/* Input 2 */}
           <input
             type="text"
-            className="w-full p-2 border border-gray-300 mb-4"
+            className="w-full p-2 border border-gray-300 bg-gray-400 text-black placeholder-black mb-4"
             placeholder="Comment (optional)"
             value={comment}
             onChange={e => {

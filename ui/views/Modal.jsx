@@ -41,7 +41,7 @@ export function Modal({close, children}) {
           maxWidth: '100%',
           maxHeight: '100%',
           overflowY: 'hidden',
-          backgroundColor: 'white',
+          backgroundColor: '#031745',
         }}
         onClick={e => {
           e.stopPropagation();

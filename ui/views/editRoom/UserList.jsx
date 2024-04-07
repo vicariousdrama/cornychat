@@ -114,11 +114,11 @@ export function UserList({
 
   return (
     <div>
-      <p className="text-lg font-medium text-gray-500 cursor-pointer" onClick={() => setExpanded(!expanded)}>
+      <p className="text-lg font-medium text-gray-200 cursor-pointer" onClick={() => setExpanded(!expanded)}>
       {expanded ? '🔽' : '▶️'} {label}
       </p>
       <div className={expanded ? '' : 'hidden'}>
-      <div className="mb-2 bg-gray-200 py-2 px-4 my-5 rounded-lg">
+      <div className="mb-2 bg-gray-300 py-2 px-4 my-5 rounded-lg">
         <UserList />
       </div>
       </div>

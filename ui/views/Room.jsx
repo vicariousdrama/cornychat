@@ -68,8 +68,9 @@ export default function Room({room, roomId, uxConfig}) {
   let [showMyNavMenu, setShowMyNavMenu] = useState(false);
   const [showLinks, setShowLinks] = useState(false);
   const [showSlides, setShowSlides] = useState(false);
-
-  const nJoinedPeers = peers.filter(id => peerState[id]?.inRoom).length;
+  const inRoomPeerIds = peers.filter(id => peerState[id]?.inRoom);
+  sessionStorage.setItem(roomId + '-peerIds', JSON.stringify([...inRoomPeerIds]));
+  const nJoinedPeers = inRoomPeerIds.length;
   const [audience, setAudience] = useState(state.peers.length + 1);
   useMemo(() => setAudience(state.peers.length + 1), [state.peers]);
 

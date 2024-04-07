@@ -104,12 +104,12 @@ export function Schedule({
     
   return (
     <div>
-      <p className="text-lg font-medium text-gray-500 cursor-pointer" onClick={() => setExpanded(!expanded)}>
+      <p className="text-lg font-medium text-gray-200 cursor-pointer" onClick={() => setExpanded(!expanded)}>
       {expanded ? '🔽' : '▶️'} Schedule
       </p>
-      <div className={expanded ? '' : 'hidden'}>
-      <div className="px-4 bg-gray-100 rounded-lg my-3">
-        <form>
+      <div className={expanded ? 'bg-gray-700' : 'hidden'}>
+      <div className="mb-2 bg-gray-700 my-5 rounded-lg text-gray-300">
+        <form className="bg-gray-700 text-gray-200">
             {iCanSchedule &&(
           <div className={schedule && !editing ? 'hidden' : 'w-full'}>
             <div className="flex">
@@ -118,7 +118,7 @@ export function Schedule({
                 </span>
                 <input
                     type="text"
-                    className="flex-grow p-2 border rounded"
+                    className="flex-grow p-2 border rounded bg-gray-400 text-black"
                     name="title"
                     placeholder="Title for scheduled event"
                     value={scheduleCandidate?.title || `${name}`}
@@ -131,7 +131,7 @@ export function Schedule({
                 </span>
                 <input
                     type="text"
-                    className="flex-grow p-2 border rounded"
+                    className="flex-grow p-2 border rounded bg-gray-400 text-black"
                     name="summary"
                     placeholder="Summary for scheduled event"
                     value={scheduleCandidate?.summary || `${description}`}
@@ -144,7 +144,7 @@ export function Schedule({
               </span>
               <input
                 type="date"
-                className="flex-grow border rounded"
+                className="flex-grow border rounded bg-gray-400 text-black"
                 name="startdate"
                 placeholder="yyyy-mm-dd"
                 min={`${
@@ -158,7 +158,7 @@ export function Schedule({
               />
               <input
                 type="time"
-                className="flex-none ml-3 border rounded"
+                className="flex-none ml-3 border rounded bg-gray-400 text-black"
                 name="starttime"
                 placeholder="hh:mm"
                 value={scheduleCandidate?.starttime || '09:00'}
@@ -183,7 +183,7 @@ export function Schedule({
               defaultValue={scheduleCandidate.timezone}
               onChange={handleScheduleChange}
               className={
-                showTimezoneSelect ? 'w-full border mt-3 p-2 rounded' : 'hidden'
+                showTimezoneSelect ? 'w-full border mt-3 p-2 rounded bg-gray-400 text-black' : 'hidden'
               }
             >
               {rawTimeZones.map(tz => {
@@ -200,7 +200,7 @@ export function Schedule({
               </span>
               <input
                 type="date"
-                className="flex-grow p-2 border rounded"
+                className="flex-grow p-2 border rounded bg-gray-400 text-black"
                 name="enddate"
                 placeholder="yyyy-mm-dd"
                 min={`${
@@ -214,7 +214,7 @@ export function Schedule({
               />
               <input
                 type="time"
-                className="flex-none ml-3 p-2 border rounded"
+                className="flex-none ml-3 p-2 border rounded bg-gray-400 text-black"
                 name="endtime"
                 placeholder="hh:mm"
                 value={scheduleCandidate?.endtime || '17:00'}
@@ -250,9 +250,9 @@ export function Schedule({
           </div>
             )}
           <div
-            className={schedule || !editing ? 'rounded bg-gray-50 border w-full' : 'hidden'}
+            className={schedule || !editing ? 'rounded bg-gray-700 border mt-4 w-full' : 'hidden'}
           >
-            <div className="text-gray-500 p-3 font-medium">
+            <div className="text-gray-300 p-3 font-medium">
               Starting {schedule?.startdate} at {schedule?.starttime}
               <br />
               Ending {schedule?.enddate} at {schedule?.endtime}
@@ -304,7 +304,7 @@ export function Schedule({
             </div>
           )}
           {iCanSchedule && (
-          <div className={!schedule || editing ? 'flex' : 'hidden'}>
+          <div className={!schedule || editing ? 'flex bg-gray-700' : 'hidden'}>
             <button
               onClick={submitSchedule}
               className="flex-grow mt-5 h-12 px-6 text-lg bg-gray-600 rounded-lg mr-2"
@@ -318,7 +318,7 @@ export function Schedule({
           </div>
           )}
           {(nostrNpub.length == 0) && (
-          <div className="h-12 mx-2 text-sm rounded-md border-2 border-gray-300 w-full text-gray-500">
+          <div className="h-12 mx-2 text-sm rounded-md border-2 border-gray-300 w-full text-center text-gray-200">
             Use a nostr extension to schedule an event
           </div>
         )}

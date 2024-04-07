@@ -99,17 +99,17 @@ export function DesignRoomInfo({
   return (
     <div>
 
-      <p className="text-lg font-medium text-gray-500 cursor-pointer" onClick={() => setExpanded(!expanded)}>
+      <p className="text-lg font-medium text-gray-200 cursor-pointer" onClick={() => setExpanded(!expanded)}>
       {expanded ? '🔽' : '▶️'} Designer Settings
       </p>
       <div className={expanded ? '' : 'hidden'}>
-      <p className="text-sm font-medium text-gray-500">
+      <p className="text-sm font-medium text-gray-300">
         Background Image URI: {!iOwn && (backgroundURI)}
       </p>
       {iOwn && (
       <input
         className={mqp(
-          'rounded-lg placeholder-gray-400 bg-gray-100 border-4 m-2 pb-2 rounded-lg w-full md:w-96'
+          'rounded-lg placeholder-black bg-gray-400 text-black border-4 m-2 pb-2 rounded-lg w-full md:w-96'
         )}
         type="text"
         placeholder="Background Image URI"
@@ -126,7 +126,7 @@ export function DesignRoomInfo({
 
       {iOwn ? (
       <div className="my-2">
-        <span class="flex items-center text-sm font-medium text-gray-500">
+        <span class="flex items-center text-sm font-medium text-gray-300">
           Choose a Color Theme:  <b>{color}</b>
         </span>
         <div className="flex flex-wrap justify-between">
@@ -135,7 +135,7 @@ export function DesignRoomInfo({
 
         { color === 'customColor' && (
         <div className="text-sm">
-        <p className="text-sm font-medium text-gray-500 p-2">
+        <p className="text-sm font-medium text-gray-300 p-2">
           Choose your custom colors:
         </p>
         {colorPickerBg ? (
@@ -218,7 +218,7 @@ export function DesignRoomInfo({
       </div>
       ) : (
       <div className="my-2">
-        <span class="flex items-center text-sm font-medium text-gray-500">
+        <span class="flex items-center text-sm font-medium text-gray-300">
           Color Theme:  <b>{color}</b>
         </span>
       </div>

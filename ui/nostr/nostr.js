@@ -5,28 +5,104 @@ import crypto from 'crypto-js';
 import {bech32} from 'bech32';
 import {Buffer} from 'buffer';
 
-async function getUserRelays() {
-  let userRelays = [];
-  if (window.nostr) {
-    const relays = await window.nostr.getRelays();
-    const relaysSet = Object.keys(relays).length !== 0;
-    if (relaysSet) {
-      for (const relay in relays) {
-        if (relays[relay].read) {
-          if (relay.indexOf('nostr-pub.wellorder.net') > -1) continue;
-          if (relay.indexOf('nostr1.tunnelsats.com') > -1) continue;
-          if (relay.indexOf('relayer.fiatjaf.com') > -1) continue;
-          if (relay.indexOf('relay.nostr.info') > -1) continue;
-          if (relay.indexOf('nostr-relay.wlvs.space') > -1) continue;
-          const startWithWss = relay.startsWith('wss://');
-          startWithWss
-            ? userRelays.push(relay)
-            : userRelays.push('wss://' + relay);
-        }
-      }
+const pmd = false;
+const pool = new RelayPool();
+function unique(arr) {
+  return [...new Set(arr)];
+}
+function sleep(ms) {
+  return new Promise(res => setTimeout(res, ms));
+}
+
+function getDefaultOutboxRelays() {
+  return [
+    'wss://nos.lol',
+    'wss://relay.damus.io',
+    'wss://nostr.mutinywallet.com',
+    'wss://relay.snort.social',
+    'wss://relay.primal.net',
+  ];
+}
+
+function getCachedOutboxRelaysByPubkey(pubkey) {
+  if(pmd) console.log('in getCachedOutboxRelaybyPubkey for ', pubkey);
+  const npub = nip19.npubEncode(pubkey);
+  return getCachedOutboxRelaysByNpub(npub);
+}
+function getCachedOutboxRelaysByNpub(npub) {
+  if(pmd) console.log('in getCachedOutboxRelaysByNpub for ', npub);
+  let userCache = {}
+  let k = `${npub}-relays`;
+  let s = sessionStorage.getItem(k);
+  if (s) userCache = JSON.parse(s);
+  const outboxRelays = (userCache && userCache?.outboxRelays) ? userCache.outboxRelays : [];  
+  if(pmd) console.log('outboxRelays:', outboxRelays);
+  return outboxRelays;
+}
+
+export async function getOutboxRelays(pubkey) {
+  if(pmd) console.log('in getOutboxRelays for pubkey: ', pubkey);
+  return new Promise(async (res, rej) => {
+    if (pubkey == undefined) {
+      res([]);
+      return;
     }
-  }
-  return userRelays;
+    //const pool = new RelayPool();
+    try {
+      const userRelays = getCachedOutboxRelaysByPubkey(pubkey);
+      const defaultRelays = getDefaultOutboxRelays();
+      const relaysToUse = unique([...userRelays, ...defaultRelays]);
+      const filter = [{kinds: [10002], authors: [pubkey]}];
+      let events = [];
+      setTimeout(() => {
+        //pool.close();
+        // Find newest
+        let fd = 0;
+        let fi = -1;
+        for(let i = 0; i < events.length; i ++) {
+          if (events[i].created_at > fd) {
+            fd = events[i].created_at;
+            fi = i;
+          }
+        }
+        if (fi == -1) {
+          res([]);
+          return;
+        }
+        const newestEvent = events[fi];
+        const tagList = newestEvent.tags;
+        let outboxRelays = [];
+        for (let tag of tagList) {
+          if (tag.length < 2) continue;
+          if (tag[0] != 'r') continue;
+          if ((tag.length == 2) || (tag[2] == 'write')) {
+            outboxRelays.push(tag[1])
+          }
+        }
+        //console.log('getOutboxRelays: ', outboxRelays);
+        res(outboxRelays);
+      }, 2700);
+
+      pool.subscribe(
+        filter,
+        relaysToUse,
+        (event, onEose, url) => {
+          events.push(event);
+        },
+        undefined,
+        undefined,
+        {
+          unsubscribeOnEose: true,
+          allowDuplicateEvents: false,
+          allowOlderEvents: false,
+        }
+      );
+    } catch (error) {
+      console.log('There was an error while fetching outbox relay list: ', error);
+      //pool.close();
+      rej(undefined);
+    }
+  });  
 }
 
 export async function signInExtension(
@@ -35,6 +111,7 @@ export async function signInExtension(
   updateInfo,
   enterRoom
 ) {
+  if(pmd) console.log("in signInExtension");
   try {
     if (!window.nostr) {
       throw new Error('A nostr extension is not available');
@@ -70,31 +147,73 @@ export async function signInExtension(
   }
 }
 
-export async function getUserEvent(pubkey, id) {
+export async function getUserEventsByKind(pubkey, kind, timeSince) {
+  if(pmd) console.log("in getUserEventsByKind for pubkey ", pubkey, ", kind ", kind);
   return new Promise((res, rej) => {
-    const pool = new RelayPool();
+    if (pubkey == undefined || kind == undefined) {
+      res([]);
+      return;
+    }
+    //const pool = new RelayPool();
     try {
-      const defaultRelays = [
-        'wss://nos.lol',
-        'wss://relay.damus.io',
-        //'wss://nostr-pub.wellorder.net',
-        'wss://nostr.mutinywallet.com',
-        'wss://relay.snort.social',
-        'wss://relay.primal.net',
-      ];
-
-      const userRelays = []; // getUserRelays();
-
-      const relaysToUse = [...userRelays, ...defaultRelays];
-      const filter = [{kinds: [1], authors: [pubkey], ids: [id]}];
-      const npub = nip19.npubEncode(pubkey);
-
-      //check if i can use a variable set to true or false
+      const userRelays = getCachedOutboxRelaysByPubkey(pubkey);
+      const defaultRelays = getDefaultOutboxRelays();
+      const relaysToUse = unique([...userRelays, ...defaultRelays]);
+      const since = timeSince;
+      const filter = [{kinds: [kind], authors: [pubkey], since: since, limit: 50}];
       let userEvents = [];
+      setTimeout(() => {
+        //pool.close();
+        let retids = [];
+        for (let userEvent of userEvents) {
+          retids.push(userEvent.id);
+        }
+        let sesEvents = sessionStorage.getItem(`${pubkey}-kind${kind}events`);
+        if (sesEvents != undefined) {
+          sesEvents = JSON.parse(sesEvents);
+          for (let sessionEvent of sesEvents) {
+            if (sessionEvent.created_at > timeSince && !retids.includes(sessionEvent.id)) {
+              userEvents.push(sessionEvent);
+            }
+          }
+        }
+        sessionStorage.setItem(`${pubkey}-kind${kind}events`, JSON.stringify(userEvents));
+        sessionStorage.setItem(`${pubkey}-kind${kind}events-retrieveTime`, Math.floor(Date.now() / 1000));
+        res(userEvents);
+      }, 2700);
+      let options = {unsubscribeOnEose: true, allowDuplicateEvents: false};
+      
+      pool.subscribe(
+        filter,
+        relaysToUse,
+        (event, afterEose, url) => {
+          userEvents.push(event)
+        },
+        undefined,
+        undefined,
+        options
+      );
+    } catch (error) {
+      console.log('There was an error when getting user events by kind: ', error);
+      //pool.close();
+      rej(undefined);
+    }
+  });
+}
 
+export async function getUserEventById(pubkey, id) {
+  if(pmd) console.log("in getUserEventById for pubkey ", pubkey, ", id", id);
+  return new Promise((res, rej) => {
+    //const pool = new RelayPool();
+    try {
+      const userRelays = getCachedOutboxRelaysByPubkey(pubkey);
+      const defaultRelays = getDefaultOutboxRelays();
+      const relaysToUse = unique([...userRelays, ...defaultRelays]);
+      const filter = [{kinds: [1], authors: [pubkey], ids: [id]}];
+      let userEvents = [];
       const timeoutRelays = setTimeout(() => {
         if (userEvents.length === 0) {
-          pool.close();
+          //pool.close();
           res(undefined);
           console.log('Nostr relays did not return any events');
         }
@@ -106,7 +225,7 @@ export async function getUserEvent(pubkey, id) {
         (event, afterEose, url) => {
           clearTimeout(timeoutRelays);
           userEvents.push(event);
-          pool.close();
+          //pool.close();
           res(event);
         },
         undefined,
@@ -114,47 +233,37 @@ export async function getUserEvent(pubkey, id) {
         {unsubscribeOnEose: true}
       );
     } catch (error) {
-      pool.close();
+      console.log('There was an error when getting user events by id: ', error);
+      //pool.close();
       rej(undefined);
-      console.log('There was an error when getting user events: ', error);
     }
   });
 }
 
 export async function getUserMetadata(pubkey, id) {
+  if(pmd) console.log("in getUserMetadata for pubkey", pubkey, ", id", id);
   return new Promise((res, rej) => {
-    const pool = new RelayPool();
+    //const pool = new RelayPool();
     try {
-      const defaultRelays = [
-        'wss://nos.lol',
-        'wss://relay.damus.io',
-        'wss://nostr.mutinywallet.com',
-        'wss://relay.snort.social',
-        'wss://relay.primal.net',
-      ];
-
-      const userRelays = []; // getUserRelays();
-      //console.log(userRelays);
-
-      const relaysToUse = [...userRelays, ...defaultRelays];
+      const userRelays = getCachedOutboxRelaysByPubkey(pubkey);
+      const defaultRelays = getDefaultOutboxRelays();
+      const relaysToUse = unique([...userRelays, ...defaultRelays]);
       const filter = [{kinds: [0], authors: [pubkey]}];
-      const npub = nip19.npubEncode(pubkey);
-
       //check if i can use a variable set to true or false
       let userMetadata = [];
-
       const timeoutRelays = setTimeout(() => {
         if (userMetadata.length === 0) {
-          pool.close();
+          if(pmd) console.log('Nostr relays did not return any events');
+          //pool.close();
           res(undefined);
-          console.log('Nostr relays did not return any events');
         }
       }, 3000);
-
+      const npub = nip19.npubEncode(pubkey);
       pool.subscribe(
         filter,
         relaysToUse,
         (event, afterEose, url) => {
+          clearTimeout(timeoutRelays);
           userMetadata.push(JSON.parse(event.content));
           const userInfo = {
             name: userMetadata[0]?.name, // (userMetadata[0].display_name === '' ? (userMetadata[0].name === '' ? null : userMetadata[0].name) : userMetadata[0].display_name),
@@ -167,7 +276,7 @@ export async function getUserMetadata(pubkey, id) {
             lud06: userMetadata[0]?.lud06,
             banner: userMetadata[0]?.banner,
           };
-          pool.close();
+          //pool.close();
           res(userInfo);
         },
         undefined,
@@ -175,80 +284,9 @@ export async function getUserMetadata(pubkey, id) {
         {unsubscribeOnEose: true}
       );
     } catch (error) {
-      pool.close();
-      rej(undefined);
       console.log('There was an error when getting user metadata: ', error);
-    }
-  });
-}
-
-export async function isOnFollowList(actorPubkey, userPubkey) {
-  return new Promise(async (res, rej) => {
-    const pool = new RelayPool();
-    try {
-      let userRelays = []; //getUserRelays();
-
-      const defaultRelays = [
-        'wss://nos.lol',
-        'wss://relay.damus.io',
-        //'wss://nostr-pub.wellorder.net',
-        'wss://nostr.mutinywallet.com',
-        'wss://relay.snort.social',
-        'wss://relay.primal.net',
-      ];
-
-      const relaysToUse = [...userRelays, ...defaultRelays];
-
-      const filter = [{kinds: [3], authors: [actorPubkey]}];
-
-      let events = [];
-
-      setTimeout(() => {
-        const lastEvent = events[events.length - 1];
-
-        const followList = lastEvent.tags;
-
-        const isOnList = isOnFollowList();
-
-        if (isOnList) {
-          pool.close();
-          res([true, followList]);
-        }
-
-        if (!isOnList) {
-          pool.close();
-          res([false, followList]);
-        }
-
-        function isOnFollowList() {
-          for (let i = 0; i < followList.length; i++) {
-            if (followList[i][1] === userPubkey) {
-              return true;
-            }
-          }
-
-          return false;
-        }
-      }, 2700);
-
-      pool.subscribe(
-        filter,
-        relaysToUse,
-        (event, onEose, url) => {
-          events.push(event);
-        },
-        undefined,
-        undefined,
-        {
-          unsubscribeOnEose: true,
-          allowDuplicateEvents: false,
-          allowOlderEvents: false,
-        }
-      );
-    } catch (error) {
-      pool.close();
+      //pool.close();
       rej(undefined);
-      console.log('There was an error while fetching follow list: ', error);
     }
   });
 }
@@ -261,6 +299,7 @@ export async function signInPrivateKey(
   enterRoom,
   addNostrPrivateKey
 ) {
+  if(pmd) console.log("in signInPrivateKey");
   try {
     const isValidLength = privateKey.length === 63 || privateKey.length === 64;
 
@@ -304,7 +343,8 @@ export async function signInPrivateKey(
   }
 }
 
-export async function sendZaps(npub, comment, amount, state, signEvent) {
+export async function sendZaps(npubToZap, comment, amount, state, signEvent) {
+  if(pmd) console.log("in sendZaps");
   try {
     // Validate and set sats
     let satsAmount = parseInt(amount);
@@ -314,9 +354,9 @@ export async function sendZaps(npub, comment, amount, state, signEvent) {
     satsAmount = satsAmount * 1000;
 
     // Get metadata to lookup lightning address for users npub
-    const receiverPubkey = nip19.decode(npub).data;
+    const pubkeyToZap = nip19.decode(npubToZap).data;
     const id = null;
-    const metadata = await getUserMetadata(receiverPubkey, id);
+    const metadata = await getUserMetadata(pubkeyToZap, id);
     if (!metadata) {
       throw new Error('Relays did not find any kind 0 event for this npub.');
     }
@@ -335,16 +375,17 @@ export async function sendZaps(npub, comment, amount, state, signEvent) {
     if (LnService.hasOwnProperty('error')) {
       throw new Error(LnService.reason);
     }
-
+    if (pmd) console.log("about to call getZapEvent");
     const signedEvent = await getZapEvent(
       comment,
-      receiverPubkey,
+      pubkeyToZap,
       satsAmount,
       state,
       signEvent
     );
 
     if (!signedEvent[0]) {
+      if (pmd) console.log("about to call getLNInvoice");
       const lnInvoice = await getLNInvoice(
         null,
         lightningAddress,
@@ -355,6 +396,7 @@ export async function sendZaps(npub, comment, amount, state, signEvent) {
       return [true, lnInvoice.pr];
     }
 
+    if (pmd) console.log("about to call getLNInvoice");
     const lnInvoice = await getLNInvoice(
       signedEvent[1],
       lightningAddress,
@@ -364,12 +406,13 @@ export async function sendZaps(npub, comment, amount, state, signEvent) {
 
     return [true, lnInvoice.pr];
   } catch (error) {
-    console.log('There was an error: ', error);
+    console.log('There was an error sending zaps: ', error);
     return [undefined, error];
   }
 }
 
 export async function openLNExtension(LNInvoice) {
+  if(pmd) console.log("in openLNExtension");
   try {
     if (!window.webln) return undefined;
     await window.webln.enable();
@@ -381,133 +424,233 @@ export async function openLNExtension(LNInvoice) {
 }
 
 export function setDefaultZapsAmount(amount) {
+  if(pmd) console.log("in setDefaultZapsAmount");
   localStorage.setItem('defaultZap', amount);
 }
 
+async function saveFollowList(myFollowList) {
+  if(pmd) console.log("in saveFollowList");
+  const event = {
+    id: null,
+    pubkey: null,
+    created_at: Math.floor(Date.now() / 1000),
+    kind: 3,
+    tags: myFollowList,
+    content: '',
+    sig: null,
+  };
+  const EventSigned = await window.nostr.signEvent(event);
+  if(pmd) console.log(EventSigned);
+  //if (!EventSigned) return [null, 'There was an error with your nostr extension'];
+  const defaultRelays = getDefaultOutboxRelays();
+  const myPubkey = await window.nostr.getPublicKey();
+  const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
+  let myOutboxRelays = [];
+  if (userRelays?.length == 0) {
+    const myNpub = nip19.npubEncode(myPubkey);
+    myOutboxRelays = await getOutboxRelays(myPubkey);
+    updateCacheOutboxRelays(myOutboxRelays, myNpub);
+  }
+  const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
+  //const pool = new RelayPool();
+  pool.publish(EventSigned, relaysToUse);
+  const sleeping = await sleep(100);
+  //pool.close();
+  return true;
+}
+
+export async function loadFollowList() {
+  if(pmd) console.log("in loadFollowList");
+  return new Promise(async (res, rej) => {
+    //const pool = new RelayPool();
+    try {
+      const defaultRelays = getDefaultOutboxRelays();
+      const myPubkey = await window.nostr.getPublicKey();
+      const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
+      let myOutboxRelays = [];
+      if (userRelays?.length == 0) {
+        const myNpub = nip19.npubEncode(myPubkey);
+        myOutboxRelays = await getOutboxRelays(myPubkey);
+        updateCacheOutboxRelays(myOutboxRelays, myNpub);
+      }
+      const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
+      const filter = [{kinds: [3], authors: [myPubkey]}];
+      let events = [];
+
+      setTimeout(() => {
+        //pool.close();
+        // Find newest
+        let fd = 0;
+        let fi = -1;
+        for(let i = 0; i < events.length; i ++) {
+          if (events[i].created_at > fd) {
+            fd = events[i].created_at;
+            fi = i;
+          }
+        }
+        if (fi == -1) {
+          res([]);
+          return;
+        }
+        // populate follow list from tags of newest
+        const newestEvent = events[fi];
+        const followList = newestEvent.tags;
+        res(followList);
+      }, 2700);
+
+      pool.subscribe(
+        filter,
+        relaysToUse,
+        (event, onEose, url) => {
+          events.push(event);
+        },
+        undefined,
+        undefined,
+        {
+          unsubscribeOnEose: true,
+          allowDuplicateEvents: false,
+          allowOlderEvents: false,
+        }
+      );
+    } catch (error) {
+      console.log('There was an error while fetching follow list: ', error);
+      //pool.close();
+      rej(undefined);
+    }
+  });
+}
+
 export async function unFollowUser(
-  npub,
+  npubToUnfollow,
   myFollowList,
   state,
   roomId,
   signEvent
 ) {
-  const pool = new RelayPool();
-
-  const userPubkey = nip19.decode(npub).data;
-
-  const defaultRelays = [
-    'wss://nos.lol',
-    'wss://relay.damus.io',
-    //'wss://nostr-pub.wellorder.net',
-    'wss://nostr.mutinywallet.com',
-    'wss://relay.snort.social',
-    'wss://relay.primal.net',
-  ];
-
-  let userRelays = []; // getUserRelays();
-
-  const indexToRemove = myFollowList.findIndex(childArray =>
-    childArray.includes(userPubkey)
-  );
-
-  if (indexToRemove !== -1) {
-    myFollowList.splice(indexToRemove, 1);
+  if(pmd) console.log('in unFollowUser for ' + npubToUnfollow);
+  if (!window.nostr) {
+    return [null, 'A nostr extension is required to unfollow a user'];
   }
-
-  const event = {
-    id: null,
-    pubkey: null,
-    created_at: Math.floor(Date.now() / 1000),
-    kind: 3,
-    tags: myFollowList,
-    content: '',
-    sig: null,
-  };
-
-  if (window.nostr) {
-
-    const relaysToUse = [...userRelays, ...defaultRelays];
-
-    const EventSigned = await window.nostr.signEvent(event);
-    if (!EventSigned)
-      return [null, 'There was an error with your nostr extension'];
-
-    pool.publish(EventSigned, relaysToUse);
-    pool.close();
-    updateCache(false, npub, myFollowList);
-
+  const pubkeyToUnfollow = nip19.decode(npubToUnfollow).data;
+  const indexToRemove = myFollowList.findIndex(childArray =>
+    childArray.includes(pubkeyToUnfollow)
+  );
+  if (indexToRemove == -1) {
+    // doesnt exist, our job is done here
     return [true];
   }
-
-  const signedEvent = await signEvent(state, roomId, event);
-
-  const hasError = signedEvent.hasOwnProperty('error');
-
-  if (hasError) return [null, signedEvent.error];
-
-  pool.publish(signedEvent.nostrEvent, defaultRelays);
-  pool.close();
-  updateCache(false, npub, myFollowList);
-
+  // remove it
+  myFollowList.splice(indexToRemove, 1);
+  // save changes to follow list
+  const isOK = await saveFollowList(myFollowList);
+  updateCacheFollowing(false, npubToUnfollow, myFollowList);
   return [true];
 }
 
-export async function followUser(npub, myFollowList, state, roomId, signEvent) {
-  const pool = new RelayPool();
-  const userPubkey = nip19.decode(npub).data;
-
-  myFollowList.push(['p', userPubkey]);
-
-  const defaultRelays = [
-    'wss://nos.lol',
-    'wss://relay.damus.io',
-    //'wss://nostr-pub.wellorder.net',
-    'wss://nostr.mutinywallet.com',
-    'wss://relay.snort.social',
-    'wss://relay.primal.net',
-  ];
-
-  let userRelays = []; // await getUserRelays();
-
-  const event = {
-    id: null,
-    pubkey: null,
-    created_at: Math.floor(Date.now() / 1000),
-    kind: 3,
-    tags: myFollowList,
-    content: '',
-    sig: null,
-  };
-
-  if (window.nostr) {
-
-    const relaysToUse = [...userRelays, ...defaultRelays];
-
-    const EventSigned = await window.nostr.signEvent(event);
-
-    if (!EventSigned)
-      return [null, 'There was an error with your nostr extension'];
-
-    pool.publish(EventSigned, relaysToUse);
-    pool.close();
-    updateCache(true, npub, myFollowList);
-
+export async function followUser(npubToFollow, myFollowList, state, roomId, signEvent) {
+  if(pmd) console.log('in followUser for ' + npubToFollow);
+  if (!window.nostr) {
+    return [null, 'A nostr extension is required to follow a user'];
+  }
+  const pubkeyToFollow = nip19.decode(npubToFollow).data;
+  const indexOfPubkey = myFollowList.findIndex(childArray =>
+    childArray.includes(pubkeyToFollow)
+  );  
+  if (indexOfPubkey != -1) {
+    // already exists, our job is done here
+    if(pmd) console.log('already following');
     return [true];
   }
-
-  const signedEvent = await signEvent(state, roomId, event);
-  const hasError = signedEvent.hasOwnProperty('error');
-
-  if (hasError) return [null, signedEvent.error];
-
-  pool.publish(signedEvent, defaultRelays);
-  pool.close();
-  updateCache(true, npub, myFollowList);
-
+  // add it
+  myFollowList.push(['p', pubkeyToFollow]);
+  const isOK = await saveFollowList(myFollowList);
+  updateCacheFollowing(true, npubToFollow, myFollowList);
   return [true];
+}
+
+export async function followAllNpubsFromIds(inRoomPeerIds) {
+  if(pmd) console.log("in followAllNpubsFromIds");
+  if (!window.nostr) {
+    alert('A nostr extension is required to follow users');
+    return;
+  }
+  if (!inRoomPeerIds) {
+    alert('Nobody to follow');
+    return;
+  }
+  inRoomPeerIds = JSON.parse(inRoomPeerIds);
+  // ensure we have a list to work with
+  const currentTime = Math.floor(Date.now() / 1000);
+  const timeToExpire = 3600; // 1 hour
+  const myFollowListRetrieved = sessionStorage.getItem('myFollowListRetrieved');
+  const myFollowListExpired = (myFollowListRetrieved == undefined || ((myFollowListRetrieved + timeToExpire) < currentTime));
+  let myFollowList = sessionStorage.getItem('myFollowList');
+  if (myFollowListExpired || myFollowList == undefined) {
+    myFollowList = await loadFollowList();
+    if (myFollowList) {
+      sessionStorage.setItem('myFollowListRetrieved', currentTime);
+      sessionStorage.setItem('myFollowList', JSON.stringify(myFollowList));
+    }
+  } else {
+    myFollowList = JSON.parse(sessionStorage.getItem('myFollowList'));
+  }
+
+  // tracking
+  let numberOfAddedPubkeys = 0;
+
+  // iterate all peer ids, checking for pubkeys to add
+  for (let peerId of inRoomPeerIds) {
+    const peerValue = sessionStorage.getItem(peerId);
+    if (peerValue == undefined) continue;
+    const peerObj = JSON.parse(peerValue);
+    const npub = getNostrNpubFromInfo(peerObj);
+    if (npub == undefined) continue;
+    const pubkey = nip19.decode(npub).data;
+    let following = false;
+    for (let tag of myFollowList) {
+      if (tag.length < 2) continue;
+      if (tag[0] != 'p') continue;
+      if (tag[1] == pubkey) {
+        following = true;
+        break;
+      }
+    }
+    if (!following) {
+      myFollowList.push(['p', pubkey]);
+      let userCache = {}
+      let s = sessionStorage.getItem(npub);
+      if (s) userCache = JSON.parse(s);
+      userCache.iFollow = true;
+      s = JSON.stringify(userCache);
+      sessionStorage.setItem(npub, s);
+      numberOfAddedPubkeys ++;
+    }
+  }
+
+  if (numberOfAddedPubkeys > 0) {
+    sessionStorage.setItem('myFollowList', JSON.stringify(myFollowList));
+    const isOK = await saveFollowList(myFollowList);
+    alert('Followed ' + numberOfAddedPubkeys + ' new nostr users');
+  } else {
+    alert('You are already following everyone in the room');
+  }
+}
+
+function getNostrNpubFromInfo(info) {
+  if(pmd) console.log(" in getNostrNpubFromInfo");
+  const hasIdentity = info?.hasOwnProperty('identities');
+  if (hasIdentity && (info?.identities?.length > 0)) {
+    for (let identity of info.identities) {
+      if (identity.type == 'nostr') {
+        return identity.id;
+      }
+    }
+  }
+  return undefined;
 }
 
 export async function verifyNip05(nip05, userNpub) {
+  if(pmd) console.log("in verifyNip05");
   if (!nip05) {
     return false;
   }
@@ -531,11 +674,11 @@ export async function verifyNip05(nip05, userNpub) {
       return false;
     }
   }
-
   return false;
 }
 
 async function getLNService(address) {
+  if(pmd) console.log("in getLNService for address", address);
   let isLNUrl = address.toLowerCase().startsWith('lnurl');
   let isDecodedAddress = address.includes('@');
 
@@ -555,19 +698,19 @@ async function getLNService(address) {
   if (isDecodedAddress) {
     let service = address.split('@');
     let url = `https://${service[1]}/.well-known/lnurlp/${service[0]}`;
-
+    if(pmd) console.log(`querying ${url}`)
     let data = await (await fetch(url)).json();
-
+    if(pmd) console.log('data returned: ', data);
     return data;
   }
 }
 
 async function getLNInvoice(zapEvent, lightningAddress, LNService, amount) {
+  if(pmd) console.log("in getLNInvoice");
   let hasPubkey = LNService.nostrPubkey;
   const dataBytes = Buffer.from(lightningAddress, 'utf-8');
   const lnurlEncoded = bech32.encode('lnurl', bech32.toWords(dataBytes));
   let baseUrl = `${LNService.callback}?amount=${amount}`;
-
   async function fetchInvoice(baseUrl) {
     const response = await fetch(baseUrl);
     const invoice = await response.json();
@@ -586,6 +729,7 @@ async function getLNInvoice(zapEvent, lightningAddress, LNService, amount) {
 }
 
 async function getZapEvent(content, receiver, amount, state, signEvent) {
+  if(pmd) console.log("in getZapEvent");
   let event = {
     id: null,
     pubkey: null,
@@ -616,35 +760,46 @@ async function getZapEvent(content, receiver, amount, state, signEvent) {
 
   const signedEvent = await signEvent(state, state.roomId, event);
   const hasError = signedEvent.hasOwnProperty('error');
-
   if (hasError) return [null, signedEvent.error];
-
   const eventSignedEncoded = encodeURI(JSON.stringify(signedEvent.nostrEvent));
-
   return [true, eventSignedEncoded];
 }
 
 function encryptPrivatekey(privateKey) {
+  if(pmd) console.log("in encryptPrivateKey");
   const textToEncode = privateKey;
   const encryptionKey = nanoid();
-
   const cipherText = crypto.AES.encrypt(textToEncode, encryptionKey).toString();
-
   return {cipherText, encryptionKey};
 }
 
-function updateCache(iFollow, npub, followList) {
-  let newCache = JSON.parse(sessionStorage.getItem(npub));
-  newCache.iFollow = iFollow;
-
-  newCache = JSON.stringify(newCache);
+function updateCacheFollowing(iFollow, npub, followList) {
+  if(pmd) console.log("in updateCacheFollowing setting iFollow to ", iFollow, " for npub ", npub);
+  let userCache = {}
+  let s = sessionStorage.getItem(npub);
+  if (s) userCache = JSON.parse(s);
+  userCache.iFollow = iFollow;
+  s = JSON.stringify(userCache);
+  sessionStorage.setItem(npub, s);
   let newFollowingList = JSON.stringify(followList);
-
-  sessionStorage.setItem(npub, newCache);
   sessionStorage.setItem('myFollowList', newFollowingList);
 }
 
+export function updateCacheOutboxRelays(outboxRelays, npub) {
+  if(pmd) console.log("in updateCacheOutboxRelays");
+  if (outboxRelays == undefined) return;
+  if(pmd) console.log(typeof outboxRelays);
+  let userCache = {}
+  let k = `${npub}-relays`;
+  let s = sessionStorage.getItem(k);
+  if (s) userCache = JSON.parse(s);
+  userCache.outboxRelays = outboxRelays;
+  s = JSON.stringify(userCache);
+  sessionStorage.setItem(k, s);
+}
+
 export const isValidNostr = (info) => {
+  if(pmd) console.log("in isValidNostr");
   let r = false;
   try {
     let jamid = info.id;
@@ -682,46 +837,28 @@ export const isValidNostr = (info) => {
 }
 
 function getLabelForKind(kind) {
+  if(pmd) console.log("in getLabelForKind");
   switch(kind) {
     case 30388: return "Corny Chat Slide Set";
     case 31388: return "Corny Chat Link Set";
     case 32388: return "Corny Chat Room Favorites";
+    case 32388: return "Corny Chat Playlist";
     default: return "Unlabeled Kind";
   }
 }
 
 export async function saveList(dTagValue, name, about, image, kind, theList) {
-  const pool = new RelayPool();
-  const defaultRelays = [
-    'wss://nos.lol',
-    'wss://relay.damus.io',
-    //'wss://nostr-pub.wellorder.net',
-    'wss://nostr.mutinywallet.com',
-    'wss://relay.snort.social',
-    'wss://relay.primal.net',
-  ];
-  //let dTagValue = "cornychat-" + name.replace(/[^A-Za-z0-9]/g, '');
+  if(pmd) console.log("in saveList for ", dTagValue, ", named ", name);
   let l = getLabelForKind(kind);
+  let alt = l + ' with ' + theList.length + ' items';
   let iUrl = 0;
   let iCaption = 1;
-  switch(kind) {
-    case 30388: 
-      iUrl = 0;
-      iCaption = 1;
-      break;
-    case 31388:
-      iUrl = 1;
-      iCaption = 0;
-      break;
-    case 32388:
-      iUrl = 0;
-      iCaption = 1;
-      break;
-  }
+  if ([31388].includes(kind)) {iUrl = 1; iCaption = 0;}
   let tags = [
     ["name", name],
     ["about", about],
     ["image", image],
+    ["alt", alt],
     ["L", "com.cornychat"],
     ["l", l, "com.cornychat"],
     ["d", dTagValue],
@@ -743,31 +880,48 @@ export async function saveList(dTagValue, name, about, image, kind, theList) {
   };
   const eventSigned = await window.nostr.signEvent(event);
   if (!eventSigned) {
-    pool.close();
     return [false, 'There was an error with your nostr extension'];
   } else {
     console.log(eventSigned);
     // push to relays
-    pool.publish(eventSigned, defaultRelays);
-    pool.close();
+    const defaultRelays = getDefaultOutboxRelays();
+    const myPubkey = await window.nostr.getPublicKey();
+    const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
+    let myOutboxRelays = [];
+    if (userRelays?.length == 0) {
+      const myNpub = nip19.npubEncode(myPubkey);
+      myOutboxRelays = await getOutboxRelays(myPubkey); // (async() => {await getOutboxRelays(myPubkey)})();
+      updateCacheOutboxRelays(myOutboxRelays, myNpub);
+    }
+    const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
+    console.log(relaysToUse);
+    //const pool = new RelayPool();
+    console.log("992-publishing");
+    pool.publish(eventSigned, relaysToUse);
+    console.log("994-published");
+    const sleeping = await sleep(100);
+    //pool.close();
     return [true, ''];
-  }  
+  }
 }
 
 export async function loadList(kind, pubkey) {
-  return new Promise((res, rej) => {
-    const pool = new RelayPool();
+  if(pmd) console.log("in loadList for kind ", kind);
+  return new Promise(async(res, rej) => {
+    //const pool = new RelayPool();
     try {
       let events = [];
-      const defaultRelays = [
-        'wss://nos.lol',
-        'wss://relay.damus.io',
-        'wss://nostr.mutinywallet.com',
-        'wss://relay.snort.social',
-        'wss://relay.primal.net',
-      ];
-      const userRelays = []; // getUserRelays();
-      const relaysToUse = [...userRelays, ...defaultRelays];
+      const defaultRelays = getDefaultOutboxRelays();
+      const myPubkey = await window.nostr.getPublicKey();
+      const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
+      let myOutboxRelays = [];
+      if (userRelays?.length == 0) {
+        const myNpub = nip19.npubEncode(myPubkey);
+        myOutboxRelays = await getOutboxRelays(myPubkey); // (async() => {await getOutboxRelays(myPubkey)})();
+        if(pmd) console.log('myOutboxRelays from await call', myOutboxRelays);
+        updateCacheOutboxRelays(myOutboxRelays, myNpub);
+      }
+      const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
       const timestamp = Math.floor(Date.now() / 1000);
       const filter = {kinds:[kind]}
       if (pubkey != undefined) {
@@ -808,7 +962,7 @@ export async function loadList(kind, pubkey) {
           // if we got here, the event is valid
           validEvents.push(event);
         }
-        pool.close();
+        //pool.close();
         res(validEvents);
       }, 3000);
       pool.subscribe(
@@ -820,9 +974,19 @@ export async function loadList(kind, pubkey) {
         { unsubscribeOnEose: true, allowDuplicateEvents: false, allowOlderEvents: false }
       );
     } catch (error) {
-      pool.close();
+      console.log('There was an error when loading lists: ', error);
+      //pool.close();
       rej(undefined);
-      console.log('There was an error when getting user metadata: ', error);
     }
   });
+}
+
+export function makeLocalDate(timestamp) {
+  const date = new Date(timestamp * 1000);
+  var dateOptions = { weekday: 'long', month: 'long', day: 'numeric' }; 
+  const humanDate = new Intl.DateTimeFormat('en-us',dateOptions).format(date);
+  var timeOptions = { timeStyle: 'long'};
+  const humanTimeL = new Intl.DateTimeFormat('en-us',timeOptions).format(date);
+  const humanTime = humanTimeL.split(":",2).join(":") + humanTimeL.split(" ").slice(1).join(" ");
+  return humanDate + ' at ' + humanTime;
 }

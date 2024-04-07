@@ -3,6 +3,7 @@ import {useMqParser} from '../../lib/tailwind-mqp';
 import {ExportSlidesModal} from './ExportSlides';
 import {ImportSlidesModal} from './ImportSlides';
 import {openModal} from '../Modal';
+import {Trash} from '../Svg';
 
 export function Slides({
   iOwn,
@@ -68,10 +69,10 @@ export function Slides({
     setEditingSlideIndex(editingSlideIndex);
     setRoomSlides(roomSlides);
   }
-
+  let slideNumber = 0;
   return (
     <div>
-      <p className="text-lg font-medium text-gray-500 cursor-pointer" onClick={() => setExpanded(!expanded)}>
+      <p className="text-lg font-medium text-gray-200 cursor-pointer" onClick={() => setExpanded(!expanded)}>
       {expanded ? '🔽' : '▶️'} Manage Slides
       </p>
       <div className={expanded ? '' : 'hidden'}>
@@ -125,20 +126,20 @@ export function Slides({
           </button>
           </>
           ) : (
-          <div className="h-12 mx-2 text-sm rounded-md border-2 border-gray-300 w-full">
+          <div className="h-12 mx-2 text-sm rounded-md border-2 border-gray-300 w-full text-center text-gray-200">
             Use a nostr extension for import/export capability
           </div>
           )}
         </div>
         {(editingSlideIndex == -1) && (
           <>
-        <p className="text-sm font-medium text-gray-500 p-2">
+        <p className="text-sm font-medium text-gray-300 p-2">
           Add a slide to the end of the list:
         </p>
         <div className="flex">
           <input
             className={mqp(
-              'rounded placeholder-gray-400 bg-gray-50 w-full mx-1 md:w-full'
+              'rounded placeholder-black bg-gray-400 text-black w-full mx-1 md:w-full'
             )}
             type="text"
             placeholder="Caption for this image"
@@ -154,7 +155,7 @@ export function Slides({
           ></input>
           <input
             className={mqp(
-              'rounded placeholder-gray-400 bg-gray-50 w-full mx-1 md:w-full'
+              'rounded placeholder-black bg-gray-400 text-black w-full mx-1 md:w-full'
             )}
             type="text"
             placeholder="Image URI for this slide"
@@ -174,7 +175,8 @@ export function Slides({
               color: textColor,
               backgroundColor: roomColor.buttons.primary,
             }}
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault();
               setRoomSlides([...roomSlides, [slideURI, slideText]]);
               setSlideURI('');
               setSlideText('');
@@ -188,7 +190,7 @@ export function Slides({
         <div className="bg-gray-200 py-2 px-0 my-5 rounded-lg">
         {(roomSlides.length == 0) ? (
           <div>
-            <p className="text-sm text-gray-500 p-2">
+            <p className="text-sm text-gray-300 p-2">
               There are no slides set up.
             </p>
           </div>
@@ -197,8 +199,9 @@ export function Slides({
             {roomSlides.map((slide, index) => {
               let slideURI = slide[0];
               let slideText = slide[1];
+              slideNumber += 1;
               return (
-                <div className="flex w-full justify-between my-3">
+                <div className="flex w-full justify-between my-3" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
                   <div style={{width: '400px'}}>
                   {(editingSlideIndex != index) && (
                     <>
@@ -207,7 +210,7 @@ export function Slides({
                       alt={slideText}
                       src={slideURI}
                     />
-                    <p className="text-xs text-gray-500" style={{overflowWrap: 'anywhere'}}>{slideText}</p>
+                    <p className="text-xs text-gray-600" style={{overflowWrap: 'anywhere'}}>{slideText}</p>
                     </>
                   )}
                     {(editingSlideIndex == index) && (
@@ -215,7 +218,7 @@ export function Slides({
                     <input
                       key="inputEditingSlideText"
                       className={mqp(
-                        'rounded placeholder-gray-400 bg-gray-50 w-full m-4 md:w-full'
+                        'rounded placeholder-black bg-gray-400 text-black w-full m-4 md:w-full'
                       )}
                       type="text"
                       placeholder="Caption for the image"
@@ -232,10 +235,10 @@ export function Slides({
                     <input
                       key="inputEditingSlideURI"
                       className={mqp(
-                        'rounded placeholder-gray-400 bg-gray-50 w-full m-4 md:w-full'
+                        'rounded placeholder-black bg-gray-400 text-black w-full m-4 md:w-full'
                       )}
                       type="text"
-                      placeholder="http://cornychat.com"
+                      placeholder={jamConfig.urls.jam}
                       value={editingSlideURI}
                       autoComplete="off"
                       style={{
@@ -249,33 +252,37 @@ export function Slides({
                     </>
                     )}                  
                   </div>
-                  <div className="flex w-full justify-end" style={{width: '100px'}}>
+                  <div className="flex w-full justify-end" style={{width: '100px', position:'relative'}}>
+                    <table><tr><td>
                     {(editingSlideIndex == -1) && (
-                    <>
-                    <div onClick={() => editSlide(index)} className="cursor-pointer text-xl">
+                      <>
+                    <div onClick={() => editSlide(index)} className="cursor-pointer text-xl m-2">
                       📝
                     </div>
-                    <div onClick={() => promoteSlide(index)} className="cursor-pointer text-xl">
+                    <div onClick={() => promoteSlide(index)} className="cursor-pointer text-xl m-2">
                       ⬆️
                     </div>
-                    <div onClick={() => demoteSlide(index)} className="cursor-pointer text-xl">
+                    <div onClick={() => demoteSlide(index)} className="cursor-pointer text-xl m-2">
                       ⬇️
                     </div>
-                    <div onClick={() => removeSlide(index)} className="cursor-pointer text-xl">
-                      🗑️
+                    <div onClick={() => removeSlide(index)} className="cursor-pointer text-xl m-2">
+                      <Trash />
                     </div>
                     </>
                     )}
                     {(editingSlideIndex == index) && (
                     <>
-                    <div onClick={() => saveSlide(index)} className="cursor-pointer text-xl">
+                    <div onClick={() => saveSlide(index)} className="cursor-pointer text-xl m-2">
                       💾
                     </div>
-                    <div onClick={() => cancelSlide()} className="cursor-pointer text-xl">
+                    <div onClick={() => cancelSlide()} className="cursor-pointer text-xl m-2">
                       ❌
                     </div>
                     </>
                     )}
+                    </td></tr><tr><td>
+                    <div className="text-gray-700" style={{marginTop: '32px'}}>slide {slideNumber}</div>
+                    </td></tr></table>
                   </div>
                 </div>
               );

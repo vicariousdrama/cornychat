@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {Modal} from './Modal';
 
-export function InfoModal({roomId, room, close}) {
+export function DeprecatedInfoModal({roomId, room, close}) {
   return (
     <Modal close={close}>
       <div className="flex flex-row pt-4 pb-4">

@@ -3,7 +3,7 @@ import {Modal} from './Modal';
 import {useMqParser} from '../lib/tailwind-mqp';
 import {use} from 'use-minimal-state';
 import {useJam} from '../jam-core-react';
-import {getUserMetadata, getUserEvent, setDefaultZapsAmount} from '../nostr/nostr';
+import {getUserMetadata, getUserEventById, setDefaultZapsAmount} from '../nostr/nostr';
 import {nip19} from 'nostr-tools';
 import {isDark, colors} from '../lib/theme';
 import {avatarUrl, displayName} from '../lib/avatar';
@@ -283,7 +283,7 @@ export default function EditIdentity({close}) {
 
   let submit = async e => {
     e.preventDefault();
-    sessionStorage.clear();
+    //sessionStorage.clear();
     setIsLoading(true);
     // for now, disallow uploading file, so we set as undefined to alter flow
     const selectedFile = undefined; // document.querySelector('.edit-profile-file-input').files[0];
@@ -305,7 +305,7 @@ export default function EditIdentity({close}) {
         setErrorMsg(nip19Type + ' type of note or event id not handled');
         setIsLoading(false);
       } else {
-        const verEvent = await getUserEvent(pubkey, noteid);
+        const verEvent = await getUserEventById(pubkey, noteid);
         if (!verEvent) {
           setErrorMsg('Nostr verification event was not found');
           setIsLoading(false);
@@ -327,17 +327,16 @@ export default function EditIdentity({close}) {
 
   return (
     <Modal close={close}>
-      <h1>Edit Personal Settings</h1>
-      <br />
+      <h1 className="text-gray-200">Edit Personal Settings</h1>
       <form onSubmit={submit}>
 
       {userType == 'anon' && (
-      <div className="p-4 py-2 bg-gray-100 rounded-lg my-3">
-        <div className="p-2 text-gray-500 bold">
+      <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
+        <div className="p-2 text-gray-200 bold">
           Change Display Name
         </div>
         <input
-          className="rounded placeholder-gray-400 bg-gray-50 w-full"
+          className="rounded placeholder-black bg-gray-400 text-black w-full"
           type="text"
           placeholder="Display name"
           value={name ?? ''}
@@ -347,17 +346,17 @@ export default function EditIdentity({close}) {
           }}
         />
         <br />
-        <div className="p-2 text-gray-500 bold">
+        <div className="p-2 text-gray-200 bold">
           Choose Avatar Image
         </div>
         <div className="flex flex-wrap justify-between">
           <AvatarChoices />
         </div>
-        <div className="p-2 text-gray-500 bold">
+        <div className="p-2 text-gray-200 bold">
           or specify a url for your avatar
         </div>
         <input
-          className="rounded placeholder-gray-400 bg-gray-50 w-full"
+          className="rounded placeholder-black bg-gray-400 text-black w-full"
           type="text"
           placeholder="Avatar Url"
           value={avatar ?? ''}
@@ -371,9 +370,9 @@ export default function EditIdentity({close}) {
         <input
           type="file"
           accept="image/*"
-          className="edit-profile-file-input rounded placeholder-gray-400 bg-gray-50 w-72"
+          className="edit-profile-file-input rounded placeholder-black bg-gray-400 text-black w-72"
         />
-        <div className="p-2 text-gray-500 italic">
+        <div className="p-2 text-gray-200 italic">
           Change your profile picture. Limited to 500kb. If your picture is too large, try
           compressing it{' '}
           <a
@@ -391,16 +390,16 @@ export default function EditIdentity({close}) {
       )}
 
       {userType != 'nostrExtension' && (
-      <div className="p-4 py-2 bg-gray-100 rounded-lg my-3">
-        <div className="p-2 text-gray-500 bold">
+      <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
+        <div className="p-2 text-gray-200 bold">
           Nostr Account Verification <span className="text-gray-300"> (optional)</span>
         </div>
 
-        <div className="p-2 text-gray-500 italic">
-          {`1. Specify your nostr npub`}
+        <div className="p-2 text-gray-300 italic">
+        1. Specify your nostr npub
         </div>
         <input
-          className="rounded placeholder-gray-400 bg-gray-50 w-full"
+          className="rounded placeholder-black bg-gray-400 text-black w-full"
           type="text"
           placeholder="npub1234"
           value={nostrNpub ?? ''}
@@ -412,11 +411,11 @@ export default function EditIdentity({close}) {
           }}
         />
 
-        <div className="p-2 text-gray-500 italic">
+        <div className="p-2 text-gray-300 italic">
         2. Create a nostr post that includes only the following (click to copy)
         </div>
         <input
-          className="mt-2 rounded placeholder-gray-400 bg-gray-100 w-full"
+          className="mt-2 rounded placeholder-black bg-gray-400 text-black w-full"
           type="text"
           style={{fontSize: '.75em'}}
           placeholder="ID"
@@ -425,11 +424,11 @@ export default function EditIdentity({close}) {
           onClick={async () => copyIdToClipboard()}
         />
 
-        <div className="p-2 text-gray-500 italic">
+        <div className="p-2 text-gray-300 italic">
         3. Copy and paste the nostr note or event id to the following field
         </div>
         <input
-          className="mt-2 rounded placeholder-gray-400 bg-gray-50 w-full"
+          className="mt-2 rounded placeholder-black bg-gray-400 text-black w-full"
           type="text"
           style={{fontSize: '.75em'}}
           placeholder="Nostr note ID"
@@ -443,12 +442,12 @@ export default function EditIdentity({close}) {
       </div>
       )}
 
-      <div className="p-4 py-2 bg-gray-100 rounded-lg my-3">
-        <div className="p-2 text-gray-500 bold">
+      <div className="p-4 py-2 bg-gray-700  rounded-lg my-3">
+        <div className="p-2 text-gray-200 bold">
           Default Zap Amount
         </div>
         <input
-          className="rounded placeholder-gray-400 bg-gray-50 w-48"
+          className="rounded placeholder-black bg-gray-50 w-48"
           type="number"
           placeholder="21"
           value={defaultZap ?? ''}
@@ -456,20 +455,35 @@ export default function EditIdentity({close}) {
             setDefaultZap(e.target.value);
           }}
         />
-        <div className="p-2 text-gray-500 italic">
-          {`Configure your default zap amount for sending value to others`}
+        <div className="p-2 text-gray-200 italic">
+          Configure your default zap amount for sending value to others
           <span className="text-gray-300"> (optional)</span>
         </div>
       </div>
 
-      <div className="p-4 py-2 bg-gray-100 rounded-lg my-3">
-        <div className="p-2 text-gray-500 bold">
+      <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
+        <div className="p-2 text-gray-200 bold">
           Sticky Emojis
         </div>
-        <div className="p-2 text-gray-500 italic">
-          Sticky Emoji 1
+        <div className="p-2 text-gray-200 italic">
+          Sticky Emoji 1 {(stickyEmoji1.length != 0) && (
+            <div className="p-2 m-2 bg-gray-700 rounded-lg hover:bg-red-500"
+                  onClick={() => delStickyEmoji(1)}
+            ><p>{stickyEmoji1.toString().toUpperCase().startsWith('E') ? (
+            <img
+              src={`/img/emoji-${stickyEmoji1.toString().toUpperCase()}.png`}
+              style={{
+               width: '24px',
+                height: 'auto',
+                border: '0px',
+                display: 'inline',
+              }}
+            />
+            ) : (stickyEmoji1)}</p>
+            </div>
+          )}
         </div>
-        {stickyEmoji1.length == 0 ? (
+        {stickyEmoji1.length == 0 && (
         <EmojiPicker
           width={'width:max-content'}
           onEmojiClick={emoji => setStickyEmoji(1, emoji.emoji)}
@@ -486,26 +500,26 @@ export default function EditIdentity({close}) {
             {id: 'E7', names: ['Pepe 7'], imgUrl:'/img/emoji-E7.png'},
           ]}
         />
-        ) : (
-        <div className="p-2 m-2 bg-gray-200 rounded-lg hover:bg-red-500"
-          onClick={() => delStickyEmoji(1)}
-        ><p>{stickyEmoji1.toString().toUpperCase().startsWith('E') ? (
-          <img
-            src={`/img/emoji-${stickyEmoji1.toString().toUpperCase()}.png`}
-            style={{
-              width: '24px',
-              height: 'auto',
-              border: '0px',
-              display: 'inline',
-            }}
-          />
-        ) : (stickyEmoji1)}</p>
-        </div>
         )}
-        <div className="p-2 text-gray-500 italic">
-          Sticky Emoji 2
+        <div className="p-2 text-gray-200 italic">
+          Sticky Emoji 2 {stickyEmoji2.length != 0 && (
+            <div className="p-2 m-2 bg-gray-700 rounded-lg hover:bg-red-500"
+                 onClick={() => delStickyEmoji(2)}
+              ><p>{stickyEmoji2.toString().toUpperCase().startsWith('E') ? (
+              <img
+                src={`/img/emoji-${stickyEmoji2.toString().toUpperCase()}.png`}
+                style={{
+                  width: '24px',
+                  height: 'auto',
+                  border: '0px',
+                  display: 'inline',
+                }}
+              />
+            ) : (stickyEmoji2)}</p>
+            </div>
+          )}
         </div>
-        {stickyEmoji2.length == 0 ? (
+        {stickyEmoji2.length == 0 && (
         <EmojiPicker
           width={'width:max-content'}
           onEmojiClick={emoji => setStickyEmoji(2, emoji.emoji)}
@@ -522,30 +536,16 @@ export default function EditIdentity({close}) {
             {id: 'E7', names: ['Pepe 7'], imgUrl:'/img/emoji-E7.png'},
           ]}
         />
-        ) : (
-        <div className="p-2 m-2 bg-gray-200 rounded-lg hover:bg-red-500"
-          onClick={() => delStickyEmoji(2)}
-        ><p>{stickyEmoji2.toString().toUpperCase().startsWith('E') ? (
-          <img
-            src={`/img/emoji-${stickyEmoji2.toString().toUpperCase()}.png`}
-            style={{
-              width: '24px',
-              height: 'auto',
-              border: '0px',
-              display: 'inline',
-            }}
-          />
-        ) : (stickyEmoji2)}</p>
-        </div>
         )}
+        
       </div>
 
-      <div className="p-4 py-2 bg-gray-100 rounded-lg my-3">
-        <div className="p-2 text-gray-500 bold">
+      <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
+        <div className="p-2 text-gray-200 bold">
           Sequence of letters or emojis to send when leaving the room
         </div>
         <input
-          className="rounded placeholder-gray-400 bg-gray-50 w-full"
+          className="rounded placeholder-black bg-gray-400 text-black w-full"
           type="text"
           placeholder="Goodbye"
           value={byeEmoji ?? ''}
@@ -553,16 +553,16 @@ export default function EditIdentity({close}) {
             setByeEmoji(e.target.value);
           }}
         />
-        <div className="p-2 text-gray-500 italic">
+        <div className="p-2 text-gray-200 italic">
           {`Multiple emojis can be specified.  Click the exit door twice when leaving to exit immediately.`}
           <span className="text-gray-300"> (optional)</span>
         </div>
       </div>
 
-      <div className="p-4 py-2 bg-gray-100 rounded-lg my-3">
-        <div className="p-2 text-gray-500 bold">
+      <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
+        <div className="p-2 text-gray-200 bold">
         <input
-          className="rounded placeholder-gray-400 bg-gray-50 w-8"
+          className="rounded placeholder-black bg-gray-400 text-black w-8"
           type="checkbox"
           checked={animEnabled == 'true' ? true : false}
           onChange={e => {
@@ -572,16 +572,16 @@ export default function EditIdentity({close}) {
         />
           Enable Animations
         </div>
-        <div className="p-2 text-gray-500 italic">
-          {`Animations may cause flickering on some devices.  Uncheck this option to disable them`}
+        <div className="p-2 text-gray-200 italic">
+          Animations may cause flickering on some devices.  Uncheck this option to disable them
           <span className="text-gray-300"> (optional)</span>
         </div>
       </div>
 
-      <div className="p-4 py-2 bg-gray-100 rounded-lg my-3">
-        <div className="p-2 text-gray-500 bold">
+      <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
+        <div className="p-2 text-gray-200 bold">
         <input
-          className="rounded placeholder-gray-400 bg-gray-50 w-8"
+          className="rounded placeholder-black bg-gray-400 text-black w-8"
           type="checkbox"
           checked={ghostsEnabled == 'true' ? true : false}
           onChange={e => {
@@ -590,16 +590,16 @@ export default function EditIdentity({close}) {
         />
           Enable Ghost Users
         </div>
-        <div className="p-2 text-gray-500 italic">
-          {`When enabled, users who are at the room entry screen, but not in the room will appear with a low opacity`}
+        <div className="p-2 text-gray-200 italic">
+          When enabled, users who are at the room entry screen, but not in the room will appear with a low opacity
           <span className="text-gray-300"> (optional)</span>
         </div>
       </div>
 
-      <div className="p-4 py-2 bg-gray-100 rounded-lg my-3">
-        <div className="p-2 text-gray-500 bold">
+      <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
+        <div className="p-2 text-gray-200 bold">
         <input
-          className="rounded placeholder-gray-400 bg-gray-50 w-8"
+          className="rounded placeholder-black bg-gray-400 text-black w-8"
           type="checkbox"
           checked={onlyZapsEnabled == 'true' ? true : false}
           onChange={e => {
@@ -608,8 +608,8 @@ export default function EditIdentity({close}) {
         />
           Enable Only Zaps Mode
         </div>
-        <div className="p-2 text-gray-500 italic">
-          {`When enabled, you'll only send the lightning bolt emoji as reactions from the nav menu, and most of your static stickies will appear as the poo emoji`}
+        <div className="p-2 text-gray-200 italic">
+          When enabled, you'll only send the lightning bolt emoji as reactions from the nav menu, and most of your static stickies will appear as the poo emoji
           <span className="text-gray-300"> (optional)</span>
         </div>
       </div>
