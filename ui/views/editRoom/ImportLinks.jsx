@@ -124,7 +124,7 @@ export const ImportLinksModal = ({
                             <tr><td><table className="w-full" cellpadding="0" cellspacing="0" border="0">
                                 <tr>
                                     <td align="left" class="text-sm">id: {dTag}</td>
-                                    <td align="right" class="text-sm">saved {humanDate}</td>
+                                    <td align="right" class="text-sm text-nowrap">saved {humanDate}</td>
                                 </tr>
                                 </table></td></tr>
                             </table>
@@ -138,7 +138,7 @@ export const ImportLinksModal = ({
 
   return (
     <Modal close={close}>
-      <div className="bg-white p-6 rounded-lg">
+      <div className="bg-gray-700 text-gray-200 p-6 rounded-lg">
         <h2 className="text-2xl font-bold">Import Links</h2>
         <>
         <p>

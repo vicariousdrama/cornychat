@@ -143,6 +143,7 @@ const roomAuthenticator = {
     profileChanged ||= (roomInfo.logoURI != postingRoom.logoURI);
     profileChanged ||= (roomInfo.backgroundURI != postingRoom.backgroundURI);
     profileChanged ||= (roomInfo.lud16 != postingRoom.lud16);
+    profileChanged ||= (roomInfo.isPrivate != postingRoom.isPrivate);
     // if not an owner or admin, only allow changing specific fields
     if(!(a || o)) {
       // moderators are restricted to only updating specific fields
@@ -172,7 +173,7 @@ const roomAuthenticator = {
     const pk = getPublicKey(sk);
     req.body.npub = nip19.npubEncode(pk);
     // room profile changed
-    if ((a||o) && profileChanged) {
+    if ((a||o) && profileChanged && (!roomInfo.isPrivate ?? true)) {
       let n = await updateNostrProfile(roomId, roomInfo.name, roomInfo.description, roomInfo.logoURI, roomInfo.backgroundURI, roomInfo.lud16);
     }
 

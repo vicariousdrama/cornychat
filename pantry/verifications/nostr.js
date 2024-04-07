@@ -46,6 +46,7 @@ const verify = (identity, publicKey) => {
       const pool = new RelayPool();
 
       const checkEventReturned = setTimeout(() => {
+        pool.close();
         const error_msg = `Relays did not returned any events`;
         rej(new Error(error_msg));
       }, 2500);
@@ -57,9 +58,11 @@ const verify = (identity, publicKey) => {
           const isPublicKey = event.content.includes(publicKey);
           if (isPublicKey) {
             clearTimeout(checkEventReturned);
+            pool.close();
             res(true);
           } else {
             const error_msg = `Nostr event does not contain public key ${publicKey}`;
+            pool.close();
             rej(new Error(error_msg));
           }
         },
@@ -69,6 +72,7 @@ const verify = (identity, publicKey) => {
       );
     } catch (error) {
       console.log(error);
+      pool.close();
       rej(error);
     }
   });

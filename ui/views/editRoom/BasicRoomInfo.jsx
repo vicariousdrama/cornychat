@@ -26,18 +26,18 @@ export function BasicRoomInfo({
   let [expanded, setExpanded] = useState(false);
   return (
     <div>
-      <p className="text-lg font-medium text-gray-500 cursor-pointer" onClick={() => setExpanded(!expanded)}>
+      <p className="text-lg font-medium text-gray-200 cursor-pointer" onClick={() => setExpanded(!expanded)}>
         {expanded ? '🔽' : '▶️'} Basic Room Info
       </p>
       <div className={expanded ? '' : 'hidden'}>
       <div className="mb-2">
-        <p className="text-sm font-medium text-gray-500">
-          Room topic: {!iOwn && (<span className="text-gray-500">{name}</span>)}
+        <p className="text-sm font-medium text-gray-300">
+          Room topic: {!iOwn && (<span className="text-gray-300">{name}</span>)}
         </p>
         {iOwn && (
         <input
           className={mqp(
-            'rounded-lg placeholder-gray-400 bg-gray-100 border-4 pb-2 rounded-lg w-full md:w-96'
+            'rounded-lg placeholder-black bg-gray-400 text-black border-4 pb-2 rounded-lg w-full md:w-96'
           )}
           type="text"
           placeholder="Room topic. Appears on the landing page when room is active."
@@ -55,13 +55,13 @@ export function BasicRoomInfo({
       </div>
 
       <div className="my-2">
-        <p className="text-sm font-medium text-gray-500">
+        <p className="text-sm font-medium text-gray-300">
           Room logo URI: {!iOwn && (logoURI)}
         </p>
         {iOwn && (
         <input
           className={mqp(
-            'rounded-lg placeholder-gray-400 bg-gray-100 border-4 pb-2 rounded-lg w-full md:w-96'
+            'rounded-lg placeholder-black bg-gray-400 text-black border-4 pb-2 rounded-lg w-full md:w-96'
           )}
           type="text"
           placeholder="Logo URI. Displayed on the landing page when room is active."
@@ -79,13 +79,13 @@ export function BasicRoomInfo({
       </div>
 
       <div className="my-2">
-        <p className="text-sm font-medium text-gray-500">
+        <p className="text-sm font-medium text-gray-300">
           Lightning Address: {!iOwn && (lud16)}
         </p>
         {iOwn && (
         <input
           className={mqp(
-            'rounded-lg placeholder-gray-400 bg-gray-100 border-4 pb-2 rounded-lg w-full md:w-96'
+            'rounded-lg placeholder-black bg-gray-400 text-black border-4 pb-2 rounded-lg w-full md:w-96'
           )}
           type="text"
           placeholder="Lightning Address. When set, it will display a action to allow for tipping the room to the specified address."
@@ -103,7 +103,7 @@ export function BasicRoomInfo({
       </div>
 
       <div className="mt-2">
-        <p className="text-sm font-medium text-gray-500">
+        <p className="text-sm font-medium text-gray-300">
           Room Description {iOwn && ('(markdown supported)')}:
           {!iOwn && (
           <ReactMarkdown
@@ -118,7 +118,7 @@ export function BasicRoomInfo({
         {iOwn && (
         <textarea
           className={mqp(
-            'rounded-lg placeholder-gray-400 bg-gray-100 border-4 pb-2 rounded-lg w-full md:w-96'
+            'rounded-lg placeholder-black bg-gray-400 text-black border-4 pb-2 rounded-lg w-full md:w-96'
           )}
           placeholder="Room description. Supports markdown."
           value={description}
@@ -147,11 +147,11 @@ export function BasicRoomInfo({
           defaultChecked={closed}
         />
         <label
-          className="pl-3 ml-0.5 text-sm font-medium text-gray-500 p-2"
+          className="pl-3 ml-0.5 text-sm font-medium text-gray-300 p-2"
           htmlFor="jam-room-closed"
         >
           Close the room
-          <div className="p-2 pl-9 text-gray-400 text-sm">
+          <div className="p-2 pl-9 text-gray-300 text-sm">
             Closed rooms can only be joined by administrators, owners and moderators.
           </div>
         </label>
@@ -171,11 +171,11 @@ export function BasicRoomInfo({
           defaultChecked={isPrivate}
         />
         <label
-          className="pl-3 ml-0.5 text-sm font-medium text-gray-500 p-2"
+          className="pl-3 ml-0.5 text-sm font-medium text-gray-300 p-2"
           htmlFor="jam-room-isprivate"
         >
           Make room private
-          <div className="p-2 pl-9 text-gray-400 text-sm">
+          <div className="p-2 pl-9 text-gray-300 text-sm">
             Private rooms are not displayed on the landing page, nor announced by the Corny Chat bot.
             Anyone can join a private room by navigating to the room url.
           </div>
@@ -183,15 +183,15 @@ export function BasicRoomInfo({
         </>
         )}
         {!iOwn && isPrivate && (
-          <p className="text-gray-400 text-sm">
-          <span className="font-medium text-gray-500">Private Room</span> - not displayed on landing
+          <p className="text-gray-300 text-sm">
+          <span className="font-medium text-gray-300">Private Room</span> - not displayed on landing
           page or announced by the Corny Chat bot. Anyone can join a private room by navigating
           to the room url.
           </p>
         )}
         {!iOwn && !isPrivate && (
-          <p className="text-gray-400 text-sm">
-          <span className="font-medium text-gray-500">Public Room</span> - displays on landing page and
+          <p className="text-gray-300 text-sm">
+          <span className="font-medium text-gray-300">Public Room</span> - displays on landing page and
           announced by Corny Chat bot.
           </p>
         )}
@@ -212,11 +212,11 @@ export function BasicRoomInfo({
           defaultChecked={isRecordingAllowed}
         />
         <label
-          className="pl-3 ml-0.5 text-sm font-medium text-gray-500 p-2"
+          className="pl-3 ml-0.5 text-sm font-medium text-gray-300 p-2"
           htmlFor="jam-room-isrecordingallowed"
         >
           Allow Recordings
-          <div className="p-2 pl-9 text-gray-400 text-sm">
+          <div className="p-2 pl-9 text-gray-300 text-sm">
             If recordings are allowed, then any moderator of the room can begin a recording
             in their client. Participants in the room are notified that a recording is in progress.
             If unchecked, the Start Recording option will not be present in the menu choices.
@@ -225,13 +225,13 @@ export function BasicRoomInfo({
         </>
         )}
         {!iOwn && !isRecordingAllowed && (
-          <p className="text-gray-400 text-sm">
-            <span className="font-medium text-gray-500">Recordings Disabled</span>
+          <p className="text-gray-300 text-sm">
+            <span className="font-medium text-gray-300">Recordings Disabled</span>
           </p>
         )}
         {!iOwn && isRecordingAllowed && (
-          <p className="text-gray-400 text-sm">
-            <span className="font-medium text-gray-500">Recordings Allowed</span> - An owner or moderator can start 
+          <p className="text-gray-300 text-sm">
+            <span className="font-medium text-gray-300">Recordings Allowed</span> - An owner or moderator can start 
             a recording and a visual indicator is shown to users in the room when a recording is in progress.
           </p>
         )}
@@ -251,11 +251,11 @@ export function BasicRoomInfo({
           defaultChecked={stageOnly}
         />
         <label
-          className="pl-3 ml-0.5 text-sm font-medium text-gray-500 p-2"
+          className="pl-3 ml-0.5 text-sm font-medium text-gray-300 p-2"
           htmlFor="jam-room-stageonly"
         >
           Stage Only room
-          <div className="p-2 pl-9 text-gray-400 text-sm">
+          <div className="p-2 pl-9 text-gray-300 text-sm">
             When enabled, users entering the room will be brought on stage by default.
             A moderator can still move a user to the audience.
           </div>
@@ -263,14 +263,14 @@ export function BasicRoomInfo({
         </>
         )}
         {!iOwn && !stageOnly && (
-          <p className="text-gray-400 text-sm">
-            <span className="font-medium text-gray-500">Standard room</span> - Users will start in the
+          <p className="text-gray-300 text-sm">
+            <span className="font-medium text-gray-300">Standard room</span> - Users will start in the
             audience and a room owner or moderator may invite them to the stage.
           </p>
         )}
         {!iOwn && stageOnly && (
-          <p className="text-gray-400 text-sm">
-            <span className="font-medium text-gray-500">Stage Only room</span> - Users will be placed on the stage and may speak freely.
+          <p className="text-gray-300 text-sm">
+            <span className="font-medium text-gray-300">Stage Only room</span> - Users will be placed on the stage and may speak freely.
           </p>
         )}
       </div>

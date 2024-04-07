@@ -3,6 +3,7 @@ import {useMqParser} from '../../lib/tailwind-mqp';
 import {ExportLinksModal} from './ExportLinks';
 import {ImportLinksModal} from './ImportLinks';
 import {openModal} from '../Modal';
+import {Trash} from '../Svg';
 
 export function Links({
   iOwn,
@@ -69,9 +70,10 @@ export function Links({
     setRoomLinks(roomLinks);
   }
 
+  let linkNumber = 0;
   return (
     <div>
-      <p className="text-lg font-medium text-gray-500 cursor-pointer" onClick={() => setExpanded(!expanded)}>
+      <p className="text-lg font-medium text-gray-200 cursor-pointer" onClick={() => setExpanded(!expanded)}>
       {expanded ? '🔽' : '▶️'} Manage Links
       </p>
       <div className={expanded ? '' : 'hidden'}>
@@ -125,20 +127,20 @@ export function Links({
           </button>
           </>
           ) : (
-          <div className="h-12 mx-2 text-sm rounded-md border-2 border-gray-300 w-full">
+          <div className="h-12 mx-2 text-sm rounded-md border-2 border-gray-300 w-full text-center text-gray-200">
             Use a nostr extension for import/export capability
           </div>
           )}
         </div>
         {(editingLinkIndex == -1) && (
           <>
-        <p className="text-sm font-medium text-gray-500 p-2">
+        <p className="text-sm font-medium text-gray-300 p-2">
           Add a link to the top of the list:
         </p>
         <div className="flex">
           <input
             className={mqp(
-              'rounded placeholder-gray-400 bg-gray-50 w-full mx-1 md:w-full'
+              'rounded placeholder-black bg-gray-400 text-black w-full mx-1 md:w-full'
             )}
             type="text"
             placeholder="Visit my website"
@@ -154,10 +156,10 @@ export function Links({
           ></input>
           <input
             className={mqp(
-              'rounded placeholder-gray-400 bg-gray-50 w-full mx-1 md:w-full'
+              'rounded placeholder-black bg-gray-400 text-black w-full mx-1 md:w-full'
             )}
             type="text"
-            placeholder="http://google.com"
+            placeholder={jamConfig.urls.jam}
             value={linkURI}
             autoComplete="off"
             style={{
@@ -185,10 +187,10 @@ export function Links({
         </div>
         </>
         )}
-        <div className="bg-gray-200 py-2 px-0 my-5 rounded-lg">
+        <div className="bg-gray-200 text-gray-300 py-2 px-0 my-5 rounded-lg">
           {(roomLinks.length == 0) ? (
           <div>
-            <p className="text-sm text-gray-500 p-2">
+            <p className="text-sm text-gray-300 p-2">
               There are no links set up.
             </p>
           </div>
@@ -197,14 +199,14 @@ export function Links({
             {roomLinks.map((link, index) => {
               let renderURI = link[1];
               let renderText = link[0];
-
+              linkNumber += 1;
               return (
-                <div className="flex w-full justify-between my-3">
+                <div className="flex w-full justify-between my-3" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
                   <div style={{width: '400px'}}>
                     {(editingLinkIndex != index) && (
                     <>
                     <p className="text-sm text-black" style={{overflowWrap: 'break-word'}}>{renderText}</p>
-                    <p className="text-xs text-gray-500" style={{overflowWrap: 'anywhere'}}>{renderURI}</p>
+                    <p className="text-xs text-gray-600" style={{overflowWrap: 'anywhere'}}>{renderURI}</p>
                     </>
                     )}
                     {(editingLinkIndex == index) && (
@@ -212,7 +214,7 @@ export function Links({
                     <input
                       key="inputEditingLinkText"
                       className={mqp(
-                        'rounded placeholder-gray-400 bg-gray-50 w-full m-4 md:w-full'
+                        'rounded placeholder-black bg-gray-400 text-black w-full m-4 md:w-full'
                       )}
                       type="text"
                       placeholder="Visit my website"
@@ -229,10 +231,10 @@ export function Links({
                     <input
                       key="inputEditingLinkURI"
                       className={mqp(
-                        'rounded placeholder-gray-400 bg-gray-50 w-full m-4 md:w-full'
+                        'rounded placeholder-black bg-gray-400 text-black w-full m-4 md:w-full'
                       )}
                       type="text"
-                      placeholder="http://cornychat.com"
+                      placeholder={jamConfig.urls.jam}
                       value={editingLinkURI}
                       autoComplete="off"
                       style={{
@@ -246,33 +248,37 @@ export function Links({
                     </>
                     )}
                   </div>
-                  <div className="flex w-full justify-end" style={{width: '100px'}}>
+                  <div className="flex w-full justify-end" style={{width: '100px',position: 'relative'}}>
+                  <table><tr><td>
                     {(editingLinkIndex == -1) && (
                     <>
-                    <div onClick={() => editLink(index)} className="cursor-pointer text-xl">
+                    <div onClick={() => editLink(index)} className="cursor-pointer text-xl m-2">
                       📝
                     </div>
-                    <div onClick={() => promoteLink(index)} className="cursor-pointer text-xl">
+                    <div onClick={() => promoteLink(index)} className="cursor-pointer text-xl m-2">
                       ⬆️
                     </div>
-                    <div onClick={() => demoteLink(index)} className="cursor-pointer text-xl">
+                    <div onClick={() => demoteLink(index)} className="cursor-pointer text-xl m-2">
                       ⬇️
                     </div>
-                    <div onClick={() => removeLink(index)} className="cursor-pointer text-xl">
-                      🗑️
+                    <div onClick={() => removeLink(index)} className="cursor-pointer text-xl m-2">
+                      <Trash />
                     </div>
                     </>
                     )}
                     {(editingLinkIndex == index) && (
                     <>
-                    <div onClick={() => saveLink(index)} className="cursor-pointer text-xl">
+                    <div onClick={() => saveLink(index)} className="cursor-pointer text-xl m-2">
                       💾
                     </div>
-                    <div onClick={() => cancelLink()} className="cursor-pointer text-xl">
+                    <div onClick={() => cancelLink()} className="cursor-pointer text-xl m-2">
                       ❌
                     </div>
                     </>
                     )}
+                    </td></tr><tr><td>
+                    <div className="text-gray-700" style={{marginTop: '32px'}}>link {linkNumber}</div>
+                    </td></tr></table>                    
                   </div>
                 </div>
               );

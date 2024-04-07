@@ -7,7 +7,7 @@ export default function Input({className, inputRef, ...props}) {
   return (
     <input
       className={mergeClasses(
-        'rounded placeholder-gray-400 bg-gray-50',
+        'rounded placeholder-black bg-gray-400',
         width,
         className
       )}

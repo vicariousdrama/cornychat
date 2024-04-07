@@ -35,13 +35,13 @@ export function CustomEmojis({
 
   return (
     <div>
-      <p className="text-lg font-medium text-gray-500 cursor-pointer" onClick={() => setExpanded(!expanded)}>
+      <p className="text-lg font-medium text-gray-200 cursor-pointer" onClick={() => setExpanded(!expanded)}>
       {expanded ? '🔽' : '▶️'} Custom Emojis
       </p>
       <div className={expanded ? '' : 'hidden'}>
       {iOwn && (
       <div className="my-5">
-        <p className="text-sm font-medium text-gray-500 p-2">
+        <p className="text-sm font-medium text-gray-300 p-2">
           Add your custom emoji reactions:
         </p>
         <EmojiPicker
@@ -61,8 +61,8 @@ export function CustomEmojis({
           ]}
         />
         <div className="mt-3">
-          <p className="text-sm font-medium text-gray-500 p-2">
-            Your current emoji reactions:
+          <p className="text-sm font-medium text-gray-300 p-2">
+            Your current emoji reactions (click emoji to remove):
           </p>
           <div className="flex flex-wrap cursor-pointer">
             {customEmojis?.map((emoji, index) => {

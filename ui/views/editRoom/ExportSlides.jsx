@@ -21,16 +21,16 @@ export const ExportSlidesModal = ({
   async function saveit() {
     let dTag = dTagValue;
     if (dTag.length == 0) {
-        dTag = shortdate;
+      dTag = shortdate;
     }
     let result = await saveList(dTag, name, about, slideUrl, 30388, roomSlides);
     if (!result[0]) {
-        setErrorMsg(result[1]);
-        setDisplayError(true);
+      setErrorMsg(result[1]);
+      setDisplayError(true);
     } else {
-        close();
-        alert('Slide List published to relays');
-        return;
+      alert('Slide List published to relays');
+      close();
+      return;
     }
   }
 
@@ -72,17 +72,17 @@ export const ExportSlidesModal = ({
 
   return (
     <Modal close={close}>
-      <div className="bg-white p-6 rounded-lg">
+      <div className="bg-gray-700 text-gray-200 p-6 rounded-lg">
         <h2 className="text-2xl font-bold">Export Slides</h2>
         <p>
           Unique ID
         </p>
-        <div className="p-2 text-gray-500 italic">
+        <div className="p-2 text-gray-300 italic">
           {`Using the same ID of a prior export will overwrite it.`}
         </div>
         <input
           type="text"
-          className="w-full p-2 border border-gray-300 mb-4"
+          className="w-full p-2 border border-gray-300 mb-4 bg-gray-400 text-black placeholder-black"
           placeholder="Unique ID (using the same of prior export will overwrite it)"
           value={dTagValue}
           onChange={e => {
@@ -94,7 +94,7 @@ export const ExportSlidesModal = ({
         </p>
         <input
           type="text"
-          className="w-full p-2 border border-gray-300 mb-4"
+          className="w-full p-2 border border-gray-300 mb-4 bg-gray-400 text-black placeholder-black"
           placeholder="Name"
           value={name}
           onChange={e => {
@@ -106,7 +106,7 @@ export const ExportSlidesModal = ({
         </p>
         <input
           type="text"
-          className="w-full p-2 border border-gray-300 mb-4"
+          className="w-full p-2 border border-gray-300 mb-4 bg-gray-400 text-black placeholder-black"
           placeholder="About (optional)"
           value={about}
           onChange={e => {
@@ -125,7 +125,8 @@ export const ExportSlidesModal = ({
             backgroundColor: roomColor.buttons.primary,
             color: textColor,
           }}
-          onClick={async () => {
+          onClick={async (e) => {
+            e.preventDefault();
             await saveit();
           }}
         >

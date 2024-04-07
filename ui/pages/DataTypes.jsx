@@ -9,7 +9,7 @@ export default function DataTypes() {
         This page describes the nostr kind data types used within the application, along with hook points so that
         developers wanting to make improvements to the application, or make use of Corny Chat related nostr events
         have a central point of guidance.  Corny Chat provides audio spaces, aka rooms for which users can have
-        voice conversations with each other.
+        voice conversations and share resources with each other.
       </p>
 
       <ul style={{listStyleType: 'circle', margin: '20px'}}>
@@ -17,10 +17,12 @@ export default function DataTypes() {
       <li><a href="#kind0roomprofile">Kind 0 - Room Profile</a></li>
       <li><a href="#kind1extensionlogin">Kind 1 - Extension Login</a></li>
       <li><a href="#kind1verficiation">Kind 1 - Verification Post</a></li>
+      <li><a href="#kind1userpost">Kind 1 - User Post</a></li>
       <li><a href="#kind1scheduledevent">Kind 1 - Scheduled Event</a></li>
       <li><a href="#kind3follow">Kind 3 - Follow List</a></li>
       <li><a href="#kind5eventdeletion">Kind 5 - Event Deletions</a></li>
       <li><a href="#kind9734zaprequest">Kind 9734 - Zap Request</a></li>
+      <li><a href="#kind10002relaylist">Kind 10002 - Relay List Metadata</a></li>
       <li><a href="#kind30311liveactivities">Kind 30311 - Live Activities</a></li>
       <li><a href="#kind30388slideset">Kind 30388 - Slide Set</a></li>
       <li><a href="#kind31388linkset">Kind 31388 - Link Set</a></li>
@@ -29,9 +31,10 @@ export default function DataTypes() {
       <a name="kind0userprofile"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 0 - User Profile</h2>
       <p>
         Within the application, a user is anonymous by default. They may choose to <a href="#kind1extensionlogin">sign in</a> 
-        with a NIP07 compliant nostr extension, or provide verification using a <a href="#kind1verification">kind 1</a> 
-        event.  If the user identifies with nostr, then their corresponding user profile may be read from a kind 0 event 
-        authored by their pubkey. The following fields are read from the user metadata and displayed on the profile page:
+        with a <a href="https://github.com/nostr-protocol/nips/blob/master/07.md">NIP-07</a> compliant nostr extension, or 
+        provide verification using a <a href="#kind1verification">kind 1</a> event.  If the user identifies with nostr, then
+        their corresponding user profile may be read from a kind 0 event authored by their pubkey. The following fields are 
+        read from the user metadata and displayed on the profile page:
       </p>
       <ul style={{listStyleType: 'circle', margin: '20px'}}>
         <li>name</li>
@@ -60,7 +63,8 @@ export default function DataTypes() {
       <p>
         When a room's profile is saved, it is automatically assigned the nip05 field based on a concatenation
         of the room id, hyphenated to the string `room` at the host under which the service is running. For example,
-        the room `mainchat` has a nip05 of mainchat-room@{location.hostname}
+        the room `mainchat` has a nip05 of mainchat-room@{location.hostname}. For more information, see
+        <a href="https://github.com/nostr-protocol/nips/blob/master/05.md">NIP-05</a>.
       </p>
 
       <a name="kind1extensionlogin"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 1 - Extension Login</h2>
@@ -85,6 +89,16 @@ export default function DataTypes() {
         a keypair independent of the nostr keys and is validated on the server.
       </p>
 
+      <a name="kind1userpost"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 1 - User Post</h2>
+      <p>
+        When the a user views the profile of a room particpant, recent posts autored by that participant are loaded
+        and displayed if the participant is a nostr user.  This is from the kind 1 posts that are made.  Up to 3
+        of these kinds of posts will be displayed, aftering having been fetched from the relays associated with that
+        user's relay list metadata.  At this time, transformations of content beyond new paragraphs or breaking for
+        line returns are not performed. For example, inline image or link urls are not rendered, nor are there any
+        treatments of tags.
+      </p>
+
       <a name="kind1scheduledevent"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 1 - Scheduled Event</h2>
       <p>
         When a room owner or moderator schedules an event for the room, it is published as a 
@@ -101,17 +115,18 @@ export default function DataTypes() {
         contact list and check if they are following the user whose profile they are viewing.  The current contact
         list is stored in session storage and updated based on follow/unfollow actions performed.  When a change
         is made to who a user is following through the app, it will publish an updated follow list as kind 3 as
-        defined in NIP-02. Neither main relay url, nor pet names are assigned when following a user.
+        defined in <a href="https://github.com/nostr-protocol/nips/blob/master/02.md">NIP-02</a>. Neither main relay url, 
+        nor pet names are assigned when following a user.
       </p>
 
       <a name="kind5eventdeletion"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 5 - Event Deletions</h2>
       <p>
         If a room owner or moderator creates a scheduled event for a room, it will be published as a nostr
         Time Based Calendar Event.  If that event is later deleted, then the server will publish a kind 5 deletion
-        event for the referenced <a href="#kind31923scheduledevent">schedule event</a> for NIP-09 semantics.  
-        Specifically, these events are published by the server NSEC, and deleted by providing an `a` tag as the 
-        composite of the kind, server pubkey and the `d` tag of the event.  The d tag is deterministic based on 
-        the room identifier.
+        event for the referenced <a href="#kind31923scheduledevent">schedule event</a> for 
+        <a href="https://github.com/nostr-protocol/nips/blob/master/09.md">NIP-09</a> semantics. Specifically, these
+        events are published by the server NSEC, and deleted by providing an `a` tag as the composite of the kind, 
+        server pubkey and the `d` tag of the event.  The d tag is deterministic based on the room identifier.
       </p>
 
       <a name="kind9734zaprequest"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 9734 - Zap Request</h2>
@@ -119,10 +134,23 @@ export default function DataTypes() {
         Within the application, users can zap or initiate lightning payments by clicking on another room participants
         avatar, or clicking the Tip button for a room that has it enabled. Users may zap other users if they have 
         a nostr extension enabled. If they don't have a nostr extension, then they can only send a direct lightning
-        payment with an optional comment.  In either case, an invoice is requested following NIP-57 for nostr, which
-        relies on relevant LUD specifications (06, 12, 16).  In the case of a creation of a zap, the protocol flow
-        builds a kind 9734 zap request, signs it, and passes it to the custodial lightning callback endpoint for 
-        the payee.
+        payment with an optional comment.  In either case, an invoice is requested following 
+        <a href="https://github.com/nostr-protocol/nips/blob/master/57.md">NIP-57</a> for nostr, which
+        relies on relevant <a href="https://github.com/lnurl/luds/">LNURL LUD specifications</a> 
+        (<a href="https://github.com/lnurl/luds/blob/luds/06.md">06</a>, 
+         <a href="https://github.com/lnurl/luds/blob/luds/12.md">12</a>, 
+         <a href="https://github.com/lnurl/luds/blob/luds/16.md">16</a>).  In the case of a creation of a zap, the
+        protocol flow builds a kind 9734 zap request, signs it, and passes it to the custodial lightning callback 
+        endpoint for the payee.
+      </p>
+
+      <a name="kind10002relaylist"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 10002 - Relay List Metadata</h2>
+      <p>
+        When retrieving nostr events about other users, such as their profile, or postings, the app will attempt to
+        fetch the relays that those users write to, as identified by their Relay List Metadata.  Relay information
+        is cached in an effort to avoid constantly making the same queries too frequently.  This follows the guidance
+        outlined in <a href="https://github.com/nostr-protocol/nips/blob/master/65.md">NIP-65</a> and described 
+        elsewhere as the inbox / outbox model.
       </p>
 
       <a name="kind30311liveactivities"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 30311 - Live Activities</h2>
@@ -134,7 +162,8 @@ export default function DataTypes() {
         following requirements:
       </p>
       <ul style={{listStyleType: 'circle', margin: '20px'}}>
-        <li>The live activity must have a `d` tag and not be marked as deleted (per NIP-09 kind 5 or with `deleted` tag)</li>
+        <li>The live activity must have a `d` tag and not be marked as deleted (per
+          <a href="https://github.com/nostr-protocol/nips/blob/master/09.md">NIP-09</a> kind 5 or with `deleted` tag)</li>
         <li>The live activity must have a `title` tag with a value that isn't an empty string</li>
         <li>It must have started, or start within the next week as defined by a required `starts` tag.</li>
         <li>If it has started, it must not have ended more than an hour ago as defined by an optional `ends` tag.</li>

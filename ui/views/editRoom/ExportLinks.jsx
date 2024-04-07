@@ -36,7 +36,7 @@ export const ExportLinksModal = ({
 
   return (
     <Modal close={close}>
-      <div className="bg-white p-6 rounded-lg">
+      <div className="bg-gray-700 text-gray-200 p-6 rounded-lg">
         <h2 className="text-2xl font-bold">Export Links</h2>
         <p>
           Unique ID
@@ -46,7 +46,7 @@ export const ExportLinksModal = ({
         </div>
         <input
           type="text"
-          className="w-full p-2 border border-gray-300 mb-4"
+          className="w-full p-2 border border-gray-300 mb-4 bg-gray-400 text-black placeholder-black"
           placeholder="Unique ID (using the same of prior export will overwrite it)"
           value={dTagValue}
           onChange={e => {
@@ -58,7 +58,7 @@ export const ExportLinksModal = ({
         </p>
         <input
           type="text"
-          className="w-full p-2 border border-gray-300 mb-4"
+          className="w-full p-2 border border-gray-300 mb-4 bg-gray-400 text-black placeholder-black"
           placeholder="Name"
           value={name}
           onChange={e => {
@@ -70,7 +70,7 @@ export const ExportLinksModal = ({
         </p>
         <input
           type="text"
-          className="w-full p-2 border border-gray-300 mb-4"
+          className="w-full p-2 border border-gray-300 mb-4 bg-gray-400 text-black placeholder-black"
           placeholder="About (optional)"
           value={about}
           onChange={e => {

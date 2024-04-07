@@ -69,14 +69,21 @@ export const ImportSlidesModal = ({
             let about = '';
             let image = '';
             let slidecount = 0;
+            let firstimage = undefined;
             for (let tag of slideList.tags) {
                 if (tag.length < 2) continue;
                 if (tag[0] == 'd') dTag = tag[1];
                 if (tag[0] == 'name') name = tag[1];
                 if (tag[0] == 'about') about = tag[1];
                 if (tag[0] == 'image') image = tag[1];
-                if (tag[0] == 'r') slidecount += 1;
+                if (tag[0] == 'r') {
+                  slidecount += 1;
+                  if (!firstimage) {
+                    firstimage = tag[1];
+                  }
+                }
             }
+            if (image.length == 0 && firstimage) image = firstimage;
             if (selectedListID == '') {
                 // assign first
                 setSelectedListID(id);
@@ -135,7 +142,7 @@ export const ImportSlidesModal = ({
 
   return (
     <Modal close={close}>
-      <div className="bg-white p-6 rounded-lg">
+      <div className="bg-gray-700 text-gray-200 p-6 rounded-lg">
         <h2 className="text-2xl font-bold">Import Slides</h2>
         <>
         <p>

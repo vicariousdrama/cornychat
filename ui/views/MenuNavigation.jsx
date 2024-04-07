@@ -7,6 +7,7 @@ import {isDark} from '../lib/theme';
 import {useJam, useApiQuery} from '../jam-core-react';
 import {EditRoomModal} from './editRoom/EditRoom';
 import {Edit, Settings, Stop, Stream, Mic, Share} from './Svg';
+import {followAllNpubsFromIds} from '../nostr/nostr';
 
 export function MyNavMenu({close, roomColor}) {
   const [
@@ -188,6 +189,16 @@ export function MyNavMenu({close, roomColor}) {
           </p>
         </div>
       )}
+
+      <div onClick={async () => {
+        let inRoomPeerIds = sessionStorage.getItem(roomId + '-peerIds');
+        followAllNpubsFromIds(inRoomPeerIds);
+        //alert('This feature is under consideration for development. If you want it, let me know.');
+      }} className="p-2 flex items-center">
+        <p className="text-md ml-1 cursor-pointer" style={{color: textColor}}>
+          Follow Everyone
+        </p>
+      </div>  
 
     </div>
   );

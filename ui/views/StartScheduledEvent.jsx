@@ -1,17 +1,11 @@
 import React from 'react';
+import {makeLocalDate} from '../nostr/nostr';
 
 export default function StartScheduledEvent({
     eventInfo,
   }) {
     //available fields:  startTime, endTime, image, location, title
-
-    const date = new Date(eventInfo.startTime * 1000);
-    var dateOptions = { weekday: 'long', month: 'long', day: 'numeric' }; 
-    const humanDate = new Intl.DateTimeFormat('en-us',dateOptions).format(date);
-    var timeOptions = { timeStyle: 'long'};
-    const humanTimeL = new Intl.DateTimeFormat('en-us',timeOptions).format(date);
-    const humanTime = humanTimeL.split(":",2).join(":") + humanTimeL.slice(-7);
-
+    const localHumanDateTime = makeLocalDate(eventInfo.startTime);
     var coloringStyle = {
         backgroundColor: 'rgb(7,74,40)',
         backgroundImage: 'linear-gradient(rgb(7,74,40), rgb(0,0,0))',
@@ -48,7 +42,7 @@ export default function StartScheduledEvent({
                         style={{width: '64px', height: '64px', objectFit: 'cover'}} />
                 </td>
                 <td align="left">{eventInfo?.title ?? eventInfo.location}</td></tr>
-            <tr><td align="right" class="text-sm">{humanDate} at {humanTime}</td></tr>
+            <tr><td align="right" class="text-sm">{localHumanDateTime}</td></tr>
             </table>
         </div>
         </a>
