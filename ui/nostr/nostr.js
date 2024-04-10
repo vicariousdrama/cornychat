@@ -5,7 +5,6 @@ import crypto from 'crypto-js';
 import {bech32} from 'bech32';
 import {Buffer} from 'buffer';
 
-const pmd = false;
 const pool = new RelayPool();
 function unique(arr) {
   return [...new Set(arr)];
@@ -25,23 +24,23 @@ function getDefaultOutboxRelays() {
 }
 
 function getCachedOutboxRelaysByPubkey(pubkey) {
-  if(pmd) console.log('in getCachedOutboxRelaybyPubkey for ', pubkey);
+  if(window.DEBUG) console.log('in getCachedOutboxRelaybyPubkey for ', pubkey);
   const npub = nip19.npubEncode(pubkey);
   return getCachedOutboxRelaysByNpub(npub);
 }
 function getCachedOutboxRelaysByNpub(npub) {
-  if(pmd) console.log('in getCachedOutboxRelaysByNpub for ', npub);
+  if(window.DEBUG) console.log('in getCachedOutboxRelaysByNpub for ', npub);
   let userCache = {}
   let k = `${npub}-relays`;
   let s = sessionStorage.getItem(k);
   if (s) userCache = JSON.parse(s);
   const outboxRelays = (userCache && userCache?.outboxRelays) ? userCache.outboxRelays : [];  
-  if(pmd) console.log('outboxRelays:', outboxRelays);
+  if(window.DEBUG) console.log('outboxRelays:', outboxRelays);
   return outboxRelays;
 }
 
 export async function getOutboxRelays(pubkey) {
-  if(pmd) console.log('in getOutboxRelays for pubkey: ', pubkey);
+  if(window.DEBUG) console.log('in getOutboxRelays for pubkey: ', pubkey);
   return new Promise(async (res, rej) => {
     if (pubkey == undefined) {
       res([]);
@@ -111,7 +110,7 @@ export async function signInExtension(
   updateInfo,
   enterRoom
 ) {
-  if(pmd) console.log("in signInExtension");
+  if(window.DEBUG) console.log("in signInExtension");
   try {
     if (!window.nostr) {
       throw new Error('A nostr extension is not available');
@@ -148,7 +147,7 @@ export async function signInExtension(
 }
 
 export async function getUserEventsByKind(pubkey, kind, timeSince) {
-  if(pmd) console.log("in getUserEventsByKind for pubkey ", pubkey, ", kind ", kind);
+  if(window.DEBUG) console.log("in getUserEventsByKind for pubkey ", pubkey, ", kind ", kind);
   return new Promise((res, rej) => {
     if (pubkey == undefined || kind == undefined) {
       res([]);
@@ -202,7 +201,7 @@ export async function getUserEventsByKind(pubkey, kind, timeSince) {
 }
 
 export async function getUserEventById(pubkey, id) {
-  if(pmd) console.log("in getUserEventById for pubkey ", pubkey, ", id", id);
+  if(window.DEBUG) console.log("in getUserEventById for pubkey ", pubkey, ", id", id);
   return new Promise((res, rej) => {
     //const pool = new RelayPool();
     try {
@@ -241,7 +240,7 @@ export async function getUserEventById(pubkey, id) {
 }
 
 export async function getUserMetadata(pubkey, id) {
-  if(pmd) console.log("in getUserMetadata for pubkey", pubkey, ", id", id);
+  if(window.DEBUG) console.log("in getUserMetadata for pubkey", pubkey, ", id", id);
   return new Promise((res, rej) => {
     //const pool = new RelayPool();
     try {
@@ -253,7 +252,7 @@ export async function getUserMetadata(pubkey, id) {
       let userMetadata = [];
       const timeoutRelays = setTimeout(() => {
         if (userMetadata.length === 0) {
-          if(pmd) console.log('Nostr relays did not return any events');
+          if(window.DEBUG) console.log('Nostr relays did not return any events');
           //pool.close();
           res(undefined);
         }
@@ -299,7 +298,7 @@ export async function signInPrivateKey(
   enterRoom,
   addNostrPrivateKey
 ) {
-  if(pmd) console.log("in signInPrivateKey");
+  if(window.DEBUG) console.log("in signInPrivateKey");
   try {
     const isValidLength = privateKey.length === 63 || privateKey.length === 64;
 
@@ -344,7 +343,7 @@ export async function signInPrivateKey(
 }
 
 export async function sendZaps(npubToZap, comment, amount, state, signEvent) {
-  if(pmd) console.log("in sendZaps");
+  if(window.DEBUG) console.log("in sendZaps");
   try {
     // Validate and set sats
     let satsAmount = parseInt(amount);
@@ -375,7 +374,7 @@ export async function sendZaps(npubToZap, comment, amount, state, signEvent) {
     if (LnService.hasOwnProperty('error')) {
       throw new Error(LnService.reason);
     }
-    if (pmd) console.log("about to call getZapEvent");
+    if(window.DEBUG) console.log("about to call getZapEvent");
     const signedEvent = await getZapEvent(
       comment,
       pubkeyToZap,
@@ -385,7 +384,7 @@ export async function sendZaps(npubToZap, comment, amount, state, signEvent) {
     );
 
     if (!signedEvent[0]) {
-      if (pmd) console.log("about to call getLNInvoice");
+      if(window.DEBUG) console.log("about to call getLNInvoice");
       const lnInvoice = await getLNInvoice(
         null,
         lightningAddress,
@@ -396,7 +395,7 @@ export async function sendZaps(npubToZap, comment, amount, state, signEvent) {
       return [true, lnInvoice.pr];
     }
 
-    if (pmd) console.log("about to call getLNInvoice");
+    if(window.DEBUG) console.log("about to call getLNInvoice");
     const lnInvoice = await getLNInvoice(
       signedEvent[1],
       lightningAddress,
@@ -412,7 +411,7 @@ export async function sendZaps(npubToZap, comment, amount, state, signEvent) {
 }
 
 export async function openLNExtension(LNInvoice) {
-  if(pmd) console.log("in openLNExtension");
+  if(window.DEBUG) console.log("in openLNExtension");
   try {
     if (!window.webln) return undefined;
     await window.webln.enable();
@@ -424,12 +423,12 @@ export async function openLNExtension(LNInvoice) {
 }
 
 export function setDefaultZapsAmount(amount) {
-  if(pmd) console.log("in setDefaultZapsAmount");
+  if(window.DEBUG) console.log("in setDefaultZapsAmount");
   localStorage.setItem('defaultZap', amount);
 }
 
 async function saveFollowList(myFollowList) {
-  if(pmd) console.log("in saveFollowList");
+  if(window.DEBUG) console.log("in saveFollowList");
   const event = {
     id: null,
     pubkey: null,
@@ -440,7 +439,7 @@ async function saveFollowList(myFollowList) {
     sig: null,
   };
   const EventSigned = await window.nostr.signEvent(event);
-  if(pmd) console.log(EventSigned);
+  if(window.DEBUG) console.log(EventSigned);
   //if (!EventSigned) return [null, 'There was an error with your nostr extension'];
   const defaultRelays = getDefaultOutboxRelays();
   const myPubkey = await window.nostr.getPublicKey();
@@ -460,7 +459,7 @@ async function saveFollowList(myFollowList) {
 }
 
 export async function loadFollowList() {
-  if(pmd) console.log("in loadFollowList");
+  if(window.DEBUG) console.log("in loadFollowList");
   return new Promise(async (res, rej) => {
     //const pool = new RelayPool();
     try {
@@ -527,7 +526,7 @@ export async function unFollowUser(
   roomId,
   signEvent
 ) {
-  if(pmd) console.log('in unFollowUser for ' + npubToUnfollow);
+  if(window.DEBUG) console.log('in unFollowUser for ' + npubToUnfollow);
   if (!window.nostr) {
     return [null, 'A nostr extension is required to unfollow a user'];
   }
@@ -548,7 +547,7 @@ export async function unFollowUser(
 }
 
 export async function followUser(npubToFollow, myFollowList, state, roomId, signEvent) {
-  if(pmd) console.log('in followUser for ' + npubToFollow);
+  if(window.DEBUG) console.log('in followUser for ' + npubToFollow);
   if (!window.nostr) {
     return [null, 'A nostr extension is required to follow a user'];
   }
@@ -558,7 +557,7 @@ export async function followUser(npubToFollow, myFollowList, state, roomId, sign
   );  
   if (indexOfPubkey != -1) {
     // already exists, our job is done here
-    if(pmd) console.log('already following');
+    if(window.DEBUG) console.log('already following');
     return [true];
   }
   // add it
@@ -569,7 +568,7 @@ export async function followUser(npubToFollow, myFollowList, state, roomId, sign
 }
 
 export async function followAllNpubsFromIds(inRoomPeerIds) {
-  if(pmd) console.log("in followAllNpubsFromIds");
+  if(window.DEBUG) console.log("in followAllNpubsFromIds");
   if (!window.nostr) {
     alert('A nostr extension is required to follow users');
     return;
@@ -637,7 +636,7 @@ export async function followAllNpubsFromIds(inRoomPeerIds) {
 }
 
 function getNostrNpubFromInfo(info) {
-  if(pmd) console.log(" in getNostrNpubFromInfo");
+  if(window.DEBUG) console.log(" in getNostrNpubFromInfo");
   const hasIdentity = info?.hasOwnProperty('identities');
   if (hasIdentity && (info?.identities?.length > 0)) {
     for (let identity of info.identities) {
@@ -650,7 +649,7 @@ function getNostrNpubFromInfo(info) {
 }
 
 export async function verifyNip05(nip05, userNpub) {
-  if(pmd) console.log("in verifyNip05");
+  if(window.DEBUG) console.log("in verifyNip05");
   if (!nip05) {
     return false;
   }
@@ -678,7 +677,7 @@ export async function verifyNip05(nip05, userNpub) {
 }
 
 async function getLNService(address) {
-  if(pmd) console.log("in getLNService for address", address);
+  if(window.DEBUG) console.log("in getLNService for address", address);
   let isLNUrl = address.toLowerCase().startsWith('lnurl');
   let isDecodedAddress = address.includes('@');
 
@@ -698,15 +697,15 @@ async function getLNService(address) {
   if (isDecodedAddress) {
     let service = address.split('@');
     let url = `https://${service[1]}/.well-known/lnurlp/${service[0]}`;
-    if(pmd) console.log(`querying ${url}`)
+    if(window.DEBUG) console.log(`querying ${url}`)
     let data = await (await fetch(url)).json();
-    if(pmd) console.log('data returned: ', data);
+    if(window.DEBUG) console.log('data returned: ', data);
     return data;
   }
 }
 
 async function getLNInvoice(zapEvent, lightningAddress, LNService, amount) {
-  if(pmd) console.log("in getLNInvoice");
+  if(window.DEBUG) console.log("in getLNInvoice");
   let hasPubkey = LNService.nostrPubkey;
   const dataBytes = Buffer.from(lightningAddress, 'utf-8');
   const lnurlEncoded = bech32.encode('lnurl', bech32.toWords(dataBytes));
@@ -729,7 +728,7 @@ async function getLNInvoice(zapEvent, lightningAddress, LNService, amount) {
 }
 
 async function getZapEvent(content, receiver, amount, state, signEvent) {
-  if(pmd) console.log("in getZapEvent");
+  if(window.DEBUG) console.log("in getZapEvent");
   let event = {
     id: null,
     pubkey: null,
@@ -766,7 +765,7 @@ async function getZapEvent(content, receiver, amount, state, signEvent) {
 }
 
 function encryptPrivatekey(privateKey) {
-  if(pmd) console.log("in encryptPrivateKey");
+  if(window.DEBUG) console.log("in encryptPrivateKey");
   const textToEncode = privateKey;
   const encryptionKey = nanoid();
   const cipherText = crypto.AES.encrypt(textToEncode, encryptionKey).toString();
@@ -774,7 +773,7 @@ function encryptPrivatekey(privateKey) {
 }
 
 function updateCacheFollowing(iFollow, npub, followList) {
-  if(pmd) console.log("in updateCacheFollowing setting iFollow to ", iFollow, " for npub ", npub);
+  if(window.DEBUG) console.log("in updateCacheFollowing setting iFollow to ", iFollow, " for npub ", npub);
   let userCache = {}
   let s = sessionStorage.getItem(npub);
   if (s) userCache = JSON.parse(s);
@@ -786,9 +785,9 @@ function updateCacheFollowing(iFollow, npub, followList) {
 }
 
 export function updateCacheOutboxRelays(outboxRelays, npub) {
-  if(pmd) console.log("in updateCacheOutboxRelays");
+  if(window.DEBUG) console.log("in updateCacheOutboxRelays");
   if (outboxRelays == undefined) return;
-  if(pmd) console.log(typeof outboxRelays);
+  if(window.DEBUG) console.log(typeof outboxRelays);
   let userCache = {}
   let k = `${npub}-relays`;
   let s = sessionStorage.getItem(k);
@@ -799,7 +798,7 @@ export function updateCacheOutboxRelays(outboxRelays, npub) {
 }
 
 export const isValidNostr = (info) => {
-  if(pmd) console.log("in isValidNostr");
+  if(window.DEBUG) console.log("in isValidNostr");
   let r = false;
   try {
     let jamid = info.id;
@@ -837,7 +836,7 @@ export const isValidNostr = (info) => {
 }
 
 function getLabelForKind(kind) {
-  if(pmd) console.log("in getLabelForKind");
+  if(window.DEBUG) console.log("in getLabelForKind");
   switch(kind) {
     case 30388: return "Corny Chat Slide Set";
     case 31388: return "Corny Chat Link Set";
@@ -848,7 +847,7 @@ function getLabelForKind(kind) {
 }
 
 export async function saveList(dTagValue, name, about, image, kind, theList) {
-  if(pmd) console.log("in saveList for ", dTagValue, ", named ", name);
+  if(window.DEBUG) console.log("in saveList for ", dTagValue, ", named ", name);
   let l = getLabelForKind(kind);
   let alt = l + ' with ' + theList.length + ' items';
   let iUrl = 0;
@@ -906,7 +905,7 @@ export async function saveList(dTagValue, name, about, image, kind, theList) {
 }
 
 export async function loadList(kind, pubkey) {
-  if(pmd) console.log("in loadList for kind ", kind);
+  if(window.DEBUG) console.log("in loadList for kind ", kind);
   return new Promise(async(res, rej) => {
     //const pool = new RelayPool();
     try {
@@ -918,7 +917,7 @@ export async function loadList(kind, pubkey) {
       if (userRelays?.length == 0) {
         const myNpub = nip19.npubEncode(myPubkey);
         myOutboxRelays = await getOutboxRelays(myPubkey); // (async() => {await getOutboxRelays(myPubkey)})();
-        if(pmd) console.log('myOutboxRelays from await call', myOutboxRelays);
+        if(window.DEBUG) console.log('myOutboxRelays from await call', myOutboxRelays);
         updateCacheOutboxRelays(myOutboxRelays, myNpub);
       }
       const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);

@@ -7,6 +7,7 @@ RUN yarn
 COPY . .
 RUN sed -i "s/BUILD_DATE/${BUILD_DATE}/g" ./pages/About.jsx
 RUN sed -i "s/BUILD_DATE/${BUILD_DATE}/g" ./views/EnterRoom.jsx
+RUN sed -i "s/BUILD_DATE/${BUILD_DATE}/g" ./lib/signalws.js
 RUN yarn build
 
 FROM node:alpine
