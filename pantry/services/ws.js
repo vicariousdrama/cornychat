@@ -12,6 +12,10 @@ module.exports = {
   sendDirect,
 };
 
+const VERIFY_BUILDDATE_ONSOCKET = true;
+const VERIFY_BUILDDATE_ONENTRY = true;
+const VERIFY_BUILDDATE_ONPING = false;
+
 // pub sub websocket
 
 const REQUEST_TIMEOUT = 20000;
@@ -122,11 +126,30 @@ const PING_CHECK_INTERVAL = 5000;
 const PING_MAX_INTERVAL = 25000;
 
 function handleConnection(ws, req) {
-  let {roomId, peerId, subs} = req;
+  let {roomId, peerId, subs, bd} = req;
+
   if (roomId === '~forward') {
     handleForwardingConnection(ws, req);
     return;
   }
+
+  // 20240410 - Check that build date is provided in the connection `bd` querystring. Older clients
+  // wont provide so we drop those connections instead of adding and publishing as a valid peer. 
+  // This prevents them from being counted as active in room, affecting counts and ghost users at
+  // the door. They will however immediately attempt to reconnect.
+  if (VERIFY_BUILDDATE_ONENTRY) {
+    if (!bd) {
+      console.log(`killing ws as no build date provided`, roomId, peerId);
+      ws.close();
+      return;
+    }
+    if(bd != 'BUILD_DATE'.split('.')[0]) {
+      console.log(`killing ws as ping build date was invalid`, roomId, peerId, bd);
+      ws.close();
+      return;
+    }
+  }
+
   //console.log('ws open', roomId, peerId, subs); // ws open mainchat 9v32sRPpNqbpe0RYLlYdjtTeOxqXoMIvdpqTB3GQ1OM.da4f [ 'all' ]
   let lastPing = Date.now();
   let pingCount = 0;
@@ -176,6 +199,24 @@ function handleConnection(ws, req) {
     // console.log('ws message', msg);
     if (msg !== undefined) {
       if (msg.t === 'ping') {
+        if (VERIFY_BUILDDATE_ONPING) {
+          // 20240410 - check that build date is provided in the periodic ping.
+          // older clients wont do this and we want to drop those connections
+          let b = msg.b;
+          if (!b) {
+            console.log(`killing ws as no build date provided`, roomId, peerId);
+            ws.close();
+            closeWs();
+            return;
+          } else {
+            if(b.split('.')[0] != 'BUILD_DATE'.split('.')[0]) {
+              console.log(`killing ws as ping build date was invalid`, roomId, peerId, b);
+              ws.close();
+              closeWs();
+              return;
+            }
+          }
+        }
         pingCount = pingCount + 1;
         lastPing = Date.now();
       } else {
@@ -240,6 +281,11 @@ function activeUsersInRoom(roomId) {
 // ws server, handles upgrade requests for http server
 
 function addWebsocket(server) {
+
+  if(VERIFY_BUILDDATE_ONSOCKET) {
+    console.log('ws socket server configuring to verify that clients connect with build date: ', 'BUILD_DATE'.split('.')[0]);
+  }
+
   const wss = new WebSocket.Server({noServer: true});
   wss.on('connection', handleConnection);
 
@@ -247,7 +293,7 @@ function addWebsocket(server) {
     let [path, query] = req.url.split('?');
     let [roomId] = path.split('/').filter(t => t);
     let params = querystring.parse(query);
-    let {id: peerId, subs, token} = params;
+    let {id: peerId, subs, token, bd} = params;
 
     // this is for forwarding messages to other containers
     // TODO authenticate
@@ -264,7 +310,8 @@ function addWebsocket(server) {
       ((roomId === undefined || !ssrVerifyToken(token, publicKey)) &&
         !internal) ||
       (roomInfo?.access?.identities &&
-        !roomInfo.access.identities.includes(publicKey))
+        !roomInfo.access.identities.includes(publicKey)) ||
+      (VERIFY_BUILDDATE_ONSOCKET && !internal && (bd === undefined || bd.split('.')[0] != 'BUILD_DATE'.split('.')[0]))
     ) {
       console.log('ws rejected!', req.url, 'room', roomId, 'peer', peerId);
       socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
@@ -274,6 +321,7 @@ function addWebsocket(server) {
     req.peerId = peerId;
     req.roomId = roomId;
     req.subs = subs?.split(',').filter(t => t) ?? []; // custom encoding, don't use "," in topic names
+    req.bd = bd?.split('.')[0] ?? '';
 
     wss.handleUpgrade(req, socket, head, ws => {
       wss.emit('connection', ws, req);

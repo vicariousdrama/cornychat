@@ -21,14 +21,14 @@ export default async function signalws({
   if (!url.endsWith('/')) url += '/';
   let token = encode(new TextEncoder().encode(JSON.stringify(await sign({}))));
   let subs = subscriptions.join(',');
-  url += `${roomId}?id=${myPeerId}.${myConnId}&token=${token}&subs=${subs}`;
+  url += `${roomId}?id=${myPeerId}.${myConnId}&token=${token}&subs=${subs}&bd=BUILD_DATE`;
 
   let ws = new WebSocket(url);
 
   ws.addEventListener('open', () => {
     is(hub, 'opened', true);
     hub.interval = setInterval(() => {
-      send(hub, {t: 'ping'});
+      send(hub, {t: 'ping', b: 'BUILD_DATE'});
     }, PING_INTERVAL);
   });
   ws.addEventListener('message', ({data}) => {
