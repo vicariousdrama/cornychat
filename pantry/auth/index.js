@@ -147,7 +147,6 @@ const roomAuthenticator = {
     // if not an owner or admin, only allow changing specific fields
     if(!(a || o)) {
       // moderators are restricted to only updating specific fields
-      roomInfo.closed = postingRoom.closed ?? false;
       roomInfo.currentSlide = postingRoom.currentSlide ?? 0;
       roomInfo.roomLinks = postingRoom.roomLinks ?? [];
       roomInfo.roomSlides = postingRoom.roomSlides ?? [];

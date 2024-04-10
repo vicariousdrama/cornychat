@@ -47,6 +47,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
   let [speakers, setSpeakers] = useState(room.speakers || []);
   let [speakersDeleting, setSpeakersDeleting] = useState([]);
   let [closed, setClosed] = useState(room.closed || false);
+  let [closedBy, setClosedBy] = useState(room.closedBy || '');
   let [isPrivate, setIsPrivate] = useState(room.isPrivate || false);
   let [isRecordingAllowed, setIsRecordingAllowed] = useState(room.isRecordingAllowed || false);
   let [stageOnly, setStageOnly] = useState(room.stageOnly || false);
@@ -173,6 +174,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
       roomLinks,
       customEmojis,
       closed,
+      closedBy,
       isPrivate,
       isRecordingAllowed,
       stageOnly,
@@ -195,19 +197,20 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
 
       {(iOwn || iAdmin) && (
       <div className="p-4 py-2 bg-gray-700 text-gray-200 rounded-lg my-3 text-md">
-        As a room owner you can modify all settings. Moderators that you set may only modify links and slides, speakers, schedule next event, and close or open the room.
+        As a room owner you can modify all settings. Moderators that you set may only modify links and slides, speakers, and schedule next event.
       </div>
       )}
 
       {!(iOwn || iAdmin) && (
       <div className="p-4 py-2 bg-gray-700 text-gray-200 rounded-lg my-3 text-md">
-        As a room moderator you can manage speakers, view the room settings, make changes to the links and slides, schedule the next event, and close or open the room.
+        As a room moderator you can manage speakers, view the room settings, make changes to the links and slides, and schedule the next event.
       </div>
       )}
 
       <div className="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg my-3">
         <BasicRoomInfo
           iOwn={iOwn}
+          info={info}
           name={name}
           setName={setName}
           description={description}
@@ -216,6 +219,8 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
           setLogoURI={setLogoURI}
           closed={closed}
           setClosed={setClosed}
+          closedBy={closedBy}
+          setClosedBy={setClosedBy}
           isPrivate={isPrivate}
           setIsPrivate={setIsPrivate}
           isRecordingAllowed={isRecordingAllowed}

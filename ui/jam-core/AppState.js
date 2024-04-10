@@ -129,7 +129,7 @@ function InRoom() {
       autoJoinCount = 1;
     }
 
-    if (!roomId || (closed && !iAmModerator && !iAmOwner)) {
+    if (!roomId || (closed && !iAmOwner)) {
       inRoom = null;
     } else {
       if (isJoinRoom) {
