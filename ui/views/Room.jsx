@@ -114,7 +114,7 @@ export default function Room({room, roomId, uxConfig}) {
     return <EnterRoom roomId={roomId} name={name} forbidden={true} />;
   }
 
-  if (!iModerate && !iOwn && closed) {
+  if (!iOwn && closed) {
     return (
       <EnterRoom
         roomId={roomId}
@@ -133,6 +133,7 @@ export default function Room({room, roomId, uxConfig}) {
         name={name}
         description={description}
         schedule={schedule}
+        closed={closed}
       />
     );
   }

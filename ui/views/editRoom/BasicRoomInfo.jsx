@@ -2,9 +2,11 @@ import React, {useState} from 'react';
 import {useMqParser} from '../../lib/tailwind-mqp';
 import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
+import {avatarUrl, displayName} from '../../lib/avatar';
 
 export function BasicRoomInfo({
   iOwn,
+  info,
   name,
   setName,
   description,
@@ -13,6 +15,8 @@ export function BasicRoomInfo({
   setLogoURI,
   closed,
   setClosed,
+  closedBy,
+  setClosedBy,
   isPrivate,
   setIsPrivate,
   isRecordingAllowed,
@@ -22,6 +26,9 @@ export function BasicRoomInfo({
   lud16,
   setLud16,
 }) {
+
+  let myname = displayName(info, undefined);
+
   let mqp = useMqParser();
   let [expanded, setExpanded] = useState(false);
   return (
@@ -136,13 +143,21 @@ export function BasicRoomInfo({
       </div>
 
       <div className="mt-2">
+        {iOwn && (
+        <>
         <input
           className="ml-2"
           type="checkbox"
           name="jam-room-closed"
           id="jam-room-closed"
           onChange={() => {
-            setClosed(!closed);
+            let isClosed = !closed;
+            setClosed(isClosed);
+            if(isClosed) {
+              setClosedBy(myname);
+            } else {
+              setClosedBy('');
+            }
           }}
           defaultChecked={closed}
         />
@@ -152,9 +167,22 @@ export function BasicRoomInfo({
         >
           Close the room
           <div className="p-2 pl-9 text-gray-300 text-sm">
-            Closed rooms can only be joined by administrators, owners and moderators.
+            Closed rooms can only be joined by administrators and owners. 
+            {closedBy.length > 0 && (`Room was closed by ${closedBy}`)}
           </div>
         </label>
+        </>
+        )}
+        {!iOwn && closed && (
+          <p className="text-gray-300 text-sm">
+          <span className="font-medium text-gray-300">Closed</span> - Only owners and administrators can join the room.
+          </p>
+        )}
+        {!iOwn && !closed && (
+          <p className="text-gray-300 text-sm">
+          <span className="font-medium text-gray-300">Open</span> - Anyone with the url can enter the room.
+          </p>
+        )}
       </div>
 
       <div className="mt-2">
@@ -195,7 +223,6 @@ export function BasicRoomInfo({
           announced by Corny Chat bot.
           </p>
         )}
-
       </div>
 
       <div className="mt-2">

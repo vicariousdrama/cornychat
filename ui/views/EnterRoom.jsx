@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {Modal, openModal} from './Modal';
 import {avatarUrl, displayName} from '../lib/avatar';
 import {use} from 'use-minimal-state';
@@ -29,11 +29,23 @@ export default function EnterRoom({
     {enterRoom, setProps, updateInfo, addNostrPrivateKey},
   ] = useJam();
 
-  let [myIdentity, iOwn, iModerate] = use(state, ['myIdentity', 'iAmOwner', 'iAmModerator']);
+  let [
+    myIdentity, 
+    iOwn, 
+    iModerate,
+    otherDevice,
+    room,
+    inRoom,
+  ] = use(state, [
+    'myIdentity', 
+    'iAmOwner', 
+    'iAmModerator',
+    'otherDeviceInRoom',
+    'room',
+    'inRoom',
+  ]);
 
   let mqp = useMqParser();
-  let otherDevice = use(state, 'otherDeviceInRoom');
-  let room = use(state, 'room');
   let [nostrPrivateKey, setNostrPrivateKey] = React.useState('');
   let [loadingExtension, setLoadingExtension] = useState(false);
   let [loadingNsec, setLoadingNsec] = useState(false);
@@ -43,13 +55,29 @@ export default function EnterRoom({
     width < 720 ? 'w-full bg-white p-10' : 'w-9/12 bg-white p-10';
   const colorTheme = room?.color ?? 'default';
   const roomColor = colors(colorTheme, room.customColor);
-
+  let closedBy = room.closedBy ?? '';
   let usersDisplayName = displayName(myIdentity.info, room);
   let usersAvatarUrl = avatarUrl(myIdentity.info, room);
+  let [returnToHomepage, setReturnToHomepage] = useState(true);
 
   const textColor = isDark(roomColor.buttons.primary)
     ? roomColor.text.light
     : roomColor.text.dark;
+
+  useEffect(() => {
+    // Setup a timeout to check if the user is still here after 30 seconds
+    const timeoutToHomepage = setTimeout(() => {
+      let hasEnteredRoom = inRoom === roomId;
+      if (!hasEnteredRoom && returnToHomepage) {
+        window.location.href = window.location.href.replace(window.location.pathname, '/');
+      }
+    }, 30000);
+
+    // This function is called when component unmounts
+    return () => {
+      clearTimeout(timeoutToHomepage);
+    }
+  }, []);
 
   const LoadingIcon = () => {
     return (
@@ -142,7 +170,7 @@ export default function EnterRoom({
               'mt-5 mb--1 p-4 text-red-500 rounded-lg border border-yellow-400 bg-red-50'
             }
           >
-            This room is currently closed.
+            This room was closed by {closedBy ?? 'a room moderator or owner' }.
           </div>
         )}
         <div className="text-center my-3">
@@ -164,6 +192,7 @@ export default function EnterRoom({
             alt={usersDisplayName}
             src={usersAvatarUrl}
             onClick={() => {
+              setReturnToHomepage(false);
               openModal(EditIdentity);
             }}
            />
@@ -181,11 +210,12 @@ export default function EnterRoom({
 
         <button
           onClick={() => {
+            setReturnToHomepage(false);
             setProps({userInteracted: true});
             enterRoom(roomId);
           }}
           className={
-            (closed && !iOwn && !iModerate) || forbidden
+            (closed && !iOwn) || forbidden
               ? 'hidden'
               : 'mt-5 select-none w-full h-12 px-6 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
           }
@@ -200,10 +230,11 @@ export default function EnterRoom({
         {window.nostr && (
         <button
           onClick={() => {
+            setReturnToHomepage(false);
             handlerSignIn('extension');
           }}
           className={
-            (closed && !iOwn && !iModerate) || forbidden
+            (closed && !iOwn) || forbidden
               ? 'hidden'
               : 'mt-5 select-none w-full h-12 px-6 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
           }
@@ -270,6 +301,7 @@ export default function EnterRoom({
           ></input>
           <button
             onClick={() => {
+              setReturnToHomepage(false);
               handlerSignIn('nsec');
             }}
             className="select-none px-5 h-12 text-lg text-white focus:shadow-outline"
@@ -293,6 +325,7 @@ export default function EnterRoom({
 
         <button
           onClick={() => {
+            setReturnToHomepage(false);
             window.location.href = window.location.href.replace(window.location.pathname, '/');
           }}
           className={'mt-5 select-none w-full h-12 px-6 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'}
@@ -304,14 +337,8 @@ export default function EnterRoom({
           Return to Homepage
         </button>
 
-        <a
-          className={
-            schedule
-              ? 'block mt-5 text-center h-12 p-3 px-6 text-lg text-gray-300'
-              : 'hidden'
-          }
-          href={`/${roomId}.ics`}
-          download={`${name || 'room'}.ics`}
+        <a className={schedule ? 'block mt-5 text-center h-12 p-3 px-6 text-lg text-gray-300' : 'hidden'}
+          href={`/${roomId}.ics`} download={`${name || 'room'}.ics`}
         >
           🗓 Add to Calendar
         </a>
@@ -327,7 +354,7 @@ export default function EnterRoom({
             <br />
             for the best audio experience on macOS
           </div>
-          <hr />
+          
           <p className="mt-4 text-gray-300 text-md">
             Corny Chat Simplified Terms of Service and Privacy Policy:
           </p>
@@ -351,16 +378,6 @@ export default function EnterRoom({
             Build Date: BUILD_DATE
           </p>
         </div>
-        {/*
-            if it is a future/scheduled room this button could be replaced with
-        */}
-        <button className="hidden h-12 px-6 text-lg text-black bg-gray-200 rounded-lg focus:shadow-outline active:bg-gray-300">
-          ⏰ Alert me 5 min before
-        </button>
-
-        <button className="hidden h-12 px-6 text-lg text-black bg-gray-200 rounded-lg focus:shadow-outline active:bg-gray-300">
-          🗓 Add this to my calendar
-        </button>
       </div>
     </div>
   );
