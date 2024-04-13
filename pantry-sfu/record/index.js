@@ -1,10 +1,12 @@
 import {getPort, releasePort} from './port.js';
 import fs from 'fs/promises';
 import path from 'path';
+import {
+  distributionHost,
+  recordFileLocationPath,
+  hlsFileLocationPath,
+} from '../config.js';
 import FFmpeg from './ffmpeg.js';
-
-const RECORD_FILE_LOCATION_PATH =
-  process.env.RECORD_FILE_LOCATION_PATH || './records';
 
 const createPeerRtpTransport = async (peer, recording, router, announcedIp) => {
   console.log('Creating peer RtpTransport');
@@ -68,23 +70,24 @@ const publishProducerRtpStream = async (
   };
 };
 
-export const startRecording = async (
+export const startStreaming = async (
   peer,
   room,
   source,
   announcedIp,
   debug = false
 ) => {
-  console.log(`Start recording for ${peer.id}, source ${source}`);
+  console.log(`Start streaming for ${peer.id}, source ${source}`);
 
-  const recordInfo = {};
+  const streamInfo = {};
 
-  const recording = {
+  const stream = {
     remotePorts: [],
     consumerIds: [],
     process: null,
+    info: null,
   };
-  peer.recordings.set(source, recording);
+  peer.streams.set(source, stream);
 
   for (const [_, producer] of peer.producers) {
     if (producer.appData.source !== source) {
@@ -97,16 +100,17 @@ export const startRecording = async (
 
     const {rtpTransport, remoteRtpPort} = await createPeerRtpTransport(
       peer,
-      recording,
+      stream,
       room.router,
       announcedIp
     );
 
     console.log('Transport created.');
-    recordInfo[producer.kind] = {
+
+    streamInfo[producer.kind] = {
       ...(await publishProducerRtpStream(
         peer,
-        recording,
+        stream,
         producer,
         room.router,
         rtpTransport
@@ -115,24 +119,96 @@ export const startRecording = async (
     };
   }
 
+  stream.info = streamInfo;
+
+  if (distributionHost) {
+    await startDistributing(peer, room, source, debug);
+  }
+};
+
+const startDistributing = async (peer, room, source, debug = false) => {
+  console.log(`Start distributing for ${peer.id}, source ${source}`);
+
   const fileDirectory = path.join(
-    RECORD_FILE_LOCATION_PATH,
+    hlsFileLocationPath,
     room.id,
     peer.id.split('.')[0],
     source
   );
   await fs.mkdir(fileDirectory, {recursive: true});
 
-  recordInfo.filePath = path.join(fileDirectory, `${Date.now()}.webm`);
+  const streamingPath = `${room.id}-${peer.id.split('.')[0]}-${source}`;
 
-  recording.process = new FFmpeg(recordInfo, peer, debug);
+  const stream = peer.streams.get(source);
+
+  console.log(streamingPath);
+
+  const recordInfo = {
+    ...stream.info,
+    destination: path.join(fileDirectory, 'index%v.m3u8'),
+  };
+
+  stream.process = new FFmpeg(recordInfo, peer, debug);
 
   setTimeout(async () => {
-    recording.consumerIds.forEach(async id => {
+    peer.streams.get(source).consumerIds.forEach(async id => {
       await peer.consumers.get(id).resume();
       await peer.consumers.get(id).requestKeyFrame();
     });
   }, 1000);
+};
+export const startRecording = async (peer, room, source, debug = false) => {
+  console.log(`Start recording for ${peer.id}, source ${source}`);
+
+  const fileDirectory = path.join(
+    recordFileLocationPath,
+    room.id,
+    peer.id.split('.')[0],
+    source
+  );
+  await fs.mkdir(fileDirectory, {recursive: true});
+
+  const stream = peer.streams.get(source);
+
+  const recording = {
+    process: null,
+  };
+
+  const recordInfo = {
+    ...stream.info,
+    destination: path.join(fileDirectory, `${Date.now()}.webm`),
+    target: 'record',
+  };
+
+  recording.process = new FFmpeg(recordInfo, peer, debug);
+
+  peer.recordings.set(source, recording);
+
+  setTimeout(async () => {
+    stream.consumerIds.forEach(async id => {
+      await peer.consumers.get(id).resume();
+      await peer.consumers.get(id).requestKeyFrame();
+    });
+  }, 1000);
+};
+
+export const stopStreaming = async (peer, source) => {
+  console.log(`Stop streaming for ${peer.id}, source ${source}`);
+
+  const stream = peer.streams.get(source);
+
+  if (!stream) {
+    console.log('Nothing to stop.');
+    return;
+  }
+
+  stream.consumerIds.forEach(id => peer.consumers.delete(id));
+
+  for (const remotePort of stream.remotePorts) {
+    releasePort(remotePort);
+  }
+
+  peer.streams.delete(source);
 };
 
 export const stopRecording = async (peer, source) => {
@@ -147,13 +223,6 @@ export const stopRecording = async (peer, source) => {
 
   if (recording.process) {
     recording.process.kill();
-  }
-
-  recording.consumerIds.forEach(id => peer.consumers.delete(id));
-
-  // Release ports from port set
-  for (const remotePort of recording.remotePorts) {
-    releasePort(remotePort);
   }
 
   peer.recordings.delete(source);

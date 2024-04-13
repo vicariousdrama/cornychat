@@ -7,6 +7,7 @@ const defaultConfig = {
   },
   development: false,
   sfu: false,
+  broadcast: false,
 };
 
 const staticConfig =

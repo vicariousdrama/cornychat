@@ -46,6 +46,8 @@ export default function Room({room, roomId, uxConfig}) {
     peerState,
     myPeerState,
     hasMicFailed,
+    myVideo,
+    remoteVideoStreams,
   ] = use(state, [
     'reactions',
     'identities',
@@ -60,6 +62,8 @@ export default function Room({room, roomId, uxConfig}) {
     'peerState',
     'myPeerState',
     'hasMicFailed',
+    'myVideo',
+    'remoteVideoStreams',
   ]);
 
   let myInfo = myIdentity.info;

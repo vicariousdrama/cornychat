@@ -1,4 +1,5 @@
 import {use} from 'use-minimal-state';
+// @ts-ignore
 import React, {createContext, useContext, useMemo} from 'react';
 import {
   createApi,
@@ -12,9 +13,11 @@ import {
 export {JamProvider, useJamState, useJam};
 
 // intial context values to infer types
+// @ts-ignore
 let fakeDispatch = async (type: ActionType, payload?: unknown) => {
   throw Error('state not created yet');
 };
+// @ts-ignore
 let fakeSetProps = async (state: Partial<Props>) => {
   throw Error('state not created yet');
 };

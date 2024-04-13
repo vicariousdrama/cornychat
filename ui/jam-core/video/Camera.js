@@ -2,12 +2,30 @@ import {actions} from '../state';
 import {userAgent} from '../../lib/user-agent';
 import {useUpdate, useAction, useUnmount} from '../../lib/state-tree';
 
+export const videoQualityOptions = {
+  LOW: 'low',
+  MEDIUM: 'medium',
+  HIGH: 'high',
+};
+
+const qualityConstraints = videoQualityOption => {
+  switch (videoQualityOption) {
+    case videoQualityOptions.LOW:
+      return {width: {ideal: 240}, height: {ideal: 240}};
+    case videoQualityOptions.MEDIUM:
+      return {width: {ideal: 480}, height: {ideal: 480}};
+    default:
+      return {};
+  }
+};
+
 export default function Camera() {
   let camState = 'initial'; // 'requesting', 'active', 'failed'
   let camStream = null;
   let hasRequestedOnce = false;
   let usedCameraIds = new Set();
   let cameraOn = true;
+  let videoQuality = videoQualityOptions.LOW;
 
   const update = useUpdate();
 
@@ -16,7 +34,10 @@ export default function Camera() {
   });
 
   async function requestCam() {
-    await navigator.mediaDevices.getUserMedia({video: true});
+    const permissionsStream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+    });
+    permissionsStream?.getTracks().forEach(track => track.stop());
 
     try {
       const availableCameraIds = (
@@ -39,11 +60,17 @@ export default function Camera() {
       camState = 'active';
       camStream = await navigator.mediaDevices.getUserMedia({
         video: {
+          ...qualityConstraints(videoQuality),
           deviceId: {
             exact: newCameraId,
           },
         },
       });
+
+      const settings = camStream.getVideoTracks()[0]?.getSettings();
+      if (settings) {
+        console.log(`Resolution: ${settings.width}x${settings.height}`);
+      }
     } catch (err) {
       console.error('error getting cam', err);
       camState = 'failed';

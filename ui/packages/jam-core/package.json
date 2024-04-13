@@ -1,7 +1,7 @@
 {
   "name": "jam-core",
   "description": "Jam SDK for creating custom audio spaces like Clubhouse / Twitter Spaces, made with WebRTC",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "main": "dist/index.js",
   "license": "(AGPL-3.0 OR Apache-2.0)",
   "type": "module",
@@ -22,6 +22,7 @@
     "fast-base64": "^0.1.8",
     "mediasoup-client": "^3.6.31",
     "minimal-state": "^5.6.0",
+    "shaka-player": "^4.7.9",
     "ua-parser-js": "^0.7.24",
     "watsign": "^0.1.8"
   },

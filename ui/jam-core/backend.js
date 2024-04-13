@@ -120,6 +120,7 @@ async function createRoom(state, roomId, room = {}) {
     color = 'default',
     stageOnly = false,
     videoCall = false,
+    videoEnabled = false,
     isPrivate = true,
     isRecordingAllowed = false,
   } = room;
@@ -154,6 +155,7 @@ async function createRoom(state, roomId, room = {}) {
     customColor,
     stageOnly: !!stageOnly,
     videoCall: !!videoCall,
+    videoEnabled: !!videoEnabled,
     isPrivate: !!isPrivate,
     isRecordingAllowed: !!isRecordingAllowed,
     moderators: [myId],

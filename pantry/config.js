@@ -7,6 +7,7 @@ const serverAdminId = process.env.JAM_SERVER_ADMIN_ID;
 const serverNsec = process.env.SERVER_NSEC;
 const recordFileLocationPath =
   process.env.RECORD_FILE_LOCATION_PATH || './records';
+const hlsFileLocationPath = process.env.HLS_FILE_LOCATION_PATH || './hls';
 const recordFileRetentionDays = process.env.RECORD_FILE_RETENTION_DAYS
   ? parseInt(process.env.RECORD_FILE_RETENTION_DAYS)
   : 10;
@@ -17,6 +18,7 @@ module.exports = {
   jamHost,
   local,
   restrictRoomCreation,
+  hlsFileLocationPath,
   recordFileLocationPath,
   recordFileRetentionDays,
 };

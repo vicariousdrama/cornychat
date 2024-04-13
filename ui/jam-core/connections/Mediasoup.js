@@ -369,8 +369,8 @@ export default function Mediasoup({swarm}) {
   }
 
   function removeLocalAudioStream(hub) {
-    let producerId = audioProducer.id;
-    audioProducer.close();
+    let producerId = audioProducer?.id;
+    audioProducer?.close();
     audioProducer = null;
     hub.sendRequest('mediasoup', {
       type: 'closeProducer',

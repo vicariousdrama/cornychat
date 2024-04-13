@@ -10,6 +10,7 @@ const defaultProps = {
   handType: '',
   autoJoin: false,
   hasMediasoup: false,
+  hasBroadcast: false,
   customStream: null,
 };
 type Props = typeof defaultProps;
@@ -56,6 +57,7 @@ type RoomType = {
   presenters: string[];
   owners: string[];
   customColor: CustomColor;
+  videoEnabled?: boolean;
   stageOnly?: boolean;
   videoCall?: boolean;
   isPrivate?: boolean;
@@ -65,6 +67,7 @@ type RoomType = {
   roomEmojis?: string[];
   backgroundURI?: string;
   access?: AccessType;
+  broadcastRoom?: boolean;
   currentSlide?: number;
 };
 type PeerState = {
@@ -72,6 +75,8 @@ type PeerState = {
   micMuted: boolean;
   leftStage: boolean;
   isRecording: boolean;
+  camOn: boolean;
+  shareScreen: boolean;  
   handRaised: boolean;
   handType: string;
 };
@@ -150,6 +155,9 @@ const defaultState = {
   isPodcasting: false,
   isSomeonePodcasting: false,
   podcastTracks: {} as Record<string, Blob>,
+
+  camOn: false,
+  shareScreen: false,
 };
 
 type StateType = typeof defaultState & {swarm: any};

@@ -123,7 +123,8 @@ export default function RoomHeader({
               alt={'room icon'}
               className="w-12 h-12 rounded p-0 m-0 mt-0"
               src={logoURI}
-              style={{objectFit: 'cover', cursor: lud16 ? 'pointer' : 'auto'}}
+              style={{objectFit: 'cover', display: 'none', cursor: lud16 ? 'pointer' : 'auto'}}
+              onLoad={e => (e.target.style.display = '')}
               onClick={() => {
                 if(lud16) {
                   openModal(InvoiceModal, {info: roomInfo, room: room});
