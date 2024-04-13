@@ -1,6 +1,6 @@
 import os from 'os';
 import mediasoup from 'mediasoup';
-import {local} from './config.js';
+import {local, distributionHost} from './config.js';
 import {
   sendRequest,
   onMessage,
@@ -8,7 +8,12 @@ import {
   onAddPeer,
   sendDirect,
 } from './ws.js';
-import {startRecording, stopRecording} from './record/index.js';
+import {
+  startRecording,
+  startStreaming,
+  stopRecording,
+  stopStreaming,
+} from './record/index.js';
 
 export {runMediasoup};
 
@@ -65,16 +70,20 @@ If you do not wish to use mediasoup, make sure the JAM_SFU environment variable 
           const sources = new Set(
             [...peer.producers.values()].map(p => p.appData.source)
           );
-          sources.forEach(source =>
-            startRecording(peer, room, source, announcedIp, debug)
-          );
+          sources.forEach(source => startRecording(peer, room, source, debug));
         });
         break;
       case 'stopServerRecording':
         room.serverRecording = undefined;
-        room.peers.forEach(peer =>
-          [...peer.recordings.keys()].forEach(source =>
-            stopRecording(peer, source, debug)
+        await Promise.all(
+          [...room.peers.values()].map(
+            async peer =>
+              console.log(peer.recordings) ||
+              (await Promise.all(
+                [...peer.recordings.keys()].map(source =>
+                  stopRecording(peer, source, debug)
+                )
+              ))
           )
         );
         break;
@@ -154,7 +163,7 @@ If you do not wish to use mediasoup, make sure the JAM_SFU environment variable 
           // => create Consumers for existing Producers
           for (const otherPeer of yieldOtherPeers(room, peerId)) {
             for (const producer of otherPeer.producers.values()) {
-              createConsumer(room, {
+              await createConsumer(room, {
                 consumerPeer: peer,
                 producerPeer: otherPeer,
                 producer,
@@ -211,19 +220,19 @@ If you do not wish to use mediasoup, make sure the JAM_SFU environment variable 
 
         accept({id: producer.id});
 
-        if (room.serverRecording) {
-          const producerSource = appData.source;
+        const producerSource = appData.source;
+        await stopRecording(peer, producerSource, debug);
+        await stopStreaming(peer, producerSource, debug);
+        await startStreaming(peer, room, producerSource, announcedIp, debug);
 
-          if (peer.recordings.has(producerSource)) {
-            await stopRecording(peer, producerSource, debug);
-          }
-          await startRecording(peer, room, producerSource, announcedIp, true);
+        if (room.serverRecording) {
+          await startRecording(peer, room, producerSource, debug);
         }
 
         // send this new track to all other peers
         // => create Consumer on each peer except this one
         for (const otherPeer of yieldOtherPeers(room, peerId)) {
-          createConsumer(room, {
+          await createConsumer(room, {
             consumerPeer: otherPeer,
             producerPeer: peer,
             producer,
@@ -261,10 +270,13 @@ If you do not wish to use mediasoup, make sure the JAM_SFU environment variable 
           }
         }
 
+        await stopRecording(peer, source, debug);
+        await stopStreaming(peer, source, debug);
+
+        await startStreaming(peer, room, source, announcedIp, debug);
+
         if (room.serverRecording) {
-          const {source} = producer.appData;
-          await stopRecording(peer, source, debug);
-          await startRecording(peer, room, source, announcedIp, debug);
+          await startRecording(peer, room, source, debug);
         }
 
         accept();
@@ -278,7 +290,11 @@ If you do not wish to use mediasoup, make sure the JAM_SFU environment variable 
     if (room === undefined) return;
     const peer = room.peers.get(peerId);
     if (peer === undefined) return;
-    await stopRecording(peer, debug);
+    
+    for (const source of peer.recordings.keys()) {
+      await stopRecording(peer, source, debug);
+    }
+
     for (const transport of peer.transports.values()) {
       transport.close();
     }
@@ -362,6 +378,7 @@ async function getOrCreatePeer(room, peerId) {
       consumers: new Map(),
       consumerTransport: null,
       recordings: new Map(),
+      streams: new Map(),
     };
     room.peers.set(peerId, peer);
   }

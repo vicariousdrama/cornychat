@@ -47,6 +47,7 @@ function AudioState({swarm}) {
     handRaised,
     handType,
     remoteStreams,
+    broadcastPlayers,
     customStream,
   }) {
     if (audioContext === null && AudioContext) {
@@ -111,6 +112,22 @@ function AudioState({swarm}) {
           soundMuted,
           shouldPlay: !!inRoom,
         });
+    });
+
+    broadcastPlayers.forEach((player, playerId) => {
+      const [source, peerId] = playerId.split('|');
+      player.getMediaElement().play();
+      player.goToLive();
+      const injectedState = useRootState();
+      setTimeout(() => {
+        const stream = player.getMediaElement().captureStream(); //new MediaStream();
+        declare(VolumeMeter, {
+          injectedState,
+          peerId,
+          stream,
+          audioContext,
+        });
+      }, 50);
     });
 
     return merge(

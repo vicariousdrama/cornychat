@@ -4,7 +4,12 @@ import Mediasoup from './Mediasoup';
 import P2pMedia from './P2pMedia.js';
 import WebRtcConnections from './WebRtcConnections';
 
-export default function ConnectMedia({roomState, swarm, hasMediasoup}) {
+export default function ConnectMedia({
+  roomState,
+  swarm,
+  hasMediasoup,
+  hasBroadcast,
+}) {
   let {roomId, iAmSpeaker, iAmPresenter} = roomState;
   let localAudioStream = useRootState('myAudio');
   let localVideoStream = useRootState('myVideo');
@@ -16,7 +21,7 @@ export default function ConnectMedia({roomState, swarm, hasMediasoup}) {
     roomId,
     shouldSendAudio: hasMediasoup && iAmSpeaker,
     shouldSendVideo: hasMediasoup && iAmPresenter,
-    shouldReceive: hasMediasoup && !iAmSpeaker,
+    shouldReceive: hasMediasoup && !hasBroadcast && !iAmSpeaker,
     localAudioStream,
     localVideoStream,
     localScreenStream,

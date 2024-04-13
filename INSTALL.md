@@ -251,9 +251,21 @@ yarn
 
 ```sh
 cd ~/cornychat/ui
-docker build -t diamsa/ui:stable .
+chmod +x buildit.sh
+./buildit.sh
 cd ~/cornychat/pantry
-docker build -t diamsa/pantry:stable .
+chmod +x buildit.sh
+./buildit.sh
+cd ~/cornychat/pantry-sfu
+chmod +x buildit.sh
+./buildit.sh
+```
+
+If the pantry-sfu image fails, then perform the following to pull the prebuilt image and retag it
+
+```sh
+docker pull registry.gitab.com/jam-systems/jam/pantry-sfu:master
+docker tag registry.gitab.com/jam-systems/jam/pantry-sfu:master cornychat/pantry-sfu:stable
 ```
 
 **Start Docker**

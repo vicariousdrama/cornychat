@@ -5,9 +5,10 @@ export {parsePath, parseUrlConfig};
 function parsePath(pathname) {
   let [first = null, second] = pathname.split('/').filter(identity);
   let stageOnly = first === 's';
+  let videoEnabled = first === 'v';
   // other special configs go here
-  let route = stageOnly ? second : first;
-  let room = {stageOnly};
+  let route = stageOnly || videoEnabled ? second : first;
+  let room = {stageOnly, videoEnabled};
   return {route, room};
 }
 

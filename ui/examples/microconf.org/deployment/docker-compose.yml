@@ -12,6 +12,7 @@ services:
     depends_on:
       - pantry
     environment:
+      - HLS_FILE_LOCATION_PATH=/data/hls
       - JAM_HOST
       - JAM_SFU_EXTERNAL_IP=${JAM_HOST}
       - MEDIASOUP_MIN_PORT
@@ -25,6 +26,7 @@ services:
     depends_on:
       - pantryredis
     environment:
+      - HLS_FILE_LOCATION_PATH=/data/hls
       - JAM_HOST
       - JAM_RESTRICT_ROOM_CREATION
       - RECORD_FILE_LOCATION_PATH=/data/recordings

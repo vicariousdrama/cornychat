@@ -98,21 +98,44 @@ export default class FFmpeg {
       'pipe:0',
     ];
 
-    commandArgs = commandArgs.concat(this._videoArgs);
-    commandArgs = commandArgs.concat(this._audioArgs);
+    if (this._rtpParameters.target === 'record') {
+      commandArgs = commandArgs.concat(this._videoArgsRecord);
+      commandArgs = commandArgs.concat(this._audioArgsRecord);
+    } else {
+      commandArgs = commandArgs.concat(this._videoArgsStream);
+      commandArgs = commandArgs.concat(this._audioArgsStream);
+      commandArgs = commandArgs.concat(this._hlsArgs);
+    }
 
-    commandArgs = commandArgs.concat([this._rtpParameters.filePath]);
+    commandArgs = commandArgs.concat([this._rtpParameters.destination]);
 
     if (this._debug) console.log('commandArgs:%o', commandArgs);
 
     return commandArgs;
   }
 
-  get _videoArgs() {
+  get _videoArgsRecord() {
     return ['-map', '0:v:0?', '-c:v', 'copy'];
   }
 
-  get _audioArgs() {
+  get _videoArgsStream() {
+    return [
+      '-map',
+      '0:v:0?',
+      '-c:v',
+      'libx264',
+      '-preset',
+      'veryfast',
+      '-crf',
+      '21',
+      '-g',
+      '25',
+      '-sc_threshold',
+      '0',
+    ];
+  }
+
+  get _audioArgsRecord() {
     return [
       '-map',
       '0:a:0?',
@@ -120,6 +143,23 @@ export default class FFmpeg {
       '-2',
       '-c:a',
       'copy',
+    ];
+  }
+
+  get _audioArgsStream() {
+    return ['-map', '0:a:0?', '-c:a', 'aac', '-b:a', '128k', '-ac', '2'];
+  }
+
+  get _hlsArgs() {
+    return [
+      '-f',
+      'hls',
+      '-hls_time',
+      '2',
+      '-hls_segment_type',
+      'fmp4',
+      '-master_pl_name',
+      'index.m3u8',
     ];
   }
 }

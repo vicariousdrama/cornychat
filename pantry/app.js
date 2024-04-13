@@ -10,17 +10,20 @@ const indexRouter = require('./routes/index');
 const metricsRouter = require('./routes/metrics');
 const activityRouter = require('./routes/activity');
 const adminRouter = require('./routes/admin');
-const roomListRouter = require('./routes/roomListRouter');
-const scheduledEventsRouter = require('./routes/scheduledEventsRouter');
-const staticRoomsRouter = require('./routes/staticRoomsRouter');
-const staticEventsRouter = require('./routes/staticEventsRouter');
-const roomModeratorsRouter = require('./routes/roomModerators');
 
 const {roomAuthenticator, identityAuthenticator} = require('./auth');
 const {controller} = require('./routes/controller');
 const roomKeyRouter = require('./routes/roomKey');
 const liveRoomRouter = require('./routes/liveRoom');
 const recordingsRouter = require('./routes/recordings');
+//const jamConfigRouter = require('./routes/jamConfig');
+const {hlsFileLocationPath} = require('./config');
+
+const roomListRouter = require('./routes/roomListRouter');
+const scheduledEventsRouter = require('./routes/scheduledEventsRouter');
+const staticRoomsRouter = require('./routes/staticRoomsRouter');
+const staticEventsRouter = require('./routes/staticEventsRouter');
+const roomModeratorsRouter = require('./routes/roomModerators');
 const privateKeysRouter = require('./routes/privateKeys');
 const signEventRouter = require('./routes/signEvent');
 const nip05Router = require('./routes/nip05Router');
@@ -34,6 +37,9 @@ app.use(ssr);
 app.use('/', indexRouter);
 app.use('/metrics', metricsRouter);
 app.use('/activity', activityRouter);
+//app.use('/jam-config', jamConfigRouter);
+
+app.use('/stream/hls', express.static(hlsFileLocationPath));
 
 app.use(
   '/api/v1/',

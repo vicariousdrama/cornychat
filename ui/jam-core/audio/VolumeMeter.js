@@ -1,8 +1,8 @@
 import {on, update, clear, emit} from 'minimal-state';
 import {useRootState, useUnmount} from '../../lib/state-tree';
 
-export default function VolumeMeter() {
-  const state = useRootState();
+export default function VolumeMeter({injectedState}) {
+  const state = injectedState || useRootState();
   let volumeMeter = null;
   let activeStream = null;
   useUnmount(() => {

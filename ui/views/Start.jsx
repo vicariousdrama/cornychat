@@ -13,7 +13,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [eventList, setEventList] = useState([]);
   const [{room}, {enterRoom, setProps, createRoom, listRooms, listScheduledEvents}] = useJam();
-  let {stageOnly = false} = newRoom;
+  let {stageOnly = false, videoEnabled = false} = newRoom;
   const mainroomonly = [{"roomId":"mainchat","name":"Main Chat","description":"","logoURI":"","userCount":"0","userInfo":[]}];
 
   useEffect(() => {
@@ -48,7 +48,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
     roomId = mn[0] + mn[1] + roomNum;
 
     (async () => {
-      let roomPosted = {stageOnly};
+      let roomPosted = {stageOnly, videoEnabled};
       let ok = await createRoom(roomId, roomPosted);
       if (ok) {
         if (urlRoomId !== roomId) navigate('/' + roomId);

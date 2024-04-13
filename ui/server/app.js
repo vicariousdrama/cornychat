@@ -55,6 +55,7 @@ const jamConfig = {
   urls,
   development: !!process.env.DEVELOPMENT,
   sfu: ['true', '1'].includes(process.env.JAM_SFU),
+  broadcast: ['true', '1'].includes(process.env.JAM_BROADCAST),
   hideJamInfo: ['true', '1'].includes(process.env.JAM_HIDE_JAM_INFO),
 };
 console.log(jamConfig);
