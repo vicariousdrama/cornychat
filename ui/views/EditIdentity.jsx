@@ -73,6 +73,12 @@ export default function EditIdentity({close}) {
   let [onlyZapsEnabled, setOnlyZapsEnabled] = useState(
     localStorage.getItem('onlyZapsEnabled') ?? 'false'
   );
+  let [doorbellEnabled, setDoorbellEnabled] = useState(
+    localStorage.getItem('doorbellEnabled') ?? '0'
+  );
+  let handleDoorbellChange = e => {
+    setDoorbellEnabled(e.target.value);
+  };
 
 
   let userType = (nostrIdentity == undefined ? 'anon' : 'nostr');
@@ -292,6 +298,7 @@ export default function EditIdentity({close}) {
     localStorage.setItem('animationsEnabled',animEnabled);
     localStorage.setItem('ghostsEnabled',ghostsEnabled);
     localStorage.setItem('onlyZapsEnabled',onlyZapsEnabled);
+    localStorage.setItem('doorbellEnabled',doorbellEnabled);
 
     if (verifyingNpub) {
       let identities = [];
@@ -465,8 +472,8 @@ export default function EditIdentity({close}) {
         <div className="p-2 text-gray-200 bold">
           Sticky Emojis
         </div>
-        <div className="p-2 text-gray-200 italic">
-          Sticky Emoji 1 {(stickyEmoji1.length != 0) && (
+        <div className="p-2 text-gray-200">
+          <span className="italic">Sticky Emoji 1 </span>{(stickyEmoji1.length != 0) && (
             <div className="p-2 m-2 bg-gray-700 rounded-lg hover:bg-red-500"
                   onClick={() => delStickyEmoji(1)}
             ><p>{stickyEmoji1.toString().toUpperCase().startsWith('E') ? (
@@ -501,8 +508,8 @@ export default function EditIdentity({close}) {
           ]}
         />
         )}
-        <div className="p-2 text-gray-200 italic">
-          Sticky Emoji 2 {stickyEmoji2.length != 0 && (
+        <div className="p-2 text-gray-200">
+          <span className="italic">Sticky Emoji 2 </span>{stickyEmoji2.length != 0 && (
             <div className="p-2 m-2 bg-gray-700 rounded-lg hover:bg-red-500"
                  onClick={() => delStickyEmoji(2)}
               ><p>{stickyEmoji2.toString().toUpperCase().startsWith('E') ? (
@@ -611,6 +618,25 @@ export default function EditIdentity({close}) {
         <div className="p-2 text-gray-200 italic">
           When enabled, you'll only send the lightning bolt emoji as reactions from the nav menu, and most of your static stickies will appear as the poo emoji
           <span className="text-gray-300"> (optional)</span>
+        </div>
+      </div>
+
+      <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
+        <div className="p-2 text-gray-200 bold">
+          Doorbell Sound
+          <select
+              name="doorbellEnabled"
+              defaultValue={doorbellEnabled}
+              onChange={handleDoorbellChange}
+              className={'border mt-3 ml-2 p-2 text-black rounded'}
+            >
+            <option key="0" value="0">None</option>
+            <option key="1" value="1">Call to Attention</option>
+            <option key="2" value="2">Convenience Store</option>
+          </select>
+        </div>
+        <div className="p-2 text-gray-200 italic">
+          When enabled, a sound will play when another user enters the room
         </div>
       </div>
 

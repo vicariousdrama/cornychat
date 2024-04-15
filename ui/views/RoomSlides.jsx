@@ -24,7 +24,8 @@ export default function RoomSlides({
   const rsl = roomSlides?.length ?? 0;
 
   const textColor = isDark(colors.avatarBg) ? colors.text.light : colors.text.dark;
-  const iconColor = isDark(colors.avatarBg) ? colors.icons.light : colors.icons.dark;
+  //const iconColor = isDark(colors.avatarBg) ? colors.icons.dark : colors.icons.light;
+  const iconColor = isDark(colors.buttons.primary) ? colors.text.light : colors.text.dark;
 
   function RoomSlide() {
     let sn = parseInt(currentSlide, 10) - 1;

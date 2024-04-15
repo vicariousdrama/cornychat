@@ -1,5 +1,6 @@
 import {encode} from './identity-utils';
 import {clear, emit, is, on, until} from 'minimal-state';
+import {doorbell} from './doorbell';
 
 const PING_INTERVAL = 5000;
 
@@ -45,6 +46,7 @@ export default async function signalws({
       payload.peerId = peerId;
       payload.connId = connId;
     }
+    doorbell(d, myPeerId, roomId);
     if (topic === 'response') {
       requestAccepted(requestId, payload);
       return;
