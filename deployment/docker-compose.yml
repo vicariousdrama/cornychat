@@ -142,7 +142,7 @@ services:
     volumes:
       - "../jam-config:/jam-config"
       - ../data/recordings:/pantry/records
-      - ../data/hls:./hls
+      - ../data/hls:/pantry/hls
   traefik:
     networks:
       jam:
