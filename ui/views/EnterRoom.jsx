@@ -51,18 +51,14 @@ export default function EnterRoom({
   let [loadingNsec, setLoadingNsec] = useState(false);
   let width = useWidth();
   let leftColumn = width < 720 ? 'hidden' : 'w-full';
-  let rightColumn =
-    width < 720 ? 'w-full bg-white p-10' : 'w-9/12 bg-white p-10';
+  let rightColumn = width < 720 ? 'w-full bg-white p-10' : 'w-9/12 bg-white p-10';
   const colorTheme = room?.color ?? 'default';
   const roomColor = colors(colorTheme, room.customColor);
   let closedBy = room.closedBy ?? '';
   let usersDisplayName = displayName(myIdentity.info, room);
   let usersAvatarUrl = avatarUrl(myIdentity.info, room);
   let [returnToHomepage, setReturnToHomepage] = useState(true);
-
-  const textColor = isDark(roomColor.buttons.primary)
-    ? roomColor.text.light
-    : roomColor.text.dark;
+  const textColor = isDark(roomColor.buttons.primary) ? roomColor.text.light : roomColor.text.dark;
 
   useEffect(() => {
     // Setup a timeout to check if the user is still here after 30 seconds

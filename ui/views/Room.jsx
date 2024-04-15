@@ -71,12 +71,12 @@ export default function Room({room, roomId, uxConfig}) {
 
   let [showMyNavMenu, setShowMyNavMenu] = useState(false);
   const [showLinks, setShowLinks] = useState(false);
-  const [showSlides, setShowSlides] = useState(false);
   const inRoomPeerIds = peers.filter(id => peerState[id]?.inRoom);
-  sessionStorage.setItem(roomId + '-peerIds', JSON.stringify([...inRoomPeerIds]));
   const nJoinedPeers = inRoomPeerIds.length;
   const [audience, setAudience] = useState(state.peers.length + 1);
   useMemo(() => setAudience(state.peers.length + 1), [state.peers]);
+  const sesPeerIds = `${roomId}-peerIds`;
+  sessionStorage.setItem(sesPeerIds, JSON.stringify([...inRoomPeerIds])); // MyNavMenu depends on for Follow All
 
   let {
     name,
@@ -159,6 +159,10 @@ export default function Room({room, roomId, uxConfig}) {
 
   return (
     <div className="h-screen w-screen flex flex-col justify-between overflow-y-scroll">
+
+      <audio id="doorbellsound1" src="/mp3/call-to-attention-123107.mp3" />
+      <audio id="doorbellsound2" src="/mp3/conveniencestorering-96090.mp3" />
+
       <div style={{zIndex: '10', position:'absolute', top: '0px'}} className="w-screen flex flex-col justify-between">
         <RoomHeader
           colors={roomColor}
