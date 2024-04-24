@@ -9,6 +9,7 @@ import {AudioState} from './audio';
 import {VideoState} from './video';
 import {BackChannel} from './backchannel';
 import {Reactions} from './reactions';
+import {TextChat} from './textchat';
 import {RoomState} from './room';
 import ModeratorState from './room/ModeratorState';
 import ConnectMedia from './connections/ConnectMedia.js';
@@ -75,6 +76,7 @@ export default function AppState({hasMediasoup, hasBroadcast}) {
 
     is(myPeerState, {micMuted, inRoom: !!inRoom, handType});
     declare(Reactions, {swarm});
+    declare(TextChat, {swarm});
 
     return merge(
       {swarm, micMuted, handRaised, handType, inRoom, myId, myIdentity, remoteStreams},

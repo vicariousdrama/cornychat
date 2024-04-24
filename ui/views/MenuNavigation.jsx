@@ -9,7 +9,7 @@ import {EditRoomModal} from './editRoom/EditRoom';
 import {Edit, Settings, Stop, Stream, Mic, Share} from './Svg';
 import {followAllNpubsFromIds} from '../nostr/nostr';
 
-export function MyNavMenu({close, roomColor}) {
+export function MyNavMenu({close, roomColor, showChat, setShowChat}) {
   const [
     state,
     {
@@ -190,10 +190,22 @@ export function MyNavMenu({close, roomColor}) {
         </div>
       )}
 
+      <div
+        onClick={async () => {
+          setShowChat(!showChat);
+          close(false);
+        }}
+        className="p-2"
+      >
+        <p className="text-md ml-1 cursor-pointer">
+          {showChat ? 'Close Chat' : 'Open Chat'}
+        </p>
+      </div>      
+
       <div onClick={async () => {
-        let inRoomPeerIds = sessionStorage.getItem(roomId + '-peerIds');
+        let inRoomPeerIds = sessionStorage.getItem(roomId + '.peerIds');
         followAllNpubsFromIds(inRoomPeerIds);
-        //alert('This feature is under consideration for development. If you want it, let me know.');
+        close(false);
       }} className="p-2 flex items-center">
         <p className="text-md ml-1 cursor-pointer" style={{color: textColor}}>
           Follow Everyone

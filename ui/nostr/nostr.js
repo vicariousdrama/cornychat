@@ -31,7 +31,7 @@ function getCachedOutboxRelaysByPubkey(pubkey) {
 function getCachedOutboxRelaysByNpub(npub) {
   if(window.DEBUG) console.log('in getCachedOutboxRelaysByNpub for ', npub);
   let userCache = {}
-  let k = `${npub}-relays`;
+  let k = `${npub}.relays`;
   let s = sessionStorage.getItem(k);
   if (s) userCache = JSON.parse(s);
   const outboxRelays = (userCache && userCache?.outboxRelays) ? userCache.outboxRelays : [];  
@@ -167,7 +167,7 @@ export async function getUserEventsByKind(pubkey, kind, timeSince) {
         for (let userEvent of userEvents) {
           retids.push(userEvent.id);
         }
-        let sesEvents = sessionStorage.getItem(`${pubkey}-kind${kind}events`);
+        let sesEvents = sessionStorage.getItem(`${pubkey}.kind${kind}events`);
         if (sesEvents != undefined) {
           sesEvents = JSON.parse(sesEvents);
           for (let sessionEvent of sesEvents) {
@@ -176,8 +176,8 @@ export async function getUserEventsByKind(pubkey, kind, timeSince) {
             }
           }
         }
-        sessionStorage.setItem(`${pubkey}-kind${kind}events`, JSON.stringify(userEvents));
-        sessionStorage.setItem(`${pubkey}-kind${kind}events-retrieveTime`, Math.floor(Date.now() / 1000));
+        sessionStorage.setItem(`${pubkey}.kind${kind}events`, JSON.stringify(userEvents));
+        sessionStorage.setItem(`${pubkey}.kind${kind}events.retrieveTime`, Math.floor(Date.now() / 1000));
         res(userEvents);
       }, 2700);
       let options = {unsubscribeOnEose: true, allowDuplicateEvents: false};
@@ -581,13 +581,13 @@ export async function followAllNpubsFromIds(inRoomPeerIds) {
   // ensure we have a list to work with
   const currentTime = Math.floor(Date.now() / 1000);
   const timeToExpire = 3600; // 1 hour
-  const myFollowListRetrieved = sessionStorage.getItem('myFollowListRetrieved');
+  const myFollowListRetrieved = sessionStorage.getItem('myFollowList.retrievedTime');
   const myFollowListExpired = (myFollowListRetrieved == undefined || ((myFollowListRetrieved + timeToExpire) < currentTime));
   let myFollowList = sessionStorage.getItem('myFollowList');
   if (myFollowListExpired || myFollowList == undefined) {
     myFollowList = await loadFollowList();
     if (myFollowList) {
-      sessionStorage.setItem('myFollowListRetrieved', currentTime);
+      sessionStorage.setItem('myFollowList.retrievedTime', currentTime);
       sessionStorage.setItem('myFollowList', JSON.stringify(myFollowList));
     }
   } else {
@@ -789,7 +789,7 @@ export function updateCacheOutboxRelays(outboxRelays, npub) {
   if (outboxRelays == undefined) return;
   if(window.DEBUG) console.log(typeof outboxRelays);
   let userCache = {}
-  let k = `${npub}-relays`;
+  let k = `${npub}.relays`;
   let s = sessionStorage.getItem(k);
   if (s) userCache = JSON.parse(s);
   userCache.outboxRelays = outboxRelays;
@@ -841,7 +841,7 @@ function getLabelForKind(kind) {
     case 30388: return "Corny Chat Slide Set";
     case 31388: return "Corny Chat Link Set";
     case 32388: return "Corny Chat Room Favorites";
-    case 32388: return "Corny Chat Playlist";
+    case 33388: return "Corny Chat Playlist";
     default: return "Unlabeled Kind";
   }
 }
