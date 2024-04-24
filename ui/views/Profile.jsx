@@ -38,8 +38,8 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
     const pubkey = nip19.decode(actorNpub).data;
     const currentTime = Math.floor(Date.now() / 1000); 
     let checkFrequency = 60; // 1 minute must pass before rechecking
-    let userPostsTime = sessionStorage.getItem(`${pubkey}-kind${kind}events-retrieveTime`);
-    let userPosts = sessionStorage.getItem(`${pubkey}-kind${kind}events`);
+    let userPostsTime = sessionStorage.getItem(`${pubkey}.kind${kind}events.retrieveTime`);
+    let userPosts = sessionStorage.getItem(`${pubkey}.kind${kind}events`);
     if (userPostsTime == undefined || userPostsTime + checkFrequency < currentTime || userPosts == undefined) {
       const timeSince = currentTime - 86400; // last day
       userPosts = await getUserEventsByKind(pubkey, kind, timeSince);
@@ -171,7 +171,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
   useEffect(async () => {
     const wasMetadataFetched = sessionStorage.getItem(userNpub);
     const timeToExpire = 3600; // 1 hour cache of profile and outbox relays
-    const myFollowListRetrieved = sessionStorage.getItem('myFollowListRetrieved');
+    const myFollowListRetrieved = sessionStorage.getItem('myFollowList.retrievedTime');
     const myFollowListExpired = (myFollowListRetrieved == undefined || ((myFollowListRetrieved + timeToExpire) < Math.floor(Date.now() / 1000)));
 
     if (wasMetadataFetched && !myFollowListExpired) {

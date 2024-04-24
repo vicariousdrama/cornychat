@@ -13,7 +13,7 @@ import {
 } from './Svg';
 import {useJam} from '../jam-core-react';
 
-export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
+export default function Navigation({room, showMyNavMenu, setShowMyNavMenu, showChat, setShowChat}) {
 
   const [state, {leaveRoom, sendReaction, retryMic, setProps}] = useJam();
   let [myAudio, micMuted, handRaised, handType, iSpeak, myIdentity] = use(state, [
@@ -339,7 +339,12 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu}) {
         )}
         {showMyNavMenu && (
           <div className="items-center">
-            <MyNavMenu close={setShowMyNavMenu} roomColor={roomColor} />
+            <MyNavMenu 
+              close={setShowMyNavMenu} 
+              roomColor={roomColor} 
+              showChat={showChat}
+              setShowChat={setShowChat}
+            />
           </div>
         )}
       </div>

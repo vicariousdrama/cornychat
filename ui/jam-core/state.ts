@@ -133,6 +133,7 @@ const defaultState = {
   },
 
   reactions: {},
+  textchats: [],
   handRaised: false,
   handType: '',
 
@@ -184,4 +185,5 @@ export const actions = {
   BACKCHANNEL_SUBSCRIBE: Action('backchannel-subscribe'),
   BACKCHANNEL_UNSUBSCRIBE: Action('backchannel-unsubscribe'),
   BACKCHANNEL_BROADCAST: Action('backchannel-broadcast'),
+  TEXT_CHAT: Action('text-chat'),
 };

@@ -1,11 +1,11 @@
 function doorbell(d, myPeerId, roomId) {
   if (!localStorage.getItem('doorbellEnabled')) return;
   // Doorbell check
-  let keyDoorbellTime = `${roomId}-doorbelltime`;
+  let keyDoorbellTime = `${roomId}.doorbellTime`;
   if (d?.peerId !== myPeerId) {
     if (d?.type != undefined && d.type == 'shared-state') {
-      let keyPeerIds = `${roomId}-peerIds`;
-      let keyPeerIdLeft = `${roomId}-${d.peerId}-left`;
+      let keyPeerIds = `${roomId}.peerIds`;
+      let keyPeerIdLeft = `${roomId}.${d.peerId}.left`;
       if (d.data?.state?.inRoom == true) {
         let playsound = false;
         // In room ids check and update
@@ -22,10 +22,10 @@ function doorbell(d, myPeerId, roomId) {
             sessionStorage.setItem(keyPeerIds, JSON.stringify(inRoomPeerIds));
           }
         }
-        // ok to play doorbell if its been less than 30 seconds since last time
+        // dont play doorbell if its been less than 30 seconds since last time
         let dbt = sessionStorage.getItem(keyDoorbellTime);
-        if ((dbt!=undefined) && ((Math.floor(dbt) + 30) < Math.floor(Date.now() / 1000))) playsound = true;
-        // unless this user left and came back within the past 60 seconds
+        if ((dbt!=undefined) && ((Math.floor(dbt) + 30) > Math.floor(Date.now() / 1000))) playsound = false;
+        // dont play doorbell if this user left and came back within the past 60 seconds
         let ult = sessionStorage.getItem(keyPeerIdLeft);
         if ((ult!=undefined) && ((Math.floor(ult) + 60) > Math.floor(Date.now() / 1000))) playsound = false;
         if (!playsound) return;

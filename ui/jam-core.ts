@@ -140,6 +140,7 @@ function createApi<T extends StateType>(
     leaveRoom: () => dispatch(actions.JOIN, null),
     leaveStage: () => dispatch(actions.LEAVE_STAGE),
     sendReaction: (reaction: string) => dispatch(actions.REACTION, reaction),
+    sendTextChat: (textchat: string) => dispatch(actions.TEXT_CHAT, textchat),
     retryMic: () => dispatch(actions.RETRY_MIC),
     retryAudio: () => dispatch(actions.RETRY_AUDIO),
     autoJoinOnce: () => dispatch(actions.AUTO_JOIN),
