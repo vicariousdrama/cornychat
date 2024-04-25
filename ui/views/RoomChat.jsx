@@ -95,8 +95,8 @@ export default function RoomChat({
     let previoususerid = '';
     let previoustext = '';
     return (
-    <div id="roomChat" className="h-full w-full bg-gray-700"
-        style={{position: 'relative', flex: 1}}
+    <div id="roomChat" className="max-h-96 h-full w-full bg-gray-700"
+        style={{position: 'relative'}}
     >
         <div
             id="chatlines" 

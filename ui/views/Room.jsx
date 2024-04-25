@@ -202,12 +202,6 @@ export default function Room({room, roomId, uxConfig}) {
       <div
         // className="overflow-y-scroll"
         // className={mqp('flex flex-col justify-between pt-2 md:pt-10 md:p-10')}
-        style={{
-          height: '100%',
-          minHeight: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-        }}
       >
 
         <div style={{height: isRecording ? '156px' : '128px'}}></div>
