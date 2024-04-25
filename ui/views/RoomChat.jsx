@@ -72,23 +72,25 @@ export default function RoomChat({
         // Convert *italic* to <i>italic</i>
         text = text.replace(/\*(.*?)\*/g, '<i>$1</i>');
         // Regular expression to match URLs
-        const urlRegex = /(\bhttps?:\/\/[^\s<>"']*[^\s<>"'?,])/gi;
+        const urlRegex = /(\bhttps?:\/\/[^\s<>"']*[^\s<>"'?,]+)/gi;
         // Replace URLs with <a> tags
         return text.replace(urlRegex, (match) => {
-            // Check if there is a query string
-            const queryIndex = match.indexOf('?');
+            // Check if there is a query string or fragment identifier
+            const queryOrFragmentIndex = match.search(/[\?#]/);
             let url = match;
             let queryString = '';
-            // If there is a query string, separate it from the base URL
-            if (queryIndex !== -1) {
-                url = match.substring(0, queryIndex);
-                queryString = match.substring(queryIndex);
+            // If there is a query string or fragment identifier, separate it from the base URL
+            if (queryOrFragmentIndex !== -1) {
+                url = match.substring(0, queryOrFragmentIndex);
+                queryString = match.substring(queryOrFragmentIndex);
             }
             // Escape HTML entities in the URL
             url = escapeHtml(url);
             queryString = escapeHtml(queryString);
-            // Return the <a> tag with the base URL, leaving the query string outside the tag
-            return `<a href="${url}" target="_blank" style="text-decoration:underline;">${url}</a>${queryString}`;
+            // Return the <a> tag with the base URL and a second <a> tag for the full URL including the query string
+            const baseUrlTag = `<a href="${url}" target="_blank" style="text-decoration:underline;">${url}</a>`;
+            const fullUrlTag = queryString ? `<a href="${url}${queryString}" target="_blank" style="font-weight:200; text-decoration:underline;">${queryString}</a>` : '';
+            return baseUrlTag + (queryString ? fullUrlTag: '');
         });
     }
     
