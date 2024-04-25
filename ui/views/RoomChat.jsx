@@ -54,6 +54,44 @@ export default function RoomChat({
         (async () => {await sendTextChat(chatText);})();    // send to swarm (including us) as text-chat
         setChatText('');                                    // clear the field
     }
+
+    function createLinksSanitized(text) {
+        // Function to escape HTML entities
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+        // Escape HTML entities in the text
+        text = escapeHtml(text);
+        // Convert **bold** to <b>bold</b>
+        text = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+        // Convert *italic* to <i>italic</i>
+        text = text.replace(/\*(.*?)\*/g, '<i>$1</i>');
+        // Regular expression to match URLs
+        const urlRegex = /(\bhttps?:\/\/[^\s<>"']*[^\s<>"'?,])/gi;
+        // Replace URLs with <a> tags
+        return text.replace(urlRegex, (match) => {
+            // Check if there is a query string
+            const queryIndex = match.indexOf('?');
+            let url = match;
+            let queryString = '';
+            // If there is a query string, separate it from the base URL
+            if (queryIndex !== -1) {
+                url = match.substring(0, queryIndex);
+                queryString = match.substring(queryIndex);
+            }
+            // Escape HTML entities in the URL
+            url = escapeHtml(url);
+            queryString = escapeHtml(queryString);
+            // Return the <a> tag with the base URL, leaving the query string outside the tag
+            return `<a href="${url}" style="text-decoration:underline;">${url}</a>${queryString}`;
+        });
+    }
+    
     let previoususerid = '';
     let previoustext = '';
     return (
@@ -74,16 +112,6 @@ export default function RoomChat({
             let username = displayName(userobj, room);
             let useravatar = avatarUrl(userobj, room);
             let thetext = textentry[1];
-            let isitalic = false;
-            let isbold = false;
-            while (thetext.substring(0,2) == "~i") {
-                isitalic = true;
-                thetext = thetext.substring(2);
-            }
-            while (thetext.substring(0,2) == "~b") {
-                isbold = true;
-                thetext = thetext.substring(2);
-            }
             if (previoususerid == userid && previoustext == thetext) {
                 return (<></>);
             }
@@ -93,10 +121,7 @@ export default function RoomChat({
                 <div className="flex w-full justify-between bg-gray-700 text-white" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
                     <img className="flex w-6 h-6 human-radius cursor-pointer" src={useravatar} />
                     <div className="flex mx-2 text-sm font-bold">{username}</div>
-                    {isbold && isitalic && (<div className="flex-grow text-sm font-bold italic">{thetext}</div>)}
-                    {isbold && !isitalic && (<div className="flex-grow text-sm font-bold">{thetext}</div>)}
-                    {!isbold && isitalic && (<div className="flex-grow text-sm italic">{thetext}</div>)}
-                    {!isbold && !isitalic && (<div className="flex-grow text-sm">{thetext}</div>)}
+                    <div className="flex-grow text-sm" dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext) }} />
                 </div>
             );
         })}
