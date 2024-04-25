@@ -99,7 +99,7 @@ export default function Room({room, roomId, uxConfig}) {
 
   // Cache identities in session if I'm a moderator
   function CacheIdentities(identities) {
-    for (let i = 0; i < identities.length; i++) {
+    for(let i = 0; i < identities.length; i ++) {
       let jamId = identities[i];
       const sessionStoreIdent = sessionStorage.getItem(jamId);
       if (sessionStoreIdent == null) {
@@ -172,7 +172,7 @@ export default function Room({room, roomId, uxConfig}) {
       <audio id="doorbellsound1" src="/mp3/call-to-attention-123107.mp3" />
       <audio id="doorbellsound2" src="/mp3/conveniencestorering-96090.mp3" />
 
-      <div style={{zIndex: '10', position: 'absolute', top: '0px'}} className="w-screen flex flex-col justify-between">
+      <div style={{zIndex: '10', position:'absolute', top: '0px'}} className="w-screen flex flex-col justify-between">
         <RoomHeader
           colors={roomColor}
           {...{
@@ -187,15 +187,17 @@ export default function Room({room, roomId, uxConfig}) {
             lud16,
             room,
           }}
-          audience={nJoinedPeers + 1}
+          audience={(nJoinedPeers+1)}
         />
 
+
         {isRecording && (
-          <div className="rounded-md mx-4 mt-2 mb-4" style={{backgroundColor: 'red', color: 'white'}}>
-            RECORDING IN PROGRESS
-          </div>
+        <div className="rounded-md mx-4 mt-2 mb-4" style={{backgroundColor: 'red', color: 'white'}}>
+          RECORDING IN PROGRESS
+        </div>
         )}
       </div>
+
 
       <div
         // className="overflow-y-scroll"
@@ -224,58 +226,58 @@ export default function Room({room, roomId, uxConfig}) {
           MOTD: None set
         </div>
 
-        {showChat ? (
-          <MiniRoomMembers
-            {...{
-              audienceBarBG,
-              audienceBarFG,
-              audiencePeers,
-              hasMicFailed,
-              identities,
-              iModerate,
-              iOwn,
-              iSpeak,
-              moderators,
-              myIdentity,
-              myInfo,
-              myPeerId,
-              myPeerState,
-              owners,
-              peerState,
-              reactions,
-              room,
-              speaking,
-              stageOnly,
-              stagePeers,
-              state,
-            }}
-          />
+        { showChat ? (
+        <MiniRoomMembers
+          {...{
+            audienceBarBG,
+            audienceBarFG,
+            audiencePeers,
+            hasMicFailed,
+            identities,
+            iModerate,
+            iOwn,
+            iSpeak,
+            moderators,
+            myIdentity,
+            myInfo,
+            myPeerId,
+            myPeerState,
+            owners,
+            peerState,
+            reactions,
+            room,
+            speaking,
+            stageOnly,
+            stagePeers,
+            state,
+          }}
+        />
         ) : (
-          <RoomMembers
-            {...{
-              audienceBarBG,
-              audienceBarFG,
-              audiencePeers,
-              hasMicFailed,
-              identities,
-              iModerate,
-              iOwn,
-              iSpeak,
-              moderators,
-              myIdentity,
-              myInfo,
-              myPeerId,
-              myPeerState,
-              owners,
-              peerState,
-              reactions,
-              room,
-              speaking,
-              stageOnly,
-              stagePeers,
-              state,
-            }}
-          />
+        <RoomMembers
+          {...{
+            audienceBarBG,
+            audienceBarFG,
+            audiencePeers,
+            hasMicFailed,
+            identities,
+            iModerate,
+            iOwn,
+            iSpeak,
+            moderators,
+            myIdentity,
+            myInfo,
+            myPeerId,
+            myPeerState,
+            owners,
+            peerState,
+            reactions,
+            room,
+            speaking,
+            stageOnly,
+            stagePeers,
+            state,
+          }}
+        />
         )}
 
         {showChat && (
