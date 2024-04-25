@@ -88,7 +88,7 @@ export default function RoomChat({
             url = escapeHtml(url);
             queryString = escapeHtml(queryString);
             // Return the <a> tag with the base URL, leaving the query string outside the tag
-            return `<a href="${url}" style="text-decoration:underline;">${url}</a>${queryString}`;
+            return `<a href="${url}" target="_blank" style="text-decoration:underline;">${url}</a>${queryString}`;
         });
     }
     
