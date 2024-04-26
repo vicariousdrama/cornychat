@@ -43,6 +43,7 @@
     "buffer": "^6.0.3",
     "color": "^4.2.3",
     "crypto-js": "^4.2.0",
+    "emoji-js": "^3.8.0",
     "emoji-picker-react": "^4.5.16",
     "fast-base64": "^0.1.8",
     "mediasoup-client": "^3.6.31",
