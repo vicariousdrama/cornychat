@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from 'react';
+import EmojiConvertor from 'emoji-js';
 import {useMqParser} from '../lib/tailwind-mqp';
 import {colors, isDark} from '../lib/theme';
 import {useJam} from '../jam-core-react';
@@ -17,6 +18,8 @@ export default function RoomChat({
     const roomColor = colors(colorTheme, room.customColor);
     const textColor = isDark(roomColor.avatarBg) ? roomColor.text.light : roomColor.text.dark;
     const iconColor = isDark(roomColor.buttons.primary) ? roomColor.icons.light : roomColor.icons.dark;
+
+    const emoji = new EmojiConvertor();
 
     const [time, setTime] = useState(Date.now());
     useEffect(() => {
@@ -55,7 +58,7 @@ export default function RoomChat({
         setChatText('');                                    // clear the field
     }
 
-    function createLinksSanitized(text) {
+    function processText(text) {
         // Function to escape HTML entities
         function escapeHtml(unsafe) {
             return unsafe
@@ -73,6 +76,12 @@ export default function RoomChat({
         text = text.replace(/\*(.*?)\*/g, '<i>$1</i>');
         // Regular expression to match URLs
         const urlRegex = /(\bhttps?:\/\/[^\s<>"']*[^\s<>"'?,]+)/gi;
+
+        // Replace colon-sequences with emojis
+        emoji.replace_mode = 'unified';
+        emoji.allow_native = true;
+        text = emoji.replace_colons(text);
+
         // Replace URLs with <a> tags
         return text.replace(urlRegex, (match) => {
             // Check if there is a query string or fragment identifier
@@ -120,7 +129,7 @@ export default function RoomChat({
                 <div className="flex w-full justify-between bg-gray-700 text-white" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
                     <img className="flex w-6 h-6 human-radius cursor-pointer" src={useravatar} />
                     <div className="flex mx-2 text-sm font-bold">{username}</div>
-                    <div className="flex-grow text-sm" dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext) }} />
+                    <div className="flex-grow text-sm" dangerouslySetInnerHTML={{ __html: processText(thetext) }} />
                 </div>
             );
         })}

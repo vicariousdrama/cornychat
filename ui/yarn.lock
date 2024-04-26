@@ -1393,6 +1393,18 @@ eme-encryption-scheme-polyfill@^2.1.1:
   resolved "https://registry.yarnpkg.com/eme-encryption-scheme-polyfill/-/eme-encryption-scheme-polyfill-2.1.1.tgz#91c823ed584e8ec5a9f03a6a676def8f80c57a4c"
   integrity sha512-njD17wcUrbqCj0ArpLu5zWXtaiupHb/2fIUQGdInf83GlI+Q6mmqaPGLdrke4savKAu15J/z1Tg/ivDgl14g0g==
 
+emoji-datasource@15.0.1:
+  version "15.0.1"
+  resolved "https://registry.yarnpkg.com/emoji-datasource/-/emoji-datasource-15.0.1.tgz#6cc7676e4d48d7559c2e068ffcacf84ec653584c"
+  integrity sha512-aF5Q6LCKXzJzpG4K0ETiItuzz0xLYxNexR9qWw45/shuuEDWZkOIbeGHA23uopOSYA/LmeZIXIFsySCx+YKg2g==
+
+emoji-js@^3.8.0:
+  version "3.8.0"
+  resolved "https://registry.yarnpkg.com/emoji-js/-/emoji-js-3.8.0.tgz#7c6f1387aedc067559d7ccd8568162b0710a3d48"
+  integrity sha512-A5FNHKlRPRo6RJWrrdGWnoolIBMkVXHy4qkO0V5ahekQPjfVECxvOOWADeAF/SbzRVA9Sxdj24FCoRYGt06skA==
+  dependencies:
+    emoji-datasource "15.0.1"
+
 emoji-picker-react@^4.5.16:
   version "4.7.12"
   resolved "https://registry.npmjs.org/emoji-picker-react/-/emoji-picker-react-4.7.12.tgz"
@@ -3677,6 +3689,13 @@ setprototypeof@1.1.1:
   version "1.1.1"
   resolved "https://registry.npmjs.org/setprototypeof/-/setprototypeof-1.1.1.tgz"
   integrity sha512-JvdAWfbXeIGaZ9cILp38HntZSFSo3mWg6xGcJJsd+d4aRMOqauag1C63dJfDw7OaMYwEbHMOxEZ1lqVRYP2OAw==
+
+shaka-player@^4.3.6:
+  version "4.7.13"
+  resolved "https://registry.yarnpkg.com/shaka-player/-/shaka-player-4.7.13.tgz#bdfb5b7a1b439d3163f11666a99fb6c2396258d0"
+  integrity sha512-PTU0lTEx1C8LdyNdZSSTea3Wf1/WT4KJzp6o07CofZqq8fzrGDiWElbir+LQIH1CTZpicO1otJQ24xjPgXz9kg==
+  dependencies:
+    eme-encryption-scheme-polyfill "^2.1.1"
 
 shaka-player@^4.7.9:
   version "4.7.9"
