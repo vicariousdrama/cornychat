@@ -84,12 +84,9 @@ export default function RoomChat({
                 url = match.substring(0, queryOrFragmentIndex);
                 queryString = match.substring(queryOrFragmentIndex);
             }
-            // Escape HTML entities in the URL
-            url = escapeHtml(url);
-            queryString = escapeHtml(queryString);
             // Return the <a> tag with the base URL and a second <a> tag for the full URL including the query string
             const baseUrlTag = `<a href="${url}" target="_blank" style="text-decoration:underline;">${url}</a>`;
-            const fullUrlTag = queryString ? `<a href="${url}${queryString}" target="_blank" style="font-weight:200; text-decoration:underline;">${queryString}</a>` : '';
+            const fullUrlTag = queryString ? `<a href="${url}${queryString}" target="_blank" style="font-weight:300; text-decoration:underline;">${queryString}</a>` : '';
             return baseUrlTag + (queryString ? fullUrlTag: '');
         });
     }
