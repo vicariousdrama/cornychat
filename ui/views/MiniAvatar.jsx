@@ -120,7 +120,7 @@ function Avatar({
   return (
     (
       <div
-        className="py-0 w-12 mr-2 mb-2 rounded-lg"
+        className="py-0 w-12 mr-1 mb-1 rounded-lg"
         style={{backgroundColor: avatarCardBG, color: avatarCardFG}}
       >
         <div className="relative flex flex-col items-center">
@@ -137,7 +137,7 @@ function Avatar({
           )}
 
           <table><tr><td width="75%" style={{borderWidth: '0px', textAlign:'center'}}>
-            <div className="w-12 h-8 human-radius mx-auto flex" style={{marginTop: '3px'}}>
+            <div className="w-12 h-8 human-radius mx-auto flex" style={{marginTop: '0px'}}>
               <div className="w-4 h-8" />
               <img
                 className="w-8 h-8 human-radius cursor-pointer"
@@ -146,6 +146,37 @@ function Avatar({
                 onClick={onClick}
               />
             </div>
+
+            {inRoom && canSpeak && micMuted /*(!!micMuted || !canSpeak)*/ && (
+            <div
+              className="absolute mt-0 rounded-full p-1"
+              style={{backgroundColor: roomColor.background, top: '0px', left: '0px'}}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="w-3 h-3"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke={iconColor}
+                  d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"
+                />
+                <line
+                  y1="4.5"
+                  x2="40"
+                  y2="25"
+                  stroke={iconColor}
+                  stroke-width="1"
+                />
+              </svg>
+            </div>
+            )}
+
             {inRoom && (
             <StickyHand 
               {...{roomColor, handType}}
@@ -177,7 +208,7 @@ function StickyHand({
           className={mqp(
             'absolute w-6 h-6 rounded-full bg-white text-xl border-1 border-gray-400 flex items-center justify-center'
           )}
-          style={{backgroundColor: roomColor.background, top: '-29px', left: '1px'}}
+          style={{backgroundColor: roomColor.background, bottom: '0px', left: '0px'}}
         >
           ✋
         </div>
@@ -189,7 +220,7 @@ function StickyHand({
           className={mqp(
             'absolute w-6 h-6 rounded-full bg-white text-xl border-1 border-gray-400 flex items-center justify-center'
           )}
-          style={{backgroundColor: `rgba(17,170,17,1)`, top: '-29px', left: '1px'}}
+          style={{backgroundColor: `rgba(17,170,17,1)`, bottom: '0px', left: '0px'}}
         >
           👍
         </div>
@@ -201,7 +232,7 @@ function StickyHand({
           className={mqp(
             'absolute w-6 h-6 rounded-full bg-white text-xl border-1 border-gray-400 flex items-center justify-center'
           )}
-          style={{backgroundColor: `rgba(170,17,17,1)`, top: '-29px', left: '1px'}}
+          style={{backgroundColor: `rgba(170,17,17,1)`, bottom: '0px', left: '0px'}}
         >
           👎
         </div>
@@ -213,7 +244,7 @@ function StickyHand({
           className={mqp(
             'absolute w-6 h-6 rounded-full bg-white border-1 border-gray-400 flex items-center justify-center'
           )}
-          style={{backgroundColor: `rgb(217,217,217)`, color: 'red', top: '-29px', left: '1px'}}
+          style={{backgroundColor: `rgb(217,217,217)`, color: 'red', bottom: '0px', left: '0px'}}
         >
           {handType.toString().toUpperCase().startsWith('E') ? (
           <img

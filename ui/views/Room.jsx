@@ -148,7 +148,7 @@ export default function Room({room, roomId, uxConfig}) {
   }
   let {textchats} = state;
   if (textchats.length == 0) {
-    (async () => {await sendTextChat("~ihas entered the chat!");})();
+    (async () => {await sendTextChat("*has entered the chat!*");})();
   }
 
   let myPeerId = myInfo.id;

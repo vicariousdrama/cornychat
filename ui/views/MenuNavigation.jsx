@@ -9,7 +9,7 @@ import {EditRoomModal} from './editRoom/EditRoom';
 import {Edit, Settings, Stop, Stream, Mic, Share} from './Svg';
 import {followAllNpubsFromIds} from '../nostr/nostr';
 
-export function MyNavMenu({close, roomColor, showChat, setShowChat}) {
+export function MyNavMenu({close, roomColor}) {
   const [
     state,
     {
@@ -189,18 +189,6 @@ export function MyNavMenu({close, roomColor, showChat, setShowChat}) {
           </p>
         </div>
       )}
-
-      <div
-        onClick={async () => {
-          setShowChat(!showChat);
-          close(false);
-        }}
-        className="p-2"
-      >
-        <p className="text-md ml-1 cursor-pointer">
-          {showChat ? 'Close Chat' : 'Open Chat'}
-        </p>
-      </div>      
 
       <div onClick={async () => {
         let inRoomPeerIds = sessionStorage.getItem(roomId + '.peerIds');
