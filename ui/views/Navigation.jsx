@@ -10,6 +10,7 @@ import {
   HandRaised,
   EmojiFace,
   Leave,
+  ChatBubbles,
 } from './Svg';
 import {useJam} from '../jam-core-react';
 
@@ -342,15 +343,13 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu, showC
             <MyNavMenu 
               close={setShowMyNavMenu} 
               roomColor={roomColor} 
-              showChat={showChat}
-              setShowChat={setShowChat}
             />
           </div>
         )}
       </div>
       <div class="flex justify-center align-center py-4 px-0">
         {/* setting */}
-        <div class="mx-2">
+        <div class="mx-1">
           <button
             class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
             style={{backgroundColor: roomColor.buttons.primary}}
@@ -364,8 +363,23 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu, showC
           </button>
         </div>
 
+        <div class="mx-1">
+          <button
+            class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
+            style={{backgroundColor: roomColor.buttons.primary}}
+            onClick={() => {
+              setShowChat(!showChat);
+              setShowReactions(false);
+              setShowStickies(false);
+              setShowMyNavMenu(false);
+            }}
+          >
+            <ChatBubbles color={iconColor} />
+          </button>
+        </div>
+
         {handRaised ? (
-          <div class="mx-2">
+          <div class="mx-1">
             <button
               class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
               style={{backgroundColor: roomColor.buttons.primary, color:iconColor}}
@@ -400,7 +414,7 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu, showC
             </button>
           </div>
         ) : (
-          <div class="mx-2">
+          <div class="mx-1">
             <button
               class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
               style={{backgroundColor: roomColor.buttons.primary}}
@@ -416,7 +430,7 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu, showC
         )}
 
         {iSpeak ? (
-          <div class="mx-2">
+          <div class="mx-1">
             <button
               onClick={
                 iSpeak ? talk : () => setProps('handRaised', !handRaised)
@@ -462,7 +476,7 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu, showC
 
         {/* emoji */}
         {areEmojisSet ? (
-          <div class="mx-2 ">
+          <div class="mx-1">
             <button
               class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
               style={{backgroundColor: roomColor.buttons.primary}}
@@ -478,7 +492,7 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu, showC
         ) : null}
 
         {/* Leave room */}
-        <div class="mx-2">
+        <div class="mx-1">
           <button
             class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center transition-all hover:opacity-80"
             onClick={async() => {

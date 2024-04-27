@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from 'react';
+import EmojiConvertor from 'emoji-js';
 import {useMqParser} from '../lib/tailwind-mqp';
 import {colors, isDark} from '../lib/theme';
 import {useJam} from '../jam-core-react';
@@ -9,14 +10,16 @@ export default function RoomChat({
 }) {
     const mqp = useMqParser();
     const [state, {sendTextChat}] = useJam();
-    let {textchats,roomId} = state;
+    let {textchats,roomId, myIdentity} = state;
     let [chatText, setChatText] = useState('');
     let [chatScrollPosition, setChatScrollPosition] = useState(sessionStorage.getItem(`${roomId}.chatScrollPosition`) ?? -999);
-
+    let myId = myIdentity.info.id;
     const colorTheme = room?.color ?? 'default';
     const roomColor = colors(colorTheme, room.customColor);
     const textColor = isDark(roomColor.avatarBg) ? roomColor.text.light : roomColor.text.dark;
     const iconColor = isDark(roomColor.buttons.primary) ? roomColor.icons.light : roomColor.icons.dark;
+
+    const emoji = new EmojiConvertor();
 
     const [time, setTime] = useState(Date.now());
     useEffect(() => {
@@ -50,7 +53,7 @@ export default function RoomChat({
 
     function sendText() {
         if (chatText.length == 0) return;                   // ignore if no text
-        chatText = chatText.substring(0,140);               // sanity length limit 140, 512
+        chatText = chatText.substring(0,280);               // sanity length limit 140, 512
         (async () => {await sendTextChat(chatText);})();    // send to swarm (including us) as text-chat
         setChatText('');                                    // clear the field
     }
@@ -73,6 +76,12 @@ export default function RoomChat({
         text = text.replace(/\*(.*?)\*/g, '<i>$1</i>');
         // Regular expression to match URLs
         const urlRegex = /(\bhttps?:\/\/[^\s<>"']*[^\s<>"'?,]+)/gi;
+
+        // Replace colon-sequences with emojis
+        emoji.replace_mode = 'unified';
+        emoji.allow_native = true;
+        text = emoji.replace_colons(text);
+
         // Replace URLs with <a> tags
         return text.replace(urlRegex, (match) => {
             // Check if there is a query string or fragment identifier
@@ -111,18 +120,31 @@ export default function RoomChat({
             let username = displayName(userobj, room);
             let useravatar = avatarUrl(userobj, room);
             let thetext = textentry[1];
+            // skip duplicates
             if (previoususerid == userid && previoustext == thetext) {
                 return (<></>);
             }
             previoususerid = userid;
             previoustext = thetext;
-            return (
-                <div className="flex w-full justify-between bg-gray-700 text-white" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
-                    <img className="flex w-6 h-6 human-radius cursor-pointer" src={useravatar} />
-                    <div className="flex mx-2 text-sm font-bold">{username}</div>
-                    <div className="flex-grow text-sm" dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext) }} />
-                </div>
-            );
+            
+            if(userid != myId) {
+                // others : left aligned
+                thetext = username + ": " + thetext;
+                return (
+                    <div className="flex w-full justify-between bg-gray-700 text-white" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
+                        <img className="flex w-6 h-6 human-radius" src={useravatar} />
+                        <div className="flex-grow text-sm break-all ml-1" dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext) }} />
+                    </div>
+                );
+            } else {
+                // me : avatar on right side
+                return (
+                    <div className="flex w-full justify-between bg-gray-700 text-white" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
+                        <div className="flex-grow text-sm text-right break-all mr-1" dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext) }} />
+                        <img className="flex w-6 h-6 human-radius" src={useravatar} />
+                    </div>
+                );                
+            }
         })}
         </div>
         <div className="flex w-full justify-between my-3 absolute mb-0"

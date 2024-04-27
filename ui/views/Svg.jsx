@@ -32,6 +32,7 @@ export {
   Last,
   GuyFawkes,
   CoinStack,
+  ChatBubbles,
 };
 
 function MicOffSvg({stroke}) {
@@ -941,6 +942,26 @@ function CoinStack() {
 <path fill-rule="evenodd" clip-rule="evenodd" d="M14.0912 10.4756V12.6575C14.0912 13.4604 11.6497 14.112 8.63662 14.112C5.62426 14.112 3.18208 13.4604 3.18208 12.6575V10.4756" fill="#FFCD00"/>
 <path d="M14.0912 10.4756V12.6575C14.0912 13.4604 11.6497 14.112 8.63662 14.112C5.62426 14.112 3.18208 13.4604 3.18208 12.6575V10.4756" stroke="black" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/>
 <path fill-rule="evenodd" clip-rule="evenodd" d="M14.0909 10.4761C14.0909 11.279 11.6495 11.9306 8.6364 11.9306C5.62404 11.9306 3.18186 11.279 3.18186 10.4761C3.18186 9.67318 5.62404 9.02155 8.6364 9.02155C11.6495 9.02155 14.0909 9.67318 14.0909 10.4761V10.4761Z" fill="#FFCD00" stroke="black" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+  );
+}
+
+function ChatBubbles({color}) {
+  return (
+<svg 
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 48 48"
+      stroke-width="1.5"
+      stroke="currentColor"
+      class="w-8 h-8"
+>
+  <path stroke={color} d="M38.3684,5.9417H6.5526A2.0526,2.0526,0,0,0,4.5,7.9943V28.5206a2.0526,2.0526,0,0,0,2.0526,2.0526h6.1579V37.951a1.0263,1.0263,0,0,0,1.7521.7257l8.1034-8.1035H38.3684a2.0526,2.0526,0,0,0,2.0527-2.0526V7.9943A2.0526,2.0526,0,0,0,38.3684,5.9417Z"/>
+  <path stroke={color} d="M12.7105,33.6522H9.6316A2.0526,2.0526,0,0,1,7.5789,31.6V30.5732"/>
+  <path stroke={color} d="M40.4211,9.0206h1.0263A2.0526,2.0526,0,0,1,43.5,11.0732V31.6a2.0526,2.0526,0,0,1-2.0526,2.0526H35.29V41.03a1.0264,1.0264,0,0,1-1.7521.7257L25.434,33.6522H19.4871"/>
+  <line stroke={color} x1="10.1447" y1="11.1907" x2="34.7763" y2="11.1907"/>
+  <line stroke={color} x1="10.1447" y1="17.9397" x2="29.3026" y2="17.9397"/>
+  <line stroke={color} x1="10.1447" y1="24.6887" x2="23.8289" y2="24.6887"/>
 </svg>
   );
 }
