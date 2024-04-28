@@ -391,3 +391,13 @@ div.emojiText {
   -o-transform: rotate(180deg);
   transform: rotate(180deg);
 }
+
+.spoiler {
+  background: url(../img/spoiler.gif) no-repeat 6px center;
+  border-radius: 0.2em;
+  color: transparent;
+}
+.spoiler:target {
+  background: transparent;
+  color: inherit;
+}

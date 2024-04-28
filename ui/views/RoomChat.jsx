@@ -1,3 +1,4 @@
+import {update} from 'minimal-state';
 import React, {useState, useEffect} from 'react';
 import EmojiConvertor from 'emoji-js';
 import {useMqParser} from '../lib/tailwind-mqp';
@@ -14,11 +15,12 @@ export default function RoomChat({
     let [chatText, setChatText] = useState('');
     let [chatScrollPosition, setChatScrollPosition] = useState(sessionStorage.getItem(`${roomId}.chatScrollPosition`) ?? -999);
     let myId = myIdentity.info.id;
+    let textchatLayout = localStorage.getItem("textchat.layout") ?? 'versus';
     const colorTheme = room?.color ?? 'default';
     const roomColor = colors(colorTheme, room.customColor);
     const textColor = isDark(roomColor.avatarBg) ? roomColor.text.light : roomColor.text.dark;
     const iconColor = isDark(roomColor.buttons.primary) ? roomColor.icons.light : roomColor.icons.dark;
-
+    let spoilercount = 0;
     const emoji = new EmojiConvertor();
 
     const [time, setTime] = useState(Date.now());
@@ -54,7 +56,24 @@ export default function RoomChat({
     function sendText() {
         if (chatText.length == 0) return;                   // ignore if no text
         chatText = chatText.substring(0,280);               // sanity length limit 140, 512
-        (async () => {await sendTextChat(chatText);})();    // send to swarm (including us) as text-chat
+        if (chatText.startsWith("/clear")) {
+            textchats = [];
+            state.textchats = textchats;
+            update(state, 'textchats');
+        } else if (chatText.startsWith("/help")) {
+            textchats.push([myId, "Supported markdown"]);
+            textchats.push([myId, "• To **bold** surround with **"]);
+            textchats.push([myId, "• To *italicize* surround with *"]);
+            textchats.push([myId, "• To hide spoilers, surround with ||"]);
+            textchats.push([myId, "• Emoji shortcodes are surrounded by :"]);
+            textchats.push([myId, "• /help shows this guidance"]);
+            textchats.push([myId, "• /clear resets your text buffer"]);
+            textchats.push([myId, "• /me emotes a statement"]);
+            state.textchats = textchats;
+            update(state, 'textchats');
+        } else {
+            (async () => {await sendTextChat(chatText);})(); // send to swarm (including us) as text-chat
+        }
         setChatText('');                                    // clear the field
     }
 
@@ -74,6 +93,16 @@ export default function RoomChat({
         text = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
         // Convert *italic* to <i>italic</i>
         text = text.replace(/\*(.*?)\*/g, '<i>$1</i>');
+        // Convert ||spoilertext|| to <a class="spoiler" id="spoilerlink" href="#spoilerlink" title="Tap to reveal">spoilertext</a>
+        let spoilermatches = text.match(/\|\|(.*?)\|\|/);
+        if (spoilermatches) {
+            for(let spoilermatch of spoilermatches) {
+                spoilercount += 1;
+                if (spoilercount % 2 == 1) {
+                    text = text.replace(/\|\|(.*?)\|\|/, '<a class="spoiler" id="spoilerlink' + spoilercount.toString() + '" href="#spoilerlink' + spoilercount.toString() + '" title="Tap to reveal">$1</a>');
+                }
+            }
+        }
         // Regular expression to match URLs
         const urlRegex = /(\bhttps?:\/\/[^\s<>"']*[^\s<>"'?,]+)/gi;
 
@@ -126,21 +155,35 @@ export default function RoomChat({
             }
             previoususerid = userid;
             previoustext = thetext;
+            let emoting = false;
             
-            if(userid != myId) {
+            if(userid != myId || textchatLayout == 'left') {
                 // others : left aligned
-                thetext = username + ": " + thetext;
+                if (thetext.startsWith("/me")) {
+                    emoting = true;
+                    thetext = "*" + username + " " + thetext.replace("/me","") + "*";
+                } else {
+                    thetext = username + ": " + thetext;
+                }
                 return (
                     <div className="flex w-full justify-between bg-gray-700 text-white" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
                         <img className="flex w-6 h-6 human-radius" src={useravatar} />
-                        <div className="flex-grow text-sm break-all ml-1" dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext) }} />
+                        <div className="flex-grow text-sm break-words ml-1" 
+                             style={{color: emoting ? 'rgb(59 130 246)' : 'rgb(255 255 255)'}}
+                             dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext) }} />
                     </div>
                 );
             } else {
                 // me : avatar on right side
+                if (thetext.startsWith("/me")) {
+                    emoting = true;
+                    thetext = "*" + username + " " + thetext.replace("/me","") + "*";
+                }
                 return (
                     <div className="flex w-full justify-between bg-gray-700 text-white" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
-                        <div className="flex-grow text-sm text-right break-all mr-1" dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext) }} />
+                        <div className="flex-grow text-sm text-right break-words mr-1" 
+                             style={{color: emoting ? 'rgb(59 130 246)' : 'rgb(255 255 255)'}}
+                             dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext) }} />
                         <img className="flex w-6 h-6 human-radius" src={useravatar} />
                     </div>
                 );                
