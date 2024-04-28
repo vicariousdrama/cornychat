@@ -48,7 +48,7 @@ export function StartRoomCardAvatar({
     userData,
 }) {
     const userName = userData?.name ?? 'Anon';
-    const userAvatar = userData?.avatar ?? '/img/avatar-corn-4.png';
+    const userAvatar = userData?.avatar ?? '/img/avatars/avatar-corn-4.png';
 
     return (
         <div className="m-2" style={{

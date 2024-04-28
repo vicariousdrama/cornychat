@@ -51,13 +51,13 @@ export function CustomEmojis({
           autoFocusSearch={false}
           searchPlaceHolder=''
           customEmojis={[
-            {id: 'E1', names: ['Pepe 1'], imgUrl:'/img/emoji-E1.png'},
-            {id: 'E2', names: ['Pepe 2'], imgUrl:'/img/emoji-E2.png'},
-            {id: 'E3', names: ['Pepe 3'], imgUrl:'/img/emoji-E3.png'},
-            {id: 'E4', names: ['Pepe 4'], imgUrl:'/img/emoji-E4.png'},
-            {id: 'E5', names: ['Pepe 5'], imgUrl:'/img/emoji-E5.png'},
-            {id: 'E6', names: ['Pepe 6'], imgUrl:'/img/emoji-E6.png'},
-            {id: 'E7', names: ['Pepe 7'], imgUrl:'/img/emoji-E7.png'},
+            {id: 'E1', names: ['Pepe 1'], imgUrl:'/img/emojis/emoji-E1.png'},
+            {id: 'E2', names: ['Pepe 2'], imgUrl:'/img/emojis/emoji-E2.png'},
+            {id: 'E3', names: ['Pepe 3'], imgUrl:'/img/emojis/emoji-E3.png'},
+            {id: 'E4', names: ['Pepe 4'], imgUrl:'/img/emojis/emoji-E4.png'},
+            {id: 'E5', names: ['Pepe 5'], imgUrl:'/img/emojis/emoji-E5.png'},
+            {id: 'E6', names: ['Pepe 6'], imgUrl:'/img/emojis/emoji-E6.png'},
+            {id: 'E7', names: ['Pepe 7'], imgUrl:'/img/emojis/emoji-E7.png'},
           ]}
         />
         <div className="mt-3">
@@ -73,7 +73,7 @@ export function CustomEmojis({
                 >
                   <p>{emoji.toString().toUpperCase().startsWith('E') ? (
                 <img
-                  src={`/img/emoji-${emoji.toString().toUpperCase()}.png`}
+                  src={`/img/emojis/emoji-${emoji.toString().toUpperCase()}.png`}
                   style={{
                     width: '24px',
                     height: 'auto',
@@ -108,7 +108,7 @@ export function CustomEmojis({
             <div className="p-2 m-2 bg-gray-200 rounded-lg">
               <p>{emoji.toString().toUpperCase().startsWith('E') ? (
                 <img
-                  src={`/img/emoji-${emoji.toString().toUpperCase()}.png`}
+                  src={`/img/emojis/emoji-${emoji.toString().toUpperCase()}.png`}
                   style={{
                     width: '24px',
                     height: 'auto',

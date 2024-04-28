@@ -59,18 +59,28 @@ export default function EnterRoom({
   let usersAvatarUrl = avatarUrl(myIdentity.info, room);
   let [returnToHomepage, setReturnToHomepage] = useState(true);
   const textColor = isDark(roomColor.buttons.primary) ? roomColor.text.light : roomColor.text.dark;
+  let [loginEnabled, setLoginEnabled] = useState(false);
+  let [imageEnabled, setImageEnabled] = useState(true);
+  let imgnum = (Math.floor(Date.now() / 1000) % 6);
 
   useEffect(() => {
+    // Setup a timeout to hide the image
+    const timeoutImageOverlay = setTimeout(() => {
+      setLoginEnabled(true);
+      setImageEnabled(false);
+    }, 5000);
+
     // Setup a timeout to check if the user is still here after 30 seconds
     const timeoutToHomepage = setTimeout(() => {
       let hasEnteredRoom = inRoom === roomId;
       if (!hasEnteredRoom && returnToHomepage) {
         window.location.href = window.location.href.replace(window.location.pathname, '/');
       }
-    }, 30000);
+    }, 35000);
 
     // This function is called when component unmounts
     return () => {
+      clearTimeout(timeoutImageOverlay);
       clearTimeout(timeoutToHomepage);
     }
   }, []);
@@ -204,6 +214,8 @@ export default function EnterRoom({
           )}
         </div>
 
+        {loginEnabled && (
+          <>
         <button
           onClick={() => {
             setReturnToHomepage(false);
@@ -222,7 +234,6 @@ export default function EnterRoom({
         >
           Join Room
         </button>
-
         {window.nostr && (
         <button
           onClick={() => {
@@ -242,7 +253,6 @@ export default function EnterRoom({
           {loadingExtension ? <LoadingIcon /> : 'Login with Nostr extension'}
         </button>
         )}
-
         {!window.nostr && (
         <div className="mt-4 text-gray-300 text-sm">
           <button
@@ -269,8 +279,6 @@ export default function EnterRoom({
           </p>
         </div>
         )}
-
-
         <div className={'hidden'}>
         <div
           className={closed || forbidden ? 'hidden' : 'my-3 w-full text-center'}
@@ -318,6 +326,15 @@ export default function EnterRoom({
           </p>
         </div>
         </div>
+        </>
+        )}
+
+        {imageEnabled && (
+          <>
+          <p className="text-gray-400 text-sm">you can enter after this 5 second ad...</p>
+          <img src={`/img/ads/${imgnum}.png`} className="w-full" />
+          </>
+        )}
 
         <button
           onClick={() => {

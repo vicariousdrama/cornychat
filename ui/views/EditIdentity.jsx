@@ -117,15 +117,15 @@ export default function EditIdentity({close}) {
 
   function AvatarChoices() {
     let avatarChoices = [
-      '/img/avatar-corn-0.png',
-      '/img/avatar-corn-1.png',
-      '/img/avatar-corn-2.png',
-      '/img/avatar-corn-3.png',
-      '/img/avatar-corn-4.png',
-      '/img/avatar-corn-5.png',
-      '/img/avatar-corn-6.png',
-      '/img/avatar-corn-7.png',
-      '/img/avatar-corn-8.png',
+      '/img/avatars/avatar-corn-0.png',
+      '/img/avatars/avatar-corn-1.png',
+      '/img/avatars/avatar-corn-2.png',
+      '/img/avatars/avatar-corn-3.png',
+      '/img/avatars/avatar-corn-4.png',
+      '/img/avatars/avatar-corn-5.png',
+      '/img/avatars/avatar-corn-6.png',
+      '/img/avatars/avatar-corn-7.png',
+      '/img/avatars/avatar-corn-8.png',
     ];
     let avatarFound = false;
     return (
@@ -483,7 +483,7 @@ export default function EditIdentity({close}) {
                   onClick={() => delStickyEmoji(1)}
             ><p>{stickyEmoji1.toString().toUpperCase().startsWith('E') ? (
             <img
-              src={`/img/emoji-${stickyEmoji1.toString().toUpperCase()}.png`}
+              src={`/img/emojis/emoji-${stickyEmoji1.toString().toUpperCase()}.png`}
               style={{
                width: '24px',
                 height: 'auto',
@@ -503,13 +503,13 @@ export default function EditIdentity({close}) {
           autoFocusSearch={false}
           searchPlaceHolder=''
           customEmojis={[
-            {id: 'E1', names: ['Pepe 1'], imgUrl:'/img/emoji-E1.png'},
-            {id: 'E2', names: ['Pepe 2'], imgUrl:'/img/emoji-E2.png'},
-            {id: 'E3', names: ['Pepe 3'], imgUrl:'/img/emoji-E3.png'},
-            {id: 'E4', names: ['Pepe 4'], imgUrl:'/img/emoji-E4.png'},
-            {id: 'E5', names: ['Pepe 5'], imgUrl:'/img/emoji-E5.png'},
-            {id: 'E6', names: ['Pepe 6'], imgUrl:'/img/emoji-E6.png'},
-            {id: 'E7', names: ['Pepe 7'], imgUrl:'/img/emoji-E7.png'},
+            {id: 'E1', names: ['Pepe 1'], imgUrl:'/img/emojis/emoji-E1.png'},
+            {id: 'E2', names: ['Pepe 2'], imgUrl:'/img/emojis/emoji-E2.png'},
+            {id: 'E3', names: ['Pepe 3'], imgUrl:'/img/emojis/emoji-E3.png'},
+            {id: 'E4', names: ['Pepe 4'], imgUrl:'/img/emojis/emoji-E4.png'},
+            {id: 'E5', names: ['Pepe 5'], imgUrl:'/img/emojis/emoji-E5.png'},
+            {id: 'E6', names: ['Pepe 6'], imgUrl:'/img/emojis/emoji-E6.png'},
+            {id: 'E7', names: ['Pepe 7'], imgUrl:'/img/emojis/emoji-E7.png'},
           ]}
         />
         )}
@@ -519,7 +519,7 @@ export default function EditIdentity({close}) {
                  onClick={() => delStickyEmoji(2)}
               ><p>{stickyEmoji2.toString().toUpperCase().startsWith('E') ? (
               <img
-                src={`/img/emoji-${stickyEmoji2.toString().toUpperCase()}.png`}
+                src={`/img/emojis/emoji-${stickyEmoji2.toString().toUpperCase()}.png`}
                 style={{
                   width: '24px',
                   height: 'auto',
@@ -539,13 +539,13 @@ export default function EditIdentity({close}) {
           autoFocusSearch={false}
           searchPlaceHolder=''
           customEmojis={[
-            {id: 'E1', names: ['Pepe 1'], imgUrl:'/img/emoji-E1.png'},
-            {id: 'E2', names: ['Pepe 2'], imgUrl:'/img/emoji-E2.png'},
-            {id: 'E3', names: ['Pepe 3'], imgUrl:'/img/emoji-E3.png'},
-            {id: 'E4', names: ['Pepe 4'], imgUrl:'/img/emoji-E4.png'},
-            {id: 'E5', names: ['Pepe 5'], imgUrl:'/img/emoji-E5.png'},
-            {id: 'E6', names: ['Pepe 6'], imgUrl:'/img/emoji-E6.png'},
-            {id: 'E7', names: ['Pepe 7'], imgUrl:'/img/emoji-E7.png'},
+            {id: 'E1', names: ['Pepe 1'], imgUrl:'/img/emojis/emoji-E1.png'},
+            {id: 'E2', names: ['Pepe 2'], imgUrl:'/img/emojis/emoji-E2.png'},
+            {id: 'E3', names: ['Pepe 3'], imgUrl:'/img/emojis/emoji-E3.png'},
+            {id: 'E4', names: ['Pepe 4'], imgUrl:'/img/emojis/emoji-E4.png'},
+            {id: 'E5', names: ['Pepe 5'], imgUrl:'/img/emojis/emoji-E5.png'},
+            {id: 'E6', names: ['Pepe 6'], imgUrl:'/img/emojis/emoji-E6.png'},
+            {id: 'E7', names: ['Pepe 7'], imgUrl:'/img/emojis/emoji-E7.png'},
           ]}
         />
         )}
