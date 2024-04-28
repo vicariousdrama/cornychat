@@ -79,7 +79,12 @@ export default function EditIdentity({close}) {
   let handleDoorbellChange = e => {
     setDoorbellEnabled(e.target.value);
   };
-
+  let [textchatLayout, setTextchatLayout] = useState(
+    localStorage.getItem('textchat.layout') ?? 'versus'
+  );
+  let handleTextchatLayoutChange = e => {
+    setTextchatLayout(e.target.value);
+  };
 
   let userType = (nostrIdentity == undefined ? 'anon' : 'nostr');
   if (userType == 'nostr') {
@@ -166,7 +171,6 @@ export default function EditIdentity({close}) {
       </>
     );
   }
-
 
   const LoadingIcon = () => {
     return (
@@ -299,6 +303,7 @@ export default function EditIdentity({close}) {
     localStorage.setItem('ghostsEnabled',ghostsEnabled);
     localStorage.setItem('onlyZapsEnabled',onlyZapsEnabled);
     localStorage.setItem('doorbellEnabled',doorbellEnabled);
+    localStorage.setItem('textchat.layout',textchatLayout);
 
     if (verifyingNpub) {
       let identities = [];
@@ -636,9 +641,27 @@ export default function EditIdentity({close}) {
           </select>
         </div>
         <div className="p-2 text-gray-200 italic">
-          When enabled, a sound will play when another user enters the room
+          When enabled, a sound will play for you when another user enters the room
         </div>
       </div>
+
+      <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
+        <div className="p-2 text-gray-200 bold">
+          Text Chat Layout
+          <select
+              name="textchatLayout"
+              defaultValue={textchatLayout}
+              onChange={handleTextchatLayoutChange}
+              className={'border mt-3 ml-2 p-2 text-black rounded'}
+            >
+            <option key="left" value="left">All left aligned</option>
+            <option key="versus" value="versus">Versus alignment</option>
+          </select>
+        </div>
+        <div className="p-2 text-gray-200 italic">
+          Choose versus for messaging style left/right alignment. Or All left for traditional chat.
+        </div>
+      </div>      
 
       {showErrorMsg ? <p className="text-red-500">{showErrorMsg}</p> : null}
       <div className="flex">
