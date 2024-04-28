@@ -80,7 +80,7 @@ export function UserList({
                     <img
                         style={{width:'auto',height:'32px'}}
                         alt={'Verified Signature by Nostr Pubkey'}
-                        src={'/img/nostr-icon-purple-256x256.png'}
+                        src={'/img/symbols/nostr-icon-purple-256x256.png'}
                     />
                     </div>
                 ) : (
@@ -88,7 +88,7 @@ export function UserList({
                     <img
                         style={{width:'auto',height:'32px'}}
                         alt={'Anonymous'}
-                        src={'/img/guyfawkes.png'}
+                        src={'/img/symbols/guyfawkes.png'}
                     />
                     </div>
                 )}

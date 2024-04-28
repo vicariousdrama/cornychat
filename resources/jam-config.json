@@ -65,15 +65,15 @@
       "userDisplay": {
         "randomNames": [],
         "randomAvatars": [
-          "/img/avatar-corn-0.png",
-          "/img/avatar-corn-1.png",
-          "/img/avatar-corn-2.png",
-          "/img/avatar-corn-3.png",
-          "/img/avatar-corn-4.png",
-          "/img/avatar-corn-5.png",
-          "/img/avatar-corn-6.png",
-          "/img/avatar-corn-7.png",
-          "/img/avatar-corn-8.png"
+          "/img/avatars/avatar-corn-0.png",
+          "/img/avatars/avatar-corn-1.png",
+          "/img/avatars/avatar-corn-2.png",
+          "/img/avatars/avatar-corn-3.png",
+          "/img/avatars/avatar-corn-4.png",
+          "/img/avatars/avatar-corn-5.png",
+          "/img/avatars/avatar-corn-6.png",
+          "/img/avatars/avatar-corn-7.png",
+          "/img/avatars/avatar-corn-8.png"
         ],
         "randomIdentities": [
           {

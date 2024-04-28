@@ -248,7 +248,7 @@ function StickyHand({
         >
           {handType.toString().toUpperCase().startsWith('E') ? (
           <img
-            src={`/img/emoji-${handType.toString().toUpperCase()}.png`}
+            src={`/img/emojis/emoji-${handType.toString().toUpperCase()}.png`}
             style={{
               width: '24px',
               height: 'auto',
@@ -307,7 +307,7 @@ function AnimatedEmoji({emoji, ...props}) {
         {...props}
       >
         <img
-          src={`/img/emoji-${emoji.toString().toUpperCase()}.png`}
+          src={`/img/emojis/emoji-${emoji.toString().toUpperCase()}.png`}
           style={{
             width: '100%',
             height: 'auto',

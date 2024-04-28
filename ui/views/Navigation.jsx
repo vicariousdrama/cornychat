@@ -70,7 +70,7 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu, showC
             >
               {r.toString().toUpperCase().startsWith('E') ? (
                 <img
-                  src={`/img/emoji-${r.toString().toUpperCase()}.png`}
+                  src={`/img/emojis/emoji-${r.toString().toUpperCase()}.png`}
                   style={{
                     width: '100%',
                     height: 'auto',
@@ -164,7 +164,7 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu, showC
           }}
         >{(localStorage.getItem('stickyEmoji1') ?? '☕').toString().toUpperCase().startsWith('E') ? (
           <img
-            src={`/img/emoji-${(localStorage.getItem('stickyEmoji1') ?? '☕').toString().toUpperCase()}.png`}
+            src={`/img/emojis/emoji-${(localStorage.getItem('stickyEmoji1') ?? '☕').toString().toUpperCase()}.png`}
             style={{
               width: '100%',
               height: 'auto',
@@ -186,7 +186,7 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu, showC
           }}
         >{(localStorage.getItem('stickyEmoji2') ?? '🌽').toString().toUpperCase().startsWith('E') ? (
             <img
-              src={`/img/emoji-${(localStorage.getItem('stickyEmoji2') ?? '🌽').toString().toUpperCase()}.png`}
+              src={`/img/emojis/emoji-${(localStorage.getItem('stickyEmoji2') ?? '🌽').toString().toUpperCase()}.png`}
               style={{
                 width: '100%',
                 height: 'auto',
@@ -397,7 +397,7 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu, showC
               <span class="text-lg" style={{textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'}}>👎</span>
             ):( handType.toString().toUpperCase().startsWith('E') ? (
               <img
-                src={`/img/emoji-${handType.toString().toUpperCase()}.png`}
+                src={`/img/emojis/emoji-${handType.toString().toUpperCase()}.png`}
                 style={{
                   width: '100%',
                   height: 'auto',

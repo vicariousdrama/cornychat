@@ -189,7 +189,7 @@ function Avatar({
               <img
                 style={{width:'24px',height:'auto',opacity:inRoom?1:.15}}
                 alt={'Verified Signature by Nostr Pubkey'}
-                src={'/img/nostr-icon-purple-256x256.png'}
+                src={'/img/symbols/nostr-icon-purple-256x256.png'}
               />
             </div>
             ) : (
@@ -197,7 +197,7 @@ function Avatar({
               <img
                 style={{width:'24px',height:'auto',opacity:inRoom?1:.15}}
                 alt={'Anonymous'}
-                src={'/img/guyfawkes.png'}
+                src={'/img/symbols/guyfawkes.png'}
               />
             </div>
             )}
@@ -327,7 +327,7 @@ function StickyHand({
         >
           {handType.toString().toUpperCase().startsWith('E') ? (
           <img
-            src={`/img/emoji-${handType.toString().toUpperCase()}.png`}
+            src={`/img/emojis/emoji-${handType.toString().toUpperCase()}.png`}
             style={{
               width: '24px',
               height: 'auto',
@@ -386,7 +386,7 @@ function AnimatedEmoji({emoji, ...props}) {
         {...props}
       >
         <img
-          src={`/img/emoji-${emoji.toString().toUpperCase()}.png`}
+          src={`/img/emojis/emoji-${emoji.toString().toUpperCase()}.png`}
           style={{
             width: '100%',
             height: 'auto',
