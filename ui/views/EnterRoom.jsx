@@ -61,7 +61,7 @@ export default function EnterRoom({
   const textColor = isDark(roomColor.buttons.primary) ? roomColor.text.light : roomColor.text.dark;
   let [loginEnabled, setLoginEnabled] = useState(false);
   let [imageEnabled, setImageEnabled] = useState(true);
-  let imgnum = (Math.floor(Date.now() / 1000) % 6);
+  let imgnum = (Math.floor(Date.now() / 1000) % 8);
 
   useEffect(() => {
     // Setup a timeout to hide the image
@@ -330,10 +330,18 @@ export default function EnterRoom({
         )}
 
         {imageEnabled && (
-          <>
-          <p className="text-gray-400 text-sm">you can enter after this 5 second ad...</p>
-          <img src={`/img/ads/${imgnum}.png`} className="w-full" />
-          </>
+          <div className="text-center my-3 text-gray-300">
+          <p className="text-gray-400 text-sm text-center">you can enter after this 5 second ad...
+          <center>
+          <img src={`/img/ads/${imgnum}.png`} className="w-72 text-center"
+            onClick={() => {
+              setLoginEnabled(true);
+              setImageEnabled(false);
+            }}
+          />
+          </center>
+          </p>
+          </div>
         )}
 
         <button

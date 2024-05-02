@@ -638,6 +638,8 @@ export default function EditIdentity({close}) {
             <option key="0" value="0">None</option>
             <option key="1" value="1">Call to Attention</option>
             <option key="2" value="2">Convenience Store</option>
+            <option key="3" value="3">Level Up</option>
+            <option key="4" value="4">Melancholy Chime</option>
           </select>
         </div>
         <div className="p-2 text-gray-200 italic">
