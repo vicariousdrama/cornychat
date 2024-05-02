@@ -23,7 +23,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
       if (roomlist[0].length > 0) {
         setRoomList(roomlist[0]);
       } else {
-        setRoomList(mainroomonly);
+        setRoomList(); //mainroomonly);
       }
       setLoadingRooms(false);
       console.log(roomlist);
@@ -48,7 +48,18 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
     roomId = mn[0] + mn[1] + roomNum;
 
     (async () => {
-      let roomPosted = {stageOnly, videoEnabled};
+      let roomPosted = {stageOnly, videoEnabled, currentSlide: 1, roomSlides : [
+        ["/img/tutorial/tutorial-01.png","Tutorial Start"],
+        ["/img/tutorial/tutorial-02.png","Room Settings"],
+        ["/img/tutorial/tutorial-03.png","Basic Room Info"],
+        ["/img/tutorial/tutorial-04.png","Designer Settings"],
+        ["/img/tutorial/tutorial-05.png","Managing Links"],
+        ["/img/tutorial/tutorial-06.png","Managing Slides"],
+        ["/img/tutorial/tutorial-07.png","Custom Emojis"],
+        ["/img/tutorial/tutorial-08.png","Owners, Moderators, and Speakers"],
+        ["/img/tutorial/tutorial-09.png","Scheduling Events"],
+        ["/img/tutorial/tutorial-10.png","Tutorial Conclusion"]
+      ]};
       let ok = await createRoom(roomId, roomPosted);
       if (ok) {
         if (urlRoomId !== roomId) navigate('/' + roomId);
@@ -103,30 +114,21 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
           <a className={'hidden'} href="me">identity</a>
         </div>
 
+        { loadingRooms ? (<h4 style={{align: 'center'}}>Loading...</h4>) : (
+        <>
+          { roomList?.length > 0 && (
         <div style={{align: 'center'}}>
-        <div style={{display:'block',color:`rgb(244,244,244)`}}>
-        <h1>Live Rooms</h1>
+          <div style={{display:'block',color:`rgb(244,244,244)`}}>
+            <h1>Live Rooms</h1>
+          </div>
+          {
+            roomList?.map((roomInfo) => {
+              return <StartRoomSimple roomInfo={roomInfo} key={roomInfo.roomId} />
+            })
+          }
         </div>
-        { loadingRooms ? (<h4>Loading...</h4>) : (
-          roomList?.length > 0 && roomList?.map((roomInfo) => {
-            return <StartRoomSimple roomInfo={roomInfo} key={roomInfo.roomId} />
-          })
         )}
-        { roomList?.length == 0 ? 'no current rooms' : '' }
-        </div>
-
-        { eventList?.length > 0 && (
-        <div style={{align: 'center'}}>
-        <div style={{display:'block',color:`rgb(244,244,244)`}}>
-        <h1>Scheduled Events</h1>
-        </div>
-        <div className="flex flex-wrap justify-center">
-        { loadingEvents ? (<h4>Loading...</h4>) : (eventList?.map((eventInfo) => {
-          return <StartScheduledEvent eventInfo={eventInfo} key={eventInfo.location} />
-          }))
-        }
-        </div>
-        </div>
+        </>
         )}
 
         <button
@@ -141,6 +143,20 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
         >
           Start a new room
         </button>
+
+        { eventList?.length > 0 && (
+        <div style={{align: 'center'}}>
+        <div style={{display:'block',color:`rgb(244,244,244)`}}>
+        <h1>Scheduled Events</h1>
+        </div>
+        <div className="flex flex-wrap justify-center">
+        { loadingEvents ? (<h4>Loading...</h4>) : (eventList?.map((eventInfo) => {
+          return <StartScheduledEvent eventInfo={eventInfo} key={eventInfo.location} />
+          }))
+        }
+        </div>
+        </div>
+        )}
 
       </div>
     </div>

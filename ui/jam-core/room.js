@@ -66,6 +66,9 @@ const emptyRoom = {
   moderators: [],
   presenters: [],
   owners: [],
+  roomSlides: [],
+  roomLinks: [],
+  currentSlide: 0,
 };
 
 function getCachedRoom(roomId) {
