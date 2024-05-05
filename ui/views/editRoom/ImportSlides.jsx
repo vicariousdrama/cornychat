@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {Modal} from '../Modal';
-import {loadList} from '../../nostr/nostr';
+import {loadList, requestDeletionById} from '../../nostr/nostr';
 
 export const ImportSlidesModal = ({
     close,
@@ -49,6 +49,18 @@ export const ImportSlidesModal = ({
     setRoomSlides(newSlides);
     close();
     return;
+  }
+
+  async function deleteSelected() {
+    let newSlideLists = [];
+    for (let slideList of slideLists) {
+      if (slideList.id != selectedListID) {
+        newSlideLists.push(slideList)
+      } else {
+        requestDeletionById(slideList.id);
+      }
+    }
+    setSlideLists(newSlideLists);
   }
 
   function SlideListChoices() {
@@ -151,9 +163,28 @@ export const ImportSlidesModal = ({
         <div className="flex flex-wrap justify-between">
           { loadingData ? (<h4>Loading...</h4>) : ( <SlideListChoices /> )}
         </div>
+        <div className="flex justify-between">
+        {(slideLists.length > 0 && selectedListID != '') && (
+          <button
+          className="py-2 px-4 rounded text-center"
+          style={{
+            backgroundColor: roomColor.buttons.primary,
+            color: textColor,
+          }}
+          onClick={async () => {
+            if (slideLists != undefined) {
+              let result = confirm('Are you sure you want to delete this slide set?');
+              if (result != true) return;
+              await deleteSelected();
+            }
+          }}
+        >
+          Delete
+        </button>
+        )}
         {(slideLists.length > 0) && (
         <button
-          className="py-2 px-4 rounded text-center w-full"
+          className="py-2 px-4 rounded text-center"
           style={{
             backgroundColor: roomColor.buttons.primary,
             color: textColor,
@@ -167,6 +198,7 @@ export const ImportSlidesModal = ({
           Add slides to room from selected slide list
         </button>
         )}
+        </div>
         </>
       </div>  
     </Modal>
