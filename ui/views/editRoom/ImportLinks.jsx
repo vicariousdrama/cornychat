@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {Modal} from '../Modal';
-import {loadList} from '../../nostr/nostr';
+import {loadList, requestDeletionById} from '../../nostr/nostr';
 
 export const ImportLinksModal = ({
     close,
@@ -51,6 +51,18 @@ export const ImportLinksModal = ({
     setRoomLinks(newLinks);
     close();
     return;
+  }
+
+  async function deleteSelected() {
+    let newLinkLists = [];
+    for (let linkList of linkLists) {
+      if (linkList.id != selectedListID) {
+        newLinkLists.push(linkList)
+      } else {
+        requestDeletionById(linkList.id);
+      }
+    }
+    setLinkLists(newLinkLists);
   }
 
   function LinkListChoices() {
@@ -147,9 +159,28 @@ export const ImportLinksModal = ({
         <div className="flex flex-wrap justify-between">
           { loadingData ? (<h4>Loading...</h4>) : ( <LinkListChoices /> )}
         </div>
+        <div className="flex justify-between">
+        {(linkLists.length > 0 && selectedListID != '') && (
+          <button
+          className="py-2 px-4 rounded text-center"
+          style={{
+            backgroundColor: roomColor.buttons.primary,
+            color: textColor,
+          }}
+          onClick={async () => {
+            if (linkLists != undefined) {
+              let result = confirm('Are you sure you want to delete this link set?');
+              if (result != true) return;
+              await deleteSelected();
+            }
+          }}
+        >
+          Delete
+        </button>
+        )}
         {(linkLists.length > 0) && (
         <button
-          className="py-2 px-4 rounded text-center w-full"
+          className="py-2 px-4 rounded text-center"
           style={{
             backgroundColor: roomColor.buttons.primary,
             color: textColor,
@@ -163,6 +194,7 @@ export const ImportLinksModal = ({
           Add links to room from selected link list
         </button>
         )}
+        </div>
         </>
       </div>  
     </Modal>

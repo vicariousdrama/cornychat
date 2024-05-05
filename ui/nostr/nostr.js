@@ -980,6 +980,36 @@ export async function loadList(kind, pubkey) {
   });
 }
 
+export async function requestDeletionById(id) {
+  if(window.DEBUG) console.log("in requestDeletionById");
+  const event = {
+    id: null,
+    pubkey: null,
+    created_at: Math.floor(Date.now() / 1000),
+    kind: 5,
+    tags: [["e",`${id}`]],
+    content: '',
+    sig: null,
+  };
+  const EventSigned = await window.nostr.signEvent(event);
+  if(window.DEBUG) console.log(EventSigned);
+  const defaultRelays = getDefaultOutboxRelays();
+  const myPubkey = await window.nostr.getPublicKey();
+  const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
+  let myOutboxRelays = [];
+  if (userRelays?.length == 0) {
+    const myNpub = nip19.npubEncode(myPubkey);
+    myOutboxRelays = await getOutboxRelays(myPubkey);
+    updateCacheOutboxRelays(myOutboxRelays, myNpub);
+  }
+  const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
+  //const pool = new RelayPool();
+  pool.publish(EventSigned, relaysToUse);
+  const sleeping = await sleep(100);
+  //pool.close();
+  return true;  
+}
+
 export function makeLocalDate(timestamp) {
   const date = new Date(timestamp * 1000);
   var dateOptions = { weekday: 'long', month: 'long', day: 'numeric' }; 
