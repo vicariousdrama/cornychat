@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {Modal, openModal} from './Modal';
 import {
   getUserMetadata,
+  getNpubFromInfo,
   followUser,
   unFollowUser,
   verifyNip05,
@@ -56,16 +57,6 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
       identity => identity.type === 'nostr'
     );
     return hasNostrIdentity;
-  }
-
-  function userIdentity(info) {
-    const hasIdentity = info?.hasOwnProperty('identities');
-    //console.log('in Profile.userIdentity',info?.name, info?.identities);
-    if (hasIdentity && (info?.identities?.length > 0)) {
-      return info.identities[0]?.id;
-    }
-
-    return undefined;
   }
 
   function iFollowUser(iFollow) {
@@ -143,9 +134,10 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
   let [myId, roomId] = use(state, ['myId', 'roomId']);
   let [myAdminStatus] = useApiQuery(`/admin/${myId}`, {fetchOnMount: true});
   let [peerAdminStatus] = useApiQuery(`/admin/${peerId}`, {fetchOnMount: true});
+  const userNpub = getNpubFromInfo(info);
 
-  let isOwner = owners?.includes(peerId) || false;
-  let isModerator = moderators?.includes(peerId) || false;
+  let isOwner = owners?.includes(peerId) || (userNpub != undefined && owners?.includes(userNpub)) || false;
+  let isModerator = moderators?.includes(peerId) || (userNpub != undefined && moderators?.includes(userNpub)) || false;
   let isSpeaker = speakers?.includes(peerId) || false;
 
   const [isValidNip05, setIsValidNip05] = useState(false);
@@ -161,8 +153,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [userPosts, setUserPosts] = useState(undefined);
 
-  const userNpub = userIdentity(info);
-  const actorNpub = userIdentity(actorIdentity.info);
+  const actorNpub = getNpubFromInfo(actorIdentity.info);
   //console.log('userNpub: ', userNpub, ', actorNpub: ', actorNpub);
   const shortNpub = userNpub ? userNpub.substring(0, 20) : null;
   const hasNostrIdentity = checkNostrIdentity(info.identities);

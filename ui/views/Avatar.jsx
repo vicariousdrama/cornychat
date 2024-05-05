@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {avatarUrl, displayName} from '../lib/avatar';
-import {isValidNostr} from '../nostr/nostr';
+import {isValidNostr, getNpubFromInfo} from '../nostr/nostr';
 import animateEmoji from '../lib/animate-emoji';
 import {useMqParser} from '../lib/tailwind-mqp';
 import {colors, isDark} from '../lib/theme';
@@ -64,16 +64,6 @@ export function AudienceAvatar({
   );
 }
 
-function userIdentity(info) {
-  const hasIdentity = info?.hasOwnProperty('identities');
-//    console.log('in Profile.userIdentity',info?.name, info?.identities);
-  if (hasIdentity && (info?.identities?.length > 0)) {
-    return info.identities[0]?.id;
-  }
-
-  return undefined;
-}
-
 function Avatar({
   room,
   moderators,
@@ -97,9 +87,10 @@ function Avatar({
   let mqp = useMqParser();
   let reactions_ = reactions[peerId];
   info = info || {id: peerId};
+  let userNpub = getNpubFromInfo(info);
 
-  let isModerator = moderators?.includes(peerId) || false;
-  let isOwner = owners?.includes(peerId) || false;
+  let isModerator = moderators?.includes(peerId) || (userNpub != undefined && moderators?.includes(userNpub)) || false;
+  let isOwner = owners?.includes(peerId) || (userNpub != undefined && owners?.includes(userNpub)) || false;
   let [peerAdminStatus] = useApiQuery(`/admin/${peerId}`, {fetchOnMount: true});
   let isAdmin = peerAdminStatus?.admin ?? false;
 
@@ -129,7 +120,6 @@ function Avatar({
   let hasNameSymbol = false;
   let userSymbol = null;
   let userSymbolTitle = null;
-  let userNpub = userIdentity(info);
   for(let nameSymbol of nameSymbols) {
     if (nameSymbol.name != undefined) {
       if (userDisplayName.trim().indexOf(nameSymbol.name) > -1) {

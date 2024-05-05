@@ -989,3 +989,17 @@ export function makeLocalDate(timestamp) {
   const humanTime = humanTimeL.split(":",2).join(":") + humanTimeL.split(" ").slice(1).join(" ");
   return humanDate + ' at ' + humanTime;
 }
+
+export function getNpubFromInfo(info) {
+  if (info == undefined) return undefined;
+  if ((typeof info) == "string") info = JSON.parse(info);
+  const hasIdentity = info?.hasOwnProperty('identities');
+  if (!hasIdentity) return undefined;
+  for (let ident of info.identities) {
+    if (ident.type == undefined) continue;
+    if (ident.type != 'nostr') continue;
+    if (ident.id == undefined) continue;
+    return ident.id;
+  }
+  return undefined;
+}

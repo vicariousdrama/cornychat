@@ -13,7 +13,7 @@ export default function RoomChat({
     const [state, {sendTextChat}] = useJam();
     let {textchats,roomId, myIdentity} = state;
     let [chatText, setChatText] = useState('');
-    let [chatScrollPosition, setChatScrollPosition] = useState(sessionStorage.getItem(`${roomId}.chatScrollPosition`) ?? -999);
+    let [chatScrollPosition, setChatScrollPosition] = useState(sessionStorage.getItem(`${roomId}.textchat.scrollpos`) ?? -999);
     let myId = myIdentity.info.id;
     let textchatLayout = localStorage.getItem("textchat.layout") ?? 'versus';
     const colorTheme = room?.color ?? 'default';
@@ -27,9 +27,10 @@ export default function RoomChat({
     useEffect(() => {
       const interval = setInterval(() => {
         setTime(Date.now());    // forces update ?
+        sessionStorage.setItem(`${roomId}.textchat.unread`, 0);
         let c = document.getElementById('chatlines');
         if (c) {
-            let p = sessionStorage.getItem(`${roomId}.chatScrollPosition`) ?? -999;
+            let p = sessionStorage.getItem(`${roomId}.textchat.scrollpos`) ?? -999;
             let n = (p>=0) ? p : c.scrollHeight;
             if (c.scrollTop != n) c.scrollTop = n;
         }
@@ -47,7 +48,7 @@ export default function RoomChat({
             let clientHeight = c.clientHeight;
             //console.log(`scrolled to scrollTop: ${scrollTop}, scrollHeight: ${scrollHeight}, clientHeight: ${clientHeight}`);
             let newpos = ((scrollTop) >= (scrollHeight - clientHeight)) ? -1 : scrollTop;
-            sessionStorage.setItem(`${roomId}.chatScrollPosition`, newpos);
+            sessionStorage.setItem(`${roomId}.textchat.scrollpos`, newpos);
             setChatScrollPosition(newpos);
             //console.log('saving position as ', newpos);
         }

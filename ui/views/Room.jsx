@@ -97,27 +97,38 @@ export default function Room({room, roomId, uxConfig}) {
     lud16,
   } = room || {};
 
-  // Cache identities in session if I'm a moderator
+  // Cache identities in session
   function CacheIdentities(identities) {
     for(let i = 0; i < identities.length; i ++) {
-      let jamId = identities[i];
-      const sessionStoreIdent = sessionStorage.getItem(jamId);
-      if (sessionStoreIdent == null) {
-        (async () => {
-          let [remoteIdent, ok] = await get(`/identities/${jamId}`);
-          if (ok) {
-            sessionStorage.setItem(jamId, JSON.stringify(remoteIdent));
-          }
-        })();
+      let id = identities[i];
+      if (id.length == 43) {
+        let jamId = id;
+        const sessionStoreIdent = sessionStorage.getItem(jamId);
+        let fetchit = false;
+        if (sessionStoreIdent == null) {
+          fetchit = true;
+        }
+        if (jamId == myInfo.id) {
+          sessionStorage.setItem(jamId, JSON.stringify(myInfo));
+          fetchit = false;
+        }
+        if (fetchit) {
+          (async () => {
+            let [remoteIdent, ok] = await get(`/identities/${jamId}`);
+            if (ok) {
+              sessionStorage.setItem(jamId, JSON.stringify(remoteIdent));
+            }
+          })();
+        }
       }
     }
   }
-  // if (iModerate) {
-  //   CacheIdentities(moderators);
-  //   CacheIdentities(speakers);
-  // }
   CacheIdentities(inRoomPeerIds);
-  CacheIdentities([myIdentity.info.id]);
+  CacheIdentities([myInfo.id]);
+  if (iModerate) {
+    CacheIdentities(moderators);
+    CacheIdentities(speakers);
+  }
 
   if (!iMayEnter) {
     return <EnterRoom roomId={roomId} name={name} forbidden={true} />;

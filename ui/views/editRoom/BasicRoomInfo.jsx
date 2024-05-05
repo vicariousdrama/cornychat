@@ -23,6 +23,8 @@ export function BasicRoomInfo({
   setIsRecordingAllowed,
   stageOnly,
   setStageOnly,
+  isLiveActivityAnnounced,
+  setIsLiveActivityAnnounced,
   lud16,
   setLud16,
 }) {
@@ -260,6 +262,47 @@ export function BasicRoomInfo({
           <p className="text-gray-300 text-sm">
             <span className="font-medium text-gray-300">Recordings Allowed</span> - An owner or moderator can start 
             a recording and a visual indicator is shown to users in the room when a recording is in progress.
+          </p>
+        )}
+      </div>
+
+      <div className="mt-2">
+        {iOwn && (
+          <>
+        <input
+          className="ml-2"
+          type="checkbox"
+          name="jam-room-isLiveActivityAnnounced"
+          id="jam-room-isLiveActivityAnnounced"
+          onChange={() => {
+            setIsLiveActivityAnnounced(!isLiveActivityAnnounced);
+          }}
+          defaultChecked={isLiveActivityAnnounced}
+        />
+        <label
+          className="pl-3 ml-0.5 text-sm font-medium text-gray-300 p-2"
+          htmlFor="jam-room-isLiveActivityAnnounced"
+        >
+          Announce as Live Activity
+          <div className="p-2 pl-9 text-gray-300 text-sm">
+            If enabled, then the room will be announced as a nostr live activity. Live activities
+            publish the nostr room participant pubkeys and roles, the room topic and description,
+            and current active slide as the image.  A link is provided to the room.  Remote streaming
+            is not supported at this time.
+          </div>
+        </label>
+        </>
+        )}
+        {!iOwn && !isLiveActivityAnnounced && (
+          <p className="text-gray-300 text-sm">
+            <span className="font-medium text-gray-300">Live Activity Announcement Disabled</span>
+          </p>
+        )}
+        {!iOwn && isLiveActivityAnnounced && (
+          <p className="text-gray-300 text-sm">
+            <span className="font-medium text-gray-300">Live Activity Announcement Enabled</span>
+              A nostr live activity will periodically publish information about the topic, description,
+              current slide (if any), and room participants.
           </p>
         )}
       </div>
