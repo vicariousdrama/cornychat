@@ -50,6 +50,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
   let [closedBy, setClosedBy] = useState(room.closedBy || '');
   let [isPrivate, setIsPrivate] = useState(room.isPrivate || false);
   let [isRecordingAllowed, setIsRecordingAllowed] = useState(room.isRecordingAllowed || false);
+  let [isLiveActivityAnnounced, setIsLiveActivityAnnounced] = useState(room.isLiveActivityAnnounced || false);
   let [stageOnly, setStageOnly] = useState(room.stageOnly || false);
   let [customEmojis, setCustomEmojis] = useState(room.customEmojis);
   let [roomSlides, setRoomSlides] = useState(room.roomSlides || []);
@@ -149,20 +150,20 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
     }
     roomSlides = decodedRoomSlides;
 
-    let removeDeleted = false;
-    if (removeDeleted) {
-      if (iOwn || iAdmin) {
-        ownersDeleting.forEach(jamId => {
-          removeOwner(roomId, jamId);
-        })
-        moderatorsDeleting.forEach(jamId => {
-          removeModerator(roomId, jamId);
-        })
-      }
-      speakersDeleting.forEach(jamId => {
-        removeSpeaker(roomId, jamId);
-      })
-    }
+    // let removeDeleted = false;
+    // if (removeDeleted) {
+    //   if (iOwn || iAdmin) {
+    //     ownersDeleting.forEach(jamId => {
+    //       removeOwner(roomId, jamId);
+    //     })
+    //     moderatorsDeleting.forEach(jamId => {
+    //       removeModerator(roomId, jamId);
+    //     })
+    //   }
+    //   speakersDeleting.forEach(jamId => {
+    //     removeSpeaker(roomId, jamId);
+    //   })
+    // }
 
     let ok = await submitUpdate({
       name,
@@ -177,7 +178,9 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
       closedBy,
       isPrivate,
       isRecordingAllowed,
+      isLiveActivityAnnounced,
       stageOnly,
+      owners,
       moderators,
       speakers,
       roomSlides,
@@ -225,6 +228,8 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
           setIsPrivate={setIsPrivate}
           isRecordingAllowed={isRecordingAllowed}
           setIsRecordingAllowed={setIsRecordingAllowed}
+          isLiveActivityAnnounced={isLiveActivityAnnounced}
+          setIsLiveActivityAnnounced={setIsLiveActivityAnnounced}
           stageOnly={stageOnly}
           setStageOnly={setStageOnly}
           lud16={lud16}
@@ -294,7 +299,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
 
       <div className="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg my-3">
         <UserList
-          allowDelete={iOwn}
+          allowModify={iOwn}
           room={room}
           roomId={roomId}
           userlist={owners}
@@ -302,12 +307,14 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
           userDeleteList={ownersDeleting}
           setUserDeletelist={setOwnersDeleting}
           label={'Owners'}
+          textColor={textColor}
+          roomColor={roomColor}
         />
       </div>
 
       <div className="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg my-3">
         <UserList
-          allowDelete={iOwn}
+          allowModify={iOwn}
           room={room}
           roomId={roomId}
           userlist={moderators}
@@ -315,12 +322,14 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
           userDeleteList={moderatorsDeleting}
           setUserDeletelist={setModeratorsDeleting}
           label={'Moderators'}
+          textColor={textColor}
+          roomColor={roomColor}
         />
       </div>
 
       <div className="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg my-3">
         <UserList
-          allowDelete={true}
+          allowModify={true}
           room={room}
           roomId={roomId}
           userlist={speakers}
@@ -328,6 +337,8 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
           userDeleteList={speakersDeleting}
           setUserDeletelist={setSpeakersDeleting}
           label={'Speakers'}
+          textColor={textColor}
+          roomColor={roomColor}
         />
       </div>
 

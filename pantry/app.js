@@ -41,11 +41,7 @@ app.use('/activity', activityRouter);
 
 app.use('/stream/hls', express.static(hlsFileLocationPath));
 
-app.use(
-  '/api/v1/',
-  controller(
-    'rooms',
-    roomAuthenticator,
+app.use('/api/v1/', controller('rooms', roomAuthenticator,
     id => id,
     () => 'room-info'
   )

@@ -11,14 +11,20 @@ function TextChat({swarm}) {
   });
 
   function showTextChat(peerId, textchat) {
-    let {textchats} = state;
+    let bufferSize = 50;
+    let {roomId, textchats} = state;
     if (!textchats) textchats = [];
     let lastline = textchats.slice(-1);
-    if ((lastline[0] != peerId) || (lastline[1] != textchat)) {
+    if ((lastline.length == 0) || (lastline[0].length != 2) || (lastline[0][0] != peerId) || (lastline[0][1] != textchat)) {
         textchats.push([peerId, textchat]);
+        state.textchats = textchats.slice(-1 * bufferSize);
+        update(state, 'textchats');
+
+        let n = Math.floor(sessionStorage.getItem(`${roomId}.textchat.unread`) ?? 0) + 1;
+        if (n > bufferSize) n = bufferSize;
+        if (n > textchats.length) n = textchats.length;
+        sessionStorage.setItem(`${roomId}.textchat.unread`, n);
     }
-    state.textchats = textchats.slice(-1 * 50);       // 50 is our buffer size
-    update(state, 'textchats');
   }
 
   return function TextChat() {

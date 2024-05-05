@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {use} from 'use-minimal-state';
 import {MyNavMenu} from './MenuNavigation';
 import {colors, isDark} from '../lib/theme';
@@ -15,22 +15,37 @@ import {
 import {useJam} from '../jam-core-react';
 
 export default function Navigation({room, showMyNavMenu, setShowMyNavMenu, showChat, setShowChat}) {
-
+  let mqp = useMqParser();
   const [state, {leaveRoom, sendReaction, retryMic, setProps}] = useJam();
-  let [myAudio, micMuted, handRaised, handType, iSpeak, myIdentity] = use(state, [
+  let [myAudio, micMuted, handRaised, handType, iSpeak, myIdentity, roomId] = use(state, [
     'myAudio',
     'micMuted',
     'handRaised',
     'handType',
     'iAmSpeaker',
     'myIdentity',
+    'roomId',
   ]);
+
+  const [time, setTime] = useState(Date.now());
+  let [showUnreadIndicator, setShowUnreadIndicator] = useState(false);
+  let [unreadCount, setUnreadCount] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTime(Date.now());    // forces update ?
+      let n = Math.floor(sessionStorage.getItem(`${roomId}.textchat.unread`));
+      setUnreadCount(n);
+      setShowUnreadIndicator(n>0);
+    }, 1000);
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);  
 
   // OnlyZaps don't like reactions or special stickies
   let onlyZapsMode = ((localStorage.getItem('onlyZapsEnabled') ?? 'false') == 'true');
   let reactionsEnabled = !onlyZapsMode;
   let stickiesEnabled = !onlyZapsMode;
-  let mqp = useMqParser();
   let talk = () => {
     if (micOn) {
       setProps('micMuted', !micMuted);
@@ -363,18 +378,33 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu, showC
           </button>
         </div>
 
-        <div class="mx-1">
+        <div class="mx-1 relative">
           <button
             class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
             style={{backgroundColor: roomColor.buttons.primary}}
             onClick={() => {
               setShowChat(!showChat);
+              if(showChat) {
+                sessionStorage.setItem(`${roomId}.textchat.unread`, 0);
+                setShowUnreadIndicator(false);
+                setUnreadCount(0);
+              }
               setShowReactions(false);
               setShowStickies(false);
               setShowMyNavMenu(false);
             }}
           >
             <ChatBubbles color={iconColor} />
+            {showUnreadIndicator && (unreadCount > 0) && (
+            <div className={'relative'}>
+              <div
+                className={mqp(
+                  'absolute rounded-full bg-white text-xs border-1 border-gray-400 px-1 flex items-center justify-center'
+                )}
+                style={{backgroundColor: `rgb(217,17,17)`, color: `rgb(255,255,255)`, top: '-28px', right: '-6px'}}
+              >{unreadCount}</div>
+            </div>
+            )}
           </button>
         </div>
 

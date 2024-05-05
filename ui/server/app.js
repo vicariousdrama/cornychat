@@ -65,7 +65,12 @@ app.use('/config.json', (_, res) => {
 
 app.use(async (req, res) => {
   let route = parsePath(req.path);
-  console.log(req.path, route);
+  //console.log(req.path, route);
+  //console.log(route, (typeof route));
+  // if (route == undefined || route == 'undefined') {
+  //   return res.sendStatus(400);
+  // }
+
   if (route === 'new') {
     return res.redirect(
       302,
@@ -233,8 +238,6 @@ async function getRoomMetaInfo(route) {
     const [roomIdCaseSensitive] = route.split('.');
     const roomId = roomIdCaseSensitive.toLowerCase();
     const roomInfo = await (await fetch(`${pantryApiPrefix}/${roomId}`)).json();
-    console.log(`${pantryApiPrefix}/${roomId}`);
-    console.log(roomInfo);
     return {
       metaInfo: {
         ...defaultMetaInfo,
@@ -251,8 +254,7 @@ async function getRoomMetaInfo(route) {
       roomId,
     };
   } catch (e) {
-    console.log(`Error getting info for ${route}`);
-    console.log(e.toString());
+    console.log(`getRoomMetaInfo Error getting info for ${route} : ${e.toString()}`);
     return {metaInfo: defaultMetaInfo};
   }
 }

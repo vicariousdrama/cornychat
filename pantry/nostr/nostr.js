@@ -1,11 +1,13 @@
 const {jamHost, serverNsec} = require('../config');
 const {get, set} = require('../services/redis');
 const {nip19, getPublicKey, finalizeEvent, generateSecretKey} = require('nostr-tools');
+const {SimplePool} = require('nostr-tools/pool');
 const {RelayPool} = require('nostr-relaypool');
 const {rawTimeZones} = require('@vvo/tzdb');
 
 const pmd = true;
-const pool = new RelayPool();
+const writepool = new RelayPool();
+
 const relaysToUse = [
     'wss://nos.lol',
     'wss://relay.damus.io',
@@ -24,12 +26,13 @@ const deleteNostrSchedule = async (roomId) => {
     const eventUUID = `${jamHost}-${roomId}`;
     const sk = nip19.decode(serverNsec).data;
     const pk = getPublicKey(sk);
-    const aTagValue = `a:${pk}:${eventUUID}`;
+    const kind = 31923;
+    const aTagValue = `${kind}:${pk}:${eventUUID}`;
     const timestamp = Math.floor(Date.now() / 1000);
     console.log(`updating event ${eventUUID} as no longer scheduled`)
     const cleanseEvent = finalizeEvent({
         created_at: timestamp,
-        kind: 31923,
+        kind: kind,
         tags: [
             ["d", eventUUID],
             ["L", "com.cornychat"],
@@ -41,9 +44,9 @@ const deleteNostrSchedule = async (roomId) => {
         ],
         content: 'This event is no longer scheduled',
     }, sk);
-    pool.publish(cleanseEvent, relaysToUse);
-
+    writepool.publish(cleanseEvent, relaysToUse);
     await sleep(100);
+
     console.log(`deleting event ${eventUUID}`)
     const deleteEvent = finalizeEvent({
         created_at: timestamp,
@@ -51,9 +54,9 @@ const deleteNostrSchedule = async (roomId) => {
         tags: [["a", aTagValue]],
         content: 'This event is no longer scheduled',
     }, sk);
-    pool.publish(deleteEvent, relaysToUse);
-
+    writepool.publish(deleteEvent, relaysToUse);
     await sleep(100);
+
     const kind1content = `The previously scheduled event for this audiospace room has been deleted.`;
     const kind1event = finalizeEvent({
         created_at: timestamp,
@@ -61,12 +64,14 @@ const deleteNostrSchedule = async (roomId) => {
         tags: [],
         content: kind1content,
     }, sk);
-    pool.publish(kind1event, relaysToUse);
+    writepool.publish(kind1event, relaysToUse);
+    await sleep(100);
 }
 
 const getScheduledEvents = async () => {
     if(pmd) console.log("in getScheduledEvents");
     return new Promise(async (res, rej) => {
+        const localpool = new RelayPool();
         try {
             // Look for any calendar time event with the tag 'audiospace' to be implementation agnostic
             // This allows other services like Nostr Nests to publish scheduled events if they want to
@@ -351,17 +356,18 @@ const getScheduledEvents = async () => {
                     }
                     matchedEvents.sort((a,b) => (a.startTime > b.startTime) ? 1 : ((b.startTime > a.startTime) ? -1 : 0));
                 }
-
+                localpool.close();
                 // return it
                 res(matchedEvents);
 
             }, waitForEvents);
 
             let options = {unsubscribeOnEose: true, allowDuplicateEvents: false, allowOlderEvents: false};
-            pool.subscribe(calendarFilter, relaysToUse, (event, onEose, url) => {calendarEvents.push(event)}, undefined, undefined, options);
-            pool.subscribe(deleteFilter, relaysToUse, (event, onEose, url) => {deleteEvents.push(event)}, undefined, undefined, options);
-            pool.subscribe(liveactivitiesFilter, relaysToUse, (event, onEose, url) => {liveActivitiesEvents.push(event)}, undefined, undefined, options);
+            localpool.subscribe(calendarFilter, relaysToUse, (event, onEose, url) => {calendarEvents.push(event)}, undefined, undefined, options);
+            localpool.subscribe(deleteFilter, relaysToUse, (event, onEose, url) => {deleteEvents.push(event)}, undefined, undefined, options);
+            localpool.subscribe(liveactivitiesFilter, relaysToUse, (event, onEose, url) => {liveActivitiesEvents.push(event)}, undefined, undefined, options);
         } catch (error) {
+            localpool.close();
             rej(undefined);
             console.log('There was an error while fetching scheduled events: ', error);
         }
@@ -427,7 +433,8 @@ const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => 
         content: content,
     }, sk);
     if(pmd) console.log('Event to be published', JSON.stringify(event));
-    pool.publish(event, relaysToUse);
+    writepool.publish(event, relaysToUse);
+    await sleep(100);
 
     if(pmd) console.log("Preparing kind 1 to publish event from room");
     let roomNsec = await getRoomNSEC(roomId);
@@ -461,8 +468,8 @@ const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => 
         content: kind1content,
     }, roomSk);
     if(pmd) console.log('Event to be published', JSON.stringify(kind1event));
-    pool.publish(kind1event, relaysToUse);
-
+    writepool.publish(kind1event, relaysToUse);
+    await sleep(100);
 }
 
 const getRoomNSEC = async(roomId) => {
@@ -495,7 +502,108 @@ const updateNostrProfile = async (roomId, name, description, logoURI, background
         content: content,
     }, roomSk);
     if(pmd) console.log('Event to be published', JSON.stringify(event));
-    pool.publish(event, relaysToUse);
+    writepool.publish(event, relaysToUse);
+    await sleep(100);
+}
+
+const deleteLiveActivity = async (roomId, dtt) => {
+    if(pmd) console.log("in deleteLiveActivity for ", roomId);
+    let roomNsec = await getRoomNSEC(roomId);
+    let roomSk = nip19.decode(roomNsec).data;
+    const kind = 30311;
+    const eventUUID = `${dtt}`;
+    const sk = nip19.decode(serverNsec).data;
+    const pk = getPublicKey(sk);
+    const aTagValue = `${kind}:${pk}:${eventUUID}`;
+    console.log(`deleting event ${eventUUID}`)
+    const deleteEvent = finalizeEvent({
+        created_at: timestamp,
+        kind: 5,
+        tags: [["a", aTagValue]],
+        content: 'This event is no longer active',
+    }, roomSk);
+    if(pmd) console.log('Event to be published', JSON.stringify(deleteEvent));
+    writepool.publish(deleteEvent, relaysToUse);
+    await sleep(250);
+}
+
+const publishLiveActivity = async (roomId, dtt, roomInfo, userInfo, status) => {
+    if(pmd) console.log("in publishLiveActivity for ", roomId);
+    let roomNsec = await getRoomNSEC(roomId);
+    let roomSk = nip19.decode(roomNsec).data;
+    let dt = new Date();
+    let et = dt.getTime();
+    if (status == 'live') et = et + (60 * 60 * 1000);       // 1 hour from now
+    const kind = 30311;
+    const eventUUID = `${dtt}`;
+    const sk = nip19.decode(serverNsec).data;
+    const pk = getPublicKey(sk);
+    const aTagValue = `${kind}:${pk}:${eventUUID}`;
+    const roomUrl = `https://${jamHost}/${roomId}`;
+    const title = roomInfo?.name ?? `Corny Chat: ${roomId}`;
+    const summary = (roomInfo?.description ?? `This is a live event on Corny Chat in room: ${roomId}`);
+    // the image is either the logouri, or the current slide. if no image, then use a default
+    let defaultImage = 'https://i.nostr.build/o7jx.png'
+    let imageURI = roomInfo?.logoURI ?? defaultImage;
+    if (roomInfo?.currentSlide > 0) {
+        let cs = roomInfo.currentSlide;
+        if (roomInfo?.slides?.length >= cs) {
+            let slideURI = roomInfo.slides[cs - 1][0];
+            if (slideURI.startsWith("https://")) imageURI = slideURI;
+        }
+    }
+    if (imageURI.length == 0) imageURI = defaultImage;
+    if (!imageURI.startsWith('https://')) imageURI = defaultImage;
+    const labelNamespace = "com.cornychat";                 // Other instances SHOULD NOT change this
+    const tags = [
+        ["d", `${eventUUID}`],
+        ["title", `${title}`],
+        ["summary", `${summary}`],
+        ["image", `${imageURI}`],                           // uses slide if active, else logo, else default image
+        ["streaming", `${roomUrl}`],
+        ["starts", `${Math.floor(dtt / 1000)}`],            // starts and ends needs to be in seconds, not milliseconds
+        ["ends", `${Math.floor(et / 1000)}`],
+        ["status", `${status}`],
+        ["current_participants", `${userInfo.length}`],     // TODO: set "total_participants", need to track it in liveeventUpdater
+        ["t", "talk"],
+        ["t", "talk show"],
+        ["L", labelNamespace],                              // Need to document all these tags for sanity
+        ["l", jamHost, labelNamespace],
+        ["l", "audiospace", labelNamespace],
+        ["r", roomUrl],
+    ]
+    // This doesnt add tags for anonymous users since they don't have npubs
+    const includedPubkeys = [];
+    for (let user of userInfo) {
+        if (user.identities == undefined) continue;
+        for (let ident of user.identities) {
+            if (ident.type == undefined) continue;
+            if (ident.type != 'nostr') continue;
+            if (ident.id == undefined) continue;
+            let userNpub = ident.id || '';
+            let userPubkey = nip19.decode(userNpub).data;
+            if (!includedPubkeys.includes(userPubkey)) {
+                includedPubkeys.push(userPubkey);
+                let roleName = "Participant";
+                if (roomInfo.speakers.includes(user.id)) roleName = "Speaker";
+                if (roomInfo.speakers.includes(userNpub)) roleName = "Speaker";
+                if (roomInfo.moderators.includes(user.id)) roleName = "Moderator";
+                if (roomInfo.moderators.includes(userNpub)) roleName = "Moderator";
+                if (roomInfo.owners.includes(user.id)) roleName = "Room Owner";
+                if (roomInfo.owners.includes(userNpub)) roleName = "Room Owner";
+                tags.push(["p", userPubkey, "", roleName]);
+            }
+        }
+    }
+    const event = finalizeEvent({
+        created_at: Math.floor(Date.now() / 1000),
+        kind: kind,
+        tags: tags,
+        content: "",
+    }, roomSk);
+    if(pmd) console.log('Event to be published', JSON.stringify(event));
+    writepool.publish(event, relaysToUse);
+    await sleep(250);
 }
 
 module.exports = {
@@ -504,4 +612,6 @@ module.exports = {
     getScheduledEvents,
     publishNostrSchedule,
     updateNostrProfile,
+    deleteLiveActivity,
+    publishLiveActivity,
 };

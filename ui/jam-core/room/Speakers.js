@@ -6,6 +6,7 @@ import {useDidChange} from '../../lib/state-utils';
 import {getCache} from '../../lib/GetRequest';
 import {actions} from '../state';
 import {put, apiUrl} from '../backend';
+import {isValidNostr, getNpubFromInfo} from '../../nostr/nostr';
 
 export {addSpeaker, removeSpeaker};
 
@@ -27,11 +28,12 @@ export default function Speakers() {
 
     let {speakers, stageOnly} = room;
     let myId = myIdentity.publicKey;
+    let userNpub = getNpubFromInfo(myIdentity.info);
 
     // did I leave stage? (from localStorage / gets overridden when we are put back on stage while in the room)
     let [isLeaveStage] = useAction(actions.LEAVE_STAGE);
     let justGotRoom = useDidChange(hasRoom) && hasRoom;
-    let iAmServerSpeaker = !!stageOnly || speakers.includes(myId);
+    let iAmServerSpeaker = !!stageOnly || speakers.includes(myId) || (userNpub != undefined && speakers.includes(userNpub));
     let iBecameSpeaker =
       useDidChange(iAmServerSpeaker) && iAmServerSpeaker && !justGotRoom;
     if (iBecameSpeaker) {
@@ -54,8 +56,8 @@ export default function Speakers() {
       if (state.leftStage) {
         leftStagePeers.add(peerId);
         // if I'm moderator or owner and someone else left stage, I remove him from speakers
-        let iAmModerator = room.moderators.includes(myId);
-        let iAmOwner = room.owners.includes(myId);
+        let iAmModerator = room.moderators.includes(myId) || (userNpub != undefined && room.moderators?.includes(userNpub));
+        let iAmOwner = room.owners.includes(myId) || (userNpub != undefined && room.owners?.includes(userNpub));
         if ((iAmOwner || iAmModerator) && room.speakers.includes(peerId)) {
           removeSpeaker({myIdentity}, roomId, peerId);
         }
@@ -77,16 +79,54 @@ async function addSpeaker(state, roomId, peerId) {
   let room = getCachedRoom(roomId);
   if (room === null) return false;
   let {speakers = []} = room;
-  if (speakers.includes(peerId)) return true;
-  let newRoom = {...room, speakers: [...speakers, peerId]};
-  return await put(state, `/rooms/${roomId}`, newRoom);
+  // if peerid was provided as jamid, look to see if it has an npub and prefer adding that
+  let a = false;
+  if(peerId.length == 43) {
+    let userNpub = getNpubFromInfo(sessionStorage.getItem(peerId));
+    if (userNpub != undefined && !speakers.includes(userNpub)) {
+      speakers = [...speakers, userNpub];
+      a = true;
+    }
+  }
+  if (!a) {
+    if (!speakers.includes(peerId)) {
+      speakers = [...speakers, peerId];
+      a = true;
+    }
+  }
+  // if we added, then push update
+  if (a) {
+    let newRoom = {...room, speakers};
+    return await put(state, `/rooms/${roomId}`, newRoom);
+  } else {
+    // already added
+    return true;
+  }
 }
 
 async function removeSpeaker(state, roomId, peerId) {
   let room = getCachedRoom(roomId);
   if (room === null) return false;
   let {speakers = []} = room;
-  if (!speakers.includes(peerId)) return true;
-  let newRoom = {...room, speakers: speakers.filter(id => id !== peerId)};
-  return await put(state, `/rooms/${roomId}`, newRoom);
+  let r = false;
+  if (speakers.includes(peerId)) {
+    speakers = speakers.filter(id => id !== peerId);
+    r = true;
+  }
+  // peerid can be jamid or npub, but if jamid and user has npub, remove both
+  if(peerId.length == 43) {
+    let userNpub = getNpubFromInfo(sessionStorage.getItem(peerId));
+    if (userNpub != undefined) {
+      speakers = speakers.filter(id => id !== userNpub);
+      r = true;
+    }
+  }
+  // if we removed, then push update
+  if (r) {
+    let newRoom = {...room, speakers};
+    return await put(state, `/rooms/${roomId}`, newRoom);
+  } else {
+    // was already removed
+    return true;
+  }
 }
