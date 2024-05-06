@@ -11,6 +11,8 @@ import {
   makeLocalDate,
   loadFollowList,
   updateCacheOutboxRelays,
+  getRelationshipPetname,
+  updatePetname,
 } from '../nostr/nostr';
 import {nip19} from 'nostr-tools';
 import {avatarUrl, displayName} from '../lib/avatar';
@@ -19,6 +21,8 @@ import {useJam, useApiQuery} from '../jam-core-react';
 import {use} from 'use-minimal-state';
 import {InvoiceModal} from './Invoice';
 import EditIdentity from './EditIdentity';
+import {useMqParser} from '../lib/tailwind-mqp';
+import {colors, isDark} from '../lib/theme';
 
 export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, close}) {
   async function setUserMetadata() {
@@ -106,6 +110,22 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
     setShowUnfollowBtn(false);
   }
 
+  async function savePetname(e) {
+    e.preventDefault();
+    if(userNpub != undefined) {
+      localStorage.setItem(`${userNpub}.petname`, petname);
+      userDisplayName = petname;
+      updatePetname(userNpub, petname);
+    }
+    setEditingPetname(false);
+  }
+
+  async function cancelPetname(e) {
+    e.preventDefault();
+    setPetname(userDisplayName);
+    setEditingPetname(false);
+  }
+
   function copiedToClipboardFn() {
     navigator.clipboard.writeText(userNpub);
     setCopiedToClipboard(true);
@@ -128,6 +148,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
     signEvent,
   } = api;
 
+  let mqp = useMqParser();
   let stageOnly = !!room?.stageOnly;
   let {speakers, moderators, owners} = room ?? {};
 
@@ -152,12 +173,17 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [userPosts, setUserPosts] = useState(undefined);
+  const [editingPetname, setEditingPetname] = useState(false);
 
   const actorNpub = getNpubFromInfo(actorIdentity.info);
   //console.log('userNpub: ', userNpub, ', actorNpub: ', actorNpub);
   const shortNpub = userNpub ? userNpub.substring(0, 20) : null;
   const hasNostrIdentity = checkNostrIdentity(info.identities);
   const isSameId = info.id === actorIdentity.info.id;
+
+  const colorTheme = room?.color ?? 'default';
+  const roomColor = colors(colorTheme, room.customColor);
+  const textColor = isDark(roomColor.buttons.primary) ? roomColor.text.light : roomColor.text.dark;
 
   useEffect(async () => {
     const wasMetadataFetched = sessionStorage.getItem(userNpub);
@@ -265,6 +291,12 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
     setUserPosts(recentUserPosts);
   }, []);
 
+  let userDisplayName = displayName(info, room);
+  if (userNpub != undefined) {
+    userDisplayName = getRelationshipPetname(userNpub, userDisplayName);
+  }
+  const [petname, setPetname] = useState(userDisplayName);
+
   return (
     <Modal close={close}>
       <div>
@@ -283,14 +315,58 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
         <div className="mt-20 items-center flex flex-col relative z-20">
           <img
             className="w-32 h-32 human-radius bg-gray-200"
-            alt={displayName(info, room)}
+            alt={userDisplayName}
             src={avatarUrl(info, room)}
           />
           <div className="w-96 flex flex-col items-center">
             <div className="flex flex-wrap items-center">
-              <p className="text-xl mr-1 font-semibold text-gray-200">
-                {displayName(info, room)}
+            {editingPetname && (
+              <div className="flex">
+                <input
+                  className={mqp(
+                    'rounded placeholder-black bg-gray-400 text-black w-full mx-1 md:w-full'
+                  )}
+                  type="text"
+                  placeholder=""
+                  value={petname}
+                  autoComplete="off"
+                  style={{
+                    borderWidth: '0px',
+                    fontSize: '15px',
+                  }}
+                  onChange={e => {
+                    setPetname(e.target.value);
+                  }}
+                ></input>
+                <button
+                  className="px-2 mx-1 h-10 text-sm rounded-md"
+                  style={{
+                    color: textColor,
+                    backgroundColor: roomColor.buttons.primary,
+                  }}
+                  onClick={(e) => savePetname(e)}
+                >
+                  Save Petname
+                </button>
+                <button
+                  className="px-2 mx-1 h-10 text-sm rounded-md"
+                  style={{
+                    color: textColor,
+                    backgroundColor: roomColor.buttons.primary,
+                  }}
+                  onClick={(e) => cancelPetname(e)}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+            {!editingPetname && (
+              <p className="text-xl mr-1 font-semibold text-gray-200 cursor-pointer"
+                onClick={() => setEditingPetname(true)}
+              >
+                {userDisplayName}
               </p>
+            )}
             </div>
             <div className="w-full">
               {nip05 && (

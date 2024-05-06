@@ -560,6 +560,7 @@ const publishLiveActivity = async (roomId, dtt, roomInfo, userInfo, status) => {
         ["title", `${title}`],
         ["summary", `${summary}`],
         ["image", `${imageURI}`],                           // uses slide if active, else logo, else default image
+        ["service", roomUrl],
         ["streaming", `${roomUrl}`],
         ["starts", `${Math.floor(dtt / 1000)}`],            // starts and ends needs to be in seconds, not milliseconds
         ["ends", `${Math.floor(et / 1000)}`],

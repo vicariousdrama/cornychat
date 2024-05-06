@@ -116,17 +116,8 @@ export default function EditIdentity({close}) {
   }
 
   function AvatarChoices() {
-    let avatarChoices = [
-      '/img/avatars/avatar-corn-0.png',
-      '/img/avatars/avatar-corn-1.png',
-      '/img/avatars/avatar-corn-2.png',
-      '/img/avatars/avatar-corn-3.png',
-      '/img/avatars/avatar-corn-4.png',
-      '/img/avatars/avatar-corn-5.png',
-      '/img/avatars/avatar-corn-6.png',
-      '/img/avatars/avatar-corn-7.png',
-      '/img/avatars/avatar-corn-8.png',
-    ];
+    let avatarChoices = [];
+    for (var i in Array.from(Array(9))) avatarChoices.push(`/img/avatars/avatar-corn-${i}.png`);
     let avatarFound = false;
     return (
       <>
@@ -336,6 +327,16 @@ export default function EditIdentity({close}) {
     e.preventDefault();
     close();
   };
+
+  let previewDoorbell = e => {
+    e.preventDefault();
+    let dbe = doorbellEnabled;
+    if (dbe == undefined || dbe == '0') return;
+    let dbs = document.getElementById("doorbellsound" + String(dbe));
+    if(dbs == undefined) return;
+    dbs.volume = .5;
+    dbs.play();
+  }
 
   return (
     <Modal close={close}>
@@ -641,6 +642,18 @@ export default function EditIdentity({close}) {
             <option key="3" value="3">Level Up</option>
             <option key="4" value="4">Melancholy Chime</option>
           </select>
+          <button
+            onClick={previewDoorbell}
+            className="flex-grow mt-5 h-10 mx-2 px-2 text-lg rounded-lg"
+            style={{
+              color: isDark(roomColor.buttons.primary)
+                ? roomColor.text.light
+                : roomColor.text.dark,
+              backgroundColor: roomColor.buttons.primary,
+            }}
+          >
+            Preview
+          </button>          
         </div>
         <div className="p-2 text-gray-200 italic">
           When enabled, a sound will play for you when another user enters the room
