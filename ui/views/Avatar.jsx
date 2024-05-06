@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {avatarUrl, displayName} from '../lib/avatar';
-import {isValidNostr, getNpubFromInfo} from '../nostr/nostr';
+import {isValidNostr, getNpubFromInfo, getRelationshipPetname} from '../nostr/nostr';
 import animateEmoji from '../lib/animate-emoji';
 import {useMqParser} from '../lib/tailwind-mqp';
 import {colors, isDark} from '../lib/theme';
@@ -104,6 +104,9 @@ function Avatar({
   let userDisplayName = info?.name ?? '';
   if (userDisplayName.length == 0) {
     userDisplayName = displayName(info, room);
+  }
+  if (userNpub != undefined) {
+    userDisplayName = getRelationshipPetname(userNpub, userDisplayName);
   }
   const nameSymbols = [
     {"name":"Marie","symbol":"🌹","title":"Valentine"},

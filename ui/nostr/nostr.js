@@ -131,7 +131,7 @@ export async function signInExtension(
     if (!metadata) {
       await updateInfo({identities});
     } else {
-      let name = metadata.name;
+      let name = metadata.display_name || metadata.name;
       let avatar = metadata.picture;
       await updateInfo({
         name,
@@ -264,8 +264,10 @@ export async function getUserMetadata(pubkey, id) {
         (event, afterEose, url) => {
           clearTimeout(timeoutRelays);
           userMetadata.push(JSON.parse(event.content));
+          let username = userMetadata[0]?.display_name || '';
+          if (username.length == 0) username = userMetadata[0]?.name || '';
           const userInfo = {
-            name: userMetadata[0]?.name, // (userMetadata[0].display_name === '' ? (userMetadata[0].name === '' ? null : userMetadata[0].name) : userMetadata[0].display_name),
+            name: username,
             id: id,
             picture: userMetadata[0]?.picture,
             npub: npub,
@@ -1032,4 +1034,254 @@ export function getNpubFromInfo(info) {
     return ident.id;
   }
   return undefined;
+}
+
+export async function loadPetnames() {
+  if(window.DEBUG) console.log('in loadPetnames');
+  return new Promise(async(res, rej) => {
+    //const pool = new RelayPool();
+    try {
+      let events = [];
+      if(Window.DEBUG) console.log('loadPetnames: getDefaultOutboxRelays');
+      const defaultRelays = getDefaultOutboxRelays();
+      if(Window.DEBUG) console.log('loadPetnames: getPublicKey');
+      const myPubkey = await window.nostr.getPublicKey();
+      if(Window.DEBUG) console.log('loadPetnames: outbox relays');
+      const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
+      let myOutboxRelays = [];
+      if (userRelays?.length == 0) {
+        const myNpub = nip19.npubEncode(myPubkey);
+        myOutboxRelays = await getOutboxRelays(myPubkey);
+        updateCacheOutboxRelays(myOutboxRelays, myNpub);
+      }
+      const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
+      const timestamp = Math.floor(Date.now() / 1000);
+      const filter = {kinds:[30382],authors: [myPubkey]}
+      const filters = [filter];
+      if(Window.DEBUG) console.log('loadPetnames: before setTimeout');
+      setTimeout(() => {
+        for (let event of events) {
+          let targetPubkey = '';
+          let targetPetname = '';
+          if(Window.DEBUG) console.log('loadPetnames: checking tags');
+          for (let tag of event.tags) {
+            if (tag.length > 1) {
+              let k = tag[0];
+              let v = tag[1];
+              if (k == 'expiration') {
+                try {
+                  let expirationTime = parseInt(v);
+                  if (expirationTime < timestamp) {
+                    continue;
+                  }
+                } catch(error) { continue; }
+              }
+              if (k == 'd') targetPubkey = v;
+              if (k == 'petname') targetPetname = v;
+            }
+          }
+          let enc = event.content;
+          console.log('loadPetnames checking encrypted content');
+          if (enc != undefined && enc.length > 0 && window.nostr.nip44) {
+            let dec = ''; // await window.nostr.nip44.decrypt(myPubkey, enc);
+            (async () => {let response = await window.nostr.nip44.decrypt(myPubkey, enc); dec = response})();
+            if (dec != undefined && dec.length > 0) {
+              let dectags = JSON.parse(dec);
+              for (let tag of dectags) {
+                if (tag.length > 1) {
+                  let k = tag[0];
+                  let v = tag[1];
+                  if (k == 'petname') targetPetname = v;
+                }
+              }
+            }
+          }
+          if (targetPubkey == '') continue;
+          if (targetPetname == '') continue;
+          let targetNpub = nip19.npubEncode(targetPubkey);
+          localStorage.setItem(`${targetNpub}.petname`, targetPetname);
+        }
+        //pool.close();
+        res(true);
+      }, 3000);
+      pool.subscribe(
+        filters,
+        relaysToUse,
+        (event, onEose, url) => { events.push(event); },
+        undefined,
+        undefined,
+        { unsubscribeOnEose: true, allowDuplicateEvents: false, allowOlderEvents: false }
+      );
+    } catch (error) {
+      console.log('There was an error when loading petnames: ', error);
+      //pool.close();
+      rej(undefined);
+    }
+  });
+}
+
+export function getRelationshipPetname(userNpub, userDisplayName) {
+  if (userNpub == undefined) return userDisplayName;
+  let petnametime = localStorage.getItem(`petnames.timechecked`);
+  let fetchit = (petnametime == undefined || petnametime < (Date.now() - (24*60*60*1000)));
+  if (fetchit) {
+    localStorage.setItem('petnames.timechecked', Date.now());
+    let petnames = undefined;
+    (async () => {let response = await loadPetnames(); petnames = response})();
+  }
+  let petname = localStorage.getItem(`${userNpub}.petname`);
+  if (petname != undefined) {
+    return petname
+  }
+  return userDisplayName;
+}
+
+export async function getRelationshipForNpub(userNpub) {
+  if(window.DEBUG) console.log('in getPetnameForNpub');
+  return new Promise(async(res, rej) => {
+    //const pool = new RelayPool();
+    try {
+      let events = [];
+      const defaultRelays = getDefaultOutboxRelays();
+      const myPubkey = await window.nostr.getPublicKey();
+      const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
+      let myOutboxRelays = [];
+      if (userRelays?.length == 0) {
+        const myNpub = nip19.npubEncode(myPubkey);
+        myOutboxRelays = await getOutboxRelays(myPubkey);
+        updateCacheOutboxRelays(myOutboxRelays, myNpub);
+      }
+      const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
+      const timestamp = Math.floor(Date.now() / 1000);
+      let userPubkey = nip19.decode(userNpub).data;
+      const filter = {kinds:[30382],authors: [myPubkey]}
+      const filters = [filter];
+      if(Window.DEBUG) console.log('loadPetnames: before setTimeout');
+      setTimeout(() => {
+        let validEvents = [];
+        for (let event of events) {
+          let targetPubkey = undefined;
+          for (let tag of event.tags) {
+            if (tag.length > 1) {
+              let k = tag[0];
+              let v = tag[1];
+              if (k == 'expiration') {
+                try {
+                  let expirationTime = parseInt(v);
+                  if (expirationTime < timestamp) {
+                    continue;
+                  }
+                } catch(error) { continue; }
+              }
+              if (k == 'd') {
+                if (v == userPubkey) targetPubkey = v;
+                break;
+              }
+            }
+          }
+          if (targetPubkey == undefined) continue;
+          res(event);
+        }
+        //pool.close();
+        res(false);
+      }, 3000);
+      pool.subscribe(
+        filters,
+        relaysToUse,
+        (event, onEose, url) => { events.push(event); },
+        undefined,
+        undefined,
+        { unsubscribeOnEose: true, allowDuplicateEvents: false, allowOlderEvents: false }
+      );
+    } catch (error) {
+      console.log('There was an error when loading petnames: ', error);
+      //pool.close();
+      rej(undefined);
+    }
+  });  
+}
+
+export async function updatePetname(userNpub, petname) {
+  if (!window.nostr) return;
+  let useEncryption = true;
+  // Need identifier
+  let userPubkey = nip19.decode(userNpub).data;
+  // Fetch latest record
+  let existingRelationship = await getRelationshipForNpub(userNpub);
+  let isNew = (existingRelationship == undefined || !existingRelationship);
+  let newRelationship = {id:null,pubkey:null,sig:null,kind:30382,content:"",tags:[["d",userPubkey]],created_at:Math.floor(Date.now() / 1000)}
+  if (!isNew) {
+    newRelationship.content = existingRelationship.content;
+    newRelationship.tags = existingRelationship.tags;
+  }
+  let petnameFound = false;
+  let isCleartext = false;
+  let isEncrypted = false;
+  // Look for petname in clear tags
+  for (let tag of newRelationship.tags) {
+    if (tag.length < 2) continue;
+    let k = tag[0];
+    if (k == 'petname') {
+      isCleartext = true;
+      petnameFound = true;
+      tag[1] = petname;
+      break;
+    }
+  }
+  if (useEncryption && window.nostr.nip44) {
+    // Look for petname in encrypted content
+    const myPubkey = await window.nostr.getPublicKey();
+    let enc = newRelationship.content;
+    let dectags = [];
+    if (enc != undefined && enc.length > 0 && window.nostr.nip44) {
+      let dec = await window.nostr.nip44.decrypt(myPubkey, enc);
+      if (dec != undefined && dec.length > 0) {
+        dectags = JSON.parse(dec);
+        for (let tag of dectags) {
+          if (tag.length < 2) continue;
+          let k = tag[0];
+          if (k == 'petname') {
+            isEncrypted = true;
+            petnameFound = true;
+            tag[1] = petname;
+            break;
+          }
+        }
+      }
+    }
+    // If no petname found, add to dec tags
+    if (!petnameFound) {
+      isEncrypted = true;
+      dectags.push(["petname",petname]);
+    }
+    // Re-Encrypt the content
+    let dec = JSON.stringify(dectags);
+    enc = await window.nostr.nip44.encrypt(myPubkey, dec);
+    newRelationship.content = enc;
+  } else {
+    // If no petname found, add to tags
+    if (!petnameFound) {
+      isCleartext = true;
+      newRelationship.tags.push(["petname",petname]);
+    }
+  }
+
+  // Sign and send newRelationship
+  if(window.DEBUG) console.log(newRelationship);
+  const EventSigned = await window.nostr.signEvent(newRelationship);
+  await sleep(100);
+  if(window.DEBUG) console.log(EventSigned);
+  const defaultRelays = getDefaultOutboxRelays();
+  const myPubkey = await window.nostr.getPublicKey();
+  const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
+  let myOutboxRelays = [];
+  if (userRelays?.length == 0) {
+    const myNpub = nip19.npubEncode(myPubkey);
+    myOutboxRelays = await getOutboxRelays(myPubkey);
+    updateCacheOutboxRelays(myOutboxRelays, myNpub);
+  }
+  const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
+  //const pool = new RelayPool();
+  pool.publish(EventSigned, relaysToUse);
+  const sleeping = await sleep(100);
 }

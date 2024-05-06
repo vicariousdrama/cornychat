@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {Trash} from '../Svg';
 import {get} from '../../jam-core/backend';
-import {isValidNostr} from '../../nostr/nostr';
+import {isValidNostr, getNpubFromInfo, getRelationshipPetname} from '../../nostr/nostr';
 import {avatarUrl, displayName} from '../../lib/avatar';
 import {useMqParser} from '../../lib/tailwind-mqp';
 
@@ -136,6 +136,10 @@ export function UserList({
             if (userDisplayName.length == 0) {
                 userDisplayName = displayName(info, room);
             }
+            let userNpub = getNpubFromInfo(info);
+            if (userNpub != undefined) {
+              userDisplayName = getRelationshipPetname(userNpub, userDisplayName);
+            }          
             let userAvatar = avatarUrl(info, room);
             let isNostrSigned = isValidNostr(info);
             return (
@@ -175,6 +179,7 @@ export function UserList({
           }
         } else {
           if (user.startsWith("npub1")) {
+            let petname = localStorage.getItem(`${user}.petname`);
             return (
               <div className="flex w-full justify-between my-3">
               <div className="flex-none text-xs">
@@ -186,7 +191,7 @@ export function UserList({
                   />
                 </div>
               </div>
-              <div className="flex-grow text-xs text-black">{user}</div>
+              <div className="flex-grow text-xs text-black break-words w-24 max-w-24">{petname || user}</div>
               {allowModify && (
               <div className="flex-none cursor-pointer hover:bg-red-500" onClick={() => removeUser(index, user)} >
                   <Trash />

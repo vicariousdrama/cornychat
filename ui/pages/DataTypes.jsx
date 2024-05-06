@@ -24,6 +24,7 @@ export default function DataTypes() {
       <li><a href="#kind9734zaprequest">Kind 9734 - Zap Request</a></li>
       <li><a href="#kind10002relaylist">Kind 10002 - Relay List Metadata</a></li>
       <li><a href="#kind30311liveactivities">Kind 30311 - Live Activities</a></li>
+      <li><a href="#kind30382relationships">Kind 30382 - Relationships</a></li>
       <li><a href="#kind30388slideset">Kind 30388 - Slide Set</a></li>
       <li><a href="#kind31388linkset">Kind 31388 - Link Set</a></li>
       <li><a href="#kind31923scheduledevent">Kind 31923 - Scheduled Event</a></li>
@@ -154,6 +155,10 @@ export default function DataTypes() {
       </p>
 
       <a name="kind30311liveactivities"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 30311 - Live Activities</h2>
+      <p>Room Owners can denote a room setting to announce the room as a live activity. At this time, this only publishes
+        the key state of the room including the current slideshow image or room logo url, the room's title, description,
+        and room participants. A combined audio feed may be made available for streaming externally at a later date.
+      </p>
       <p>
         Corny Chat promotes integrations with other like kind applications.  Corny Chat is a live audio space, and
         lists active rooms on its landing page.  In an effort to promote greater discovery through the Nostr universe,
@@ -176,6 +181,17 @@ export default function DataTypes() {
             default to the service concatenated with favicon.png
         </li>
       </ul>
+
+      <a name="kind30382relationships"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 30382 - Relationships</h2>
+      <span style={{backgroundColor:'#ffff00',color:'#000000'}}>Experimental</span>
+      <p>
+        Relationships are defind in <a href="https://github.com/vitorpamplona/nips/blob/relationship-status/81.md">NIP-81</a> as
+        replaceable event using kind 30382. Corny Chat uses these relationships to allow users to set petnames/nicknames for
+        users based on their nostr pubkey.  Any petnames defined, either in cleartext tags, or via nip44 encrypted content
+        tags will be used as aliases in place of the target account name when viewing room avatars, chat avatars, profile, and
+        user lists within room settings.  A petname can be set by viewing a user's profile, and clicking on the name for edit
+        functionality. At this time, the ability to clear/delete a petname is not provided.
+      </p>
 
       <a name="kind30388slideset"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 30388 - Slide Sets</h2>
       <p>

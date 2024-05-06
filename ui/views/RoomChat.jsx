@@ -5,6 +5,7 @@ import {useMqParser} from '../lib/tailwind-mqp';
 import {colors, isDark} from '../lib/theme';
 import {useJam} from '../jam-core-react';
 import {avatarUrl, displayName} from '../lib/avatar';
+import {getNpubFromInfo, getRelationshipPetname} from '../nostr/nostr';
 
 export default function RoomChat({
     room,
@@ -63,10 +64,10 @@ export default function RoomChat({
             update(state, 'textchats');
         } else if (chatText.startsWith("/help")) {
             textchats.push([myId, "Supported markdown"]);
-            textchats.push([myId, "• To **bold** surround with **"]);
-            textchats.push([myId, "• To *italicize* surround with *"]);
-            textchats.push([myId, "• To hide spoilers, surround with ||"]);
-            textchats.push([myId, "• Emoji shortcodes are surrounded by :"]);
+            textchats.push([myId, "• To **bold** surround with 2 *"]);
+            textchats.push([myId, "• To *italicize* surround with 1 *"]);
+            textchats.push([myId, "• To hide spoilers, surround with 1 |"]);
+            textchats.push([myId, "• Emoji shortcodes are surrounded by 1 :"]);
             textchats.push([myId, "• /help shows this guidance"]);
             textchats.push([myId, "• /clear resets your text buffer"]);
             textchats.push([myId, "• /me emotes a statement"]);
@@ -148,6 +149,10 @@ export default function RoomChat({
             let userid = textentry[0];
             let userobj = JSON.parse(sessionStorage.getItem(userid)) ?? {id: '', avatar: ''};
             let username = displayName(userobj, room);
+            const userNpub = getNpubFromInfo(userobj);
+            if (userNpub != undefined) {
+                username = getRelationshipPetname(userNpub, username);
+              }            
             let useravatar = avatarUrl(userobj, room);
             let thetext = textentry[1];
             // skip duplicates

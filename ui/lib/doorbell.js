@@ -38,6 +38,7 @@ function doorbell(d, myPeerId, roomId) {
         dbe = Math.floor(dbe);
         let dbs = document.getElementById("doorbellsound" + String(dbe));
         if(dbs == undefined) return;
+        dbs.volume = .5;
         dbs.play();
         // Mark time last played
         sessionStorage.setItem(keyDoorbellTime, Math.floor(Date.now() / 1000));
