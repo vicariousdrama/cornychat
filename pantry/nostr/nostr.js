@@ -14,7 +14,6 @@ const relaysToUse = [
     'wss://nostr-pub.wellorder.net',
     'wss://nostr.mutinywallet.com',
     'wss://relay.snort.social',
-    'wss://relay.primal.net',
 ];
 
 function sleep(ms) {

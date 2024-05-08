@@ -143,6 +143,8 @@ services:
       - "../jam-config:/jam-config"
       - ../data/recordings:/pantry/records
       - ../data/hls:/pantry/hls
+      - ../data/adiamges:/pantry/adimages
+      - ../data/adiamges2:/pantry/adimages2
   traefik:
     networks:
       jam:

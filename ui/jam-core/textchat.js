@@ -2,6 +2,7 @@ import {update} from 'minimal-state';
 import {useAction, useOn, useRootState} from '../lib/state-tree';
 import {sendPeerEvent} from '../lib/swarm';
 import {actions} from './state';
+import {shouldShowAd} from '../lib/ad';
 
 function TextChat({swarm}) {
   const state = useRootState();
@@ -10,8 +11,26 @@ function TextChat({swarm}) {
     if(textchat) showTextChat(peerId, textchat);
   });
 
+  function incrementUnread(roomId) {
+    let bufferSize = localStorage.getItem(`textchat.bufferSize`) || 50;
+    let n = Math.floor(sessionStorage.getItem(`${roomId}.textchat.unread`) ?? 0) + 1;
+    sessionStorage.setItem(`${roomId}.textchat.unread`, n);
+  }
+
+  let adidx = 0;
+  let chatadinterval = 15*60*1000;
+  setInterval(() => {
+    let textchatAds = localStorage.getItem(`textchat.adsenabled`) ?? true;
+    if(textchatAds) {
+      if(shouldShowAd()) {
+        adidx += 1;
+        showTextChat(`ad-${adidx}`,`/chatad:${adidx}`);
+      }
+    }
+  }, chatadinterval);
+
   function showTextChat(peerId, textchat) {
-    let bufferSize = 50;
+    let bufferSize = localStorage.getItem(`textchat.bufferSize`) || 50;
     let {roomId, textchats} = state;
     if (!textchats) textchats = [];
     let lastline = textchats.slice(-1);
@@ -20,10 +39,9 @@ function TextChat({swarm}) {
         state.textchats = textchats.slice(-1 * bufferSize);
         update(state, 'textchats');
 
-        let n = Math.floor(sessionStorage.getItem(`${roomId}.textchat.unread`) ?? 0) + 1;
-        if (n > bufferSize) n = bufferSize;
-        if (n > textchats.length) n = textchats.length;
-        sessionStorage.setItem(`${roomId}.textchat.unread`, n);
+        let okToIncrement = true;
+        if (textchat.startsWith("*has entered the chat!*")) okToIncrement = false;
+        if (okToIncrement) incrementUnread(roomId);
     }
   }
 

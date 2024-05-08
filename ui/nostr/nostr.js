@@ -19,7 +19,6 @@ function getDefaultOutboxRelays() {
     'wss://relay.damus.io',
     'wss://nostr.mutinywallet.com',
     'wss://relay.snort.social',
-    'wss://relay.primal.net',
   ];
 }
 
@@ -1039,6 +1038,7 @@ export function getNpubFromInfo(info) {
 export async function loadPetnames() {
   if(window.DEBUG) console.log('in loadPetnames');
   return new Promise(async(res, rej) => {
+    if (!window.nostr) return(undefined);
     //const pool = new RelayPool();
     try {
       let events = [];
@@ -1060,6 +1060,17 @@ export async function loadPetnames() {
       const filters = [filter];
       if(Window.DEBUG) console.log('loadPetnames: before setTimeout');
       setTimeout(() => {
+        let promptDecrypting = (localStorage.getItem("petnames.allowdecryptinguntil") || 0) < timestamp;
+        let allowDecrypting = localStorage.getItem("petnames.allowdecrypting") || false;
+        if (promptDecrypting && events.length > 0 && window.nostr) {
+          if (window.nostr.nip44) {
+            allowDecrypting = confirm("Do you want to decrypt petnames from up to " + events.length + " relationship events?");
+            if (allowDecrypting) {
+              localStorage.setItem('petnames.allowdecryptinguntil', timestamp + 3600); // dont prompt again for 1 hour
+              localStorage.setItem('petnames.allowdecrypting', allowDecrypting);
+            }
+          }
+        }
         for (let event of events) {
           let targetPubkey = '';
           let targetPetname = '';
@@ -1080,18 +1091,20 @@ export async function loadPetnames() {
               if (k == 'petname') targetPetname = v;
             }
           }
-          let enc = event.content;
-          console.log('loadPetnames checking encrypted content');
-          if (enc != undefined && enc.length > 0 && window.nostr.nip44) {
-            let dec = ''; // await window.nostr.nip44.decrypt(myPubkey, enc);
-            (async () => {let response = await window.nostr.nip44.decrypt(myPubkey, enc); dec = response})();
-            if (dec != undefined && dec.length > 0) {
-              let dectags = JSON.parse(dec);
-              for (let tag of dectags) {
-                if (tag.length > 1) {
-                  let k = tag[0];
-                  let v = tag[1];
-                  if (k == 'petname') targetPetname = v;
+          if (allowDecrypting) {
+            let enc = event.content;
+            console.log('loadPetnames checking encrypted content');
+            if (enc != undefined && enc.length > 0 && window.nostr.nip44) {
+              let dec = ''; // await window.nostr.nip44.decrypt(myPubkey, enc);
+              (async () => {let response = await window.nostr.nip44.decrypt(myPubkey, enc); dec = response})();
+              if (dec != undefined && dec.length > 0) {
+                let dectags = JSON.parse(dec);
+                for (let tag of dectags) {
+                  if (tag.length > 1) {
+                    let k = tag[0];
+                    let v = tag[1];
+                    if (k == 'petname') targetPetname = v;
+                  }
                 }
               }
             }
@@ -1130,7 +1143,7 @@ export function getRelationshipPetname(userNpub, userDisplayName) {
     (async () => {let response = await loadPetnames(); petnames = response})();
   }
   let petname = localStorage.getItem(`${userNpub}.petname`);
-  if (petname != undefined) {
+  if (petname != undefined && petname.length > 0) {
     return petname
   }
   return userDisplayName;
@@ -1203,6 +1216,7 @@ export async function getRelationshipForNpub(userNpub) {
 
 export async function updatePetname(userNpub, petname) {
   if (!window.nostr) return;
+  if (!petname || petname.length == 0) return;
   let useEncryption = true;
   // Need identifier
   let userPubkey = nip19.decode(userNpub).data;

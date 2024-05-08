@@ -65,7 +65,7 @@ const liveeventUpdater = async () => {
             let roomKey = "rooms/" + roomId;
             let roomInfo = await get(roomKey);
             
-            console.log(`roomInfo: `, roomInfo);
+            //console.log(`roomInfo: `, roomInfo);
 
             let isClosed = roomInfo?.closed ?? false;
             let isPrivate = roomInfo?.isPrivate ?? false;

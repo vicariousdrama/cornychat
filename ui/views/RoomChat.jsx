@@ -26,6 +26,7 @@ export default function RoomChat({
 
     const [time, setTime] = useState(Date.now());
     useEffect(() => {
+      let siv = false;
       const interval = setInterval(() => {
         setTime(Date.now());    // forces update ?
         sessionStorage.setItem(`${roomId}.textchat.unread`, 0);
@@ -34,6 +35,10 @@ export default function RoomChat({
             let p = sessionStorage.getItem(`${roomId}.textchat.scrollpos`) ?? -999;
             let n = (p>=0) ? p : c.scrollHeight;
             if (c.scrollTop != n) c.scrollTop = n;
+        }
+        if (!siv) {
+            document.getElementById('chatentry').scrollIntoView();
+            siv = true;
         }
       }, 1000);
       return () => {
@@ -141,6 +146,7 @@ export default function RoomChat({
             id="chatlines" 
             className="flex-col-reverse justify-end mb-2 overflow-y-scroll"
             style={{maxHeight: '21rem', height: '21rem'}}
+            onScroll={handleUserChatScroll}
             onTouchEnd={handleUserChatScroll}
             onMouseUp={handleUserChatScroll}
             onWheel={handleUserChatScroll}
@@ -162,6 +168,16 @@ export default function RoomChat({
             previoususerid = userid;
             previoustext = thetext;
             let emoting = false;
+
+            if(thetext.startsWith("/chatad")) {
+                let adidx = thetext.split(":")[1];
+                let adimg = `${jamConfig.urls.pantry}/api/v1/cimg/${roomId}/${adidx}`;
+                return (
+                    <center className="text-xs text-gray-400">advertisement
+                    <img style={{width:'320px',height:'50px'}} src={adimg} />
+                    </center>
+                );
+            }
             
             if(userid != myId || textchatLayout == 'left') {
                 // others : left aligned
@@ -196,11 +212,11 @@ export default function RoomChat({
             }
         })}
         </div>
-        <div className="flex w-full justify-between my-3 absolute mb-0"
+        <div className="flex w-full justify-between"
             style={{position: 'absolute', bottom: '0px'}}
         >
             <input id="chatentry"
-                className={mqp('rounded placeholder-black bg-gray-400 text-black w-full mx-1 md:w-full')}
+                className={mqp('rounded placeholder-black bg-gray-400 text-black flex-grow mx-1')}
                 type="text"
                 placeholder=""
                 value={chatText}
