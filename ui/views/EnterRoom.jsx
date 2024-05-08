@@ -8,6 +8,7 @@ import {useMqParser, useWidth} from '../lib/tailwind-mqp';
 import {useJam} from '../jam-core-react';
 import {colors, isDark} from '../lib/theme.js';
 import {signInExtension, signInPrivateKey} from '../nostr/nostr';
+import {shouldShowAd} from '../lib/ad';
 import EditIdentity from './EditIdentity';
 
 const iOS =
@@ -59,15 +60,16 @@ export default function EnterRoom({
   let usersAvatarUrl = avatarUrl(myIdentity.info, room);
   let [returnToHomepage, setReturnToHomepage] = useState(true);
   const textColor = isDark(roomColor.buttons.primary) ? roomColor.text.light : roomColor.text.dark;
-  let [loginEnabled, setLoginEnabled] = useState(false);
-  let [imageEnabled, setImageEnabled] = useState(true);
-  let imgnum = (Math.floor(Date.now() / 1000) % 8);
+  let showAd = shouldShowAd();
+  let [loginEnabled, setLoginEnabled] = useState(!showAd);
+  let [adImageEnabled, setAdImageEnabled] = useState(showAd);
+  let adimg = `${jamConfig.urls.pantry}/api/v1/aimg/${roomId}`;
 
   useEffect(() => {
     // Setup a timeout to hide the image
     const timeoutImageOverlay = setTimeout(() => {
       setLoginEnabled(true);
-      setImageEnabled(false);
+      setAdImageEnabled(false);
     }, 5000);
 
     // Setup a timeout to check if the user is still here after 30 seconds
@@ -329,14 +331,14 @@ export default function EnterRoom({
         </>
         )}
 
-        {imageEnabled && (
+        {adImageEnabled && (
           <div className="text-center my-3 text-gray-300">
           <p className="text-gray-400 text-sm text-center">you can enter after this 5 second ad...
           <center>
-          <img src={`/img/ads/${imgnum}.png`} className="w-72 text-center"
+          <img src={adimg} className="w-72 text-center"
             onClick={() => {
               setLoginEnabled(true);
-              setImageEnabled(false);
+              setAdImageEnabled(false);
             }}
           />
           </center>

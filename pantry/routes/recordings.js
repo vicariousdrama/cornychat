@@ -3,7 +3,7 @@ const fs = require('fs/promises');
 const path = require('path');
 const archiver = require('archiver');
 const {get} = require('../services/redis');
-const {isModerator} = require('../auth');
+const {isModerator, isAdmin, isOwner} = require('../auth');
 const {recordFileLocationPath} = require('../config');
 
 const router = express.Router({mergeParams: true});
@@ -11,7 +11,11 @@ const router = express.Router({mergeParams: true});
 router.get('', async (req, res) => {
   const roomId = req.params.id;
 
-  if (!(await isModerator(req, roomId))) {
+  let b = false;
+  if (!b) b = await isModerator(req, roomId);
+  if (!b) b = await isOwner(req, roomId);
+  if (!b) b = await isAdmin(req, roomId);
+  if (!(b)) {
     res.sendStatus(403);
     return;
   }

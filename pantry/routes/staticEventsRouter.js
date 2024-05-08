@@ -1,5 +1,5 @@
 const express = require('express');
-const {get,list} = require('../services/redis');
+const {get} = require('../services/redis');
 const router = express.Router({mergeParams: true});
 
 router.get('', async function (req, res) {

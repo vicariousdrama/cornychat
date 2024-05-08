@@ -115,7 +115,18 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
     if(userNpub != undefined) {
       localStorage.setItem(`${userNpub}.petname`, petname);
       userDisplayName = petname;
-      updatePetname(userNpub, petname);
+      let allowUnencrypted = localStorage.getItem("petnames.allowunencrypted");
+      if (window.nostr) {
+        if (window.nostr.nip44) allowUnencrypted = true; // just setting the check flag to bypass the need to ask
+        if (allowUnencrypted == undefined) {
+          allowUnencrypted = confirm("Your NIP07 extension does not support encryption. Do you still want to publish petname to nostr?");
+          localStorage.setItem("petnames.allowunencrypted", allowUnencrypted);
+        }
+        if (allowUnencrypted) {
+          updatePetname(userNpub, petname);
+        }
+      }
+      if (window.nostr?.nip44) allowUnencrypted = true;
     }
     setEditingPetname(false);
   }
@@ -360,9 +371,15 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
                 </button>
               </div>
             )}
-            {!editingPetname && (
+            {!editingPetname && userNpub && (
               <p className="text-xl mr-1 font-semibold text-gray-200 cursor-pointer"
                 onClick={() => setEditingPetname(true)}
+              >
+                {userDisplayName}
+              </p>
+            )}
+            {!editingPetname && !userNpub && (
+              <p className="text-xl mr-1 font-semibold text-gray-200"
               >
                 {userDisplayName}
               </p>
