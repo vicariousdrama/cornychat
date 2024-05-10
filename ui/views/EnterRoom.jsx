@@ -61,8 +61,8 @@ export default function EnterRoom({
   let [returnToHomepage, setReturnToHomepage] = useState(true);
   const textColor = isDark(roomColor.buttons.primary) ? roomColor.text.light : roomColor.text.dark;
   let showAd = shouldShowAd();
-  let [loginEnabled, setLoginEnabled] = useState(!showAd);
-  let [adImageEnabled, setAdImageEnabled] = useState(showAd);
+  let [loginEnabled, setLoginEnabled] = useState((!showAd || !jamConfig.handbill));
+  let [adImageEnabled, setAdImageEnabled] = useState((showAd && jamConfig.handbill));
   let adimg = `${jamConfig.urls.pantry}/api/v1/aimg/${roomId}`;
 
   useEffect(() => {

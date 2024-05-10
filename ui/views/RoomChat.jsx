@@ -170,6 +170,11 @@ export default function RoomChat({
             let emoting = false;
 
             if(thetext.startsWith("/chatad")) {
+                if (!jamConfig.handbill) {
+                    return (
+                      <></>  
+                    );
+                }
                 let adidx = thetext.split(":")[1];
                 let adimg = `${jamConfig.urls.pantry}/api/v1/cimg/${roomId}/${adidx}`;
                 return (
