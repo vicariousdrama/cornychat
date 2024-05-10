@@ -57,6 +57,7 @@ const jamConfig = {
   sfu: ['true', '1'].includes(process.env.JAM_SFU),
   broadcast: ['true', '1'].includes(process.env.JAM_BROADCAST),
   hideJamInfo: ['true', '1'].includes(process.env.JAM_HIDE_JAM_INFO),
+  handbill: ['true', '1'].includes(process.env.ADS),
 };
 console.log(jamConfig);
 app.use('/config.json', (_, res) => {

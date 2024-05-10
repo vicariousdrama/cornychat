@@ -12,7 +12,8 @@ const recordFileRetentionDays = process.env.RECORD_FILE_RETENTION_DAYS
   ? parseInt(process.env.RECORD_FILE_RETENTION_DAYS)
   : 10;
 const adFileLocationPath = process.env.AD_FILE_LOCATION_PATH || '/pantry/adimages'; // square ads for enter room page
-const adFileLocationPath2 = process.env.AD_FILE_LOCATION_PATH || '/pantry/adimages2'; // mobile ads: 320x50 for text chat
+const adFileLocationPath2 = process.env.AD_FILE_LOCATION_PATH2 || '/pantry/adimages2'; // mobile ads: 320x50 for text chat
+const adEnabled = !!process.env.ADS ?? true;
 
 module.exports = {
   serverAdminId,
@@ -23,6 +24,7 @@ module.exports = {
   hlsFileLocationPath,
   recordFileLocationPath,
   recordFileRetentionDays,
+  adEnabled,
   adFileLocationPath,
   adFileLocationPath2,
 };

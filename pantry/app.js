@@ -17,7 +17,7 @@ const roomKeyRouter = require('./routes/roomKey');
 const liveRoomRouter = require('./routes/liveRoom');
 const recordingsRouter = require('./routes/recordings');
 //const jamConfigRouter = require('./routes/jamConfig');
-const {hlsFileLocationPath} = require('./config');
+const {adEnabled, hlsFileLocationPath} = require('./config');
 
 const roomListRouter = require('./routes/roomListRouter');
 const scheduledEventsRouter = require('./routes/scheduledEventsRouter');
@@ -63,8 +63,12 @@ app.use('/api/v1/roomlist/', roomListRouter);
 app.use('/api/v1/scheduledevents/', scheduledEventsRouter);
 app.use('/api/v1/staticrooms/', staticRoomsRouter);
 app.use('/api/v1/staticevents/', staticEventsRouter);
-app.use('/api/v1/aimg/:id', adImageRouter);
-app.use('/api/v1/cimg/:id/:idx', ad4ChatImageRouter);
+
 app.use('/.well-known/nostr.json', nip05Router);
+
+if(adEnabled) {
+  app.use('/api/v1/aimg/:id', adImageRouter);
+  app.use('/api/v1/cimg/:id/:idx', ad4ChatImageRouter);
+}
 
 module.exports = app;

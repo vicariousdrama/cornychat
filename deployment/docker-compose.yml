@@ -62,6 +62,7 @@ services:
     image: cornychat/ui:${CHANNEL}
     restart: always
     environment:
+      - ADS
       - DEFAULT_AVATAR
       - JAM_BROADCAST
       - JAM_HOST
@@ -123,6 +124,9 @@ services:
     depends_on:
       - pantryredis
     environment:
+      - ADS
+      - AD_FILE_LOCATION_PATH
+      - AD_FILE_LOCATION_PATH2
       - HLS_FILE_LOCATION_PATH
       - JAM_HOST
       - JAM_RESTRICT_ROOM_CREATION
