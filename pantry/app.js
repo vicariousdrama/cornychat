@@ -27,8 +27,8 @@ const roomModeratorsRouter = require('./routes/roomModerators');
 const privateKeysRouter = require('./routes/privateKeys');
 const signEventRouter = require('./routes/signEvent');
 const nip05Router = require('./routes/nip05Router');
-const adImageRouter = require('./routes/adRouter');
-const ad4ChatImageRouter = require('./routes/adRouter2');
+const squareAdRouter = require('./routes/adRouterSquare');
+const chatAdRouter = require('./routes/adRouterChat');
 const app = express();
 
 app.use(logger('dev'));
@@ -67,8 +67,9 @@ app.use('/api/v1/staticevents/', staticEventsRouter);
 app.use('/.well-known/nostr.json', nip05Router);
 
 if(adEnabled) {
-  app.use('/api/v1/aimg/:id', adImageRouter);
-  app.use('/api/v1/cimg/:id/:idx', ad4ChatImageRouter);
+  app.use('/api/v1/aimg/:id', squareAdRouter);
+  app.use('/api/v1/cimg/', chatAdRouter);
+  app.use('/api/v1/cimg/:roomId/:adId', chatAdRouter);
 }
 
 module.exports = app;

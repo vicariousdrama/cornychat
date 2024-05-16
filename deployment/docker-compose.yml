@@ -125,8 +125,8 @@ services:
       - pantryredis
     environment:
       - ADS
-      - AD_FILE_LOCATION_PATH
-      - AD_FILE_LOCATION_PATH2
+      - SQUARE_AD_FILE_LOCATION_PATH
+      - CHAT_AD_FILE_LOCATION_PATH
       - HLS_FILE_LOCATION_PATH
       - JAM_HOST
       - JAM_RESTRICT_ROOM_CREATION
