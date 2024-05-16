@@ -39,11 +39,16 @@ const roomDisplayName = (info, room) => {
 };
 
 export const avatarUrl = (info, room, defaultAvatar = DEFAULT_AVATAR) => {
+  let avatar = '/img/avatar/avatar-default.png';
   if (info.avatar && !room.access?.lockedIdentities && info.avatar !== '') {
-    return info.avatar;
+    avatar = info.avatar;
   } else {
-    return roomAvatar(info, room, defaultAvatar);
+    avatar = roomAvatar(info, room, defaultAvatar);
   }
+  if (avatar.startsWith('/img/avatar-corn')) {
+    avatar = avatar.replace('/img/', '/img/avatars/');
+  } 
+  return avatar;
 };
 
 export const displayName = (info, room) => {
