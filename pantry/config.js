@@ -11,8 +11,8 @@ const hlsFileLocationPath = process.env.HLS_FILE_LOCATION_PATH || './hls';
 const recordFileRetentionDays = process.env.RECORD_FILE_RETENTION_DAYS
   ? parseInt(process.env.RECORD_FILE_RETENTION_DAYS)
   : 10;
-  const adEnabled = !!process.env.ADS ?? true;
-  const squareAdFileLocationPath = process.env.SQUARE_AD_FILE_LOCATION_PATH || '/pantry/adimages'; // square ads for enter room page
+const adEnabled = !!process.env.ADS ?? true;
+const squareAdFileLocationPath = process.env.SQUARE_AD_FILE_LOCATION_PATH || '/pantry/adimages'; // square ads for enter room page
 const chatAdFileLocationPath = process.env.CHAT_AD_FILE_LOCATION_PATH || '/pantry/adimages2'; // mobile ads: 320x50 for text chat
 
 module.exports = {

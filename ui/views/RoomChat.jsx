@@ -59,7 +59,9 @@ export default function RoomChat({
           })();
         }
     }
-    CacheAds();
+    if (jamConfig.handbill) {
+        CacheAds();
+    }
 
     function handleUserChatScroll(e) {
         let c = document.getElementById('chatlines');

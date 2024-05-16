@@ -110,7 +110,9 @@ export default function Room({room, roomId, uxConfig}) {
       })();
     }
   }
-  let theCacheAds = CacheAds();
+  if (jamConfig.handbill) {
+    let theCacheAds = CacheAds();
+  }
 
   // Cache identities in session
   function CacheIdentities(identities) {
