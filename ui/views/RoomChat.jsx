@@ -46,6 +46,21 @@ export default function RoomChat({
       };
     }, []);
 
+    function CacheAds() {
+        const adskey = 'chatads';
+        const chatads = sessionStorage.getItem(adskey);
+        let fetchit = (chatads == null || chatads == undefined);
+        if (fetchit) {
+          (async () => {
+            let [newchatads, ok] = await get(`/cimg/`);
+            if (ok) {
+              sessionStorage.setItem(adskey, JSON.stringify(newchatads));
+            }
+          })();
+        }
+    }
+    CacheAds();
+
     function handleUserChatScroll(e) {
         let c = document.getElementById('chatlines');
         if (c) {
@@ -175,13 +190,44 @@ export default function RoomChat({
                       <></>  
                     );
                 }
-                let adidx = thetext.split(":")[1];
-                let adimg = `${jamConfig.urls.pantry}/api/v1/cimg/${roomId}/${adidx}`;
-                return (
-                    <center className="text-xs text-gray-400">advertisement
-                    <img style={{width:'320px',height:'50px'}} src={adimg} />
-                    </center>
-                );
+                let chatadparts = thetext.split(":");
+                let adidx = chatadparts[1];
+                let adreqdt = chatadparts[2];
+                let adidnum = -1;
+                let adlink = '';
+                try {
+                    adidnum = Math.floor(adidx);
+                    const adskey = 'chatads';
+                    const chatads = sessionStorage.getItem(adskey);
+                    if (chatads != null && chatads != null) {
+                        let adlist = JSON.parse(chatads);
+                        if (adlist.length > 0) {
+                            adidnum = adidnum % adlist.length;
+                            let adimg = adlist[adidnum].image;
+                            let adimgsrc = `${jamConfig.urls.pantry}/api/v1/cimg/${roomId}/${adimg}?r=${adreqdt}`;
+                            if (adlist[adidnum].hasLink) {
+                                adlink = adlist[adidnum].link;
+                                return (
+                                    <center className="text-xs text-gray-400">linked advertisement
+                                    <a href={`${adlink}`} target="_blank">
+                                    <div style={{width:'330px',height:'60px',border:'3px solid orange'}}>
+                                    <img style={{width:'320px',height:'50px',marginTop:'2px'}} src={adimgsrc} />
+                                    </div>
+                                    </a>
+                                    </center>
+                                );                                
+                            } else {
+                                return (
+                                    <center className="text-xs text-gray-400">advertisement
+                                    <img style={{width:'320px',height:'50px'}} src={adimgsrc} />
+                                    </center>
+                                );            
+                            }
+                        }
+                    }             
+                } catch (error) { /*ignore*/ }
+                // still here? return empty
+                return (<></>);
             }
             
             if(userid != myId || textchatLayout == 'left') {

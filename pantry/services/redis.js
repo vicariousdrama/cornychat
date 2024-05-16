@@ -15,6 +15,7 @@ let _exports = {
   identityCount: () =>
     Object.keys(localStore).filter(key => key.startsWith('identities/')).length,
   mget: (keys) => Object.keys(localStore).filter(key => keys.includes(key)),
+  initOrIncrement: (k) => {let c = get(k); if (c==undefined||c==null) {c="1"} else {c=String(Math.floor(c)+1);} let s = set(k,c); return c;},
 };
 
 if (!local) {
@@ -35,6 +36,13 @@ if (!local) {
   const list = prefix => client.keys(`${prefix}*`);
   const mget = async keys => JSON.parse(await client.mget(keys));
 
+  const initOrIncrement = async (k) => {
+    let c = await get(k);
+    if (c == undefined || c == null) {c ="1";} else {c = String(Math.floor(c) + 1);}
+    let s = await set(k, c);
+    return c;
+  };
+
   _exports = {
     get,
     set,
@@ -43,6 +51,7 @@ if (!local) {
     roomCount,
     identityCount,
     mget,
+    initOrIncrement,
   };
 }
 

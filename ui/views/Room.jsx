@@ -97,6 +97,21 @@ export default function Room({room, roomId, uxConfig}) {
     lud16,
   } = room || {};
 
+  function CacheAds() {
+    const adskey = 'chatads';
+    const chatads = sessionStorage.getItem(adskey);
+    let fetchit = (chatads == null || chatads == undefined);
+    if (fetchit) {
+      (async () => {
+        let [newchatads, ok] = await get(`/cimg/`);
+        if (ok) {
+          sessionStorage.setItem(adskey, JSON.stringify(newchatads));
+        }
+      })();
+    }
+  }
+  let theCacheAds = CacheAds();
+
   // Cache identities in session
   function CacheIdentities(identities) {
     for(let i = 0; i < identities.length; i ++) {

@@ -24,7 +24,8 @@ function TextChat({swarm}) {
     if(textchatAds) {
       if(shouldShowAd()) {
         adidx += 1;
-        showTextChat(`ad-${adidx}`,`/chatad:${adidx}`);
+        let adreqdt = Math.floor(Date.now() / 1000);
+        showTextChat(`ad-${adidx}`,`/chatad:${adidx}:${adreqdt}`);
       }
     }
   }, chatadinterval);
