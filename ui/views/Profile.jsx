@@ -20,7 +20,7 @@ import {CheckBadged, CopiedToClipboard, CopyToClipboard} from './Svg';
 import {useJam, useApiQuery} from '../jam-core-react';
 import {use} from 'use-minimal-state';
 import {InvoiceModal} from './Invoice';
-import EditIdentity from './EditIdentity';
+import EditIdentity from './editIdentity/EditIdentity';
 import {useMqParser} from '../lib/tailwind-mqp';
 import {colors, isDark} from '../lib/theme';
 

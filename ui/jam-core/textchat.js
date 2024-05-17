@@ -17,7 +17,7 @@ function TextChat({swarm}) {
     sessionStorage.setItem(`${roomId}.textchat.unread`, n);
   }
 
-  let adidx = 0;
+  let adidx = Math.floor(Date.now() / 1000);
   let chatadinterval = 15*60*1000;
   setInterval(() => {
     let textchatAds = localStorage.getItem(`textchat.adsenabled`) ?? true;
