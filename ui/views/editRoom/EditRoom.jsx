@@ -150,21 +150,6 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close}) {
     }
     roomSlides = decodedRoomSlides;
 
-    // let removeDeleted = false;
-    // if (removeDeleted) {
-    //   if (iOwn || iAdmin) {
-    //     ownersDeleting.forEach(jamId => {
-    //       removeOwner(roomId, jamId);
-    //     })
-    //     moderatorsDeleting.forEach(jamId => {
-    //       removeModerator(roomId, jamId);
-    //     })
-    //   }
-    //   speakersDeleting.forEach(jamId => {
-    //     removeSpeaker(roomId, jamId);
-    //   })
-    // }
-
     let ok = await submitUpdate({
       name,
       description,

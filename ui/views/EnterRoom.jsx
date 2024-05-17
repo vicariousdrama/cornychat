@@ -9,7 +9,7 @@ import {useJam} from '../jam-core-react';
 import {colors, isDark} from '../lib/theme.js';
 import {signInExtension, signInPrivateKey} from '../nostr/nostr';
 import {shouldShowAd} from '../lib/ad';
-import EditIdentity from './EditIdentity';
+import EditIdentity from './editIdentity/EditIdentity.jsx';
 
 const iOS =
   /^iP/.test(navigator.platform) ||

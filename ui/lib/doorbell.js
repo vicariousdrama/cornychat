@@ -36,8 +36,10 @@ function doorbell(d, myPeerId, roomId) {
         if (dbe == true) dbe = 1;
         if (dbe == null) return;
         dbe = Math.floor(dbe);
-        let dbs = document.getElementById("doorbellsound" + String(dbe));
+        //let dbs = document.getElementById("doorbellsound" + String(dbe));
+        let dbs = document.getElementById("doorbellsound");
         if(dbs == undefined) return;
+        dbs.src = doorbellsounds[dbe-1][0];
         dbs.volume = .5;
         dbs.play();
         // Mark time last played
@@ -62,4 +64,15 @@ function doorbell(d, myPeerId, roomId) {
   }
 }
 
-export {doorbell};
+const doorbellsounds = [
+  ["/mp3/call-to-attention-123107.mp3", "Call to Attention"],
+  ["/mp3/conveniencestorering-96090.mp3", "Convenience Store"],
+  ["/mp3/level-up-191997.mp3", "Level Up"],
+  ["/mp3/melancholy-ui-chime-47804.mp3", "Melancholy Chime"],
+  ["/mp3/wheep-wheep-101146.mp3", "Wheep Wheep"],
+];
+
+export {
+  doorbell, 
+  doorbellsounds,
+};

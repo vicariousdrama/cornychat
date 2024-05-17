@@ -45,7 +45,7 @@ export const avatarUrl = (info, room, defaultAvatar = DEFAULT_AVATAR) => {
   } else {
     avatar = roomAvatar(info, room, defaultAvatar);
   }
-  if (avatar.startsWith('/img/avatar-corn')) {
+  if (avatar && avatar.startsWith('/img/avatar-corn')) {
     avatar = avatar.replace('/img/', '/img/avatars/');
   } 
   return avatar;
