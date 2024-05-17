@@ -581,7 +581,7 @@ function Previous({color}) {
       xml:space="preserve"
       stroke="currentColor"
       stroke-width="1.5"
-      class="w-5 h-5"
+      class="w-8 h-8"
     >
       <path stroke={color} d="M245,490c135.1,0,245-109.9,245-245S380.1,0,245,0S0,109.9,0,245S109.9,490,245,490z M245,34.3
         c116.2,0,210.7,94.5,210.7,210.7S361.2,455.7,245,455.7S34.3,361.2,34.3,245S128.8,34.3,245,34.3z"/>
@@ -599,7 +599,7 @@ function Next({color}) {
       xmlns:xlink="http://www.w3.org/1999/xlink" 
       viewBox="0 0 512 512" 
       xml:space="preserve"
-      class="w-5 h-5"
+      class="w-8 h-8"
       stroke-width="1.5"
       stroke="currentColor"
     >

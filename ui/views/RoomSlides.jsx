@@ -52,7 +52,7 @@ export default function RoomSlides({
       return (
         <div className="mb-2" style={{color: textColor, backgroundColor: colors.avatarBg}}>
           {isImage && (
-          <img src={slideUrl} style={{height: '320px', width: 'auto', maxWidth: '100%', margin: 'auto', align: 'center'}} />
+          <img src={slideUrl} style={{maxHeight: '320px', width: 'auto', maxWidth: '100%', margin: 'auto', align: 'center'}} />
           )}
           {(isVideo || isIFrame) && (
           <p>
