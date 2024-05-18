@@ -505,6 +505,27 @@ const updateNostrProfile = async (roomId, name, description, logoURI, background
     await sleep(100);
 }
 
+const updateNostrProfileForServer = async (name, description, logoURI, backgroundURI, lud16, nip05) => {
+    if(pmd) console.log("in updateNostrProfileForServer");
+    const sk = nip19.decode(serverNsec).data;
+    let profileObj = {nip05: nip05}
+    if ((name ?? '').length > 0) profileObj.name = name;
+    if ((description ?? '').length > 0) profileObj.about = description;
+    if ((logoURI ?? '').length > 0) profileObj.picture = logoURI;
+    if ((backgroundURI ?? '').length > 0) profileObj.banner = backgroundURI;
+    if ((lud16 ?? '').length > 0) profileObj.lud16 = lud16;
+    let content = JSON.stringify(profileObj);
+    const event = finalizeEvent({
+        created_at: Math.floor(Date.now() / 1000),
+        kind: 0,
+        tags: [],
+        content: content,
+    }, sk);
+    if(pmd) console.log('Event to be published', JSON.stringify(event));
+    writepool.publish(event, relaysToUse);
+    await sleep(100);    
+}
+
 const deleteLiveActivity = async (roomId, dtt) => {
     if(pmd) console.log("in deleteLiveActivity for ", roomId);
     let roomNsec = await getRoomNSEC(roomId);
@@ -684,6 +705,7 @@ module.exports = {
     getScheduledEvents,
     publishNostrSchedule,
     updateNostrProfile,
+    updateNostrProfileForServer,
     deleteLiveActivity,
     publishLiveActivity,
     publishRoomActive,
