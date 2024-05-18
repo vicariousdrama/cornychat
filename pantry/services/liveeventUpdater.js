@@ -1,12 +1,16 @@
 const {set, get, list} = require('./redis');
-const {deleteLiveActivity, publishLiveActivity} = require('../nostr/nostr');
+const {deleteLiveActivity, publishLiveActivity, publishRoomActive} = require('../nostr/nostr');
 const {activeUsersInRoom} = require('./ws');
-const UPDATE_INTERVAL = 5 * 60 * 1000; // 5 minutes
+const UPDATE_INTERVAL = 1 * 60 * 1000; // We check new rooms and live event end every minute
+const pmd = true;
 
 const liveeventUpdater = async () => {
 
+    let runCounter = 0;
+
     let activeRoomTimes = await get('server/liveActivities');
     if (activeRoomTimes == undefined) activeRoomTimes = {};
+    let activeRoomTimesAnnounced = {};
 
     // delete any prior activities on startup
     console.log(`Checking cache of prior live rooms on startup`);
@@ -25,6 +29,9 @@ const liveeventUpdater = async () => {
     setInterval(async () => {
         console.log(`Checking for live rooms`);
 
+        // Increment this count number
+        runCounter = runCounter + 1;
+
         let roomsWithUsers = [];
 
         // Same basic logic from room list router to get the potential rooms
@@ -33,6 +40,7 @@ const liveeventUpdater = async () => {
         // current hour
         let dt = new Date();
         let dtt = dt.getTime();
+        let three_hours_ago = dtt - (3*60*60*1000);
         let dti = dt.toISOString();
         let dts = dti.replaceAll('-','').replace('T','').slice(0,10);
         let k = `usagetracking/${dts}/`;
@@ -66,7 +74,9 @@ const liveeventUpdater = async () => {
             let roomInfo = await get(roomKey);
             
             //console.log(`roomInfo: `, roomInfo);
-
+            let dttr = dtt;
+            let isnew = (!activeRoomTimes.hasOwnProperty(roomId));
+            let announceit = true;
             let isClosed = roomInfo?.closed ?? false;
             let isPrivate = roomInfo?.isPrivate ?? false;
             let isLiveActivityAnnounced = roomInfo?.isLiveActivityAnnounced ?? false;
@@ -81,19 +91,35 @@ const liveeventUpdater = async () => {
                     }
                     // Done. lets close it out
                     delete activeRoomTimes[roomId];
+                    if (activeRoomTimesAnnounced.hasOwnProperty(roomId)) {
+                        delete activeRoomTimesAnnounced[roomId];
+                    }
                 }
             } else {
-                let dttr = dtt;
-                if (activeRoomTimes.hasOwnProperty(roomId)) {
+                if (!isnew) {
                     // Updating existing live activity, use existing start time
                     dttr = activeRoomTimes[roomId];
-                    // TODO: Announce as kind 1 event via main server bot if its been more than an hour since last announce?
                 } else {
                     // Creating new live activity, assign the time
                     activeRoomTimes[roomId] = dtt;
-                    // TODO: Announce as a kind 1 event via the main server bot
                 }
-                let pla = await publishLiveActivity(roomId, dttr, roomInfo, userInfo, 'live');
+                // Publish as live only once per five minutes
+                if (runCounter % 5 == 0) {
+                    let pla = await publishLiveActivity(roomId, dttr, roomInfo, userInfo, 'live');
+                }
+            }
+
+            if (!isPrivate && !isClosed) {
+                // Announce as kind 1 event via main server bot if new, or its been more than an hour since last announce
+                if (pmd) console.log(`..checking if need to publish room ${roomId} as active`);
+                if (activeRoomTimesAnnounced.hasOwnProperty(roomId)) announceit = (activeRoomTimesAnnounced[roomId] < three_hours_ago);
+                if (announceit) {
+                    activeRoomTimesAnnounced[roomId] = dtt;
+                    if (pmd) console.log(`..publishing ${roomId} as active in kind 1 note`);
+                    let pk1 = await publishRoomActive(roomId, dttr, roomInfo, userInfo, isnew);
+                } else {
+                    if (pmd) console.log(`..skipping, was previously published at ${activeRoomTimesAnnounced[roomId]}`);
+                }
             }
         };
 
@@ -104,7 +130,7 @@ const liveeventUpdater = async () => {
                 activeRoomsToRemove.push(key);
                 let dtt = activeRoomTimes[key];
                 // TODO: publish as ended ?    
-                (async() => {let dla = await deleteLiveActivity(key, dtt);});
+                (async() => {let dla = await deleteLiveActivity(key, dtt);})();
             }
         })
         for (let k of activeRoomsToRemove) {
