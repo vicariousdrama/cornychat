@@ -8,6 +8,7 @@ const debug = require('debug')('pantry:server');
 const http = require('http');
 const {addWebsocket} = require('../services/ws');
 const {setupCleaner} = require('../services/fileCleaner');
+const {serverProfileInitializer} = require('../services/serverProfileInitializer');
 const {scheduleUpdater} = require('../services/scheduleUpdater');
 const {nip05Initializer} = require('../services/nip05Initializer');
 const {liveeventUpdater} = require('../services/liveeventUpdater');
@@ -32,6 +33,7 @@ server.on('error', onError);
 server.on('listening', onListening);
 addWebsocket(server)
 setupCleaner().then(() => 'Cleaner started.');
+serverProfileInitializer().then(() => 'Server Profile Initialized.');
 scheduleUpdater().then(() => 'Schedule Updater started.');
 nip05Initializer().then(() => 'NIP05 Initialized.');
 liveeventUpdater().then(() => 'Live Event Updater started.');

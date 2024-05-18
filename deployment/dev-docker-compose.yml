@@ -133,6 +133,12 @@ services:
       - RECORD_FILE_LOCATION_PATH
       - RECORD_FILE_RETENTION_DAYS
       - SERVER_NSEC
+      - SERVER_NAME
+      - SERVER_PROFILE_ABOUT
+      - SERVER_PROFILE_PICTURE
+      - SERVER_PROFILE_BANNER
+      - SERVER_PROFILE_LUD16
+      - SERVER_PROFILE_NIP05
     labels:
       - traefik.http.routers.${COMPOSE_PROJECT_NAME}_pantry.rule=(Host(`${JAM_HOST}`) && PathPrefix(`/_/pantry`))
       - traefik.http.routers.${COMPOSE_PROJECT_NAME}_pantry.middlewares=${COMPOSE_PROJECT_NAME}_pantry_stripprefix
