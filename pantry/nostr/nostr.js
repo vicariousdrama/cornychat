@@ -544,11 +544,13 @@ const publishLiveActivity = async (roomId, dtt, roomInfo, userInfo, status) => {
     // the image is either the logouri, or the current slide. if no image, then use a default
     let defaultImage = 'https://i.nostr.build/o7jx.png'
     let imageURI = roomInfo?.logoURI ?? defaultImage;
-    if (roomInfo?.currentSlide > 0) {
-        let cs = roomInfo.currentSlide;
-        if (roomInfo?.slides?.length >= cs) {
-            let slideURI = roomInfo.slides[cs - 1][0];
-            if (slideURI.startsWith("https://")) imageURI = slideURI;
+    if (roomInfo?.currentSlide) {
+        if (Math.floor(roomInfo.currentSlide) > 0) {
+            let cs = roomInfo.currentSlide;
+            if (roomInfo?.slides?.length >= cs) {
+                let slideURI = roomInfo.slides[cs - 1][0];
+                if (slideURI.startsWith("https://")) imageURI = slideURI;
+            }
         }
     }
     if (imageURI.length == 0) imageURI = defaultImage;
@@ -571,7 +573,7 @@ const publishLiveActivity = async (roomId, dtt, roomInfo, userInfo, status) => {
         ["l", jamHost, labelNamespace],
         ["l", "audiospace", labelNamespace],
         ["r", roomUrl],
-    ]
+    ];
     // This doesnt add tags for anonymous users since they don't have npubs
     const includedPubkeys = [];
     for (let user of userInfo) {
@@ -606,6 +608,76 @@ const publishLiveActivity = async (roomId, dtt, roomInfo, userInfo, status) => {
     await sleep(250);
 }
 
+const publishRoomActive = async (roomId, dtt, roomInfo, userInfo, isnew) => {
+    if(pmd) console.log("in publishRoomActive for ", roomId);
+    const kind = 1;
+    const roomUrl = `https://${jamHost}/${roomId}`;
+    const leadingText = `TALK TO LIVE NOSTRICHES NOW! \n 🚨Check out the open chat rooms on Cornychat.com 🚨\n https://i.nostr.build/mk4k.png`;
+    const trailingText = `#plebchain #audiospace #grownostr`;
+    const sk = nip19.decode(serverNsec).data;
+    const pk = getPublicKey(sk);
+    const npub = nip19.npubEncode(pk);
+    if(pmd) console.log(`publishing with ${npub}`);
+    const dt = new Date();
+    const et = dt.getTime();
+    const ct = Math.floor(dt/1000);
+    const userCount = userInfo.length;
+    let output = "";
+    if (isnew) {
+        output = `🌽 Audio Space started! 🌽\n\n${roomId}\n\n${roomUrl}?t=${ct}`;
+    } else {
+        output = `🌽 Join ${userCount} others chatting! 🌽\n\n${roomId}\n\n${roomUrl}?t=${ct}`;
+    }
+    output += `\n\n#cornychat #audiospace #grownostr`;
+    const title = roomInfo?.name ?? `Corny Chat: ${roomId}`;
+    const summary = (roomInfo?.description ?? `This is a live event on Corny Chat in room: ${roomId}`);
+    // the image is either the logouri, or the current slide. if no image, then use a default
+    let defaultImage = 'https://i.nostr.build/o7jx.png'
+    let imageURI = roomInfo?.logoURI ?? defaultImage;
+    if (roomInfo?.currentSlide) {
+        if (Math.floor(roomInfo.currentSlide) > 0) {
+            let cs = roomInfo.currentSlide;
+            if (roomInfo?.slides?.length >= cs) {
+                let slideURI = roomInfo.slides[cs - 1][0];
+                if (slideURI.startsWith("https://")) imageURI = slideURI;
+            }
+        }
+    }
+    if (imageURI.length == 0) imageURI = defaultImage;
+    if (!imageURI.startsWith('https://')) imageURI = defaultImage;
+    const labelNamespace = "com.cornychat";                 // Other instances SHOULD NOT change this
+    const tags = [
+        ["audioserver", jamHost],
+        ["title", `${title}`],
+        ["summary", `${summary}`],
+        ["image", `${imageURI}`],                           // uses slide if active, else logo, else default image
+        ["service", roomUrl],
+        ["streaming", `${roomUrl}`],
+        ["starts", `${Math.floor(dtt / 1000)}`],            // starts and ends needs to be in seconds, not milliseconds
+        ["ends", `${Math.floor(et / 1000)}`],
+        ["current_participants", `${userCount}`],           // TODO: set "total_participants", need to track it in liveeventUpdater
+        ["t", "talk"],
+        ["t", "talk show"],
+        ["t", "cornychat"],
+        ["t", "audiospace"],
+        ["t", "grownostr"],
+        ["L", labelNamespace],                              // Need to document all these tags for sanity
+        ["l", jamHost, labelNamespace],
+        ["l", "audiospace", labelNamespace],
+        ["r", roomUrl],
+    ];
+
+    const event = finalizeEvent({
+        created_at: Math.floor(Date.now() / 1000),
+        kind: kind,
+        tags: tags,
+        content: output,
+    }, sk);
+    if(pmd) console.log('Event to be published', JSON.stringify(event));
+    writepool.publish(event, relaysToUse);
+    await sleep(250);
+}
+
 module.exports = {
     deleteNostrSchedule,
     getRoomNSEC,
@@ -614,4 +686,5 @@ module.exports = {
     updateNostrProfile,
     deleteLiveActivity,
     publishLiveActivity,
+    publishRoomActive,
 };
