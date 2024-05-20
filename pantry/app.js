@@ -29,6 +29,9 @@ const signEventRouter = require('./routes/signEvent');
 const nip05Router = require('./routes/nip05Router');
 const squareAdRouter = require('./routes/adRouterSquare');
 const chatAdRouter = require('./routes/adRouterChat');
+const adReportRouter = require('./routes/adReportRouter');
+const userRoomRouter = require('./routes/userRoomsRouter');
+
 const app = express();
 
 app.use(logger('dev'));
@@ -71,5 +74,7 @@ if(adEnabled) {
   app.use('/api/v1/cimg/', chatAdRouter);
   app.use('/api/v1/cimg/:roomId/:adId', chatAdRouter);
 }
+app.use('/api/v1/adr/:year/:month', adReportRouter);
+app.use('/api/v1/userrooms/:id', userRoomRouter);
 
 module.exports = app;
