@@ -17,6 +17,8 @@ export default function RoomChat({
     let [chatScrollPosition, setChatScrollPosition] = useState(sessionStorage.getItem(`${roomId}.textchat.scrollpos`) ?? -999);
     let myId = myIdentity.info.id;
     let textchatLayout = localStorage.getItem("textchat.layout") ?? 'versus';
+    let textchatShowNames = ((localStorage.getItem('textchat.showNames') ?? 'true') == 'true');
+    let textchatShowAvatar = ((localStorage.getItem('textchat.showAvatars') ?? 'true') == 'true');
     const colorTheme = room?.color ?? 'default';
     const roomColor = colors(colorTheme, room.customColor);
     const textColor = isDark(roomColor.avatarBg) ? roomColor.text.light : roomColor.text.dark;
@@ -236,13 +238,15 @@ export default function RoomChat({
                 // others : left aligned
                 if (thetext.startsWith("/me")) {
                     emoting = true;
-                    thetext = "*" + username + " " + thetext.replace("/me","") + "*";
+                    thetext = "*" + (textchatShowNames ? username : "") + " " + thetext.replace("/me","") + "*";
                 } else {
-                    thetext = username + ": " + thetext;
+                    thetext = (textchatShowNames ? username : "") + ((textchatShowNames || textchatShowAvatar) ? ": " : "") + thetext;
                 }
                 return (
                     <div className="flex w-full justify-between bg-gray-700 text-white" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
+                        {textchatShowAvatar && (
                         <img className="flex w-6 h-6 human-radius" src={useravatar} />
+                        )}
                         <div className="flex-grow text-sm break-words ml-1" 
                              style={{color: emoting ? 'rgb(59 130 246)' : 'rgb(255 255 255)'}}
                              dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext) }} />
@@ -252,14 +256,16 @@ export default function RoomChat({
                 // me : avatar on right side
                 if (thetext.startsWith("/me")) {
                     emoting = true;
-                    thetext = "*" + username + " " + thetext.replace("/me","") + "*";
+                    thetext = "*" + (textchatShowNames ? username : "") + " " + thetext.replace("/me","") + "*";
                 }
                 return (
                     <div className="flex w-full justify-between bg-gray-700 text-white" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
                         <div className="flex-grow text-sm text-right break-words mr-1" 
                              style={{color: emoting ? 'rgb(59 130 246)' : 'rgb(255 255 255)'}}
                              dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext) }} />
+                        {textchatShowAvatar && (
                         <img className="flex w-6 h-6 human-radius" src={useravatar} />
+                        )}
                     </div>
                 );                
             }

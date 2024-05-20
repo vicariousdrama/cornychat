@@ -85,6 +85,12 @@ export default function EditIdentity({close}) {
   let handleTextchatLayoutChange = e => {
     setTextchatLayout(e.target.value);
   };
+  let [textchatShowAvatars, setTextchatShowAvatars] = useState(
+    localStorage.getItem('textchat.showAvatars') ?? 'true'
+  );
+  let [textchatShowNames, setTextchatShowNames] = useState(
+    localStorage.getItem('textchat.showNames') ?? 'true'
+  )
   let [nwcWSPubkey, setNWCWSPubkey] = useState(
     localStorage.getItem('nwc.pubkey') ?? ''
   );
@@ -304,6 +310,8 @@ export default function EditIdentity({close}) {
     localStorage.setItem('onlyZapsEnabled',onlyZapsEnabled);
     localStorage.setItem('doorbellEnabled',doorbellEnabled);
     localStorage.setItem('textchat.layout',textchatLayout);
+    localStorage.setItem('textchat.showNames',textchatShowNames);
+    localStorage.setItem('textchat.showAvatars',textchatShowAvatars);
     localStorage.setItem('nwc.pubkey', nwcWSPubkey);
     localStorage.setItem('nwc.relay', nwcRelay);
     localStorage.setItem('nwc.secret', nwcSecret);
@@ -691,6 +699,32 @@ export default function EditIdentity({close}) {
             </div>
             <div className="p-2 text-gray-200 italic">
               Choose versus for messaging style left/right alignment. Or All left for traditional chat.
+            </div>
+          </div>
+          <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
+            <div className="p-2 text-gray-200 bold">
+              <input
+                className="rounded placeholder-black bg-gray-400 text-black w-8"
+                type="checkbox"
+                checked={textchatShowAvatars == 'true' ? true : false}
+                onChange={e => {
+                  setTextchatShowAvatars(e.target.checked ? 'true' : 'false');
+                }}
+              />
+              Show User Avatars in Text Chat
+            </div>
+          </div>
+          <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
+            <div className="p-2 text-gray-200 bold">
+              <input
+                className="rounded placeholder-black bg-gray-400 text-black w-8"
+                type="checkbox"
+                checked={textchatShowNames == 'true' ? true : false}
+                onChange={e => {
+                  setTextchatShowNames(e.target.checked ? 'true' : 'false');
+                }}
+              />
+              Show User Names in Text Chat
             </div>
           </div>
         </div>
