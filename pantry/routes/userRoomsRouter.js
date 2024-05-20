@@ -33,25 +33,37 @@ router.get('', async function (req, res) {
             let roomId = roomkey.split('/')[1];
             let n = roominfo.name ?? '';
             let isSpeaker = false;
-            if (roominfo.speakers != undefined) {
-                isSpeaker = roominfo.speakers.includes(userid);
-                if (!isSpeaker && usernpub.length > 0) {
-                    isSpeaker = roominfo.speakers.includes(usernpub);
+            try {
+                if (roominfo.speakers != undefined) {
+                    isSpeaker = roominfo.speakers.includes(userid);
+                    if (!isSpeaker && usernpub.length > 0) {
+                        isSpeaker = roominfo.speakers.includes(usernpub);
+                    }
                 }
+            } catch (error) {
+                console.log(`Error reading speakers in room ${roomId}`);
             }
             let isModerator = false;
-            if (roominfo.moderators != undefined) {
-                isModerator = roominfo.moderators.includes(userid);
-                if (!isModerator && usernpub.length > 0) {
-                    isModerator = roominfo.moderators.includes(usernpub);
+            try {
+                if (roominfo.moderators != undefined) {
+                    isModerator = roominfo.moderators.includes(userid);
+                    if (!isModerator && usernpub.length > 0) {
+                        isModerator = roominfo.moderators.includes(usernpub);
+                    }
                 }
+            } catch (error) {
+                console.log(`Error reading moderators in room ${roomId}`);
             }
             let isOwner = false;
-            if (roominfo.owners != undefined) {
-                isOwner = roominfo.owners.includes(userid);
-                if (!isOwner && usernpub.length > 0) {
-                    isOwner = roominfo.owners.includes(usernpub);
+            try {
+                if (roominfo.owners != undefined) {
+                    isOwner = roominfo.owners.includes(userid);
+                    if (!isOwner && usernpub.length > 0) {
+                        isOwner = roominfo.owners.includes(usernpub);
+                    }
                 }
+            } catch (error) {
+                console.log(`Error reading owners in room ${roomId}`);
             }
             if (isSpeaker || isOwner || isModerator) {
                 userrooms.push({roomId:roomId,name:n,isOwner:isOwner,isSpeaker:isSpeaker,isModerator:isModerator});
