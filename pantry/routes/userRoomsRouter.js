@@ -32,12 +32,27 @@ router.get('', async function (req, res) {
             let roominfo = await get(roomkey);
             let roomId = roomkey.split('/')[1];
             let n = roominfo.name ?? '';
-            let isSpeaker = (roominfo.speakers ?? []).includes(userid);
-            let isOwner = (roominfo.owners ?? []).includes(userid);
-            let isModerator = (roominfo.moderators ?? []).includes(userid);
-            if (!isSpeaker) isSpeaker = (roominfo.speakers ?? []).includes(usernpub);
-            if (!isOwner) isOwner = (roominfo.owners ?? []).includes(usernpub);
-            if (!isModerator) isModerator = (roominfo.moderators ?? []).includes(usernpub);
+            let isSpeaker = false;
+            if (roominfo.speakers != undefined) {
+                isSpeaker = roominfo.speakers.includes(userid);
+                if (!isSpeaker && usernpub.length > 0) {
+                    isSpeaker = roominfo.speakers.includes(usernpub);
+                }
+            }
+            let isModerator = false;
+            if (roominfo.moderators != undefined) {
+                isModerator = roominfo.moderators.includes(userid);
+                if (!isModerator && usernpub.length > 0) {
+                    isModerator = roominfo.moderators.includes(usernpub);
+                }
+            }
+            let isOwner = false;
+            if (roominfo.owners != undefined) {
+                isOwner = roominfo.owners.includes(userid);
+                if (!isOwner && usernpub.length > 0) {
+                    isOwner = roominfo.owners.includes(usernpub);
+                }
+            }
             if (isSpeaker || isOwner || isModerator) {
                 userrooms.push({roomId:roomId,name:n,isOwner:isOwner,isSpeaker:isSpeaker,isModerator:isModerator});
                 frcount += 1;
