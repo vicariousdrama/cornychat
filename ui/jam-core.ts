@@ -16,17 +16,18 @@ import {
   ActionType,
 } from './jam-core/state';
 import {
-  addSpeaker,
   addModerator,
+  addNostrPrivateKey,
   addOwner,
   addPresenter,
-  addNostrPrivateKey,
-  signEvent,
-  removeSpeaker,
+  addSpeaker,
   removeModerator,
   removeOwner,
   removePresenter,
+  removeSelfFromRoom,
+  removeSpeaker,
   setCurrentSlide,
+  signEvent,
 } from './jam-core/room';
 import {staticConfig} from './jam-core/config';
 import {
@@ -40,6 +41,7 @@ import {
   getScheduledEvents,
   getStaticRoomsList,
   getStaticEventsList,
+  getMyRoomList,
 } from './jam-core/backend';
 import {addAdmin, removeAdmin} from './jam-core/admin';
 import AppState from './jam-core/AppState';
@@ -125,6 +127,8 @@ function createApi<T extends StateType>(
       removePresenter(state, roomId, peerId) as Promise<boolean>,
     removeSpeaker: (roomId: string, peerId: string) =>
       removeSpeaker(state, roomId, peerId) as Promise<boolean>,
+    removeSelfFromRoom: (roomId: string, userId: string) =>
+      removeSelfFromRoom(state, roomId, userId) as Promise<boolean>,
 
     updateInfo: (info: IdentityInfo) => updateInfo(state, info),
     // completely replaces the room, rejects if moderator/speaker array is not set
@@ -134,6 +138,7 @@ function createApi<T extends StateType>(
 
     listRooms: () => getRoomList(),
     listScheduledEvents: () => getScheduledEvents(),
+    listMyRooms: (userId: string) => getMyRoomList(userId),
     listStaticRooms: () => getStaticRoomsList(),
     listStaticEvents: () => getStaticEventsList(),
     enterRoom: (roomId: string) => dispatch(actions.JOIN, roomId),
