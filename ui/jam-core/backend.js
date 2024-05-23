@@ -22,6 +22,7 @@ export {
   getScheduledEvents,
   getStaticRoomsList,
   getStaticEventsList,
+  getMyRoomList,
 };
 
 let API = `${staticConfig.urls.pantry}/api/v1`;
@@ -233,4 +234,8 @@ async function getStaticRoomsList() {
 
 async function getStaticEventsList() {
   return await get(`/staticevents/`);
+}
+
+async function getMyRoomList(userId) {
+  return await get(`/userrooms/${userId}/`);
 }

@@ -75,6 +75,6 @@ if(adEnabled) {
   app.use('/api/v1/cimg/:roomId/:adId', chatAdRouter);
 }
 app.use('/api/v1/adr/:year/:month', adReportRouter);
-app.use('/api/v1/userrooms/:id', userRoomRouter);
+app.use('/api/v1/userrooms/', userRoomRouter);
 
 module.exports = app;

@@ -1,4 +1,4 @@
-import {put, post, signNostrEvent, apiUrl} from './backend';
+import {put, post, signNostrEvent, apiUrl, deleteRequest} from './backend';
 import {staticConfig} from './config';
 import {use} from '../lib/state-tree';
 import GetRequest, {getCache} from '../lib/GetRequest';
@@ -16,6 +16,7 @@ export {
   setCurrentSlide,
   addOwner,
   removeOwner,
+  removeSelfFromRoom,
 };
 export {addSpeaker, removeSpeaker} from './room/Speakers';
 export {addPresenter, removePresenter} from './room/Presenters';
@@ -199,6 +200,12 @@ async function removeOwner(state, roomId, peerId) {
     console.log(`removeOwner .. ${peerId} was not present`);
     return true;
   }
+}
+
+async function removeSelfFromRoom(state, roomId, userId) {
+  const path = `/userrooms/${userId}/${roomId}`;
+  console.log(`calling deleteRequest for ${path}`);
+  return await deleteRequest(state, path, {});
 }
 
 async function addNostrPrivateKey(state, roomId, payload) {

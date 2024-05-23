@@ -1,21 +1,25 @@
 import React, {useState, useEffect} from 'react';
 import {navigate} from '../lib/use-location';
-import {useJam} from '../jam-core-react';
+import {useJam,useJamState} from '../jam-core-react';
 import {colors, isDark} from '../lib/theme';
 import * as bip39 from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english';
 import StartRoomSimple from './StartRoomSimple';
 import StartScheduledEvent from './StartScheduledEvent';
+import StartMyRoomSimple from './StartMyRoomSimple';
 
 export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
   const [loadingRooms, setLoadingRooms] = useState(false);
   const [roomList, setRoomList] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [eventList, setEventList] = useState([]);
-  const [{room}, {enterRoom, setProps, createRoom, listRooms, listScheduledEvents}] = useJam();
+  const [loadingMyRooms, setLoadingMyRooms] = useState(false);
+  const [myRoomList, setMyRoomList] = useState([]);
+  const [{room}, {enterRoom, setProps, createRoom, listRooms, listScheduledEvents, listMyRooms}] = useJam();
+  const [viewMode, setViewMode] = useState('liverooms');
   let {stageOnly = false, videoEnabled = false} = newRoom;
   const mainroomonly = [{"roomId":"mainchat","name":"Main Chat","description":"","logoURI":"","userCount":"0","userInfo":[]}];
-
+  let myId = useJamState('myId');
   useEffect(() => {
     const loadRooms = async () => {
       setLoadingRooms(true);
@@ -23,20 +27,40 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
       if (roomlist[0].length > 0) {
         setRoomList(roomlist[0]);
       } else {
-        setRoomList(); //mainroomonly);
+        setRoomList([]); //mainroomonly);
       }
       setLoadingRooms(false);
       console.log(roomlist);
     };
+    loadRooms();
     const loadEvents = async () => {
       setLoadingEvents(true);
       let eventlist = await(listScheduledEvents());
-      setEventList(eventlist[0]);
+      if (eventlist[0].length > 0) {
+        setEventList(eventlist[0]);
+      } else {
+        setEventList([]);
+      }
       setLoadingEvents(false);
       console.log(eventlist);
     };
-    loadRooms();
-    loadEvents();
+    loadEvents();  
+    const loadMyRooms = async () => {
+      setLoadingMyRooms(true);
+      console.log(myId)
+      let myroomlist = await(listMyRooms(myId));
+      console.log(myroomlist);
+      if (myroomlist.length > 0) {
+        setMyRoomList(myroomlist[0]);
+      } else {
+        setMyRoomList([]);
+      }
+      setLoadingMyRooms(false);
+    };
+    loadMyRooms();
+    if ((roomList.length == 0) && (myRoomList.length != 0)) {
+      setViewMode("myrooms");
+    }
   }, []);
 
   let submit = e => {
@@ -114,22 +138,75 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
           <a className={'hidden'} href="me">identity</a>
         </div>
 
-        { loadingRooms ? (<h4 style={{align: 'center'}}>Loading...</h4>) : (
-        <>
-          { roomList?.length > 0 && (
+        <div className="flex flex-wrap justify-center">
+          <div className="cursor-pointer text-white mt-2 mb-2" style={{border:'1px solid rgb(1,111,210)', width: '100px', backgroundColor: (viewMode == 'liverooms' ? 'rgb(1,111,210)' : roomColors.background)}}
+            onClick={async (e) => {
+              e.stopPropagation();
+              setViewMode('liverooms');
+            }}          
+          >Live Rooms</div>
+          <div className="cursor-pointer text-white m-2" style={{border:'1px solid rgb(110,47,210)', width: '100px', backgroundColor: (viewMode == 'myrooms' ? 'rgb(110,47,218)' : roomColors.background)}}
+            onClick={async (e) => {
+              e.stopPropagation();
+              setViewMode('myrooms');
+            }}
+          >My Rooms</div>
+          <div className="cursor-pointer text-white mt-2 mb-2" style={{border:'1px solid rgb(7,74,40)', width: '100px', backgroundColor: (viewMode == 'scheduled' ? 'rgb(7,74,40)' : roomColors.background)}}
+            onClick={async (e) => {
+              e.stopPropagation();
+              setViewMode('scheduled');
+            }}          
+          >Scheduled</div>
+        </div>
         <div style={{align: 'center'}}>
           <div style={{display:'block',color:`rgb(244,244,244)`}}>
-            <h1>Live Rooms</h1>
+            { viewMode == 'liverooms' && (
+              <>
+              {roomList.length == 0 && (
+                <>
+                <h1>No Live Rooms.</h1>
+                <p>Do you want to start one?</p>
+                </>
+              )}
+              {roomList.length > 0 && (
+                roomList.map((roomInfo) => {
+                  return <StartRoomSimple roomInfo={roomInfo} key={roomInfo.roomId} />
+                })
+              )}
+              </>
+            )}
+            { viewMode == 'myrooms' && (
+              <>
+              {myRoomList.length == 0 && (
+                <>
+                <h1>No room associations</h1>
+                <p>No rooms were found where you are an owner, moderator or speaker for this device</p>
+                </>
+              )}
+              {myRoomList.length > 0 && (
+                myRoomList.map((myRoomInfo) => {
+                  return <StartMyRoomSimple roomInfo={myRoomInfo} key={myRoomInfo.roomId} myId={myId} />
+                })
+              )}
+              </>
+            )}
+            { viewMode == 'scheduled' && (
+              <>
+              {eventList.length == 0 && (
+                <>
+                <h1>No scheduled events</h1>
+                <p>No scheduled events were found at this time.  You can schedule an event for the future by creating a room and accessing room settings.</p>
+                </>
+              )}
+              {eventList.length > 0 && (
+                eventList.map((eventInfo) => {
+                  return <StartScheduledEvent eventInfo={eventInfo} key={eventInfo.location} />
+                })
+              )}
+              </>
+            )}
           </div>
-          {
-            roomList?.map((roomInfo) => {
-              return <StartRoomSimple roomInfo={roomInfo} key={roomInfo.roomId} />
-            })
-          }
         </div>
-        )}
-        </>
-        )}
 
         <button
           onClick={submit}
@@ -143,20 +220,6 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
         >
           Start a new room
         </button>
-
-        { eventList?.length > 0 && (
-        <div style={{align: 'center'}}>
-        <div style={{display:'block',color:`rgb(244,244,244)`}}>
-        <h1>Scheduled Events</h1>
-        </div>
-        <div className="flex flex-wrap justify-center">
-        { loadingEvents ? (<h4>Loading...</h4>) : (eventList?.map((eventInfo) => {
-          return <StartScheduledEvent eventInfo={eventInfo} key={eventInfo.location} />
-          }))
-        }
-        </div>
-        </div>
-        )}
 
       </div>
     </div>
