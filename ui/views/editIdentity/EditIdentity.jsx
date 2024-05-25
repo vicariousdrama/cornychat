@@ -9,7 +9,6 @@ import {isDark, colors} from '../../lib/theme.js';
 import {avatarUrl, displayName} from '../../lib/avatar.js';
 import EmojiPicker from 'emoji-picker-react';
 import {doorbellsounds} from '../../lib/doorbell.js';
-import { webln } from "@getalby/sdk";
 import crypto from 'crypto-js';
 
 function addNostr(identities, nostrNpub, nostrNoteId, nostrEvent) {

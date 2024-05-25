@@ -23,6 +23,8 @@ export default function DataTypes() {
       <li><a href="#kind5eventdeletion">Kind 5 - Event Deletions</a></li>
       <li><a href="#kind9734zaprequest">Kind 9734 - Zap Request</a></li>
       <li><a href="#kind10002relaylist">Kind 10002 - Relay List Metadata</a></li>
+      <li><a href="#kind23194nip47request">Kind 23194 - Nostr Wallet Connect Request</a></li>
+      <li><a href="#kind23195nip47response">Kind 23195 - Nostr Wallet Connect Response</a></li>
       <li><a href="#kind30311liveactivities">Kind 30311 - Live Activities</a></li>
       <li><a href="#kind30382relationships">Kind 30382 - Relationships</a></li>
       <li><a href="#kind30388slideset">Kind 30388 - Slide Set</a></li>
@@ -152,6 +154,19 @@ export default function DataTypes() {
         is cached in an effort to avoid constantly making the same queries too frequently.  This follows the guidance
         outlined in <a href="https://github.com/nostr-protocol/nips/blob/master/65.md">NIP-65</a> and described 
         elsewhere as the inbox / outbox model.
+      </p>
+
+      <a name="kind23194nip47request"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 23194 - Nostr Wallet Connect Request</h2>
+      <p>
+        When setting up a zap request, if nostr wallet connect is enabled in the user's personal settings, then a
+        request to pay an invoice will be made using the connection url. This follows the guidance outlined in
+        <a href="https://github.com/nostr-protocol/nips/blob/master/47.md">NIP-47</a> using the getalby sdk.
+      </p>
+
+      <a name="kind23195nip47response"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 23195 - Nostr Wallet Connect Response</h2>
+      <p>
+        If nostr wallet connect is enabled and a payment request is made, then the response is processed following
+        the guidance outlined in <a href="https://github.com/nostr-protocol/nips/blob/master/47.md">NIP-47</a> using the getalby sdk.
       </p>
 
       <a name="kind30311liveactivities"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 30311 - Live Activities</h2>
