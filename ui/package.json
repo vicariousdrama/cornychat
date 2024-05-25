@@ -38,6 +38,7 @@
   "dependencies": {
     "@coreui/coreui": "^4.3.2",
     "@coreui/react": "^4.11.1",
+    "@getalby/sdk": "^3.5.1",
     "@vvo/tzdb": "^6.5.1",
     "bech32": "^2.0.0",
     "buffer": "^6.0.3",

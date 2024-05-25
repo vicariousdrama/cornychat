@@ -4,6 +4,8 @@ import {Modal} from './Modal';
 import {useJam} from '../jam-core-react';
 import {colors, isDark} from '../lib/theme';
 import {sendZaps, openLNExtension} from '../nostr/nostr';
+import { webln } from "@getalby/sdk";
+import crypto from 'crypto-js';
 
 const DisplayInvoice = ({invoice, shortInvoice, room}) => {
   const [wasCopied, setWasCopied] = useState(false);
@@ -40,7 +42,7 @@ const DisplayInvoice = ({invoice, shortInvoice, room}) => {
 };
 
 export const InvoiceModal = ({info, room, close}) => {
-  const [comment, setComment] = useState('');
+  const [comment, setComment] = useState('Zapping from Corny Chat!');
   const [amount, setAmount] = useState(localStorage.getItem('defaultZap'));
   const [state, {signEvent}] = useJam();
   const [displayInvoice, setDisplayInvoice] = useState(false);
@@ -62,16 +64,57 @@ export const InvoiceModal = ({info, room, close}) => {
     ? roomColors.text.light
     : roomColors.text.dark;
 
+  function loadNWCUrl() {
+    const myEncryptionKey = JSON.parse(localStorage.getItem('identities'))._default.secretKey;
+    
+    // Use connection string given
+    if ((localStorage.getItem('nwc.connectUrl') ?? '').length > 0) {
+      let nwcConnectURL = crypto.AES.decrypt((localStorage.getItem('nwc.connectUrl') ?? ''), myEncryptionKey ).toString(crypto.enc.Utf8);
+      if (nwcConnectURL != undefined) {
+        return nwcConnectURL;
+      }
+    }
+    // Try to build from parts
+    let nwcWSPubkey = localStorage.getItem('nwc.pubkey');
+    let nwcRelay = localStorage.getItem('nwc.relay');
+    let nwcSecret = undefined;
+    if ((localStorage.getItem('nwc.secret') ?? '').length > 0) {
+      nwcSecret = crypto.AES.decrypt((localStorage.getItem('nwc.secret') ?? ''), myEncryptionKey ).toString(crypto.enc.Utf8);
+    } 
+    //let nwcSecret = localStorage.getItem('nwc.secret');
+    if (!nwcWSPubkey || !nwcRelay || !nwcSecret) {
+      return undefined;
+    }
+    return `nostr+walletconnect:${nwcWSPubkey}?relay=${nwcRelay}&secret=${nwcSecret}`;   
+  }
+
   async function handleResult(result) {
     const ok = result[0];
-    const msgValue = result[1];
+    const msgValue = result[1]; // error message if ok != true. Else its a payment request
     if (ok) {
+      const paymentRequest = msgValue;
+      // attempt using nwc config
+      if(localStorage.getItem("nwc.enabled")) {
+        let nwcUrl = loadNWCUrl();
+        if (nwcUrl != undefined) {
+          const nwc = new webln.NostrWebLNProvider({nostrWalletConnectUrl: nwcUrl});
+          await nwc.enable();
+          const nwcResponse = await nwc.sendPayment(paymentRequest);
+          if (nwcResponse?.preimage) {
+            close();
+            return;
+          } else {
+            alert('Nostr Wallet Connect payment did not return preimage.');
+          }
+        }
+      }
+      // still here? try using browser extension
       const response = await openLNExtension(msgValue);
-
       if (response?.preimage) {
         close();
         return;
       }
+      // still here? show invoice and expect them to pay externally
       setDisplayInvoice(true);
       setInvoice(msgValue);
     } else {
@@ -87,8 +130,6 @@ export const InvoiceModal = ({info, room, close}) => {
     const defaultZap = localStorage.getItem('defaultZap');
     if (!defaultZap) {
       setAmount(1);
-//      setDisplayError(true);
-//      setErrorMsg('You have not set up a default zap amount');
     } else {
       setAmount(defaultZap);
     }
@@ -223,7 +264,7 @@ export const InvoiceModal = ({info, room, close}) => {
               await handleResult(result);
             }}
           >
-            {isLoading ? <LoadingIcon /> : 'Create Invoice'}
+            {isLoading ? <LoadingIcon /> : (localStorage.getItem("nwc.enabled") ? 'Pay with Nostr Wallet Connect' : 'Create Invoice')}
           </button>
 
           <div className="mt-5">
