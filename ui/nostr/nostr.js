@@ -353,18 +353,23 @@ export async function sendZaps(npubToZap, comment, amount, state, signEvent) {
     }
     satsAmount = satsAmount * 1000;
 
-    // Get metadata to lookup lightning address for users npub
     const pubkeyToZap = nip19.decode(npubToZap).data;
     const id = null;
-    const metadata = await getUserMetadata(pubkeyToZap, id);
-    if (!metadata) {
-      throw new Error('Relays did not find any kind 0 event for this npub.');
-    }
 
     // Determine lightning address to use
     let lightningAddress = null;
-    if (metadata.lud06 !== '') lightningAddress = metadata.lud06;
-    if (metadata.lud16 !== '') lightningAddress = metadata.lud16;
+    const cachedUserMetadata = JSON.parse(sessionStorage.getItem(npubToZap));
+    if (cachedUserMetadata?.lightningAddress) {
+      lightningAddress = cachedUserMetadata.lightningAddress;
+    } else {
+      // Get metadata to lookup lightning address for users npub
+      const metadata = await getUserMetadata(pubkeyToZap, id);
+      if (!metadata) {
+        throw new Error('Unable to get metadata from relays for this user to identify lightning address.');
+      }
+      if (metadata.lud06 !== '') lightningAddress = metadata.lud06;
+      if (metadata.lud16 !== '') lightningAddress = metadata.lud16;  
+    }
 
     if (!lightningAddress) {
       throw new Error('Lightning address not found for this npub.');

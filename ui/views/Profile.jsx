@@ -232,7 +232,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
         if (myFollowListExpired || !wasMetadataFetched){
           myFollowList = await loadFollowList();
           if (myFollowList) {
-            sessionStorage.setItem('myFollowListRetrieved', Math.floor(Date.now() / 1000));
+            sessionStorage.setItem('myFollowList.retrievedTime', Math.floor(Date.now() / 1000));
             sessionStorage.setItem('myFollowList', JSON.stringify(myFollowList));
           }
         } else {
@@ -425,6 +425,20 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
         <div>
           <p className="text-xl mr-1 font-semibold text-gray-200">Actions:</p>
           <div className="flex flex-wrap items-center my-2">
+
+          {isSameId ? (
+              <button
+                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
+                style={{backgroundColor: 'rgb(21,21,210)', color: 'rgb(255,255,255)'}}
+                onClick={() => {
+                  close();
+                  openModal(EditIdentity);
+                }}
+              >
+                Edit your personal settings
+              </button>
+            ) : null}
+
             {myAdminStatus?.admin && (
               <div>
                 {(peerAdminStatus?.admin && (
@@ -456,7 +470,6 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
                 )}
               </div>
             )}
-
 
             {!isOwner && (iOwn || myAdminStatus?.admin) && (
               <button
@@ -557,19 +570,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
               </div>
             )}
 
-            {isSameId ? (
-              <button
-                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
-                onClick={() => {
-                  close();
-                  openModal(EditIdentity);
-                }}
-              >
-                Edit your personal settings
-              </button>
-            ) : null}
-
-            {hasNostrIdentity ? (
+            {(hasNostrIdentity && lnAddress != '') ? (
               <button
                 className="rounded-lg bg-yellow-200 px-3 py-2 mx-1 my-1 text-xs"
                 onClick={() => {
