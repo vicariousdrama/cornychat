@@ -385,7 +385,7 @@ export async function sendZaps(npubToZap, comment, amount, state, signEvent) {
     );
 
     if (!signedEvent[0]) {
-      if(window.DEBUG) console.log("about to call getLNInvoice");
+      if(window.DEBUG) console.log("about to call getLNInvoice as direct lightning");
       const lnInvoice = await getLNInvoice(
         null,
         lightningAddress,
@@ -396,7 +396,7 @@ export async function sendZaps(npubToZap, comment, amount, state, signEvent) {
       return [true, lnInvoice.pr];
     }
 
-    if(window.DEBUG) console.log("about to call getLNInvoice");
+    if(window.DEBUG) console.log("about to call getLNInvoice for zap");
     const lnInvoice = await getLNInvoice(
       signedEvent[1],
       lightningAddress,

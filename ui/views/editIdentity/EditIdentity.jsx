@@ -9,6 +9,8 @@ import {isDark, colors} from '../../lib/theme.js';
 import {avatarUrl, displayName} from '../../lib/avatar.js';
 import EmojiPicker from 'emoji-picker-react';
 import {doorbellsounds} from '../../lib/doorbell.js';
+import { webln } from "@getalby/sdk";
+import crypto from 'crypto-js';
 
 function addNostr(identities, nostrNpub, nostrNoteId, nostrEvent) {
   if (!nostrNpub) return;
@@ -54,7 +56,7 @@ export default function EditIdentity({close}) {
     let userAvatar = avatarUrl(myIdentity.info, room);
     avatar = userAvatar;
   }
-
+  const myEncryptionKey = JSON.parse(localStorage.getItem('identities'))._default.secretKey;
   const [showErrorMsg, setErrorMsg] = useState(false);
   const [showNostrVerify, setShowNostrVerify] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -90,7 +92,10 @@ export default function EditIdentity({close}) {
   );
   let [textchatShowNames, setTextchatShowNames] = useState(
     localStorage.getItem('textchat.showNames') ?? 'true'
-  )
+  );
+  let [nwcEnabled, setNWCEnabled] = useState(    
+    localStorage.getItem('nwc.enabled') ?? 'false'
+  );
   let [nwcWSPubkey, setNWCWSPubkey] = useState(
     localStorage.getItem('nwc.pubkey') ?? ''
   );
@@ -98,7 +103,14 @@ export default function EditIdentity({close}) {
     localStorage.getItem('nwc.relay') ?? ''
   );
   let [nwcSecret, setNWCSecret] = useState(
-    localStorage.getItem('nwc.secret') ?? ''
+    (localStorage.getItem('nwc.secret') ?? '').length > 0 ? 
+    crypto.AES.decrypt((localStorage.getItem('nwc.secret') ?? ''), myEncryptionKey ).toString(crypto.enc.Utf8) : ''
+    //localStorage.getItem('nwc.secret') ?? ''
+  );
+  let [nwcConnectURL, setNWCConnectURL] = useState(
+    (localStorage.getItem('nwc.connectUrl') ?? '').length > 0 ?
+    crypto.AES.decrypt((localStorage.getItem('nwc.connectUrl') ?? ''), myEncryptionKey ).toString(crypto.enc.Utf8) : ''
+    //localStorage.getItem('nwc.connectUrl') ?? ''
   );
 
   let userType = (nostrIdentity == undefined ? 'anon' : 'nostr');
@@ -312,9 +324,13 @@ export default function EditIdentity({close}) {
     localStorage.setItem('textchat.layout',textchatLayout);
     localStorage.setItem('textchat.showNames',textchatShowNames);
     localStorage.setItem('textchat.showAvatars',textchatShowAvatars);
+    localStorage.setItem('nwc.enabled', nwcEnabled);
     localStorage.setItem('nwc.pubkey', nwcWSPubkey);
     localStorage.setItem('nwc.relay', nwcRelay);
-    localStorage.setItem('nwc.secret', nwcSecret);
+    localStorage.setItem('nwc.secret', crypto.AES.encrypt(nwcSecret, myEncryptionKey).toString());
+    //localStorage.setItem('nwc.secret', nwcSecret);
+    localStorage.setItem('nwc.connectUrl', crypto.AES.encrypt(nwcConnectURL, myEncryptionKey).toString());
+    //localStorage.setItem('nwc.connectUrl', nwcConnectURL);
 
     if (verifyingNpub) {
       let identities = [];
@@ -771,13 +787,56 @@ export default function EditIdentity({close}) {
             </div>
           </div>
 
-          <div className="p-4 py-2 bg-gray-700  rounded-lg my-3 hidden">
+          <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
             <div className="p-2 text-gray-200 bold">
               Nostr Wallet Connect Settings
             </div>
             <div className="p-2 text-gray-200 italic">
-              These are optional settings to facilitate integrated zapping
+              **BETA** These are optional settings to facilitate integrated zapping
             </div>
+            <div className="p-2 text-gray-200 bold">
+            <input
+              className="rounded placeholder-black bg-gray-400 text-black w-8"
+              type="checkbox"
+              checked={nwcEnabled == 'true' ? true : false}
+              onChange={e => {
+                setNWCEnabled(e.target.checked ? 'true' : 'false');
+              }}
+            />
+              Enable Nostr Wallet Connect
+            </div>
+            {nwcEnabled == 'true' && (
+              <>
+            <div className="p-2 text-gray-200">
+              Full Connection String
+            </div>
+            <input
+              className="rounded placeholder-black bg-gray-50 w-full"
+              type="password"
+              placeholder=""
+              value={nwcConnectURL ?? ''}
+              onChange={e => {
+                const nwc = e.target.value;
+                let a = nwc.replace('nostr+walletconnect://','').replace('http://', '');
+                let relay = undefined;
+                let secret = undefined;
+                let pubkey = a.split("?")[0]; // pubkey
+                let b = (a.split("?")[1]).split("&");
+                for (let c of b) {
+                  let d = c.split("=")[0];
+                  let f = c.split("=")[1];
+                  if (d == 'relay') relay = f;
+                  if (d == 'secret') secret = f;
+                }
+                if (relay != undefined && secret != undefined && pubkey != undefined) {
+                  setNWCWSPubkey(pubkey);
+                  setNWCRelay(relay);
+                  setNWCSecret(secret);
+                }
+                setNWCConnectURL(nwc);
+              }}
+            />
+
             <div className="p-2 text-gray-200">
               Wallet Service Pubkey
             </div>
@@ -814,6 +873,8 @@ export default function EditIdentity({close}) {
                 setNWCSecret(e.target.value);
               }}
             />
+            </>
+          )}
           </div>
 
         </div>
