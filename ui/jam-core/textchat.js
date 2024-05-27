@@ -2,7 +2,7 @@ import {update} from 'minimal-state';
 import {useAction, useOn, useRootState} from '../lib/state-tree';
 import {sendPeerEvent} from '../lib/swarm';
 import {actions} from './state';
-import {shouldShowAd} from '../lib/ad';
+import {time4Ad, value4valueAdSkip} from '../lib/ad';
 
 function TextChat({swarm}) {
   const state = useRootState();
@@ -22,10 +22,12 @@ function TextChat({swarm}) {
   setInterval(() => {
     let textchatAds = localStorage.getItem(`textchat.adsenabled`) ?? true;
     if(textchatAds) {
-      if(shouldShowAd()) {
-        adidx += 1;
-        let adreqdt = Math.floor(Date.now() / 1000);
-        showTextChat(`ad-${adidx}`,`/chatad:${adidx}:${adreqdt}`);
+      if(time4Ad()) {
+        if (!value4valueAdSkip()) {
+          adidx += 1;
+          let adreqdt = Math.floor(Date.now() / 1000);
+          showTextChat(`ad-${adidx}`,`/chatad:${adidx}:${adreqdt}`);
+        }
       }
     }
   }, chatadinterval);

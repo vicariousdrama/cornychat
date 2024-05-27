@@ -78,6 +78,7 @@ services:
       - SERVER_LOGO
       - SERVER_NAME
       - SERVER_OPERATOR
+      - SERVER_PROFILE_LUD16
       - SLACK_CLIENT_ID
       - SLACK_CLIENT_SECRET
       - SLACK_API_URL

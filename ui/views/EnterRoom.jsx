@@ -8,7 +8,7 @@ import {useMqParser, useWidth} from '../lib/tailwind-mqp';
 import {useJam} from '../jam-core-react';
 import {colors, isDark} from '../lib/theme.js';
 import {signInExtension, signInPrivateKey} from '../nostr/nostr';
-import {shouldShowAd} from '../lib/ad';
+import {time4Ad, value4valueAdSkip} from '../lib/ad';
 import EditIdentity from './editIdentity/EditIdentity.jsx';
 
 const iOS =
@@ -60,7 +60,8 @@ export default function EnterRoom({
   let usersAvatarUrl = avatarUrl(myIdentity.info, room);
   let [returnToHomepage, setReturnToHomepage] = useState(true);
   const textColor = isDark(roomColor.buttons.primary) ? roomColor.text.light : roomColor.text.dark;
-  let showAd = shouldShowAd();
+  let showAd = time4Ad();
+  if (showAd) showAd = value4valueAdSkip();
   let [loginEnabled, setLoginEnabled] = useState((!showAd || !jamConfig.handbill));
   let [adImageEnabled, setAdImageEnabled] = useState((showAd && jamConfig.handbill));
   let adimg = `${jamConfig.urls.pantry}/api/v1/aimg/${roomId}`;

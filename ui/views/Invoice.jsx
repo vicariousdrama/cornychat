@@ -3,9 +3,9 @@ import {QRCodeSVG} from 'qrcode.react';
 import {Modal} from './Modal';
 import {useJam} from '../jam-core-react';
 import {colors, isDark} from '../lib/theme';
-import {sendZaps, openLNExtension} from '../nostr/nostr';
+import {getUserMetadata, loadNWCUrl, openLNExtension, sendZaps} from '../nostr/nostr';
 import { webln } from "@getalby/sdk";
-import crypto from 'crypto-js';
+import {nip19} from 'nostr-tools';
 
 const DisplayInvoice = ({invoice, shortInvoice, room}) => {
   const [wasCopied, setWasCopied] = useState(false);
@@ -42,8 +42,8 @@ const DisplayInvoice = ({invoice, shortInvoice, room}) => {
 };
 
 export const InvoiceModal = ({info, room, close}) => {
-  const [comment, setComment] = useState('Zapping from Corny Chat!');
-  const [amount, setAmount] = useState(localStorage.getItem('defaultZap'));
+  const [comment, setComment] = useState(localStorage.getItem('zaps.defaultComment') ?? 'Zapping from Corny Chat!');
+  const [amount, setAmount] = useState(localStorage.getItem('zaps.defaultAmount') ?? (localStorage.getItem('defaultZap') ?? ''));
   const [state, {signEvent}] = useJam();
   const [displayInvoice, setDisplayInvoice] = useState(false);
   const [invoice, setInvoice] = useState('');
@@ -54,6 +54,13 @@ export const InvoiceModal = ({info, room, close}) => {
   const npub = findNpub(info.identities);
   const shortLnInvoice = invoice.substring(0, 17);
 
+  // todo: load user metadata if not found in session, and then store it
+  if(sessionStorage.getItem(npub) == undefined) {
+    let metadata = (async () => {
+      let pubkey = nip19.decode(npub).data;
+      await getUserMetadata(pubkey, null);
+    })();
+  }
   const userMetadata = JSON.parse(sessionStorage.getItem(npub));
   const lightningAddress = userMetadata?.lightningAddress;
 
@@ -64,29 +71,6 @@ export const InvoiceModal = ({info, room, close}) => {
     ? roomColors.text.light
     : roomColors.text.dark;
 
-  function loadNWCUrl() {
-    const myEncryptionKey = JSON.parse(localStorage.getItem('identities'))._default.secretKey;
-    
-    // Use connection string given
-    if ((localStorage.getItem('nwc.connectUrl') ?? '').length > 0) {
-      let nwcConnectURL = crypto.AES.decrypt((localStorage.getItem('nwc.connectUrl') ?? ''), myEncryptionKey ).toString(crypto.enc.Utf8);
-      if (nwcConnectURL != undefined) {
-        return nwcConnectURL;
-      }
-    }
-    // Try to build from parts
-    let nwcWSPubkey = localStorage.getItem('nwc.pubkey');
-    let nwcRelay = localStorage.getItem('nwc.relay');
-    let nwcSecret = undefined;
-    if ((localStorage.getItem('nwc.secret') ?? '').length > 0) {
-      nwcSecret = crypto.AES.decrypt((localStorage.getItem('nwc.secret') ?? ''), myEncryptionKey ).toString(crypto.enc.Utf8);
-    } 
-    //let nwcSecret = localStorage.getItem('nwc.secret');
-    if (!nwcWSPubkey || !nwcRelay || !nwcSecret) {
-      return undefined;
-    }
-    return `nostr+walletconnect:${nwcWSPubkey}?relay=${nwcRelay}&secret=${nwcSecret}`;   
-  }
 
   async function handleResult(result) {
     const ok = result[0];
@@ -95,7 +79,7 @@ export const InvoiceModal = ({info, room, close}) => {
       const paymentRequest = msgValue;
       // attempt using nwc config
       if(localStorage.getItem("nwc.enabled")) {
-        let nwcUrl = loadNWCUrl();
+        let nwcUrl = loadNWCUrl(); // cannot be const, as the webln.NostrWebLNProvider wants to modify values
         if (nwcUrl != undefined) {
           const nwc = new webln.NostrWebLNProvider({nostrWalletConnectUrl: nwcUrl});
           await nwc.enable();
@@ -172,7 +156,7 @@ export const InvoiceModal = ({info, room, close}) => {
         />
       ) : (
         <div className="bg-white p-6 rounded-lg bg-gray-700 text-gray-200">
-          <h2 className="text-2xl font-bold">Send some sats {lightningAddress ? `to ${lightningAddress}` : null } : </h2>
+          <h2 className="text-2xl font-bold">Send some sats {lightningAddress ? `to ${lightningAddress}` : null } </h2>
 
           <div className="flex mb-5 w-full justify-between">
             <div className="mx-2 w-2/4">
