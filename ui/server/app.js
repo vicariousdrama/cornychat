@@ -33,6 +33,7 @@ const jamServerLogo = process.env.SERVER_LOGO || `${urls.jam}/img/cornychat-app-
 const jamServerImage = process.env.SERVER_IMAGE || jamServerLogo;
 const jamServerFavicon = process.env.SERVER_FAVICON || jamServerLogo;
 const jamServerOperator = process.env.SERVER_OPERATOR || 'a Friendly Nostrich';
+const serverLightningAddress = process.env.SERVER_PROFILE_LUD16 || 'wearydoor58@walletofsatoshi.com';
 console.log(`jamServerName: ${jamServerName}`);
 console.log(`jamServerLogo: ${jamServerLogo}`);
 console.log(`jamServerOperator: ${jamServerOperator}`);
@@ -58,6 +59,7 @@ const jamConfig = {
   broadcast: ['true', '1'].includes(process.env.JAM_BROADCAST),
   hideJamInfo: ['true', '1'].includes(process.env.JAM_HIDE_JAM_INFO),
   handbill: ['true', '1'].includes(process.env.ADS),
+  v4vLN: serverLightningAddress,
 };
 console.log(jamConfig);
 app.use('/config.json', (_, res) => {

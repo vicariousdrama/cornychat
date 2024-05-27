@@ -3,7 +3,7 @@ import {Modal} from '../Modal.jsx';
 import {useMqParser} from '../../lib/tailwind-mqp.js';
 import {use} from 'use-minimal-state';
 import {useJam} from '../../jam-core-react.js';
-import {getUserMetadata, getUserEventById, setDefaultZapsAmount} from '../../nostr/nostr.js';
+import {getUserMetadata, getUserEventById} from '../../nostr/nostr.js';
 import {nip19} from 'nostr-tools';
 import {isDark, colors} from '../../lib/theme.js';
 import {avatarUrl, displayName} from '../../lib/avatar.js';
@@ -59,9 +59,12 @@ export default function EditIdentity({close}) {
   const [showErrorMsg, setErrorMsg] = useState(false);
   const [showNostrVerify, setShowNostrVerify] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  let [defaultZap, setDefaultZap] = useState(
-    localStorage.getItem('defaultZap') ?? ''
+  let [defaultZapAmount, setDefaultZapAmount] = useState(
+    localStorage.getItem('zaps.defaultAmount') ?? (localStorage.getItem('defaultZap') ?? '')
   );
+  let [defaultZapComment, setDefaultZapComment] = useState(
+    localStorage.getItem('zaps.defaultComment') ?? 'Zapping from Corny Chat!'
+  )
   let [byeEmoji, setByeEmoji] = useState(
     localStorage.getItem('byeEmoji') ?? 'Goodbye'
   );
@@ -111,6 +114,24 @@ export default function EditIdentity({close}) {
     crypto.AES.decrypt((localStorage.getItem('nwc.connectUrl') ?? ''), myEncryptionKey ).toString(crypto.enc.Utf8) : ''
     //localStorage.getItem('nwc.connectUrl') ?? ''
   );
+
+  let [v4vSkipAdEnabled, setV4vSkipAdEnabled] = useState(
+    localStorage.getItem('v4v2skipad.enabled') ?? 'false'
+  );
+  let [v4vSkipAdAmount, setV4vSkipAdAmount] = useState(
+    localStorage.getItem('v4v2skipad.amount') ?? '10'
+  );
+  let [petnameDecrypt, setPetnameDecrypt] = useState(
+    localStorage.getItem('petnames.decryptwithoutprompt') ?? 'false'
+  );
+  let petnames = [];
+  for (let lsk in localStorage) {
+    if (lsk.endsWith(".petname")) {
+      let v = localStorage.getItem(lsk);
+      let n = lsk.replace('.petname','');
+      petnames.push({npub: n, petname: v});
+    }
+  }
 
   let userType = (nostrIdentity == undefined ? 'anon' : 'nostr');
   if (userType == 'nostr') {
@@ -313,8 +334,9 @@ export default function EditIdentity({close}) {
     //sessionStorage.clear();
     setIsLoading(true);
     // for now, disallow uploading file, so we set as undefined to alter flow
-    const selectedFile = undefined; // document.querySelector('.edit-profile-file-input').files[0];
-    setDefaultZapsAmount(defaultZap);
+    const selectedFile = undefined; // document.querySelector('.edit-profile-file-input').files[0];    
+    localStorage.setItem('zaps.defaultAmount', defaultZapAmount);
+    localStorage.setItem('zaps.defaultComment', defaultZapComment);
     localStorage.setItem('byeEmoji',byeEmoji);
     localStorage.setItem('animationsEnabled',animEnabled);
     localStorage.setItem('ghostsEnabled',ghostsEnabled);
@@ -327,9 +349,10 @@ export default function EditIdentity({close}) {
     localStorage.setItem('nwc.pubkey', nwcWSPubkey);
     localStorage.setItem('nwc.relay', nwcRelay);
     localStorage.setItem('nwc.secret', crypto.AES.encrypt(nwcSecret, myEncryptionKey).toString());
-    //localStorage.setItem('nwc.secret', nwcSecret);
     localStorage.setItem('nwc.connectUrl', crypto.AES.encrypt(nwcConnectURL, myEncryptionKey).toString());
-    //localStorage.setItem('nwc.connectUrl', nwcConnectURL);
+    localStorage.setItem('v4v2skipad.enabled', v4vSkipAdEnabled);
+    localStorage.setItem('v4v2skipad.amount', v4vSkipAdAmount);
+    localStorage.setItem('petnames.decryptwithoutprompt', petnameDecrypt);
 
     if (verifyingNpub) {
       let identities = [];
@@ -376,7 +399,8 @@ export default function EditIdentity({close}) {
 
   let [expandedAnon, setExpandedAnon] = useState(false);
   let [expandedNostr, setExpandedNostr] = useState(false);
-  let [expandedVisuals, setExpandedVisuals] = useState(false);  
+  let [expandedVisuals, setExpandedVisuals] = useState(false);
+  let [expandedPetnames, setExpandedPetnames] = useState(false);  
   let [expandedSound, setExpandedSound] = useState(false);
   let [expandedTextChat, setExpandedTextChat] = useState(false);
   let [expandedZaps, setExpandedZaps] = useState(false);
@@ -400,7 +424,7 @@ export default function EditIdentity({close}) {
             <input
               className="rounded placeholder-black bg-gray-400 text-black w-full"
               type="text"
-              placeholder="Display name"
+              placeholder=""
               value={name ?? ''}
               name="display-name"
               onChange={e => {
@@ -420,7 +444,7 @@ export default function EditIdentity({close}) {
             <input
               className="rounded placeholder-black bg-gray-400 text-black w-full"
               type="text"
-              placeholder="Avatar Url"
+              placeholder=""
               value={avatar ?? ''}
               name="avatar-url"
               onChange={e => {
@@ -471,7 +495,7 @@ export default function EditIdentity({close}) {
             <input
               className="rounded placeholder-black bg-gray-400 text-black w-full"
               type="text"
-              placeholder="npub1234"
+              placeholder=""
               value={nostrNpub ?? ''}
               name="NostrNpub"
               style={{fontSize: '.75em'}}
@@ -488,7 +512,7 @@ export default function EditIdentity({close}) {
               className="mt-2 rounded placeholder-black bg-gray-400 text-black w-full"
               type="text"
               style={{fontSize: '.75em'}}
-              placeholder="ID"
+              placeholder=""
               name="CornyChatJAMID"
               value={id ?? ''}
               onClick={async () => copyIdToClipboard()}
@@ -501,7 +525,7 @@ export default function EditIdentity({close}) {
               className="mt-2 rounded placeholder-black bg-gray-400 text-black w-full"
               type="text"
               style={{fontSize: '.75em'}}
-              placeholder="Nostr note ID"
+              placeholder=""
               name="NostrNoteID"
               value={nostrNoteId ?? ''}
               onChange={e => {
@@ -606,7 +630,7 @@ export default function EditIdentity({close}) {
             <input
               className="rounded placeholder-black bg-gray-400 text-black w-full"
               type="text"
-              placeholder="Goodbye"
+              placeholder=""
               value={byeEmoji ?? ''}
               onChange={e => {
                 setByeEmoji(e.target.value);
@@ -654,6 +678,68 @@ export default function EditIdentity({close}) {
               <span className="text-gray-300"> (optional)</span>
             </div>
           </div>
+
+          <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
+            <div className="p-2 text-gray-200 bold">
+            <input
+              className="rounded placeholder-black bg-gray-400 text-black w-8"
+              type="checkbox"
+              checked={onlyZapsEnabled == 'true' ? true : false}
+              onChange={e => {
+                setOnlyZapsEnabled(e.target.checked ? 'true' : 'false');
+              }}
+            />
+              Enable Only Zaps Mode
+            </div>
+            <div className="p-2 text-gray-200 italic">
+              When enabled, you'll only send the lightning bolt emoji as reactions from the nav menu, and most of your static stickies will appear as the poo emoji
+              <span className="text-gray-300"> (optional)</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div>
+        <p className="text-lg font-medium text-gray-200 cursor-pointer" onClick={() => setExpandedPetnames(!expandedPetnames)}>
+          {expandedPetnames ? '🔽' : '▶️'} Petnames
+        </p>
+        <div className={expandedPetnames ? 'p-4 py-2 bg-gray-700 rounded-lg my-3' : 'hidden'}>
+          <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
+            <div className="p-2 text-gray-200 bold">
+              <input
+                className="rounded placeholder-black bg-gray-400 text-black w-8"
+                type="checkbox"
+                checked={petnameDecrypt == 'true' ? true : false}
+                onChange={e => {
+                  setPetnameDecrypt(e.target.checked ? 'true' : 'false');
+                }}
+              />
+              Decrypt petnames without prompting
+            </div>
+            <div className="p-2 text-gray-200 italic">
+              You can set petnames by viewing the profile of a user and clicking on their name.  
+              If you are using a nostr extension, these are stored as nostr events with the values encrypted if your extension supports it.
+              Periodically, these petname events are retrieved, decrypted, and stored in local browser storage.
+              <span className="text-gray-300"> (optional)</span>
+            </div>
+
+            {petnames.length > 0 && (
+            <>
+            <div className="p-2 text-gray-200 bold">Petnames stored locally</div>
+            <table className="w-full">
+            {petnames.map((petnameInfo) => {
+              let n = petnameInfo.npub;
+              let shortNpub = n.substring(0,8) + "..." + n.substring(n.length-8);
+              return <tr className="p-2 text-gray-200">
+                  <td>{shortNpub}</td>
+                  <td>{petnameInfo.petname}</td>
+                </tr>
+            })}
+            </table>
+            </>
+            )}
+          </div>         
         </div>
       </div>
 
@@ -750,23 +836,6 @@ export default function EditIdentity({close}) {
           {expandedZaps ? '🔽' : '▶️'} Zap Settings
         </p>
         <div className={expandedZaps ? 'p-4 py-2 bg-gray-700 rounded-lg my-3' : 'hidden'}>
-          <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
-            <div className="p-2 text-gray-200 bold">
-            <input
-              className="rounded placeholder-black bg-gray-400 text-black w-8"
-              type="checkbox"
-              checked={onlyZapsEnabled == 'true' ? true : false}
-              onChange={e => {
-                setOnlyZapsEnabled(e.target.checked ? 'true' : 'false');
-              }}
-            />
-              Enable Only Zaps Mode
-            </div>
-            <div className="p-2 text-gray-200 italic">
-              When enabled, you'll only send the lightning bolt emoji as reactions from the nav menu, and most of your static stickies will appear as the poo emoji
-              <span className="text-gray-300"> (optional)</span>
-            </div>
-          </div>
           <div className="p-4 py-2 bg-gray-700  rounded-lg my-3">
             <div className="p-2 text-gray-200 bold">
               Default Zap Amount
@@ -774,14 +843,32 @@ export default function EditIdentity({close}) {
             <input
               className="rounded placeholder-black bg-gray-50 w-48"
               type="number"
-              placeholder="21"
-              value={defaultZap ?? ''}
+              placeholder=""
+              value={defaultZapAmount ?? ''}
               onChange={e => {
-                setDefaultZap(e.target.value);
+                setDefaultZapAmount(e.target.value);
               }}
             />
             <div className="p-2 text-gray-200 italic">
               Configure your default zap amount for sending value to others
+              <span className="text-gray-300"> (optional)</span>
+            </div>
+          </div>
+          <div className="p-4 py-2 bg-gray-700  rounded-lg my-3">
+            <div className="p-2 text-gray-200 bold">
+              Default Zap Comment
+            </div>
+            <input
+              className="rounded placeholder-black bg-gray-50 w-full"
+              type="string"
+              placeholder=""
+              value={defaultZapComment ?? ''}
+              onChange={e => {
+                setDefaultZapComment(e.target.value);
+              }}
+            />
+            <div className="p-2 text-gray-200 italic">
+              Configure your default zap comment when sending value to others
               <span className="text-gray-300"> (optional)</span>
             </div>
           </div>
@@ -836,11 +923,11 @@ export default function EditIdentity({close}) {
               }}
             />
 
-            <div className="p-2 text-gray-200">
+            <div className="hidden p-2 text-gray-200">
               Wallet Service Pubkey
             </div>
             <input
-              className="rounded placeholder-black bg-gray-50 w-full"
+              className="hidden rounded placeholder-black bg-gray-50 w-full"
               type="string"
               placeholder=""
               value={nwcWSPubkey ?? ''}
@@ -848,11 +935,11 @@ export default function EditIdentity({close}) {
                 setNWCWSPubkey(e.target.value);
               }}
             />
-            <div className="p-2 text-gray-200">
+            <div className="hidden p-2 text-gray-200">
               Wallet Relay
             </div>
             <input
-              className="rounded placeholder-black bg-gray-50 w-full"
+              className="hidden rounded placeholder-black bg-gray-50 w-full"
               type="string"
               placeholder=""
               value={nwcRelay ?? ''}
@@ -860,11 +947,11 @@ export default function EditIdentity({close}) {
                 setNWCRelay(e.target.value);
               }}
             />
-            <div className="p-2 text-gray-200">
+            <div className="hidden p-2 text-gray-200">
               Secret
             </div>
             <input
-              className="rounded placeholder-black bg-gray-50 w-full"
+              className="hidden rounded placeholder-black bg-gray-50 w-full"
               type="password"
               placeholder=""
               value={nwcSecret ?? ''}
@@ -872,6 +959,52 @@ export default function EditIdentity({close}) {
                 setNWCSecret(e.target.value);
               }}
             />
+
+            <div className="p-2 text-gray-200 bold">
+            <input
+              className="rounded placeholder-black bg-gray-400 text-black w-8"
+              type="checkbox"
+              checked={v4vSkipAdEnabled == 'true' ? true : false}
+              onChange={e => {
+                setV4vSkipAdEnabled(e.target.checked ? 'true' : 'false');
+              }}
+            />
+              Value 4 Value.  You can opt-in to sending value to avoid being served ads. 
+              Ads appear at 15 minute intervals at room entry and in the text chat.
+              {v4vSkipAdEnabled == 'true' && (
+              <>
+                &nbsp;Adjust the amount to send in place of each ad using the slider below.
+                <span style={{}}
+                >
+                <br />
+                <span
+                  style={{padding: '10px', fontWeight: 700}}
+                  id="v4vAmountLabel">{v4vSkipAdAmount} sats ({v4vSkipAdAmount * 4} sats / hour)</span>
+                </span>
+              </>
+              )}
+            </div>
+            {v4vSkipAdEnabled == 'true' && (
+            <>
+            <div className="p-2 text-gray-200 bold">
+            <input
+              className="rounded placeholder-black bg-gray-400 text-black w-full"
+              type="range"
+              min="5"
+              max="1000"
+              value={v4vSkipAdAmount}
+              onInput={e => {
+                let s = e.target.value;
+                let h = s * 4;
+                document.getElementById('v4vAmountLabel').innerText = `${s} sats (${h} sats / hour)`;
+              }}
+              onChange={e => {
+                setV4vSkipAdAmount(e.target.value);
+              }}
+            />
+            </div>
+            </>
+            )}
             </>
           )}
           </div>

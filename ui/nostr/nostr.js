@@ -276,6 +276,23 @@ export async function getUserMetadata(pubkey, id) {
             lud06: userMetadata[0]?.lud06,
             banner: userMetadata[0]?.banner,
           };
+
+          let savingToSession = (async () => {
+            let obj = {}
+            obj.iFollow = false;
+            let c = sessionStorage.getItem(npub);
+            if(c) obj.iFollow = JSON.parse(c).iFollow ?? false;
+            obj.about = userInfo.about;
+            obj.lightningAddress = userInfo.lud16 ?? userInfo.lud06;
+            let isNip05Valid = await verifyNip05(userInfo.nip05, npub);
+            obj.nip05 = {isValid: isNip05Valid, nip05Address: userInfo.nip05};
+            obj.banner = userInfo.banner;
+            const userMetadataCache = JSON.stringify(obj);
+            sessionStorage.setItem(npub, userMetadataCache);
+            return userMetadataCache;
+          })();
+          if(!!false) console.log(savingToSession);
+
           //pool.close();
           res(userInfo);
         },
@@ -426,11 +443,6 @@ export async function openLNExtension(LNInvoice) {
   } catch (error) {
     return undefined;
   }
-}
-
-export function setDefaultZapsAmount(amount) {
-  if(window.DEBUG) console.log("in setDefaultZapsAmount");
-  localStorage.setItem('defaultZap', amount);
 }
 
 async function saveFollowList(myFollowList) {
@@ -682,7 +694,7 @@ export async function verifyNip05(nip05, userNpub) {
   return false;
 }
 
-async function getLNService(address) {
+export async function getLNService(address) {
   if(window.DEBUG) console.log("in getLNService for address", address);
   let isLNUrl = address.toLowerCase().startsWith('lnurl');
   let isDecodedAddress = address.includes('@');
@@ -1067,7 +1079,9 @@ export async function loadPetnames() {
       setTimeout(() => {
         let promptDecrypting = (localStorage.getItem("petnames.allowdecryptinguntil") || 0) < timestamp;
         let allowDecrypting = localStorage.getItem("petnames.allowdecrypting") || false;
-        if (promptDecrypting && events.length > 0 && window.nostr) {
+        let decryptWithoutPrompt = localStorage.getItem("petnames.decryptwithoutprompt") || false;
+        if (decryptWithoutPrompt) allowDecrypting = true;
+        if (!allowDecrypting && promptDecrypting && events.length > 0 && window.nostr) {
           if (window.nostr.nip44) {
             allowDecrypting = confirm("Do you want to decrypt petnames from up to " + events.length + " relationship events?");
             if (allowDecrypting) {
@@ -1303,4 +1317,28 @@ export async function updatePetname(userNpub, petname) {
   //const pool = new RelayPool();
   pool.publish(EventSigned, relaysToUse);
   const sleeping = await sleep(100);
+}
+
+export function loadNWCUrl() {
+  const myEncryptionKey = JSON.parse(localStorage.getItem('identities'))._default.secretKey;
+
+  // Use connection string given
+  if ((localStorage.getItem('nwc.connectUrl') ?? '').length > 0) {
+    let nwcConnectURL = crypto.AES.decrypt((localStorage.getItem('nwc.connectUrl') ?? ''), myEncryptionKey ).toString(crypto.enc.Utf8);
+    if (nwcConnectURL != undefined) {
+      return nwcConnectURL;
+    }
+  }
+  // Try to build from parts
+  let nwcWSPubkey = localStorage.getItem('nwc.pubkey');
+  let nwcRelay = localStorage.getItem('nwc.relay');
+  let nwcSecret = undefined;
+  if ((localStorage.getItem('nwc.secret') ?? '').length > 0) {
+    nwcSecret = crypto.AES.decrypt((localStorage.getItem('nwc.secret') ?? ''), myEncryptionKey ).toString(crypto.enc.Utf8);
+  } 
+  //let nwcSecret = localStorage.getItem('nwc.secret');
+  if (!nwcWSPubkey || !nwcRelay || !nwcSecret) {
+    return undefined;
+  }
+  return `nostr+walletconnect:${nwcWSPubkey}?relay=${nwcRelay}&secret=${nwcSecret}`;   
 }
