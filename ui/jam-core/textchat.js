@@ -7,19 +7,9 @@ import {time4Ad, value4valueAdSkip} from '../lib/v4v';
 function TextChat({swarm}) {
   const state = useRootState();
 
-  useOn(swarm.peerEvent, 'text-chat', (peerId, textchat) => {
-    if(textchat) showTextChat(peerId, textchat);
-  });
-
-  function incrementUnread(roomId) {
-    let bufferSize = localStorage.getItem(`textchat.bufferSize`) || 50;
-    let n = Math.floor(sessionStorage.getItem(`${roomId}.textchat.unread`) ?? 0) + 1;
-    sessionStorage.setItem(`${roomId}.textchat.unread`, n);
-  }
-
   let adidx = Math.floor(Date.now() / 1000);
   let chatadinterval = 15*60*1000;
-  setInterval(() => {
+  const intervalAdSkip = setInterval(() => {
     let textchatAds = localStorage.getItem(`textchat.adsenabled`) ?? true;
     if(textchatAds) {
       if(time4Ad()) {
@@ -31,6 +21,16 @@ function TextChat({swarm}) {
       }
     }
   }, chatadinterval);
+
+  useOn(swarm.peerEvent, 'text-chat', (peerId, textchat) => {
+    if(textchat) showTextChat(peerId, textchat);
+  });
+
+  function incrementUnread(roomId) {
+    let bufferSize = localStorage.getItem(`textchat.bufferSize`) || 50;
+    let n = Math.floor(sessionStorage.getItem(`${roomId}.textchat.unread`) ?? 0) + 1;
+    sessionStorage.setItem(`${roomId}.textchat.unread`, n);
+  }
 
   function showTextChat(peerId, textchat) {
     let bufferSize = localStorage.getItem(`textchat.bufferSize`) || 50;
@@ -44,8 +44,20 @@ function TextChat({swarm}) {
 
         let okToIncrement = true;
         if (textchat.startsWith("*has entered the chat!*")) okToIncrement = false;
+        if (handleSessionCommand("srfm",peerId,roomId,textchat)) okToIncrement = false;
         if (okToIncrement) incrementUnread(roomId);
     }
+  }
+
+  function handleSessionCommand(cmd, peerId, roomId, textchat) {
+    let k = `/${cmd}`;
+    if (textchat && textchat.startsWith(k)) {
+      sessionStorage.setItem(`${roomId}.${cmd}`, (textchat.split(k)[1]).trim());
+      sessionStorage.setItem(`${roomId}.${cmd}.time`, Math.floor(Date.now()/1000));
+      sessionStorage.setItem(`${roomId}.${cmd}.peer`, peerId);
+      return true;
+    }
+    return false;
   }
 
   return function TextChat() {

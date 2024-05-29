@@ -188,6 +188,9 @@ export default function RoomChat({
             previoustext = thetext;
             let emoting = false;
 
+            if(thetext.startsWith("/srfm")) {
+                return (<></>);
+            }
             if(thetext.startsWith("/chatad")) {
                 if (!jamConfig.handbill) {
                     return (
