@@ -54,7 +54,7 @@ export const InvoiceModal = ({info, room, close}) => {
   const npub = findNpub(info.identities);
   const shortLnInvoice = invoice.substring(0, 17);
 
-  // todo: load user metadata if not found in session, and then store it
+  // Load user metadata if not found in session, and then store it
   if(sessionStorage.getItem(npub) == undefined) {
     let metadata = (async () => {
       let pubkey = nip19.decode(npub).data;

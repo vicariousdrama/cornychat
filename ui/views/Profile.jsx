@@ -28,7 +28,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
   async function setUserMetadata() {
     if (!userNpub) return;
     const pubkey = nip19.decode(userNpub).data;
-    const userMetadata = await getUserMetadata(pubkey, null);
+    const userMetadata = await getUserMetadata(pubkey, peerId);
     return userMetadata;
   }
 
@@ -170,7 +170,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
 
   let isOwner = owners?.includes(peerId) || (userNpub != undefined && owners?.includes(userNpub)) || false;
   let isModerator = moderators?.includes(peerId) || (userNpub != undefined && moderators?.includes(userNpub)) || false;
-  let isSpeaker = speakers?.includes(peerId) || false;
+  let isSpeaker = speakers?.includes(peerId) || (userNpub != undefined && speakers?.includes(userNpub)) || false;
 
   const [isValidNip05, setIsValidNip05] = useState(false);
   const [lnAddress, setLnAddress] = useState('');
@@ -290,6 +290,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
           nip05Address: userMetadata.nip05,
         };
         obj.banner = userMetadata.banner;
+        obj.jamId = peerId;
 
         const userMetadataCache = JSON.stringify(obj);
         sessionStorage.setItem(userNpub, userMetadataCache);

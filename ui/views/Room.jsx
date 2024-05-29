@@ -14,6 +14,7 @@ import MiniRoomMembers from './MiniRoomMembers.jsx';
 import RoomChat from './RoomChat';
 import {useJamState} from '../jam-core-react/JamContext';
 import {get} from '../jam-core/backend';
+import {getNpubFromInfo} from '../nostr/nostr'
 
 const inWebView =
   userAgent.browser?.name !== 'JamWebView' &&
@@ -180,9 +181,39 @@ export default function Room({room, roomId, uxConfig}) {
   }
 
   let myPeerId = myInfo.id;
-  let stagePeers = stageOnly ? peers : (speakers ?? []).filter(id => peers.includes(id));
-  let audiencePeers = stageOnly ? [] : peers.filter(id => !stagePeers.includes(id));
-  const nJoinedAudiencePeers = audiencePeers.filter(id => peerState[id]?.inRoom).length;
+  let stagePeers = stageOnly ? peers : [];
+  for(let id of (speakers ?? [])) {
+    if (peers.includes(id)) {
+      stagePeers.push(id);
+    }
+    if (id.startsWith("npub")) {
+      for (let n of peers) {
+        let o = sessionStorage.getItem(n);
+        let p = getNpubFromInfo(o);
+        if (p && p.startsWith(id)) {
+          stagePeers.push(n);
+          break;
+        }
+      }
+    }
+  }
+
+  let audiencePeers = [];
+  if (!stageOnly) {
+    for (let n of peers) {
+      if (!speakers) {
+        audiencePeers.push(n);
+        continue;
+      }
+      if (stagePeers.includes(n)) continue;
+      let o = sessionStorage.getItem(n);
+      let p = getNpubFromInfo(o);
+      if (!p || !speakers.includes(p)) {
+        audiencePeers.push(n);
+        continue;
+      }
+    } 
+  }
 
   () => setAudience(stagePeers.length + audiencePeers.length + 1);
 
@@ -213,6 +244,7 @@ export default function Room({room, roomId, uxConfig}) {
             closed,
             lud16,
             room,
+            roomId,
           }}
           audience={(nJoinedPeers+1)}
         />

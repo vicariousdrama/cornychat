@@ -2,7 +2,7 @@ import {update} from 'minimal-state';
 import {useAction, useOn, useRootState} from '../lib/state-tree';
 import {sendPeerEvent} from '../lib/swarm';
 import {actions} from './state';
-import {time4Ad, value4valueAdSkip} from '../lib/ad';
+import {time4Ad, value4valueAdSkip} from '../lib/v4v';
 
 function TextChat({swarm}) {
   const state = useRootState();

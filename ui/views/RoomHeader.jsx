@@ -6,6 +6,7 @@ import {useJamState} from '../jam-core-react/JamContext';
 import {MicOnSvg, Links, Audience, InfoR} from './Svg';
 import {Modal, openModal} from './Modal';
 import {InvoiceModal} from './Invoice';
+import {time4Tip, tipRoom} from '../lib/v4v';
 
 export default function RoomHeader({
   colors,
@@ -20,6 +21,7 @@ export default function RoomHeader({
   closed,
   lud16,
   room,
+  roomId,
 }) {
   let [isRecording, isPodcasting] = useJamState([
     'isSomeoneRecording',
@@ -33,6 +35,25 @@ export default function RoomHeader({
   roomInfoId["type"] = "nostr";
   roomInfoId["id"] = npub;
   roomInfo["identities"].push(roomInfoId);
+
+  // Ensure required lightning address info stored in session
+  if(sessionStorage.getItem(npub) == undefined && room.lud16) {
+    sessionStorage.setItem(npub, JSON.stringify({lightningAddress: room.lud16}));
+  }
+
+  // Room Tipping
+  let roomtipenabled = (localStorage.getItem(`v4vtiproom.enabled`) ?? 'false') == 'true';
+  if (roomtipenabled) {
+    let roomtiptimeout = 8*60*1000;
+    let roomtipinterval = 15*60*1000;
+    let roomtipamount = Math.floor(localStorage.getItem(`v4vtiproom.amount`) ?? '0');
+    setTimeout(() => {
+      setInterval(() => {
+        if (time4Tip(roomId)) tipRoom(roomId, room.lud16, roomtipamount);
+      }, roomtipinterval);
+    }, roomtiptimeout);
+  }
+
 
   const [displayDescription, setDisplayDescription] = useState(false);
 
