@@ -8,7 +8,7 @@ import {useMqParser, useWidth} from '../lib/tailwind-mqp';
 import {useJam} from '../jam-core-react';
 import {colors, isDark} from '../lib/theme.js';
 import {signInExtension, signInPrivateKey} from '../nostr/nostr';
-import {time4Ad, value4valueAdSkip} from '../lib/ad';
+import {time4Ad, value4valueAdSkip} from '../lib/v4v';
 import EditIdentity from './editIdentity/EditIdentity.jsx';
 
 const iOS =

@@ -121,6 +121,12 @@ export default function EditIdentity({close}) {
   let [v4vSkipAdAmount, setV4vSkipAdAmount] = useState(
     localStorage.getItem('v4v2skipad.amount') ?? '10'
   );
+  let [v4vTipRoomEnabled, setV4vTipRoomEnabled] = useState(
+    localStorage.getItem('v4vtiproom.enabled') ?? 'false'
+  );
+  let [v4vTipRoomAmount, setV4vTipRoomAmount] = useState(
+    localStorage.getItem('v4vtiproom.amount') ?? '10'
+  );
   let [petnameDecrypt, setPetnameDecrypt] = useState(
     localStorage.getItem('petnames.decryptwithoutprompt') ?? 'false'
   );
@@ -282,7 +288,7 @@ export default function EditIdentity({close}) {
           if (nostrNpub) {
             // Nostr info present. But only set identities if already prepared
             const pubkey = nip19.decode(nostrNpub).data;
-            const metadata = await getUserMetadata(pubkey, null);
+            const metadata = await getUserMetadata(pubkey, id);
             if (!metadata) {
               let ok = false;
               if (!identities) {
@@ -352,6 +358,8 @@ export default function EditIdentity({close}) {
     localStorage.setItem('nwc.connectUrl', crypto.AES.encrypt(nwcConnectURL, myEncryptionKey).toString());
     localStorage.setItem('v4v2skipad.enabled', v4vSkipAdEnabled);
     localStorage.setItem('v4v2skipad.amount', v4vSkipAdAmount);
+    localStorage.setItem('v4vtiproom.enabled', v4vTipRoomEnabled);
+    localStorage.setItem('v4vtiproom.amount', v4vTipRoomAmount);
     localStorage.setItem('petnames.decryptwithoutprompt', petnameDecrypt);
 
     if (verifyingNpub) {
@@ -969,21 +977,26 @@ export default function EditIdentity({close}) {
                 setV4vSkipAdEnabled(e.target.checked ? 'true' : 'false');
               }}
             />
-              Value 4 Value.  You can opt-in to sending value to avoid being served ads. 
-              Ads appear at 15 minute intervals at room entry and in the text chat.
+              Value 4 Value for Corny Chat service.  
+              You can opt-in to sending value periodically to the server operator.
               {v4vSkipAdEnabled == 'true' && (
               <>
-                &nbsp;Adjust the amount to send in place of each ad using the slider below.
+                &nbsp;Adjust the amount to send server operator every 15 minutes.
                 <span style={{}}
                 >
                 <br />
                 <span
                   style={{padding: '10px', fontWeight: 700}}
-                  id="v4vAmountLabel">{v4vSkipAdAmount} sats ({v4vSkipAdAmount * 4} sats / hour)</span>
+                  id="v4vSkipAdLabel">{v4vSkipAdAmount} sats ({v4vSkipAdAmount * 4} sats / hour)</span>
                 </span>
               </>
               )}
             </div>
+            <div className="p-2 text-gray-200 italic">
+              Ads are not displayed to users that use this option to support the service.
+              <span className="text-gray-300"> (optional)</span>
+            </div>
+
             {v4vSkipAdEnabled == 'true' && (
             <>
             <div className="p-2 text-gray-200 bold">
@@ -996,12 +1009,57 @@ export default function EditIdentity({close}) {
               onInput={e => {
                 let s = e.target.value;
                 let h = s * 4;
-                document.getElementById('v4vAmountLabel').innerText = `${s} sats (${h} sats / hour)`;
+                document.getElementById('v4vSkipAdLabel').innerText = `${s} sats (${h} sats / hour)`;
               }}
               onChange={e => {
                 setV4vSkipAdAmount(e.target.value);
               }}
             />
+            </div>
+            </>
+            )}
+
+            <div className="p-2 text-gray-200 bold">
+              <input
+                className="rounded placeholder-black bg-gray-400 text-black w-8"
+                type="checkbox"
+                checked={v4vTipRoomEnabled == 'true' ? true : false}
+                onChange={e => {
+                  setV4vTipRoomEnabled(e.target.checked ? 'true' : 'false');
+                }}
+              />
+              Value 4 Value for Rooms.  You can opt-in to sending value periodically to rooms that have tips enabled.
+              {v4vTipRoomEnabled == 'true' && (
+              <>
+                &nbsp;Adjust the amount to tip a room every 15 minutes.
+                <span style={{}}
+                >
+                <br />
+                <span
+                  style={{padding: '10px', fontWeight: 700}}
+                  id="v4vTipRoomLabel">{v4vTipRoomAmount} sats ({v4vTipRoomAmount * 4} sats / hour)</span>
+                </span>
+              </>
+              )}
+            </div>
+            {v4vTipRoomEnabled == 'true' && (
+            <>
+            <div className="p-2 text-gray-200 bold">
+              <input
+                className="rounded placeholder-black bg-gray-400 text-black w-full"
+                type="range"
+                min="5"
+                max="1000"
+                value={v4vTipRoomAmount}
+                onInput={e => {
+                  let s = e.target.value;
+                  let h = s * 4;
+                  document.getElementById('v4vTipRoomLabel').innerText = `${s} sats (${h} sats / hour)`;
+                }}
+                onChange={e => {
+                  setV4vTipRoomAmount(e.target.value);
+                }}
+              />
             </div>
             </>
             )}
