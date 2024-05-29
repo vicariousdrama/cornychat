@@ -89,6 +89,9 @@ export default function EditIdentity({close}) {
   let handleTextchatLayoutChange = e => {
     setTextchatLayout(e.target.value);
   };
+  let [textchatBufferSize, setTextchatBufferSize] = useState(
+    localStorage.getItem('textchat.bufferSize') ?? '50'
+  );
   let [textchatShowAvatars, setTextchatShowAvatars] = useState(
     localStorage.getItem('textchat.showAvatars') ?? 'true'
   );
@@ -351,6 +354,7 @@ export default function EditIdentity({close}) {
     localStorage.setItem('textchat.layout',textchatLayout);
     localStorage.setItem('textchat.showNames',textchatShowNames);
     localStorage.setItem('textchat.showAvatars',textchatShowAvatars);
+    localStorage.setItem('textchat.bufferSize', textchatBufferSize);
     localStorage.setItem('nwc.enabled', nwcEnabled);
     localStorage.setItem('nwc.pubkey', nwcWSPubkey);
     localStorage.setItem('nwc.relay', nwcRelay);
@@ -836,6 +840,26 @@ export default function EditIdentity({close}) {
               Show User Names in Text Chat
             </div>
           </div>
+          <div className="p-4 py-2 bg-gray-700  rounded-lg my-3">
+            <div className="p-2 text-gray-200 bold">
+              Buffer Size
+            </div>
+            <input
+              className="rounded placeholder-black bg-gray-50 w-48"
+              type="number"
+              placeholder="50"
+              min="10"
+              max="1000"
+              value={textchatBufferSize ?? ''}
+              onChange={e => {
+                setTextchatBufferSize(Math.floor(e.target.value.replace(/[^0-9]/g,'')));
+              }}
+            />
+            <div className="p-2 text-gray-200 italic">
+              Indicate the number of text chat lines to retain
+              <span className="text-gray-300"> (default: 50)</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -854,7 +878,7 @@ export default function EditIdentity({close}) {
               placeholder=""
               value={defaultZapAmount ?? ''}
               onChange={e => {
-                setDefaultZapAmount(e.target.value);
+                setDefaultZapAmount(Math.floor(e.target.value.replace(/[^0-9]/g,'')));
               }}
             />
             <div className="p-2 text-gray-200 italic">

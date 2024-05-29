@@ -182,17 +182,25 @@ export default function Room({room, roomId, uxConfig}) {
 
   let myPeerId = myInfo.id;
   let stagePeers = stageOnly ? peers : [];
-  for(let id of (speakers ?? [])) {
-    if (peers.includes(id)) {
-      stagePeers.push(id);
-    }
-    if (id.startsWith("npub")) {
-      for (let n of peers) {
-        let o = sessionStorage.getItem(n);
-        let p = getNpubFromInfo(o);
-        if (p && p.startsWith(id)) {
-          stagePeers.push(n);
-          break;
+  if (!stageOnly) {
+    for(let id of (speakers ?? [])) {
+      if (peers.includes(id)) {
+        if (!stagePeers.includes(id)) {
+          stagePeers.push(id);
+        }
+      } else if (id.startsWith("npub")) {
+        for (let n of peers) {
+          if (stagePeers.includes(n)) {
+            continue;
+          }
+          let o = sessionStorage.getItem(n);
+          let p = getNpubFromInfo(o);
+          if (p && p.startsWith(id)) {
+            if (!stagePeers.includes(n)) {
+              stagePeers.push(n);
+            }
+            break;
+          }
         }
       }
     }
@@ -201,15 +209,22 @@ export default function Room({room, roomId, uxConfig}) {
   let audiencePeers = [];
   if (!stageOnly) {
     for (let n of peers) {
+      // if there is no speakers, then everyone is in the audience
       if (!speakers) {
-        audiencePeers.push(n);
+        if (!audiencePeers.includes(n)) {
+          audiencePeers.push(n);
+        }
         continue;
       }
+      // if this person is on stage, they cant also be in the audience
       if (stagePeers.includes(n)) continue;
       let o = sessionStorage.getItem(n);
       let p = getNpubFromInfo(o);
+      // if peer has no npub, or their npub is not in the speaker array, add to audience
       if (!p || !speakers.includes(p)) {
-        audiencePeers.push(n);
+        if (!audiencePeers.includes(n)) {
+          audiencePeers.push(n);
+        }
         continue;
       }
     } 
@@ -224,6 +239,14 @@ export default function Room({room, roomId, uxConfig}) {
   const textColor = isDark(roomColor.avatarBg) ? roomColor.text.light : roomColor.text.dark;
   const audienceBarBG = roomColor.buttons.primary;
   const audienceBarFG = isDark(audienceBarBG) ? roomColor.text.light : roomColor.text.dark;
+
+  let four_hours_duration = 4 * 60 * 60;
+  let srfm = undefined;
+  let srfmtime = sessionStorage.getItem(`${roomId}.srfm.time`);
+  let srfmpeer = sessionStorage.getItem(`${roomId}.srfm.peer`);
+  if (srfmtime && (srfmtime > (Math.floor(Date.now() / 1000) - four_hours_duration))) {
+    srfm = sessionStorage.getItem(`${roomId}.srfm`);
+  }
 
   return (
     <div className="h-screen w-screen flex flex-col justify-between overflow-y-scroll">
@@ -275,9 +298,11 @@ export default function Room({room, roomId, uxConfig}) {
           />
         </div>
 
-        <div className="hidden rounded-md m-0 p-0 mt-2 mb-4" style={{backgroundColor: audienceBarBG, color: audienceBarFG}}>
-          MOTD: None set
+        { srfm && (
+        <div className="rounded-md m-0 p-0 mt-2 mb-4" style={{backgroundColor: audienceBarBG, color: audienceBarFG}}>
+          {srfm}
         </div>
+        )}
 
         { showChat ? (
         <MiniRoomMembers

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
 import {isDark} from '../lib/theme';
@@ -41,18 +41,32 @@ export default function RoomHeader({
     sessionStorage.setItem(npub, JSON.stringify({lightningAddress: room.lud16}));
   }
 
-  // Room Tipping
-  let roomtipenabled = (localStorage.getItem(`v4vtiproom.enabled`) ?? 'false') == 'true';
-  if (roomtipenabled) {
-    let roomtiptimeout = 8*60*1000;
-    let roomtipinterval = 15*60*1000;
-    let roomtipamount = Math.floor(localStorage.getItem(`v4vtiproom.amount`) ?? '0');
-    setTimeout(() => {
-      setInterval(() => {
-        if (time4Tip(roomId)) tipRoom(roomId, room.lud16, roomtipamount);
-      }, roomtipinterval);
-    }, roomtiptimeout);
-  }
+
+
+  useEffect(() => {
+    // Room Tipping
+    const roomtipenabled = (localStorage.getItem(`v4vtiproom.enabled`) ?? 'false') == 'true';
+    const roomtiptimeout = 8*60*1000;
+    const roomtipinterval = 15*60*1000;
+    const roomtipamount = Math.floor(localStorage.getItem(`v4vtiproom.amount`) ?? '0');
+    let timeoutRoomTip = undefined;
+    let intervalRoomTip = undefined;
+    if (roomtipenabled) {
+      timeoutRoomTip = setTimeout(() => {
+        intervalRoomTip = setInterval(() => {
+          if (time4Tip(roomId)) tipRoom(roomId, room.lud16, roomtipamount);
+        }, roomtipinterval)
+      }, roomtiptimeout);
+    }
+
+    // This function is called when component unmounts
+    return () => {
+      if(roomtipenabled) {
+        clearInterval(intervalRoomTip);
+        clearTimeout(timeoutRoomTip);
+      }
+    }
+  }, []);
 
 
   const [displayDescription, setDisplayDescription] = useState(false);
