@@ -278,6 +278,11 @@ const roomAuthenticator = {
       roomInfo.speakers = postingRoom.speakers ?? roomInfo.moderators;
       req.body = roomInfo;
     } else {
+      // rule: for a room to be public, user must have an npub
+      if (npubs.length == 0) {
+        roomInfo.isPrivate = true;
+        postingRoom.isPrivate = true;
+      }
       // local assignment for common reference for scheduling update below
       roomInfo = postingRoom;
     }

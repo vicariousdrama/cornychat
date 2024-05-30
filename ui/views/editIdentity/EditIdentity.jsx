@@ -877,6 +877,8 @@ export default function EditIdentity({close}) {
               type="number"
               placeholder=""
               value={defaultZapAmount ?? ''}
+              min="0"
+              max="100000"
               onChange={e => {
                 setDefaultZapAmount(Math.floor(e.target.value.replace(/[^0-9]/g,'')));
               }}
@@ -1001,23 +1003,15 @@ export default function EditIdentity({close}) {
                 setV4vSkipAdEnabled(e.target.checked ? 'true' : 'false');
               }}
             />
-              Value 4 Value for Corny Chat service.  
-              You can opt-in to sending value periodically to the server operator.
+              Value 4 Value for Corny Chat developer.  
               {v4vSkipAdEnabled == 'true' && (
               <>
-                &nbsp;Adjust the amount to send server operator every 15 minutes.
-                <span style={{}}
-                >
-                <br />
-                <span
-                  style={{padding: '10px', fontWeight: 700}}
-                  id="v4vSkipAdLabel">{v4vSkipAdAmount} sats ({v4vSkipAdAmount * 4} sats / hour)</span>
-                </span>
+                &nbsp;Adjust the amount to send developer every 15 minutes.
               </>
               )}
             </div>
             <div className="p-2 text-gray-200 italic">
-              Ads are not displayed to users that use this option to support the service.
+              Text chat ads are not displayed to users that use this option to support the service.
               <span className="text-gray-300"> (optional)</span>
             </div>
 
@@ -1025,20 +1019,24 @@ export default function EditIdentity({close}) {
             <>
             <div className="p-2 text-gray-200 bold">
             <input
-              className="rounded placeholder-black bg-gray-400 text-black w-full"
-              type="range"
+              className="rounded placeholder-black bg-gray-50 text-black w-48"
+              type="number"
               min="5"
               max="1000"
               value={v4vSkipAdAmount}
               onInput={e => {
-                let s = e.target.value;
+                let s = Math.floor(e.target.value.replace(/[^0-9]/g,''));
                 let h = s * 4;
-                document.getElementById('v4vSkipAdLabel').innerText = `${s} sats (${h} sats / hour)`;
+                document.getElementById('v4vSkipAdLabel').innerText = `(${h} sats / hour)`;
               }}
               onChange={e => {
-                setV4vSkipAdAmount(e.target.value);
+                setV4vSkipAdAmount(Math.floor(e.target.value.replace(/[^0-9]/g,'')));
               }}
             />
+            <span
+              style={{padding: '10px', fontWeight: 700}}
+              id="v4vSkipAdLabel">({v4vSkipAdAmount * 4} sats / hour)
+            </span>
             </div>
             </>
             )}
@@ -1056,13 +1054,6 @@ export default function EditIdentity({close}) {
               {v4vTipRoomEnabled == 'true' && (
               <>
                 &nbsp;Adjust the amount to tip a room every 15 minutes.
-                <span style={{}}
-                >
-                <br />
-                <span
-                  style={{padding: '10px', fontWeight: 700}}
-                  id="v4vTipRoomLabel">{v4vTipRoomAmount} sats ({v4vTipRoomAmount * 4} sats / hour)</span>
-                </span>
               </>
               )}
             </div>
@@ -1070,20 +1061,23 @@ export default function EditIdentity({close}) {
             <>
             <div className="p-2 text-gray-200 bold">
               <input
-                className="rounded placeholder-black bg-gray-400 text-black w-full"
-                type="range"
+                className="rounded placeholder-black bg-gray-50 text-black w-48"
+                type="number"
                 min="5"
                 max="1000"
                 value={v4vTipRoomAmount}
                 onInput={e => {
-                  let s = e.target.value;
+                  let s = Math.floor(e.target.value.replace(/[^0-9]/g,''));
                   let h = s * 4;
-                  document.getElementById('v4vTipRoomLabel').innerText = `${s} sats (${h} sats / hour)`;
+                  document.getElementById('v4vTipRoomLabel').innerText = `(${h} sats / hour)`;
                 }}
                 onChange={e => {
-                  setV4vTipRoomAmount(e.target.value);
+                  setV4vTipRoomAmount(Math.floor(e.target.value.replace(/[^0-9]/g,'')));
                 }}
               />
+              <span
+                style={{padding: '10px', fontWeight: 700}}
+                id="v4vTipRoomLabel">({v4vTipRoomAmount * 4} sats / hour)</span>              
             </div>
             </>
             )}

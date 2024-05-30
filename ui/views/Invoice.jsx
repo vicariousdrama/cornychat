@@ -44,15 +44,16 @@ const DisplayInvoice = ({invoice, shortInvoice, room}) => {
 export const InvoiceModal = ({info, room, close}) => {
   const [comment, setComment] = useState(localStorage.getItem('zaps.defaultComment') ?? 'Zapping from Corny Chat!');
   const [amount, setAmount] = useState(localStorage.getItem('zaps.defaultAmount') ?? (localStorage.getItem('defaultZap') ?? ''));
-  const [state, {signEvent}] = useJam();
+  const [state, {signEvent, sendTextChat}] = useJam();
   const [displayInvoice, setDisplayInvoice] = useState(false);
   const [invoice, setInvoice] = useState('');
   const [displayError, setDisplayError] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
   const npub = findNpub(info.identities);
   const shortLnInvoice = invoice.substring(0, 17);
+
+  const nwcEnabled = (localStorage.getItem("nwc.enabled") ?? 'false') == 'true';
 
   // Load user metadata if not found in session, and then store it
   if(sessionStorage.getItem(npub) == undefined) {
@@ -78,13 +79,17 @@ export const InvoiceModal = ({info, room, close}) => {
     if (ok) {
       const paymentRequest = msgValue;
       // attempt using nwc config
-      if(localStorage.getItem("nwc.enabled")) {
+      if(nwcEnabled) {
         let nwcUrl = loadNWCUrl(); // cannot be const, as the webln.NostrWebLNProvider wants to modify values
         if (nwcUrl != undefined) {
           const nwc = new webln.NostrWebLNProvider({nostrWalletConnectUrl: nwcUrl});
           await nwc.enable();
           const nwcResponse = await nwc.sendPayment(paymentRequest);
           if (nwcResponse?.preimage) {
+            // Add zap info to chat
+            let chatText = `*zapped ${lightningAddress} ⚡${amount} sats : ${comment}*`;
+            (async () => {await sendTextChat(chatText);})(); // send to swarm (including us) as text-chat
+            // Done
             close();
             return;
           } else {
@@ -95,6 +100,10 @@ export const InvoiceModal = ({info, room, close}) => {
       // still here? try using browser extension
       const response = await openLNExtension(msgValue);
       if (response?.preimage) {
+        // Add zap info to chat
+        let chatText = `*zapped ${lightningAddress} ⚡${amount} sats : ${comment}*`;
+        (async () => {await sendTextChat(chatText);})(); // send to swarm (including us) as text-chat
+        // Done
         close();
         return;
       }
@@ -248,7 +257,7 @@ export const InvoiceModal = ({info, room, close}) => {
               await handleResult(result);
             }}
           >
-            {isLoading ? <LoadingIcon /> : (localStorage.getItem("nwc.enabled") ? 'Pay with Nostr Wallet Connect' : 'Create Invoice')}
+            {isLoading ? <LoadingIcon /> : (nwcEnabled ? 'Pay with Nostr Wallet Connect' : 'Create Invoice')}
           </button>
 
           <div className="mt-5">
