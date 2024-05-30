@@ -19,12 +19,12 @@ export function time4Ad() {
     return isTime(key, periodLength);
 }
 
-export function value4valueAdSkip () {
+export function value4valueAdSkip (sourceNote) {
     if ((localStorage.getItem('v4v2skipad.enabled') ?? 'false') != 'true') return false;
     const myName = getMyName();
     const currentTimestamp = Math.floor(Date.now() / 1000);
     const jamID = JSON.parse(localStorage.getItem('identities'))._default.publicKey;
-    const comment = `🌽💬🎑 from ${myName} (${jamID}) @ ${currentTimestamp}`;
+    const comment = `🌽💬🎑 from ${myName} (${jamID}) @ ${currentTimestamp} ${sourceNote}`;
     const lightningAddress = window.jamConfig.v4vLN;
     const satAmount = Math.floor(localStorage.getItem('v4v2skipad.amount') ?? '0');
     if (satAmount < 1) return false;

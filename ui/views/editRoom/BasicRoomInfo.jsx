@@ -3,6 +3,7 @@ import {useMqParser} from '../../lib/tailwind-mqp';
 import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
 import {avatarUrl, displayName} from '../../lib/avatar';
+import {getNpubFromInfo} from '../../nostr/nostr';
 
 export function BasicRoomInfo({
   iOwn,
@@ -30,6 +31,8 @@ export function BasicRoomInfo({
 }) {
 
   let myname = displayName(info, undefined);
+  let userNpub = getNpubFromInfo(info);
+  if (iOwn && !userNpub) setIsPrivate(true);  // force a room to private if the owner does not have an npub
 
   let mqp = useMqParser();
   let [expanded, setExpanded] = useState(false);
@@ -188,8 +191,8 @@ export function BasicRoomInfo({
       </div>
 
       <div className="mt-2">
-        {iOwn && (
-          <>
+        {(iOwn && userNpub) && (
+        <>
         <input
           className="ml-2"
           type="checkbox"
@@ -212,11 +215,11 @@ export function BasicRoomInfo({
         </label>
         </>
         )}
-        {!iOwn && isPrivate && (
+        {((!iOwn && isPrivate) || (iOwn && !userNpub)) && (
           <p className="text-gray-300 text-sm">
           <span className="font-medium text-gray-300">Private Room</span> - not displayed on landing
           page or announced by the Corny Chat bot. Anyone can join a private room by navigating
-          to the room url.
+          to the room url. {(iOwn && !userNpub) && (<>You need a nostr identity to make the room public.</>)}
           </p>
         )}
         {!iOwn && !isPrivate && (

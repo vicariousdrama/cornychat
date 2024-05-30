@@ -370,7 +370,7 @@ export async function sendZaps(npubToZap, comment, amount, state, signEvent) {
     }
     satsAmount = satsAmount * 1000;
 
-    const pubkeyToZap = nip19.decode(npubToZap).data;
+    const pubkeyToZap = npubToZap.startsWith("fakenpub") ? undefined : nip19.decode(npubToZap).data;
     const id = null;
 
     // Determine lightning address to use
@@ -397,36 +397,50 @@ export async function sendZaps(npubToZap, comment, amount, state, signEvent) {
     if (LnService.hasOwnProperty('error')) {
       throw new Error(LnService.reason);
     }
-    if(window.DEBUG) console.log("about to call getZapEvent");
-    const signedEvent = await getZapEvent(
-      comment,
-      pubkeyToZap,
-      satsAmount,
-      state,
-      signEvent
-    );
-
-    if (!signedEvent[0]) {
+    if (pubkeyToZap) {
+      if(window.DEBUG) console.log("about to call getZapEvent");
+      const signedEvent = await getZapEvent(
+        comment,
+        pubkeyToZap,
+        satsAmount,
+        state,
+        signEvent
+      );
+      // happens if they cancel signing the zap request
+      if (!signedEvent[0]) {
+        if(window.DEBUG) console.log("about to call getLNInvoice as direct lightning");
+        const lnInvoice = await getLNInvoice(
+          null,
+          lightningAddress,
+          LnService,
+          satsAmount,
+          comment
+        );
+        console.log('ui/nostr/nostr.js', lnInvoice);
+        return [true, lnInvoice.pr];
+      }
+      // zap request was signed...
+      if(window.DEBUG) console.log("about to call getLNInvoice for zap");
+      const lnInvoice = await getLNInvoice(
+        signedEvent[1],
+        lightningAddress,
+        LnService,
+        satsAmount,
+        comment
+      );
+      return [true, lnInvoice.pr];
+    } else {
+      // No pubkey, so no zap. Only lightning (usecase: fakenpub handler for private rooms)
       if(window.DEBUG) console.log("about to call getLNInvoice as direct lightning");
       const lnInvoice = await getLNInvoice(
         null,
         lightningAddress,
         LnService,
-        satsAmount
+        satsAmount,
+        comment
       );
-      console.log('ui/nostr/nostr.js', lnInvoice);
       return [true, lnInvoice.pr];
     }
-
-    if(window.DEBUG) console.log("about to call getLNInvoice for zap");
-    const lnInvoice = await getLNInvoice(
-      signedEvent[1],
-      lightningAddress,
-      LnService,
-      satsAmount
-    );
-
-    return [true, lnInvoice.pr];
   } catch (error) {
     console.log('There was an error sending zaps: ', error);
     return [undefined, error];
@@ -722,7 +736,7 @@ export async function getLNService(address) {
   }
 }
 
-async function getLNInvoice(zapEvent, lightningAddress, LNService, amount) {
+async function getLNInvoice(zapEvent, lightningAddress, LNService, amount, comment) {
   if(window.DEBUG) console.log("in getLNInvoice");
   let hasPubkey = LNService.nostrPubkey;
   const dataBytes = Buffer.from(lightningAddress, 'utf-8');
@@ -740,6 +754,7 @@ async function getLNInvoice(zapEvent, lightningAddress, LNService, amount) {
     const data = await fetchInvoice(baseUrl);
     return data;
   } else {
+    baseUrl += `&comment=${comment}`;
     const data = await fetchInvoice(baseUrl);
     return data;
   }

@@ -6,6 +6,7 @@ import {colors, isDark} from '../lib/theme';
 import {useJam} from '../jam-core-react';
 import {avatarUrl, displayName} from '../lib/avatar';
 import {getNpubFromInfo, getRelationshipPetname} from '../nostr/nostr';
+import {time4Ad, value4valueAdSkip} from '../lib/v4v';
 
 export default function RoomChat({
     room,
@@ -29,7 +30,7 @@ export default function RoomChat({
     const [time, setTime] = useState(Date.now());
     useEffect(() => {
       let siv = false;
-      const interval = setInterval(() => {
+      const intervalChatScroll = setInterval(() => {
         setTime(Date.now());    // forces update ?
         sessionStorage.setItem(`${roomId}.textchat.unread`, 0);
         let c = document.getElementById('chatlines');
@@ -42,9 +43,10 @@ export default function RoomChat({
             document.getElementById('chatentry').scrollIntoView();
             siv = true;
         }
-      }, 1000);
+      }, 1000);   
+
       return () => {
-        clearInterval(interval);
+        clearInterval(intervalChatScroll);
       };
     }, []);
 
@@ -186,8 +188,9 @@ export default function RoomChat({
             }
             previoususerid = userid;
             previoustext = thetext;
-            let emoting = false;
-
+            let emoting = thetext.startsWith("/me");
+            let sentv4v = (thetext.includes("zapped") || thetext.includes("tipped")) && thetext.includes("⚡");
+            let chatLineTextColor = emoting ? 'rgb(59,130,246)' : (sentv4v ? 'rgb(255,155,55)' : 'rgb(255,255,255)');
             if(thetext.startsWith("/srfm")) {
                 return (<></>);
             }
@@ -239,11 +242,10 @@ export default function RoomChat({
             
             if(userid != myId || textchatLayout == 'left') {
                 // others : left aligned
-                if (thetext.startsWith("/me")) {
-                    emoting = true;
+                if (emoting) {
                     thetext = "*" + (textchatShowNames ? username : "") + " " + thetext.replace("/me","") + "*";
                 } else {
-                    thetext = (textchatShowNames ? username : "") + ((textchatShowNames || textchatShowAvatar) ? ": " : "") + thetext;
+                    thetext = (textchatShowNames ? username + ": " : "") + thetext;
                 }
                 return (
                     <div className="flex w-full justify-between bg-gray-700 text-white" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
@@ -251,20 +253,20 @@ export default function RoomChat({
                         <img className="flex w-6 h-6 human-radius" src={useravatar} />
                         )}
                         <div className="flex-grow text-sm break-words ml-1" 
-                             style={{color: emoting ? 'rgb(59 130 246)' : 'rgb(255 255 255)'}}
+                             style={{color: chatLineTextColor}}
                              dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext) }} />
                     </div>
                 );
             } else {
                 // me : avatar on right side
-                if (thetext.startsWith("/me")) {
-                    emoting = true;
+                if (emoting) {
                     thetext = "*" + (textchatShowNames ? username : "") + " " + thetext.replace("/me","") + "*";
                 }
+                
                 return (
                     <div className="flex w-full justify-between bg-gray-700 text-white" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
                         <div className="flex-grow text-sm text-right break-words mr-1" 
-                             style={{color: emoting ? 'rgb(59 130 246)' : 'rgb(255 255 255)'}}
+                             style={{color: chatLineTextColor}}
                              dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext) }} />
                         {textchatShowAvatar && (
                         <img className="flex w-6 h-6 human-radius" src={useravatar} />

@@ -3,10 +3,11 @@ import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
 import {isDark} from '../lib/theme';
 import {useJamState} from '../jam-core-react/JamContext';
+import {useJam} from '../jam-core-react';
 import {MicOnSvg, Links, Audience, InfoR} from './Svg';
 import {Modal, openModal} from './Modal';
 import {InvoiceModal} from './Invoice';
-import {time4Tip, tipRoom} from '../lib/v4v';
+import {time4Tip, tipRoom, time4Ad, value4valueAdSkip} from '../lib/v4v';
 
 export default function RoomHeader({
   colors,
@@ -28,25 +29,21 @@ export default function RoomHeader({
     'isSomeonePodcasting',
   ]);
 
+  const [state, {sendTextChat}] = useJam();
+  let {textchats} = state;
   let {npub} = room || {};
-  let roomInfo = {};
-  roomInfo["identities"] = [];
-  let roomInfoId = {};
-  roomInfoId["type"] = "nostr";
-  roomInfoId["id"] = npub;
-  roomInfo["identities"].push(roomInfoId);
+  if (npub == undefined || npub == "") npub = `fakenpub-${roomId}`;
+  let roomInfo = {identities:[{type:"nostr",id:npub}]};
 
   // Ensure required lightning address info stored in session
   if(sessionStorage.getItem(npub) == undefined && room.lud16) {
     sessionStorage.setItem(npub, JSON.stringify({lightningAddress: room.lud16}));
   }
 
-
-
   useEffect(() => {
     // Room Tipping
     const roomtipenabled = (localStorage.getItem(`v4vtiproom.enabled`) ?? 'false') == 'true';
-    const roomtiptimeout = 8*60*1000;
+    const roomtiptimeout = 3*60*1000;
     const roomtipinterval = 15*60*1000;
     const roomtipamount = Math.floor(localStorage.getItem(`v4vtiproom.amount`) ?? '0');
     let timeoutRoomTip = undefined;
@@ -54,10 +51,46 @@ export default function RoomHeader({
     if (roomtipenabled) {
       timeoutRoomTip = setTimeout(() => {
         intervalRoomTip = setInterval(() => {
-          if (time4Tip(roomId)) tipRoom(roomId, room.lud16, roomtipamount);
+          if (time4Tip(roomId)) {
+            let tipped = tipRoom(roomId, room.lud16, roomtipamount);
+            if (tipped) {
+              let chatText = `*tipped the room owner ⚡${roomtipamount} sats*`;
+              (async () => {await sendTextChat(chatText);})(); // send to swarm (including us) as text-chat
+            }
+          }
         }, roomtipinterval)
       }, roomtiptimeout);
     }
+
+    let adidx = Math.floor(Date.now() / 1000);
+    let chatadinterval = 15*60*1000;
+    let adskipamount = Math.floor(localStorage.getItem('v4v2skipad.amount') ?? '0');
+    const intervalAdSkip = setInterval(() => {
+      let textchatAds = localStorage.getItem(`textchat.adsenabled`) ?? true;
+      let bufferSize = localStorage.getItem(`textchat.bufferSize`) || 50;
+      if(textchatAds) {
+        if(time4Ad()) {
+          if (!value4valueAdSkip('RoomChat')) {
+            adidx += 1;
+            let adreqdt = Math.floor(Date.now() / 1000);
+            let adPeerId = `ad-${adidx}`;
+            let textchat = `/chatad:${adidx}:${adreqdt}`;
+            if (!textchats) textchats = [];
+            let lastline = textchats.slice(-1);
+            if ((lastline.length == 0) || (lastline[0].length != 2) || (lastline[0][0] != adPeerId) || (lastline[0][1] != textchat)) {
+              textchats.push([adPeerId, textchat]);
+              state.textchats = textchats.slice(-1 * bufferSize);
+              update(state, 'textchats');
+              let n = Math.floor(sessionStorage.getItem(`${roomId}.textchat.unread`) ?? 0) + 1;
+              sessionStorage.setItem(`${roomId}.textchat.unread`, n);
+            }
+          } else {
+            let chatText = `*tipped the corny chat dev ⚡${adskipamount} sats*`;
+            (async () => {await sendTextChat(chatText);})(); // send to swarm (including us) as text-chat
+          }
+        }
+      }
+    }, chatadinterval);
 
     // This function is called when component unmounts
     return () => {
@@ -65,9 +98,9 @@ export default function RoomHeader({
         clearInterval(intervalRoomTip);
         clearTimeout(timeoutRoomTip);
       }
+      clearInterval(intervalAdSkip);
     }
   }, []);
-
 
   const [displayDescription, setDisplayDescription] = useState(false);
 
