@@ -264,8 +264,8 @@ chmod +x buildit.sh
 If the pantry-sfu image fails, then perform the following to pull the prebuilt image and retag it
 
 ```sh
-docker pull registry.gitab.com/jam-systems/jam/pantry-sfu:master
-docker tag registry.gitab.com/jam-systems/jam/pantry-sfu:master cornychat/pantry-sfu:stable
+docker pull registry.gitlab.com/jam-systems/jam/pantry-sfu:master
+docker tag registry.gitlab.com/jam-systems/jam/pantry-sfu:master cornychat/pantry-sfu:stable
 ```
 
 **Start Docker**
