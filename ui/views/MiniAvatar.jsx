@@ -17,6 +17,7 @@ export function StageAvatar({
   reactions,
   info,
   onClick,
+  iAmAdmin,
 }) {
   return (
     <Avatar {...{
@@ -29,7 +30,8 @@ export function StageAvatar({
       peerState,
       reactions,
       info,
-      onClick,    
+      onClick,
+      iAmAdmin,
     }}
     />
   );
@@ -44,6 +46,7 @@ export function AudienceAvatar({
   reactions,
   info,
   onClick,
+  iAmAdmin,
 }) {
   let speaking = undefined;
   let canSpeak = false;
@@ -59,6 +62,7 @@ export function AudienceAvatar({
       reactions,
       info,
       onClick,
+      iAmAdmin,
     }}
     />
   );
@@ -75,6 +79,7 @@ function Avatar({
   reactions,
   info,
   onClick,
+  iAmAdmin,
 }) {
   let isSpeaking = false;
   if (speaking) {
@@ -91,8 +96,11 @@ function Avatar({
 
   let isModerator = moderators?.includes(peerId) || (userNpub != undefined && moderators?.includes(userNpub)) || false;
   let isOwner = owners?.includes(peerId) || (userNpub != undefined && owners?.includes(userNpub)) || false;
-  let [peerAdminStatus] = useApiQuery(`/admin/${peerId}`, {fetchOnMount: true});
-  let isAdmin = peerAdminStatus?.admin ?? false;
+  let isAdmin = false;
+  if (iAmAdmin) {
+    let [peerAdminStatus] = useApiQuery(`/admin/${peerId}`, {fetchOnMount: true});
+    isAdmin = peerAdminStatus?.admin ?? false;
+  } 
 
   const colorTheme = room?.color ?? 'default';
   const roomColor = colors(colorTheme, room.customColor);

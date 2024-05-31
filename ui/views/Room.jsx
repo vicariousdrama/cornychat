@@ -7,7 +7,7 @@ import Navigation from './Navigation';
 import {userAgent} from '../lib/user-agent';
 import {colors, isDark} from '../lib/theme.js';
 import {usePushToTalk, useCtrlCombos} from '../lib/hotkeys';
-import {useJam} from '../jam-core-react';
+import {useJam, useApiQuery} from '../jam-core-react';
 import RoomSlides from './RoomSlides';
 import RoomMembers from './RoomMembers';
 import MiniRoomMembers from './MiniRoomMembers.jsx';
@@ -43,6 +43,7 @@ export default function Room({room, roomId, uxConfig}) {
     iOwn,
     iModerate,
     iMayEnter,
+    myId,
     myIdentity,
     inRoom,
     peers,
@@ -59,6 +60,7 @@ export default function Room({room, roomId, uxConfig}) {
     'iAmOwner',
     'iAmModerator',
     'iAmAuthorized',
+    'myId',
     'myIdentity',
     'inRoom',
     'peers',
@@ -68,6 +70,10 @@ export default function Room({room, roomId, uxConfig}) {
     'myVideo',
     'remoteVideoStreams',
   ]);
+
+  let [myAdminStatus] = useApiQuery(`/admin/${myId}`, {fetchOnMount: true});
+  let iAmAdmin = myAdminStatus?.admin || false;
+
 
   let myInfo = myIdentity.info;
   let hasEnteredRoom = inRoom === roomId;
@@ -294,6 +300,7 @@ export default function Room({room, roomId, uxConfig}) {
             {...{
               roomSlides,
               currentSlide,
+              iAmAdmin,
             }}
           />
         </div>
@@ -315,6 +322,7 @@ export default function Room({room, roomId, uxConfig}) {
             iModerate,
             iOwn,
             iSpeak,
+            iAmAdmin,
             moderators,
             myIdentity,
             myInfo,
@@ -341,6 +349,7 @@ export default function Room({room, roomId, uxConfig}) {
             iModerate,
             iOwn,
             iSpeak,
+            iAmAdmin,
             moderators,
             myIdentity,
             myInfo,
@@ -375,6 +384,7 @@ export default function Room({room, roomId, uxConfig}) {
           setShowMyNavMenu,
           showChat,
           setShowChat,
+          iAmAdmin,
         }}
       />
     </div>

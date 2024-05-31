@@ -15,6 +15,7 @@ export default function MiniRoomMembers({
   iModerate,
   iOwn,
   iSpeak,
+  iAmAdmin,
   moderators,
   myIdentity,
   myInfo,
@@ -29,7 +30,6 @@ export default function MiniRoomMembers({
   stagePeers,
   state,
 }) {
-
 
   const nJoinedAudiencePeers = audiencePeers.filter(id => peerState[id]?.inRoom).length;
 
@@ -49,6 +49,7 @@ export default function MiniRoomMembers({
                   canSpeak={!hasMicFailed}
                   peerState={myPeerState}
                   info={myInfo}
+                  iAmAdmin={iAmAdmin}
                   onClick={() => {
                     openModal(Profile, {
                       info: state.myIdentity.info,
@@ -57,6 +58,7 @@ export default function MiniRoomMembers({
                       iOwn,
                       iModerate,
                       actorIdentity: myIdentity,
+                      iAmAdmin,
                     });
                   }}
                 />
@@ -69,6 +71,7 @@ export default function MiniRoomMembers({
                   canSpeak={true}
                   peerState={peerState[peerId]}
                   info={identities[peerId]}
+                  iAmAdmin={iAmAdmin}
                   onClick={() => {
                     openModal(Profile, {
                       info: identities[peerId],
@@ -77,6 +80,7 @@ export default function MiniRoomMembers({
                       iOwn,
                       iModerate,
                       actorIdentity: myIdentity,
+                      iAmAdmin,
                     });
                   }}
                 />
@@ -99,6 +103,7 @@ export default function MiniRoomMembers({
                     peerId={myPeerId}
                     peerState={myPeerState}
                     info={myInfo}
+                    iAmAdmin={iAmAdmin}
                     onClick={() => {
                       openModal(Profile, {
                         info: state.myIdentity.info,
@@ -107,6 +112,7 @@ export default function MiniRoomMembers({
                         iOwn,
                         iModerate,
                         actorIdentity: myIdentity,
+                        iAmAdmin,
                       });
                     }}
                   />
@@ -118,6 +124,7 @@ export default function MiniRoomMembers({
                     canSpeak={false}
                     peerState={peerState[peerId]}
                     info={identities[peerId]}
+                    iAmAdmin={iAmAdmin}
                     onClick={() =>
                       openModal(Profile, {
                         info: identities[peerId],
@@ -126,6 +133,7 @@ export default function MiniRoomMembers({
                         iOwn,
                         iModerate,
                         actorIdentity: myIdentity,
+                        iAmAdmin,
                       })
                     }
                   />

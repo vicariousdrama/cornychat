@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {use} from 'use-minimal-state';
 import {colors, isDark} from '../lib/theme';
-import {useJam, useApiQuery} from '../jam-core-react';
+import {useJam} from '../jam-core-react';
 import 'react-slideshow-image/dist/styles.css';
 import '@coreui/coreui/dist/css/coreui.min.css';
 import {
@@ -13,6 +13,7 @@ export default function RoomSlides({
   colors,
   roomSlides,
   currentSlide,
+  iAmAdmin,
 }) {
 
   const [state, {updateRoom}] = useJam();
@@ -60,7 +61,7 @@ export default function RoomSlides({
           </p>
           )}
           <div className="flex" style={{color: textColor, backgroundColor: colors.avatarBg}}>
-            {(iOwn || iModerate) && (
+            {(iOwn || iModerate || iAmAdmin) && (
             <div class="flex-none">
             <button className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
             onClick={async () => {
@@ -78,7 +79,7 @@ export default function RoomSlides({
             [{(sn+1)}/{rsl}]
             {slideText}
             </div>
-            {(iOwn || iModerate) && (
+            {(iOwn || iModerate || iAmAdmin) && (
             <div class="flex-none">
             <button className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
             onClick={async () => {

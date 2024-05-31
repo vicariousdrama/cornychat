@@ -24,7 +24,7 @@ import EditIdentity from './editIdentity/EditIdentity';
 import {useMqParser} from '../lib/tailwind-mqp';
 import {colors, isDark} from '../lib/theme';
 
-export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, close}) {
+export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIdentity, close}) {
   async function setUserMetadata() {
     if (!userNpub) return;
     const pubkey = nip19.decode(userNpub).data;
@@ -164,8 +164,15 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
   let {speakers, moderators, owners} = room ?? {};
 
   let [myId, roomId] = use(state, ['myId', 'roomId']);
-  let [myAdminStatus] = useApiQuery(`/admin/${myId}`, {fetchOnMount: true});
-  let [peerAdminStatus] = useApiQuery(`/admin/${peerId}`, {fetchOnMount: true});
+  let isPeerAdmin = false;
+  if (iAmAdmin) {
+    if (peerId == myId) {
+      isPeerAdmin = true;
+    } else {
+      let peerAdminStatus = useApiQuery(`/admin/${peerId}`, {fetchOnMount: true});
+      isPeerAdmin = peerAdminStatus.admin ?? false;
+    }
+  }
   const userNpub = getNpubFromInfo(info);
 
   let isOwner = owners?.includes(peerId) || (userNpub != undefined && owners?.includes(userNpub)) || false;
@@ -440,9 +447,9 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
               </button>
             ) : null}
 
-            {myAdminStatus?.admin && (
+            {iAmAdmin && (
               <div>
-                {(peerAdminStatus?.admin && (
+                {(isPeerAdmin && (
                   <button
                     className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
                     onClick={() => {
@@ -472,7 +479,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
               </div>
             )}
 
-            {!isOwner && (iOwn || myAdminStatus?.admin) && (
+            {!isOwner && (iOwn || iAmAdmin) && (
               <button
                 className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
                 onClick={() => addOwner(roomId, peerId).then(close)}
@@ -481,7 +488,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
               </button>
             )}
 
-            {isOwner && (iOwn || myAdminStatus?.admin) && (
+            {isOwner && (iOwn || iAmAdmin) && (
               <button
                 className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
                 onClick={() => {
@@ -496,7 +503,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
               </button>
             )}
 
-            {!isModerator && (iOwn || myAdminStatus?.admin) && (
+            {!isModerator && (iOwn || iAmAdmin) && (
               <button
                 className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
                 onClick={() => addModerator(roomId, peerId).then(close)}
@@ -505,7 +512,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
               </button>
             )}
 
-            {isModerator && (iOwn || myAdminStatus?.admin) && (
+            {isModerator && (iOwn || iAmAdmin) && (
               <button
                 className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
                 onClick={() => {
@@ -520,7 +527,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
               </button>
             )}
 
-            {!isSpeaker && !stageOnly && (iModerate || myAdminStatus?.admin) ? (
+            {!isSpeaker && !stageOnly && (iModerate || iAmAdmin) ? (
               <button
                 className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
                 onClick={() => addSpeaker(roomId, peerId).then(close)}
@@ -529,7 +536,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, actorIdentity, clo
               </button>
             ) : null}
 
-            {isSpeaker && (iModerate || myAdminStatus?.admin) ? (
+            {isSpeaker && (iModerate || iAmAdmin) ? (
               <button
                 className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
                 onClick={() => removeSpeaker(roomId, peerId).then(close)}
