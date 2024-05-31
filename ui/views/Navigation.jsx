@@ -14,7 +14,7 @@ import {
 } from './Svg';
 import {useJam} from '../jam-core-react';
 
-export default function Navigation({room, showMyNavMenu, setShowMyNavMenu, showChat, setShowChat}) {
+export default function Navigation({room, showMyNavMenu, setShowMyNavMenu, showChat, setShowChat, iAmAdmin}) {
   let mqp = useMqParser();
   const [state, {leaveRoom, sendReaction, retryMic, setProps}] = useJam();
   let [myAudio, micMuted, handRaised, handType, iSpeak, myIdentity, roomId] = use(state, [
@@ -358,6 +358,7 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu, showC
             <MyNavMenu 
               close={setShowMyNavMenu} 
               roomColor={roomColor} 
+              iAmAdmin={iAmAdmin}
             />
           </div>
         )}

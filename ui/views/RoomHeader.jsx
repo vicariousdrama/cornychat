@@ -45,13 +45,13 @@ export default function RoomHeader({
     const roomtipenabled = (localStorage.getItem(`v4vtiproom.enabled`) ?? 'false') == 'true';
     const roomtiptimeout = 3*60*1000;
     const roomtipinterval = 15*60*1000;
-    const roomtipamount = Math.floor(localStorage.getItem(`v4vtiproom.amount`) ?? '0');
     let timeoutRoomTip = undefined;
     let intervalRoomTip = undefined;
     if (roomtipenabled) {
       timeoutRoomTip = setTimeout(() => {
         intervalRoomTip = setInterval(() => {
           if (time4Tip(roomId)) {
+            const roomtipamount = Math.floor(localStorage.getItem(`v4vtiproom.amount`) ?? '0');
             let tipped = tipRoom(roomId, room.lud16, roomtipamount);
             if (tipped) {
               let chatText = `*tipped the room owner ⚡${roomtipamount} sats*`;
@@ -64,12 +64,13 @@ export default function RoomHeader({
 
     let adidx = Math.floor(Date.now() / 1000);
     let chatadinterval = 15*60*1000;
-    let adskipamount = Math.floor(localStorage.getItem('v4v2skipad.amount') ?? '0');
+    
     const intervalAdSkip = setInterval(() => {
       let textchatAds = localStorage.getItem(`textchat.adsenabled`) ?? true;
       let bufferSize = localStorage.getItem(`textchat.bufferSize`) || 50;
       if(textchatAds) {
         if(time4Ad()) {
+          const adskipamount = Math.floor(localStorage.getItem('v4v2skipad.amount') ?? '0');
           if (!value4valueAdSkip('RoomChat')) {
             adidx += 1;
             let adreqdt = Math.floor(Date.now() / 1000);

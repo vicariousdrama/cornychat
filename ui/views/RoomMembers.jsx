@@ -15,6 +15,7 @@ export default function RoomMembers({
   iModerate,
   iOwn,
   iSpeak,
+  iAmAdmin,
   moderators,
   myIdentity,
   myInfo,
@@ -49,6 +50,7 @@ export default function RoomMembers({
                   canSpeak={!hasMicFailed}
                   peerState={myPeerState}
                   info={myInfo}
+                  iAmAdmin={iAmAdmin}
                   onClick={() => {
                     openModal(Profile, {
                       info: state.myIdentity.info,
@@ -57,6 +59,7 @@ export default function RoomMembers({
                       iOwn,
                       iModerate,
                       actorIdentity: myIdentity,
+                      iAmAdmin,
                     });
                   }}
                 />
@@ -69,6 +72,7 @@ export default function RoomMembers({
                   canSpeak={true}
                   peerState={peerState[peerId]}
                   info={identities[peerId]}
+                  iAmAdmin={iAmAdmin}
                   onClick={() => {
                     openModal(Profile, {
                       info: identities[peerId],
@@ -77,6 +81,7 @@ export default function RoomMembers({
                       iOwn,
                       iModerate,
                       actorIdentity: myIdentity,
+                      iAmAdmin,
                     });
                   }}
                 />
@@ -99,6 +104,7 @@ export default function RoomMembers({
                     peerId={myPeerId}
                     peerState={myPeerState}
                     info={myInfo}
+                    iAmAdmin={iAmAdmin}
                     onClick={() => {
                       openModal(Profile, {
                         info: state.myIdentity.info,
@@ -107,6 +113,7 @@ export default function RoomMembers({
                         iOwn,
                         iModerate,
                         actorIdentity: myIdentity,
+                        iAmAdmin,
                       });
                     }}
                   />
@@ -118,6 +125,7 @@ export default function RoomMembers({
                     canSpeak={false}
                     peerState={peerState[peerId]}
                     info={identities[peerId]}
+                    iAmAdmin={iAmAdmin}
                     onClick={() =>
                       openModal(Profile, {
                         info: identities[peerId],
@@ -126,6 +134,7 @@ export default function RoomMembers({
                         iOwn,
                         iModerate,
                         actorIdentity: myIdentity,
+                        iAmAdmin,
                       })
                     }
                   />
