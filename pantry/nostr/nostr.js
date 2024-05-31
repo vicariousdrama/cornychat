@@ -535,6 +535,7 @@ const deleteLiveActivity = async (roomId, dtt) => {
     const sk = nip19.decode(serverNsec).data;
     const pk = getPublicKey(sk);
     const aTagValue = `${kind}:${pk}:${eventUUID}`;
+    const timestamp = Math.floor(Date.now() / 1000);
     console.log(`deleting event ${eventUUID}`)
     const deleteEvent = finalizeEvent({
         created_at: timestamp,
