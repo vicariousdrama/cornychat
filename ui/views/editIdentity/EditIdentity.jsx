@@ -141,6 +141,9 @@ export default function EditIdentity({close}) {
       petnames.push({npub: n, petname: v});
     }
   }
+  let [publishStatus, setPublishStatus] = useState(
+    localStorage.getItem('publishStatus.enabled') ?? 'false'
+  );
 
   let userType = (nostrIdentity == undefined ? 'anon' : 'nostr');
   if (userType == 'nostr') {
@@ -365,6 +368,7 @@ export default function EditIdentity({close}) {
     localStorage.setItem('v4vtiproom.enabled', v4vTipRoomEnabled);
     localStorage.setItem('v4vtiproom.amount', v4vTipRoomAmount);
     localStorage.setItem('petnames.decryptwithoutprompt', petnameDecrypt);
+    localStorage.setItem('publishStatus.enabled', publishStatus);  
 
     if (verifyingNpub) {
       let identities = [];
@@ -414,6 +418,7 @@ export default function EditIdentity({close}) {
   let [expandedVisuals, setExpandedVisuals] = useState(false);
   let [expandedPetnames, setExpandedPetnames] = useState(false);  
   let [expandedSound, setExpandedSound] = useState(false);
+  let [expandedStatus, setExpandedStatus] = useState(false);
   let [expandedTextChat, setExpandedTextChat] = useState(false);
   let [expandedZaps, setExpandedZaps] = useState(false);
 
@@ -789,6 +794,27 @@ export default function EditIdentity({close}) {
           <p className="p-2 text-gray-200 italic">
             When enabled, a sound will play for you when another user enters the room
           </p>
+        </div>
+      </div>
+
+      <div>
+        <p className="text-lg font-medium text-gray-200 cursor-pointer" onClick={() => setExpandedStatus(!expandedStatus)}>
+          {expandedStatus ? '🔽' : '▶️'} Status Publication
+        </p>
+        <div className={expandedStatus ? 'p-4 py-2 bg-gray-700 rounded-lg my-3' : 'hidden'}>
+          <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
+            <div className="p-2 text-gray-200 bold">
+              <input
+                className="rounded placeholder-black bg-gray-400 text-black w-8"
+                type="checkbox"
+                checked={publishStatus == 'true' ? true : false}
+                onChange={e => {
+                  setPublishStatus(e.target.checked ? 'true' : 'false');
+                }}
+              />
+              Periodically Publish Status Update to Nostr
+            </div>
+          </div>
         </div>
       </div>
 

@@ -8,6 +8,7 @@ import {MicOnSvg, Links, Audience, InfoR} from './Svg';
 import {Modal, openModal} from './Modal';
 import {InvoiceModal} from './Invoice';
 import {time4Tip, tipRoom, time4Ad, value4valueAdSkip} from '../lib/v4v';
+import {publishStatus} from '../nostr/nostr';
 
 export default function RoomHeader({
   colors,
@@ -42,14 +43,14 @@ export default function RoomHeader({
 
   useEffect(() => {
     // Room Tipping
-    const roomtipenabled = (localStorage.getItem(`v4vtiproom.enabled`) ?? 'false') == 'true';
-    const roomtiptimeout = 3*60*1000;
+    const roomtiptimeout = 1*60*1000;
     const roomtipinterval = 15*60*1000;
     let timeoutRoomTip = undefined;
     let intervalRoomTip = undefined;
-    if (roomtipenabled) {
-      timeoutRoomTip = setTimeout(() => {
-        intervalRoomTip = setInterval(() => {
+    timeoutRoomTip = setTimeout(() => {
+      intervalRoomTip = setInterval(() => {
+        const roomtipenabled = (localStorage.getItem(`v4vtiproom.enabled`) ?? 'false') == 'true';
+        if (roomtipenabled) {
           if (time4Tip(roomId)) {
             const roomtipamount = Math.floor(localStorage.getItem(`v4vtiproom.amount`) ?? '0');
             let tipped = tipRoom(roomId, room.lud16, roomtipamount);
@@ -58,13 +59,13 @@ export default function RoomHeader({
               (async () => {await sendTextChat(chatText);})(); // send to swarm (including us) as text-chat
             }
           }
-        }, roomtipinterval)
-      }, roomtiptimeout);
-    }
+        }
+      }, roomtipinterval);
+    }, roomtiptimeout);
 
+    // Dev Tipping
     let adidx = Math.floor(Date.now() / 1000);
-    let chatadinterval = 15*60*1000;
-    
+    const chatadinterval = 15*60*1000;
     const intervalAdSkip = setInterval(() => {
       let textchatAds = localStorage.getItem(`textchat.adsenabled`) ?? true;
       let bufferSize = localStorage.getItem(`textchat.bufferSize`) || 50;
@@ -93,13 +94,28 @@ export default function RoomHeader({
       }
     }, chatadinterval);
 
+    // Status Update
+    let statusintervalReport = 60*60*1000;  // once an hour
+    let statusintervalCheck = 60*1000;  // once a minute
+    let intervalStatusUpdate = setInterval(() => {
+      const publishStatusEnabled = (localStorage.getItem('publishStatus.enabled') ?? 'false') == 'true';
+      const publishStatusLastTime = (localStorage.getItem('publishStatus.timechecked') ?? 0);
+      if (publishStatusLastTime < Date.now() - statusintervalReport) {
+        if (publishStatusEnabled && window.nostr) {
+          const urlStatus = `${jamConfig.urls.jam}/${roomId}`;
+          const nostrStatus = `${urlStatus}`;
+          let r = (async () => {await publishStatus(nostrStatus, urlStatus);})();
+          localStorage.setItem('publishStatus.timechecked', Date.now());
+        }
+      }
+    }, statusintervalCheck);
+
     // This function is called when component unmounts
     return () => {
-      if(roomtipenabled) {
-        clearInterval(intervalRoomTip);
-        clearTimeout(timeoutRoomTip);
-      }
+      clearInterval(intervalRoomTip);
+      clearTimeout(timeoutRoomTip);
       clearInterval(intervalAdSkip);
+      clearInterval(intervalStatusUpdate);
     }
   }, []);
 
