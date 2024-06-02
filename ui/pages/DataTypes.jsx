@@ -26,6 +26,7 @@ export default function DataTypes() {
       <li><a href="#kind23194nip47request">Kind 23194 - Nostr Wallet Connect Request</a></li>
       <li><a href="#kind23195nip47response">Kind 23195 - Nostr Wallet Connect Response</a></li>
       <li><a href="#kind30311liveactivities">Kind 30311 - Live Activities</a></li>
+      <li><a href="#kind30315livestatus">Kind 30315 - Live Statuses</a></li>
       <li><a href="#kind30382relationships">Kind 30382 - Relationships</a></li>
       <li><a href="#kind30388slideset">Kind 30388 - Slide Set</a></li>
       <li><a href="#kind31388linkset">Kind 31388 - Link Set</a></li>
@@ -196,6 +197,13 @@ export default function DataTypes() {
             default to the service concatenated with favicon.png
         </li>
       </ul>
+
+      <a name="kind30315livestatuses"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 30315 - Live Statuses</h2>
+      <p>Users can optionally choose to automatically pubish status updates once an hour of the room(s) they are in.
+        These conform to <a href="https://github.com/nostr-protocol/nips/blob/master/38.md">NIP-38</a> and the
+        update indicates that the user is chatting in the room specified by URL, are set to expire one hour
+        after creation, and use the `music` value for the d tag.
+      </p>      
 
       <a name="kind30382relationships"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 30382 - Relationships</h2>
       <span style={{backgroundColor:'#ffff00',color:'#000000'}}>Experimental</span>

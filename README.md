@@ -54,14 +54,14 @@ Roadmap
   - ✅ Publish Nostr Calendar Time Event (kind 31923 per NIP-52)
   - ✅ Publish Nostr Delete Event (kind 5 per NIP-9) 
   - ✅ Periodically update cache of scheduled events
-- ⬜ Nostr Live Activity + Chat
-  - ⬜ Create and Publish Nostr Live Activity for Rooms (kind 30311 per NIP-53)
-  - ⬜ Live Chat Message tied to the Live Activity (kind 1311)
+- ☑️ Nostr Live Activity + Chat
+  - ✅ Create and Publish Nostr Live Activity for Rooms (kind 30311 per NIP-53)
+  - ~~⬜ Live Chat Message tied to the Live Activity (kind 1311)~~
   - ⬜ Ability for user to react to chat message
   - ⬜ Ability for user to zap a chat message
 - ☑️ Landing Page
   - ✅ Show list of all Nostr Scheduled Audio Spaces across instances
-  - ⬜ Show list of all Nostr Live Audio Spaces across instances
+  - ✅ Show list of all Nostr Live Audio Spaces across instances
   - ⬜ Server Message of the Day when user accesses first time during day
 - ✅ About Page
   - ✅ Link to this git repository for source code

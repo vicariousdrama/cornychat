@@ -116,8 +116,11 @@ router.get('/:userId', async function (req, res) {
     let usernpub = '';
     if (userinfo != undefined) {
         if (userinfo.identities != undefined) {
-            if (userinfo.identities[0].id != undefined) {
-                usernpub = userinfo.identities[0].id;
+            for (let userIdentity of userinfo.identities) {
+                if (userIdentity.type == undefined) continue;
+                if (userIdentity.type != 'nostr') continue;
+                if (userIdentity.id == undefined) continue;
+                usernpub = userIdentity.id;
             }
         }
     }

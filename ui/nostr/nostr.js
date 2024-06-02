@@ -1357,3 +1357,45 @@ export function loadNWCUrl() {
   }
   return `nostr+walletconnect:${nwcWSPubkey}?relay=${nwcRelay}&secret=${nwcSecret}`;   
 }
+
+export async function publishStatus(status, url) {
+  let kind = 30315;
+  let expiration = Math.floor(Date.now() / 1000) + 60*60;
+  let tags = [
+    ["d", "music"],
+    ["r", url],
+    ["expiration", `${expiration}`]
+  ];
+  console.log(`Publishing status to nostr: ${status}, with url ${url}`);
+  let event = {
+    id: null,
+    pubkey: null,
+    created_at: Math.floor(Date.now() / 1000),
+    kind: kind,
+    tags: tags,
+    content: status,
+    sig: null,
+  };
+  const eventSigned = await window.nostr.signEvent(event);
+  if (!eventSigned) {
+    return [false, 'There was an error with your nostr extension'];
+  } else {
+    // push to relays
+    const defaultRelays = getDefaultOutboxRelays();
+    const myPubkey = await window.nostr.getPublicKey();
+    const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
+    let myOutboxRelays = [];
+    if (userRelays?.length == 0) {
+      const myNpub = nip19.npubEncode(myPubkey);
+      myOutboxRelays = await getOutboxRelays(myPubkey); // (async() => {await getOutboxRelays(myPubkey)})();
+      updateCacheOutboxRelays(myOutboxRelays, myNpub);
+    }
+    const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
+    //const pool = new RelayPool();
+    pool.publish(eventSigned, relaysToUse);
+    const sleeping = await sleep(100);
+    //pool.close();
+    return [true, ''];
+  }  
+}
+
