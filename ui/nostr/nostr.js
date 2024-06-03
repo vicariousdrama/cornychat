@@ -708,32 +708,31 @@ export async function verifyNip05(nip05, userNpub) {
   return false;
 }
 
-export async function getLNService(address) {
-  if(window.DEBUG) console.log("in getLNService for address", address);
-  let isLNUrl = address.toLowerCase().startsWith('lnurl');
+export function normalizeLightningAddress(address) {
   let isDecodedAddress = address.includes('@');
-
+  if (isDecodedAddress) return address;
+  let isLNUrl = address.toLowerCase().startsWith('lnurl');
   if (isLNUrl) {
     let decoded = bech32.decode(address, 2000);
     let buf = bech32.fromWords(decoded.words);
     let decodedLNurl = new TextDecoder().decode(Uint8Array.from(buf));
-
-    let service = decodedLNurl.split('@');
-    let url = `https://${service[1]}/.well-known/lnurlp/${service[0]}`;
-
-    let data = await (await fetch(url)).json();
-
-    return data;
+    if (decodedLNurl.includes("@")) return decodedLNurl; // username@domain identity
   }
+  // not in proper address format
+  return undefined;
+}
 
-  if (isDecodedAddress) {
-    let service = address.split('@');
-    let url = `https://${service[1]}/.well-known/lnurlp/${service[0]}`;
-    if(window.DEBUG) console.log(`querying ${url}`)
-    let data = await (await fetch(url)).json();
-    if(window.DEBUG) console.log('data returned: ', data);
-    return data;
-  }
+export async function getLNService(address) {
+  if(window.DEBUG) console.log("in getLNService for address", address);
+
+  let address2 = normalizeLightningAddress(address);
+  if (address2 == undefined) return address2;
+
+  let username = address2.split("@")[0];
+  let domain = address2.split("@")[1];
+  let url = `https://${domain}/.well-known/lnurlp/${username}`;
+  let data = await (await fetch(url)).json();
+  return data;
 }
 
 async function getLNInvoice(zapEvent, lightningAddress, LNService, amount, comment) {

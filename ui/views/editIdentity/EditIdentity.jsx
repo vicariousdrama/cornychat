@@ -80,15 +80,9 @@ export default function EditIdentity({close}) {
   let [doorbellEnabled, setDoorbellEnabled] = useState(
     localStorage.getItem('doorbellEnabled') ?? '0'
   );
-  let handleDoorbellChange = e => {
-    setDoorbellEnabled(e.target.value);
-  };
   let [textchatLayout, setTextchatLayout] = useState(
     localStorage.getItem('textchat.layout') ?? 'versus'
   );
-  let handleTextchatLayoutChange = e => {
-    setTextchatLayout(e.target.value);
-  };
   let [textchatBufferSize, setTextchatBufferSize] = useState(
     localStorage.getItem('textchat.bufferSize') ?? '50'
   );
@@ -124,12 +118,19 @@ export default function EditIdentity({close}) {
   let [v4vSkipAdAmount, setV4vSkipAdAmount] = useState(
     localStorage.getItem('v4v2skipad.amount') ?? '10'
   );
+  let [v4vSkipAdFrequency, setV4vSkipAdFrequency] = useState(
+    localStorage.getItem('v4v2skipad.frequency') ?? '15'
+  );
   let [v4vTipRoomEnabled, setV4vTipRoomEnabled] = useState(
     localStorage.getItem('v4vtiproom.enabled') ?? 'false'
   );
   let [v4vTipRoomAmount, setV4vTipRoomAmount] = useState(
     localStorage.getItem('v4vtiproom.amount') ?? '10'
   );
+  let [v4vTipRoomFrequency, setV4vTipRoomFrequency] = useState(
+    localStorage.getItem('v4vtiproom.frequency') ?? '15'
+  );
+
   let [petnameDecrypt, setPetnameDecrypt] = useState(
     localStorage.getItem('petnames.decryptwithoutprompt') ?? 'false'
   );
@@ -365,8 +366,10 @@ export default function EditIdentity({close}) {
     localStorage.setItem('nwc.connectUrl', crypto.AES.encrypt(nwcConnectURL, myEncryptionKey).toString());
     localStorage.setItem('v4v2skipad.enabled', v4vSkipAdEnabled);
     localStorage.setItem('v4v2skipad.amount', v4vSkipAdAmount);
+    localStorage.setItem('v4v2skipad.frequency', v4vSkipAdFrequency);
     localStorage.setItem('v4vtiproom.enabled', v4vTipRoomEnabled);
     localStorage.setItem('v4vtiproom.amount', v4vTipRoomAmount);
+    localStorage.setItem('v4vtiproom.frequency', v4vTipRoomFrequency);
     localStorage.setItem('petnames.decryptwithoutprompt', petnameDecrypt);
     localStorage.setItem('publishStatus.enabled', publishStatus);  
 
@@ -771,7 +774,9 @@ export default function EditIdentity({close}) {
           <select
               name="doorbellEnabled"
               defaultValue={doorbellEnabled}
-              onChange={handleDoorbellChange}
+              onChange={e => {
+                setDoorbellEnabled(e.target.value);
+              }}
               className={'border mt-3 ml-2 p-2 text-black rounded'}
             >
             <option key="0" value="0">None</option>
@@ -829,7 +834,9 @@ export default function EditIdentity({close}) {
               <select
                   name="textchatLayout"
                   defaultValue={textchatLayout}
-                  onChange={handleTextchatLayoutChange}
+                  onChange={e => {
+                    setTextchatLayout(e.target.value);
+                  }}
                   className={'border mt-3 ml-2 p-2 text-black rounded'}
                 >
                 <option key="left" value="left">All left aligned</option>
@@ -1032,7 +1039,23 @@ export default function EditIdentity({close}) {
               Value 4 Value for Corny Chat developer.  
               {v4vSkipAdEnabled == 'true' && (
               <>
-                &nbsp;Adjust the amount to send developer every 15 minutes.
+                &nbsp;Adjust the amount to send developer every 
+                <select
+                  name="v4vSkipAdFrequency"
+                  defaultValue={v4vSkipAdFrequency}
+                  onChange={e => {
+                    setV4vSkipAdFrequency(e.target.value);
+                  }}
+                  className={'border mt-3 ml-2 p-2 text-black rounded'}
+                >
+                <option key="0" value="5">5</option>
+                <option key="0" value="10">10</option>
+                <option key="0" value="15">15</option>
+                <option key="0" value="20">20</option>
+                <option key="0" value="30">30</option>
+                <option key="0" value="60">60</option>
+                </select>
+                minutes.
               </>
               )}
             </div>
@@ -1045,14 +1068,15 @@ export default function EditIdentity({close}) {
             <>
             <div className="p-2 text-gray-200 bold">
             <input
-              className="rounded placeholder-black bg-gray-50 text-black w-48"
+              className="rounded placeholder-black bg-gray-50 text-black w-20"
               type="number"
               min="5"
               max="1000"
               value={v4vSkipAdAmount}
               onInput={e => {
                 let s = Math.floor(e.target.value.replace(/[^0-9]/g,''));
-                let h = s * 4;
+                let f = (60 / v4vSkipAdFrequency)
+                let h = s * f;
                 document.getElementById('v4vSkipAdLabel').innerText = `(${h} sats / hour)`;
               }}
               onChange={e => {
@@ -1061,7 +1085,7 @@ export default function EditIdentity({close}) {
             />
             <span
               style={{padding: '10px', fontWeight: 700}}
-              id="v4vSkipAdLabel">({v4vSkipAdAmount * 4} sats / hour)
+              id="v4vSkipAdLabel">({v4vSkipAdAmount * (60 / v4vSkipAdFrequency)} sats / hour)
             </span>
             </div>
             </>
@@ -1079,7 +1103,23 @@ export default function EditIdentity({close}) {
               Value 4 Value for Rooms.  You can opt-in to sending value periodically to rooms that have tips enabled.
               {v4vTipRoomEnabled == 'true' && (
               <>
-                &nbsp;Adjust the amount to tip a room every 15 minutes.
+                &nbsp;Adjust the amount to tip a room every 
+                <select
+                  name="v4vTipRoomFrequency"
+                  defaultValue={v4vTipRoomFrequency}
+                  onChange={e => {
+                    setV4vTipRoomFrequency(e.target.value);
+                  }}
+                  className={'border mt-3 ml-2 p-2 text-black rounded'}
+                >
+                <option key="0" value="5">5</option>
+                <option key="0" value="10">10</option>
+                <option key="0" value="15">15</option>
+                <option key="0" value="20">20</option>
+                <option key="0" value="30">30</option>
+                <option key="0" value="60">60</option>
+                </select>                
+                minutes.  When in a room, toggle autotipping with the option in the upper left corner.
               </>
               )}
             </div>
@@ -1087,14 +1127,15 @@ export default function EditIdentity({close}) {
             <>
             <div className="p-2 text-gray-200 bold">
               <input
-                className="rounded placeholder-black bg-gray-50 text-black w-48"
+                className="rounded placeholder-black bg-gray-50 text-black w-20"
                 type="number"
                 min="5"
                 max="1000"
                 value={v4vTipRoomAmount}
                 onInput={e => {
                   let s = Math.floor(e.target.value.replace(/[^0-9]/g,''));
-                  let h = s * 4;
+                  let f = (60 / v4vTipRoomFrequency);
+                  let h = s * f;
                   document.getElementById('v4vTipRoomLabel').innerText = `(${h} sats / hour)`;
                 }}
                 onChange={e => {
@@ -1103,7 +1144,7 @@ export default function EditIdentity({close}) {
               />
               <span
                 style={{padding: '10px', fontWeight: 700}}
-                id="v4vTipRoomLabel">({v4vTipRoomAmount * 4} sats / hour)</span>              
+                id="v4vTipRoomLabel">({v4vTipRoomAmount * (60 / v4vTipRoomFrequency)} sats / hour)</span>              
             </div>
             </>
             )}
