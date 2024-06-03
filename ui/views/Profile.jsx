@@ -13,6 +13,7 @@ import {
   updateCacheOutboxRelays,
   getRelationshipPetname,
   updatePetname,
+  normalizeLightningAddress,
 } from '../nostr/nostr';
 import {nip19} from 'nostr-tools';
 import {avatarUrl, displayName} from '../lib/avatar';
@@ -215,7 +216,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
       setLoadingFollows(false);
       const iFollowCache = data.iFollow;
       const aboutCache = data.about;
-      const lightningAddressCache = data.lightningAddress;
+      const lightningAddressCache = normalizeLightningAddress(data.lightningAddress);
       const isNip05ValidCache = data.nip05.isValid;
       const nip05AddressCache = data.nip05.nip05Address;
       const bannerCache = data.banner;
@@ -271,12 +272,12 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
       if (userMetadata) {
         function hasLnAddress(userMetadata) {
           if (userMetadata.lud16) {
-            setLnAddress(userMetadata.lud16);
+            setLnAddress(normalizeLightningAddress(userMetadata.lud16));
             return userMetadata.lud16;
           }
 
           if (userMetadata.lud06) {
-            setLnAddress(userMetadata.lud06);
+            setLnAddress(normalizeLightningAddress(userMetadata.lud06));
             return userMetadata.lud06;
           }
           return undefined;

@@ -28,6 +28,9 @@ export default function RoomSlides({
   //const iconColor = isDark(colors.avatarBg) ? colors.icons.dark : colors.icons.light;
   const iconColor = isDark(colors.buttons.primary) ? colors.text.light : colors.text.dark;
 
+  const videoTypes = [".mp4",".webm",".ogg"];
+  const imageTypes = [".bmp",".gif","jpg","jpeg",".png",".svg",".webp"];
+
   function RoomSlide() {
     let sn = parseInt(currentSlide, 10) - 1;
     if (sn < 0) { sn = 0; }
@@ -35,30 +38,35 @@ export default function RoomSlides({
     if (roomSlides && (sn > -1) && (sn < rsl)) {
       let slideUrl = roomSlides[sn][0];
       let slideText = roomSlides[sn][1];
-      let isImage = true; // assume its an image
+      let isImage = false;
       let isVideo = false;
       let isIFrame = false;
-      if (slideUrl.endsWith('.mp4')) {
-        isImage = false;
-        isVideo = true;
+      let videoType = "";
+      for(let vt of videoTypes) {
+        if (slideUrl.toLowerCase().endsWith(vt)) {
+          videoType = vt.replace(".", "video/");
+          isVideo = true;
+        }
       }
-      if (slideUrl.endsWith('.webm')) {
-        isImage = false;
-        isVideo = true;
+      for(let imt of imageTypes) {
+        if (slideUrl.toLowerCase().endsWith(imt)) isImage = true;
       }
-      if (slideUrl.endsWith('.html')) {
-        isImage = false;
-        isIFrame = true;
-      }
+      isIFrame = !(isVideo || isImage);
       return (
         <div className="mb-2" style={{color: textColor, backgroundColor: colors.avatarBg}}>
           {isImage && (
           <img src={slideUrl} style={{maxHeight: '320px', width: 'auto', maxWidth: '100%', margin: 'auto', align: 'center'}} />
           )}
-          {(isVideo || isIFrame) && (
-          <p>
-          This slide cannot be shown at this time. Resource: {slideUrl}
-          </p>
+          {isVideo && (
+          <video controls style={{maxHeight: '320px', width: 'auto', maxWidth: '100%', margin: 'auto', align: 'center'}} >
+            <source src={slideUrl} type={videoType}></source>
+          </video>
+          )}
+          {isIFrame && false && (
+          <iframe width={document.body.clientWidth} height={Math.floor(document.body.clientHeight/2)} src={slideUrl}></iframe>
+          )}
+          {isIFrame && (
+          <p>Arbitrary IFrames will not be enabled for {slideUrl}</p>
           )}
           <div className="flex" style={{color: textColor, backgroundColor: colors.avatarBg}}>
             {(iOwn || iModerate || iAmAdmin) && (

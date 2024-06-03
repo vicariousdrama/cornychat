@@ -14,8 +14,9 @@ function isTime(key, periodLength) {
 }
 
 export function time4Ad() {
-    const key = `lastad.timechecked`;
-    const periodLength = 15*60*1000; // 15 minutes
+    const key = `v4v2skipad.timechecked`;
+    const frequency = Math.floor(localStorage.getItem(`v4v2skipad.frequency`) ?? '15');
+    const periodLength = frequency*60*1000;
     return isTime(key, periodLength);
 }
 
@@ -32,8 +33,9 @@ export function value4valueAdSkip (sourceNote) {
 }
 
 export function time4Tip(roomId) {
-    const key = `roomtip-${roomId}.timechecked`
-    const periodLength = 15*60*1000; // 15 minutes
+    const key = `roomtip-${roomId}.timechecked`;
+    const frequency = Math.floor(localStorage.getItem(`v4vtiproom.frequency`) ?? '15');
+    const periodLength = frequency*60*1000;
     return isTime(key, periodLength);
 }
 

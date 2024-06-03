@@ -83,7 +83,7 @@ export default function RoomChat({
 
     function sendText() {
         if (chatText.length == 0) return;                   // ignore if no text
-        chatText = chatText.substring(0,280);               // sanity length limit 140, 512
+        chatText = chatText.substring(0,615);               // cashu is about 355
         if (chatText.startsWith("/clear")) {
             textchats = [];
             state.textchats = textchats;
@@ -191,6 +191,22 @@ export default function RoomChat({
             let emoting = thetext.startsWith("/me");
             let sentv4v = (thetext.includes("zapped") || thetext.includes("tipped")) && thetext.includes("⚡");
             let chatLineTextColor = emoting ? 'rgb(59,130,246)' : (sentv4v ? 'rgb(255,155,55)' : 'rgb(255,255,255)');
+            if(thetext.startsWith("cashu") && thetext.length > 350) {
+                return (
+                    <center className="text-xs text-gray-400 cursor-pointer">
+                    <div style={{width:'330px',height:'60px',border:'3px solid lightgreen',backgroundColor:'green',color:'white',textAlign:'center'}}
+                        onClick={async () => {
+                            await window.navigator.clipboard.writeText(thetext);
+                        }}
+                    >
+                        Cashu token. Click to copy.
+                        <br/>
+                        <br/>
+                        {thetext.substring(0,30)}...
+                    </div>
+                    </center>
+                );
+            }
             if(thetext.startsWith("/srfm")) {
                 return (<></>);
             }
@@ -272,7 +288,7 @@ export default function RoomChat({
                         <img className="flex w-6 h-6 human-radius" src={useravatar} />
                         )}
                     </div>
-                );                
+                );
             }
         })}
         </div>

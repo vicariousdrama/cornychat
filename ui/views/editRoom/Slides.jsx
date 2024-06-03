@@ -21,6 +21,9 @@ export function Slides({
   let [editingSlideURI, setEditingSlideURI] = useState('');
   let [editingSlideText, setEditingSlideText] = useState('');
 
+  const videoTypes = [".mp4",".webm",".ogg"];
+  const imageTypes = [".bmp",".gif","jpg","jpeg",".png",".svg",".webp"];
+
   function removeSlide(indexSlide) {
     let result = confirm('Are you sure you want to remove this slide?');
     if (result != true) {
@@ -200,16 +203,43 @@ export function Slides({
               let slideURI = slide[0];
               let slideText = slide[1];
               slideNumber += 1;
+              let isImage = false;
+              let isVideo = false;
+              let isIFrame = false;
+              let videoType = "";
+              for(let vt of videoTypes) {
+                if (slideURI.toLowerCase().endsWith(vt)) {
+                  videoType = vt.replace(".", "video/");
+                  isVideo = true;
+                }
+              }
+              for(let imt of imageTypes) {
+                if (slideURI.toLowerCase().endsWith(imt)) isImage = true;
+              }
+              isIFrame = !(isVideo || isImage);
+        
               return (
                 <div className="flex w-full justify-between my-3" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
                   <div style={{width: '400px'}}>
                   {(editingSlideIndex != index) && (
                     <>
+                    {isImage && (
                     <img
                       className="h-48"
                       alt={slideText}
                       src={slideURI}
                     />
+                    )}
+                    {isVideo && (
+                    <video className="h-48" >
+                      <source src={slideURI} type={videoType}></source>
+                    </video>                      
+                    )}
+                    {isIFrame && (
+                      <p className="text-xs text-gray-600" style={{overflowWrap: 'anywhere'}}>
+                        Resource to load in iFrame: {slideURI}
+                      </p>
+                    )}
                     <p className="text-xs text-gray-600" style={{overflowWrap: 'anywhere'}}>{slideText}</p>
                     </>
                   )}

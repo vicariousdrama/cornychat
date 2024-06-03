@@ -9,6 +9,7 @@ import {Modal, openModal} from './Modal';
 import {InvoiceModal} from './Invoice';
 import {time4Tip, tipRoom, time4Ad, value4valueAdSkip} from '../lib/v4v';
 import {publishStatus} from '../nostr/nostr';
+import {update} from 'minimal-state';
 
 export default function RoomHeader({
   colors,
@@ -35,6 +36,12 @@ export default function RoomHeader({
   let {npub} = room || {};
   if (npub == undefined || npub == "") npub = `fakenpub-${roomId}`;
   let roomInfo = {identities:[{type:"nostr",id:npub}]};
+  let [autoTipRoom, setAutoTipRoom] = useState((localStorage.getItem(`roomtip-${roomId}.enabled`) ?? 'false') == 'true');
+
+  function toggleTipRoom(b) {
+    localStorage.setItem(`roomtip-${roomId}.enabled`, (b?'true':'false'));
+    setAutoTipRoom(b);
+  }
 
   // Ensure required lightning address info stored in session
   if(sessionStorage.getItem(npub) == undefined && room.lud16) {
@@ -42,20 +49,24 @@ export default function RoomHeader({
   }
 
   useEffect(() => {
+    let tipToggle = true;
+
     // Room Tipping
     const roomtiptimeout = 1*60*1000;
-    const roomtipinterval = 15*60*1000;
+    const roomtipinterval = 1*60*1000; // once a minute
     let timeoutRoomTip = undefined;
     let intervalRoomTip = undefined;
     timeoutRoomTip = setTimeout(() => {
       intervalRoomTip = setInterval(() => {
-        const roomtipenabled = (localStorage.getItem(`v4vtiproom.enabled`) ?? 'false') == 'true';
-        if (roomtipenabled) {
+        const v4vtiproomEnabled = ((localStorage.getItem(`v4vtiproom.enabled`) ?? 'false') == 'true');
+        const thisroomTipEnabled = ((localStorage.getItem(`roomtip-${roomId}.enabled`) ?? 'false') == 'true');
+        if (v4vtiproomEnabled && thisroomTipEnabled) {      
           if (time4Tip(roomId)) {
             const roomtipamount = Math.floor(localStorage.getItem(`v4vtiproom.amount`) ?? '0');
             let tipped = tipRoom(roomId, room.lud16, roomtipamount);
             if (tipped) {
-              let chatText = `*tipped the room owner ⚡${roomtipamount} sats*`;
+              tipToggle = !tipToggle;
+              let chatText = `*tipped the room owner ⚡${roomtipamount} sats${tipToggle ? "!":"."}*`;
               (async () => {await sendTextChat(chatText);})(); // send to swarm (including us) as text-chat
             }
           }
@@ -65,7 +76,7 @@ export default function RoomHeader({
 
     // Dev Tipping
     let adidx = Math.floor(Date.now() / 1000);
-    const chatadinterval = 15*60*1000;
+    const chatadinterval = 1*60*1000; // once a minute
     const intervalAdSkip = setInterval(() => {
       let textchatAds = localStorage.getItem(`textchat.adsenabled`) ?? true;
       let bufferSize = localStorage.getItem(`textchat.bufferSize`) || 50;
@@ -87,7 +98,8 @@ export default function RoomHeader({
               sessionStorage.setItem(`${roomId}.textchat.unread`, n);
             }
           } else {
-            let chatText = `*tipped the corny chat dev ⚡${adskipamount} sats*`;
+            tipToggle = !tipToggle;
+            let chatText = `*tipped the corny chat dev ⚡${adskipamount} sats${tipToggle ? "!":"."}*`;
             (async () => {await sendTextChat(chatText);})(); // send to swarm (including us) as text-chat
           }
         }
@@ -96,7 +108,7 @@ export default function RoomHeader({
 
     // Status Update
     let statusintervalReport = 60*60*1000;  // once an hour
-    let statusintervalCheck = 60*1000;  // once a minute
+    let statusintervalCheck = 1*60*1000;  // once a minute
     let intervalStatusUpdate = setInterval(() => {
       const publishStatusEnabled = (localStorage.getItem('publishStatus.enabled') ?? 'false') == 'true';
       const publishStatusLastTime = (localStorage.getItem('publishStatus.timechecked') ?? 0);
@@ -196,6 +208,9 @@ export default function RoomHeader({
     );
   }
 
+  let autoTipAmount = localStorage.getItem('v4vtiproom.amount') ?? '10';
+  let autoTipFrequency = localStorage.getItem('v4vtiproom.frequency') ?? '15';
+
   return (
     <div className="flex justify-between my-2 ml-2">
 
@@ -218,6 +233,7 @@ export default function RoomHeader({
             />
             )}
             {lud16 && (
+              <>
               <div className="w-12 cursor-pointer rounded bg-yellow-200"
               style={{backgroundColor:'rgba(21,21,21,1)',color:'rgba(221,142,42,.8'}}              
               onClick={() => {
@@ -225,6 +241,23 @@ export default function RoomHeader({
               }}
               title="Send sats to the lightning address set by the owner of this room"
               >⚡ Tip</div>
+
+              {((localStorage.getItem(`v4vtiproom.enabled`) ?? 'false') == 'true') && autoTipRoom && (
+              <div className="w-12 cursor-pointer rounded bg-yellow-200"
+              style={{textAlign:'center',backgroundColor:'rgba(21,21,21,1)',color:'rgba(21,221,21,.8'}}              
+              onClick={() => {toggleTipRoom(false)}}
+              title={`You are tipping ${autoTipAmount} sats every ${autoTipFrequency} minutes`}
+              >ON</div>
+              )}
+              {((localStorage.getItem(`v4vtiproom.enabled`) ?? 'false') == 'true') && !autoTipRoom && (
+              <div className="w-12 cursor-pointer rounded bg-yellow-200"
+              style={{textAlign:'center',backgroundColor:'rgba(21,21,21,1)',color:'rgba(221,21,21,.8'}}              
+              onClick={() => {toggleTipRoom(true)}}
+              title="You are currently not autotipping this room"
+              >OFF</div>
+              )}
+
+              </>
             )}
           </div>
           )}

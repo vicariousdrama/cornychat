@@ -292,7 +292,7 @@ export default function Room({room, roomId, uxConfig}) {
         // className={mqp('flex flex-col justify-between pt-2 md:pt-10 md:p-10')}
       >
 
-        <div style={{height: isRecording ? '156px' : '128px'}}></div>
+        <div style={{height: isRecording ? '156px' : '104px'}}></div>
 
         <div className="w-full">
           <RoomSlides

@@ -98,7 +98,7 @@ export const InvoiceModal = ({info, room, close}) => {
         }
       }
       // still here? try using browser extension
-      const response = await openLNExtension(msgValue);
+      const response = await openLNExtension(paymentRequest);
       if (response?.preimage) {
         // Add zap info to chat
         let chatText = `*zapped ${lightningAddress} ⚡${amount} sats : ${comment}*`;
@@ -109,7 +109,7 @@ export const InvoiceModal = ({info, room, close}) => {
       }
       // still here? show invoice and expect them to pay externally
       setDisplayInvoice(true);
-      setInvoice(msgValue);
+      setInvoice(paymentRequest);
     } else {
       setDisplayError(true);
       setErrorMsg(msgValue.message);
@@ -165,7 +165,8 @@ export const InvoiceModal = ({info, room, close}) => {
         />
       ) : (
         <div className="bg-white p-6 rounded-lg bg-gray-700 text-gray-200">
-          <h2 className="text-2xl font-bold">Send some sats {lightningAddress ? `to ${lightningAddress}` : null } </h2>
+          <h2 className="text-2xl font-bold" style={{overflowWrap: 'anywhere'}}>Send some sats</h2>
+          <h3 className="text-md font-bold" style={{overflowWrap: 'anywhere'}}>{lightningAddress ? `to ${lightningAddress}` : null } </h3>
 
           <div className="flex mb-5 w-full justify-between">
             <div className="mx-2 w-2/4">
