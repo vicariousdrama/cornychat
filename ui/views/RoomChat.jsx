@@ -192,6 +192,19 @@ export default function RoomChat({
             let sentv4v = (thetext.includes("zapped") || thetext.includes("tipped")) && thetext.includes("⚡");
             let chatLineTextColor = emoting ? 'rgb(59,130,246)' : (sentv4v ? 'rgb(255,155,55)' : 'rgb(255,255,255)');
             if(thetext.startsWith("cashu") && thetext.length > 350) {
+
+                let cashuamount = '?';
+                let cashuunit = 'sats';
+                let cashumint = 'unknown mint';
+                try {
+                    let cashuobj = JSON.parse(atob(thetext.substring(6)));
+                    cashuamount = cashuobj.token[0].proofs[0].amount;
+                    if (cashuobj.unit) cashuunit = cashuobj.unit;
+                    cashumint = cashuobj.token[0].mint;
+                } catch(cashuerror) {
+                    console.log(`Error parsing cashu token:`, cashuerror);
+                    /* ignore */
+                }
                 return (
                     <center className="text-xs text-gray-400 cursor-pointer">
                     <div style={{width:'330px',height:'60px',border:'3px solid lightgreen',backgroundColor:'green',color:'white',textAlign:'center'}}
@@ -199,10 +212,17 @@ export default function RoomChat({
                             await window.navigator.clipboard.writeText(thetext);
                         }}
                     >
-                        Cashu token. Click to copy.
-                        <br/>
-                        <br/>
-                        {thetext.substring(0,30)}...
+                        Cashu token. Click to copy. 
+                        {cashuamount != '?' ? (
+                            <>
+                            <br/>{cashuamount} {cashuunit}
+                            <br/>{cashumint}
+                            </>
+                        ) : (
+                            <>
+                            <br /><br />{thetext.substring(0,30)}...
+                            </>
+                        )}
                     </div>
                     </center>
                 );
