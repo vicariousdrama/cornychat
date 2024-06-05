@@ -210,6 +210,7 @@ export default function RoomChat({
                     <div style={{width:'330px',height:'60px',border:'3px solid lightgreen',backgroundColor:'green',color:'white',textAlign:'center'}}
                         onClick={async () => {
                             await window.navigator.clipboard.writeText(thetext);
+                            alert('Cashu token copied to clipboard. Paste in your wallet to redeem.');
                         }}
                     >
                         Cashu token. Click to copy. 
