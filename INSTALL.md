@@ -160,6 +160,14 @@ sudo systemctl status docker
 sudo usermod -a -G docker <theusername>
 ```
 
+**Exit and Relogin as the user created**
+
+```sh
+> ssh <theusername>@ip
+```
+
+If successful, the user will now have privileges to run docker commands.
+
 **Install Docker Compose**
 
 ```sh
@@ -216,6 +224,8 @@ nano .env
 
 5. Set the `JAM_SFU_EXTERNAL_IP` value to the external ip address reported from hostname -I.
 
+If you want an announcement bot to announce live public rooms to nostr, uncomment and fill in an nsec for the `SERVER_NSEC` properties.  Don't use your personal NSEC. It's better to create a completely new one if you want to leverage this feature.
+
 Press CTRL+O, CTRL+X to save and exit
 
 **Edit the turnserver.conf file**
@@ -230,16 +240,6 @@ nano ~/cornychat/deployment/turnserver.conf
 
 Press CTRL+O, CTRL+X to save and exit
 
-**Edit the jam-config.json file**
-
-```sh
-nano ~/cornychat/resources/jam-config.json
-```
-
-1. Near the top of the file, update the domain name for the fields in the `urls` section.
-
-Press CTRL+O, CTRL+X to save and exit
-
 **Build the UI**
 
 ```sh
@@ -251,13 +251,13 @@ yarn
 
 ```sh
 cd ~/cornychat/ui
-chmod +x buildit.sh
+sudo chmod +x buildit.sh
 ./buildit.sh
 cd ~/cornychat/pantry
-chmod +x buildit.sh
+sudo chmod +x buildit.sh
 ./buildit.sh
 cd ~/cornychat/pantry-sfu
-chmod +x buildit.sh
+sudo chmod +x buildit.sh
 ./buildit.sh
 ```
 

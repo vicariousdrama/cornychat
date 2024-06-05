@@ -21,6 +21,7 @@ function sleep(ms) {
 }
   
 const deleteNostrSchedule = async (roomId) => {
+    if (serverNsec.length == 0) return;
     if(pmd) console.log("in deleteNostrSchedule");
     const eventUUID = `${jamHost}-${roomId}`;
     const sk = nip19.decode(serverNsec).data;
@@ -424,16 +425,18 @@ const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => 
             }
         }
     }
-    const sk = nip19.decode(serverNsec).data;
-    const event = finalizeEvent({
-        created_at: Math.floor(Date.now() / 1000),
-        kind: 31923,
-        tags: tags,
-        content: content,
-    }, sk);
-    if(pmd) console.log('Event to be published', JSON.stringify(event));
-    writepool.publish(event, relaysToUse);
-    await sleep(100);
+    if (serverNsec.length > 0) {
+        const sk = nip19.decode(serverNsec).data;
+        const event = finalizeEvent({
+            created_at: Math.floor(Date.now() / 1000),
+            kind: 31923,
+            tags: tags,
+            content: content,
+        }, sk);
+        if(pmd) console.log('Event to be published', JSON.stringify(event));
+        writepool.publish(event, relaysToUse);
+        await sleep(100);
+    }
 
     if(pmd) console.log("Preparing kind 1 to publish event from room");
     let roomNsec = await getRoomNSEC(roomId);
@@ -506,6 +509,7 @@ const updateNostrProfile = async (roomId, name, description, logoURI, background
 }
 
 const updateNostrProfileForServer = async (name, description, logoURI, backgroundURI, lud16, nip05) => {
+    if (serverNsec.length == 0) return;
     if(pmd) console.log("in updateNostrProfileForServer");
     const sk = nip19.decode(serverNsec).data;
     let profileObj = {nip05: nip05}
@@ -532,8 +536,7 @@ const deleteLiveActivity = async (roomId, dtt) => {
     let roomSk = nip19.decode(roomNsec).data;
     const kind = 30311;
     const eventUUID = `${dtt}`;
-    const sk = nip19.decode(serverNsec).data;
-    const pk = getPublicKey(sk);
+    const pk = getPublicKey(roomSk);
     const aTagValue = `${kind}:${pk}:${eventUUID}`;
     const timestamp = Math.floor(Date.now() / 1000);
     console.log(`deleting event ${eventUUID}`)
@@ -557,8 +560,7 @@ const publishLiveActivity = async (roomId, dtt, roomInfo, userInfo, status) => {
     if (status == 'live') et = et + (60 * 60 * 1000);       // 1 hour from now
     const kind = 30311;
     const eventUUID = `${dtt}`;
-    const sk = nip19.decode(serverNsec).data;
-    const pk = getPublicKey(sk);
+    const pk = getPublicKey(roomSk);
     const aTagValue = `${kind}:${pk}:${eventUUID}`;
     const roomUrl = `https://${jamHost}/${roomId}`;
     const title = roomInfo?.name ?? `Corny Chat: ${roomId}`;
@@ -631,6 +633,7 @@ const publishLiveActivity = async (roomId, dtt, roomInfo, userInfo, status) => {
 }
 
 const publishRoomActive = async (roomId, dtt, roomInfo, userInfo, isnew) => {
+    if (serverNsec.length == 0) return;
     if(pmd) console.log("in publishRoomActive for ", roomId);
     const kind = 1;
     const roomUrl = `https://${jamHost}/${roomId}`;
