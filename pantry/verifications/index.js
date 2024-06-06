@@ -8,7 +8,7 @@ const verifyIdentities = async (identities, publicKey) => {
       if (!verifiers[identity.type]) {
         throw new Error(`No verifier for identity type ${identity.type}`);
       }
-      if (identity.verificationInfo) {
+      if (identity.verificationInfo || identity.loginTime) {
         await verifiers[identity.type](identity, publicKey);
       }
     }

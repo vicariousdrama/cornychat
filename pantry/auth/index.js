@@ -197,6 +197,10 @@ const roomAuthenticator = {
       res.sendStatus(400);
       return;    
     }
+    // - force set createdTime and updateTime
+    let theTime = Date.now();
+    req.body.createdTime = theTime;
+    req.body.updateTime = theTime;
 
     // if we got this far, the authorization checks succeeded and ok to write
     next();
@@ -317,6 +321,12 @@ const identityAuthenticator = {
   ...permitAllAuthenticator,
   canPost: async (req, res, next) => {
     await initializeServerAdminIfNecessary(req);
+
+    // - force set createdTime and updateTime
+    let theTime = Date.now();
+    req.body.createdTime = theTime;
+    req.body.updateTime = theTime;
+
     next();
   },
   canPut: async (req, res, next) => {
@@ -327,6 +337,8 @@ const identityAuthenticator = {
 
     if (req.body.identities) {
       try {
+        // NOTE: This currently only verifies anon users that give a nevent or note id
+        // TODO: Modify ../nostr/nostr.js:verify to support a new verificationInfo type for validating the signature given
         await verifyIdentities(req.body.identities, req.params.id);
       } catch (error) {
         res.status(400).json({
@@ -341,6 +353,11 @@ const identityAuthenticator = {
     }
 
     await initializeServerAdminIfNecessary(req);
+
+    // - force set updateTime
+    let theTime = Date.now();
+    req.body.updateTime = theTime;
+
     next();
   },
 };
