@@ -123,10 +123,12 @@ async function createRoom(state, roomId, room = {}) {
     videoCall = false,
     videoEnabled = false,
     isPrivate = true,
+    isProtected = false,
     isRecordingAllowed = false,
     roomSlides = [],
     roomLinks = [],
     currentSlide = 0,
+    passphraseHash = '',
   } = room;
 
   const customEmojis = reactionEmojis;
@@ -161,6 +163,7 @@ async function createRoom(state, roomId, room = {}) {
     videoCall: !!videoCall,
     videoEnabled: !!videoEnabled,
     isPrivate: !!isPrivate,
+    isProtected: !!isProtected,
     isRecordingAllowed: !!isRecordingAllowed,
     moderators: [myId],
     speakers: [myId],
@@ -168,6 +171,7 @@ async function createRoom(state, roomId, room = {}) {
     roomSlides,
     roomLinks,
     currentSlide,
+    passphraseHash,
   };
   let ok = await post(state, `/rooms/${roomId}`, newRoom);
   if (ok) populateCache(API + `/rooms/${roomId}`, newRoom);

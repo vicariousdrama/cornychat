@@ -30,6 +30,7 @@ export default function AppState({hasMediasoup, hasBroadcast}) {
     shareScreen: false,
     handRaised: false,
     handType: '',
+    passphraseHash: '',
   });
 
   return function AppState({
@@ -41,6 +42,7 @@ export default function AppState({hasMediasoup, hasBroadcast}) {
     autoJoin,
     autoRejoin,
     customStream,
+    passphraseHash,
   }) {
     let myIdentity = use(Identity, {swarm, roomId});
     if (!myIdentity) return {swarm};
@@ -74,12 +76,12 @@ export default function AppState({hasMediasoup, hasBroadcast}) {
       shouldReceive: userInteracted && hasBroadcast && !iAmSpeaker,
     });
 
-    is(myPeerState, {micMuted, inRoom: !!inRoom, handType});
+    is(myPeerState, {micMuted, inRoom: !!inRoom, handType, passphraseHash});
     declare(Reactions, {swarm});
     declare(TextChat, {swarm});
 
     return merge(
-      {swarm, micMuted, handRaised, handType, inRoom, myId, myIdentity, remoteStreams},
+      {swarm, micMuted, handRaised, handType, passphraseHash, inRoom, myId, myIdentity, remoteStreams},
       roomState,
       declare(PeerState, {swarm}),
       declare(ConnectRoom, {
@@ -91,6 +93,7 @@ export default function AppState({hasMediasoup, hasBroadcast}) {
         roomState,
         handRaised,
         handType,
+        passphraseHash,
       }),
       declare(AudioState, {
         myId,
@@ -107,6 +110,7 @@ export default function AppState({hasMediasoup, hasBroadcast}) {
         micMuted,
         handRaised,
         handType,
+        passphraseHash,
         customStream,
       }),
       declare(VideoState, {

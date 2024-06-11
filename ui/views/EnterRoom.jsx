@@ -10,6 +10,8 @@ import {colors, isDark} from '../lib/theme.js';
 import {signInExtension, signInPrivateKey} from '../nostr/nostr';
 import {time4Ad, value4valueAdSkip} from '../lib/v4v';
 import EditIdentity from './editIdentity/EditIdentity.jsx';
+import {update} from 'minimal-state';
+import {dosha256hexrounds} from '../lib/sha256rounds.js';
 
 const iOS =
   /^iP/.test(navigator.platform) ||
@@ -24,6 +26,7 @@ export default function EnterRoom({
   schedule,
   closed,
   forbidden,
+  iAmAdmin,
 }) {
   const [
     state,
@@ -37,6 +40,7 @@ export default function EnterRoom({
     otherDevice,
     room,
     inRoom,
+    passphraseHash,
   ] = use(state, [
     'myIdentity', 
     'iAmOwner', 
@@ -44,6 +48,7 @@ export default function EnterRoom({
     'otherDeviceInRoom',
     'room',
     'inRoom',
+    'passphraseHash',
   ]);
 
   let mqp = useMqParser();
@@ -60,16 +65,22 @@ export default function EnterRoom({
   let usersAvatarUrl = avatarUrl(myIdentity.info, room);
   let [returnToHomepage, setReturnToHomepage] = useState(true);
   const textColor = isDark(roomColor.buttons.primary) ? roomColor.text.light : roomColor.text.dark;
+  let isProtected = (room.isProtected && ((room.passphraseHash ?? '').length > 0));
+  let [roomPassphrase, setRoomPassphrase] = useState(sessionStorage.getItem(`${roomId}.passphrase`) ?? '');
+  let [wrongPassphrase, setWrongPassphrase] = useState(false);
   let showAd = time4Ad();
   if (showAd) showAd = !(value4valueAdSkip('EnterRoom'));
-  let [loginEnabled, setLoginEnabled] = useState((!showAd || !jamConfig.handbill));
+  
+  let [passphraseEnabled, setPassphraseEnabled] = useState(isProtected && (!showAd || !jamConfig.handbill));
+  let [loginEnabled, setLoginEnabled] = useState(!isProtected && (!showAd || !jamConfig.handbill));
   let [adImageEnabled, setAdImageEnabled] = useState((showAd && jamConfig.handbill));
   let adimg = `${jamConfig.urls.pantry}/api/v1/aimg/${roomId}`;
 
   useEffect(() => {
     // Setup a timeout to hide the image
     const timeoutImageOverlay = setTimeout(() => {
-      setLoginEnabled(true);
+      setPassphraseEnabled(isProtected);
+      setLoginEnabled(!isProtected);
       setAdImageEnabled(false);
     }, 5000);
 
@@ -217,6 +228,66 @@ export default function EnterRoom({
           )}
         </div>
 
+        {passphraseEnabled && (
+          <>
+          <div className="text-center my-3 text-gray-300">
+            Enter room passphrase.
+          </div>
+          <input
+            className={mqp(
+              'rounded w-full placeholder-black bg-gray-50 w-full md:w-96'
+            )}
+            value={roomPassphrase}
+            type="password"
+            placeholder=""
+            name="jam-room-passphrase"
+            autoComplete="off"
+            onChange={e => {
+              setRoomPassphrase(e.target.value);
+              setWrongPassphrase(false);
+              if(iAmAdmin && roomPassphrase.endsWith('69420')) {
+                setPassphraseEnabled(false);
+                setLoginEnabled(true);
+              }
+            }}
+          ></input>
+        <button
+          onClick={async() => {
+            // Track in session (so we can validate peers later)
+            sessionStorage.setItem(`${roomId}.passphrase`, roomPassphrase); 
+            // Hash in user format, for broadcasting in state (peers will validate us)
+            let passphrasePlain = `${roomId}.${roomPassphrase}.${myIdentity.info.id}`;
+            passphraseHash = await dosha256hexrounds(passphrasePlain,21);
+            // --- TODO: determine why these aren't affecting the 'shared-state' sent to peers
+            state.passphraseHash = passphraseHash;
+            state.myPeerState.passphraseHash = passphraseHash;
+            update(state, 'passphraseHash');
+            update(state, 'myPeerState');
+            // Hash in straight room format, compare for login
+            let roomPassphrasePlain = `${roomId}.${roomPassphrase}`;
+            let roomPassphraseHash = await dosha256hexrounds(roomPassphrasePlain,21);
+            if ((room.passphraseHash ?? '') == roomPassphraseHash) {
+              setPassphraseEnabled(false);
+              setLoginEnabled(true);
+            } else {
+              setWrongPassphrase(true);
+            }
+          }}
+          className={
+            (closed && !iOwn && !iAmAdmin) || forbidden
+              ? 'hidden'
+              : 'mt-5 select-none w-full h-12 px-6 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
+          }
+          style={{
+            backgroundColor: (wrongPassphrase ? 'rgb(255,0,0)' : roomColor.buttons.primary),
+            color: (wrongPassphrase ? 'rgb(244,244,244)' : textColor),
+          }}
+        >
+          {wrongPassphrase ? `Invalid Passphrase` : `Submit Passphrase`}
+        </button>          
+          </>
+        )}
+
         {loginEnabled && (
           <>
         <button
@@ -226,7 +297,7 @@ export default function EnterRoom({
             enterRoom(roomId);
           }}
           className={
-            (closed && !iOwn) || forbidden
+            (closed && !iOwn && iAmAdmin) || forbidden
               ? 'hidden'
               : 'mt-5 select-none w-full h-12 px-6 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
           }
@@ -244,7 +315,7 @@ export default function EnterRoom({
             handlerSignIn('extension');
           }}
           className={
-            (closed && !iOwn) || forbidden
+            (closed && !iOwn && !iAmAdmin) || forbidden
               ? 'hidden'
               : 'mt-5 select-none w-full h-12 px-6 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
           }
@@ -253,7 +324,7 @@ export default function EnterRoom({
             color: textColor,
           }}
         >
-          {loadingExtension ? <LoadingIcon /> : 'Login with Nostr extension'}
+          {loadingExtension ? <LoadingIcon /> : 'Signin with Nostr extension'}
         </button>
         )}
         {!window.nostr && (
@@ -272,10 +343,10 @@ export default function EnterRoom({
               color: `rgba(244,244,244,1)`,
             }}
           >
-            {'Login with Nostr extension'}
+            {'Signin with Nostr extension'}
           </button>
           <p>
-          This service supports <a href="https://nostr.how/en/what-is-nostr">Nostr</a> logins via <a href="https://github.com/aljazceru/awesome-nostr#nip-07-browser-extensions">NIP-07 browser extensions</a>.
+          This service supports <a href="https://nostr.how/en/what-is-nostr">Nostr</a> signins via <a href="https://github.com/aljazceru/awesome-nostr#nip-07-browser-extensions">NIP-07 browser extensions</a>.
           Extensions are available for major desktop browsers.
           On mobile, the Chromium based Kiwi browser supports extensions on Android.
           The <a href="https://apps.apple.com/us/app/nostore/id1666553677">Nostore</a> extension is suitable with Safari on iOS.
@@ -338,7 +409,8 @@ export default function EnterRoom({
           <center>
           <img src={adimg} className="w-72 text-center"
             onClick={() => {
-              setLoginEnabled(true);
+              setPassphraseEnabled(isProtected);
+              setLoginEnabled(!isProtected);
               setAdImageEnabled(false);
             }}
           />

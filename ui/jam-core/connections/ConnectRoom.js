@@ -29,6 +29,9 @@ export default function ConnectRoom({myIdentity, swarm}) {
     inRoom,
     myIdentity,
     roomState,
+    handRaised,
+    handType,
+    passphraseHash,
   }) {
     let myId = myIdentity.publicKey;
     let shouldConnect = hasRoom && roomId && roomState.iAmAuthorized;
@@ -44,7 +47,7 @@ export default function ConnectRoom({myIdentity, swarm}) {
         swarm.config({
           sign: data => signData(myIdentity, data),
         });
-        swarm.connect(roomId, myId);
+        swarm.connect(roomId, myId, passphraseHash);
       }
     } else {
       if (swarm.connectState !== INITIAL) {
@@ -146,7 +149,7 @@ function configSwarm(swarm, staticConfig) {
       iceTransportPolicy: 'all',
       iceServers: [
         // {urls: `stun:stun.jam.systems:3478`},
-        {urls: [`${staticConfig.urls.stun}`, `stun:coturn.jam.systems:3478`]},
+        {urls: [`${staticConfig.urls.stun}`]},  //, `stun:coturn.jam.systems:3478`]},
         {
           ...staticConfig.urls.turnCredentials,
           urls: `${staticConfig.urls.turn}`,

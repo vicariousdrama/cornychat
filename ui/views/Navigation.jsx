@@ -13,34 +13,71 @@ import {
   ChatBubbles,
 } from './Svg';
 import {useJam} from '../jam-core-react';
+import {dosha256hexrounds} from '../lib/sha256rounds.js';
+import {openModal} from './Modal';
+import {PassphraseModal} from './PassphraseModal';
 
-export default function Navigation({room, showMyNavMenu, setShowMyNavMenu, showChat, setShowChat, iAmAdmin}) {
+export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, setShowChat, iAmAdmin}) {
   let mqp = useMqParser();
   const [state, {leaveRoom, sendReaction, retryMic, setProps}] = useJam();
-  let [myAudio, micMuted, handRaised, handType, iSpeak, myIdentity, roomId] = use(state, [
+  let [room, roomId] = use(state, ['room','roomId']);
+  let [myAudio, micMuted, handRaised, handType, iSpeak] = use(state, [
     'myAudio',
     'micMuted',
     'handRaised',
     'handType',
     'iAmSpeaker',
-    'myIdentity',
-    'roomId',
   ]);
-
+  
   const [time, setTime] = useState(Date.now());
+  const colorTheme = state.room?.color ?? 'default';
+  const roomColor = colors(colorTheme, state.room.customColor);
+  const iconColor = isDark(roomColor.buttons.primary) ? roomColor.icons.light : roomColor.icons.dark;
+  const iconColorBad = `rgba(240,40,40,.80)`;
   let [showUnreadIndicator, setShowUnreadIndicator] = useState(false);
   let [unreadCount, setUnreadCount] = useState(0);
   useEffect(() => {
-    const interval = setInterval(() => {
+    const textchatInterval = setInterval(() => {
       setTime(Date.now());    // forces update ?
       let n = Math.floor(sessionStorage.getItem(`${roomId}.textchat.unread`));
       setUnreadCount(n);
       setShowUnreadIndicator(n>0);
     }, 1000);
+    let checkcount = 0;
+    // This interval periodically checks if the room is protected with a passphrase, and if the user has
+    // the current passphrase set. If it differs, then they are prompted for passphrase input or will
+    // be ejected after about a minute.
+    const passphraseInterval = setInterval(() => {
+      // TODO: figure out how to get the updated room state
+      let temp_room2 = {...room};
+      if(room.passphraseHash != temp_room2.passwordHash) {
+//        console.log(temp_room2.passwordHash);
+      }
+      //console.log(`protected: ${room.isProtected} - ${room.passphraseHash}`);
+      if (room.isProtected && ((room.passphraseHash ?? '').length > 0)) {
+        let roomPassphrase = (sessionStorage.getItem(`${roomId}.passphrase`) ?? '');
+        let roomPassphrasePlain = `${roomId}.${roomPassphrase}`;
+        let roomPassphraseHash = '';
+        (async () => {
+          let r = await dosha256hexrounds(roomPassphrasePlain,21); 
+          roomPassphraseHash = r;
+          if (room.passphraseHash != roomPassphraseHash && !iAmAdmin) {
+            checkcount += 1;
+            console.log('room passphrase required. time remaining: ', (60 - ((checkcount-1) * 5)));
+            if (checkcount == 13) leaveRoom();
+            if (checkcount == 1) openModal(PassphraseModal, {roomId: roomId, roomPassphraseHash: room.passphraseHash, roomColor: roomColor, checkcount: checkcount});
+          } else {
+            // reset check counter
+            checkcount = 0;
+          }  
+        })();
+      }
+    }, 5000);
     return () => {
-      clearInterval(interval);
+      clearInterval(textchatInterval);
+      clearInterval(passphraseInterval);
     };
-  }, []);  
+  }, [room]);  
 
   // OnlyZaps don't like reactions or special stickies
   let onlyZapsMode = ((localStorage.getItem('onlyZapsEnabled') ?? 'false') == 'true');
@@ -325,14 +362,6 @@ export default function Navigation({room, showMyNavMenu, setShowMyNavMenu, showC
 
   let [showReactions, setShowReactions] = useState(false);
   let [showStickies, setShowStickies] = useState(false);
-
-  const colorTheme = state.room?.color ?? 'default';
-  const roomColor = colors(colorTheme, state.room.customColor);
-
-  const iconColor = isDark(roomColor.buttons.primary)
-    ? roomColor.icons.light
-    : roomColor.icons.dark;
-  const iconColorBad = `rgba(240,40,40,.80)`;
 
   return (
     <div style={{zIndex: '5',position:'absolute',bottom:'72px',width:'100%',backgroundColor:roomColor.avatarBg}}>
