@@ -20,7 +20,7 @@ export default function About() {
       <h2>Contributors</h2>
       <p>Developers: Diego, Vic</p>
       <p>Art: Kajoozie, Noshole, Puzzles</p>
-      <p>Known Financial Supporters: ₿², Bevo, chef4₿rains, Frank, Kajoozie, Marie, New1, Noshole, Oobiyou, Propaganda Daily, Puzzles, Ralf, Rex, Sai, Séimí, Tekkadan, TheRupertDamnit, Tigs, Vic</p>
+      <p>Known Financial Supporters: ₿², Bevo, chef4₿rains, Frank, Jode, Kajoozie, Marie, New1, Noshole, Oobiyou, Propaganda Daily, Puzzles, Ralf, Rex, Sai, Séimí, Tekkadan, TheRupertDamnit, Tigs, Vic</p>
       <p>Super Testers: ₿², Spiral Crunch</p>
 
       <h2>Development</h2>
