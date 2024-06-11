@@ -102,6 +102,8 @@ export default function Room({room, roomId, uxConfig}) {
     closed,
     stageOnly,
     lud16,
+    isProtected,
+    passphraseHash,
   } = room || {};
 
   function CacheAds() {
@@ -166,6 +168,7 @@ export default function Room({room, roomId, uxConfig}) {
         description={description}
         schedule={schedule}
         closed={closed}
+        iAmAdmin={iAmAdmin}
       />
     );
   }
@@ -178,6 +181,7 @@ export default function Room({room, roomId, uxConfig}) {
         description={description}
         schedule={schedule}
         closed={closed}
+        iAmAdmin={iAmAdmin}
       />
     );
   }
@@ -379,12 +383,14 @@ export default function Room({room, roomId, uxConfig}) {
       </div>
       <Navigation
         {...{
-          room,
+//          room,
           showMyNavMenu,
           setShowMyNavMenu,
           showChat,
           setShowChat,
           iAmAdmin,
+//          isProtected,
+//          passphraseHash,
         }}
       />
     </div>

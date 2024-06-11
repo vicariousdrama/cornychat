@@ -47,6 +47,9 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
   let [closed, setClosed] = useState(room.closed || false);
   let [closedBy, setClosedBy] = useState(room.closedBy || '');
   let [isPrivate, setIsPrivate] = useState(room.isPrivate || false);
+  let [isProtected, setIsProtected] = useState(room.isProtected || false);
+  let [passphrasePlain, setPassphrasePlain] = useState(sessionStorage.getItem(`${roomId}.passphrase`) ?? '');
+  let [passphraseHash, setPassphraseHash] = useState(room.passphraseHash || '');
   let [isRecordingAllowed, setIsRecordingAllowed] = useState(room.isRecordingAllowed || false);
   let [isLiveActivityAnnounced, setIsLiveActivityAnnounced] = useState(room.isLiveActivityAnnounced || false);
   let [stageOnly, setStageOnly] = useState(room.stageOnly || false);
@@ -148,6 +151,9 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
     }
     roomSlides = decodedRoomSlides;
 
+    // Store the new passphrase in my session
+    sessionStorage.setItem(`${roomId}.passphrase`, passphrasePlain);
+
     let ok = await submitUpdate({
       name,
       description,
@@ -160,6 +166,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
       closed,
       closedBy,
       isPrivate,
+      isProtected,
       isRecordingAllowed,
       isLiveActivityAnnounced,
       stageOnly,
@@ -169,6 +176,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
       roomSlides,
       schedule,
       lud16,
+      passphraseHash,
     });
     if (!ok) {
       alert('An error occurred. Your changes were not saved. If another owner or moderator was making changes you will need to close and reopen the setttings to make your changes.');
@@ -197,6 +205,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
         <BasicRoomInfo
           iOwn={iOwn}
           info={info}
+          roomId={roomId}
           name={name}
           setName={setName}
           description={description}
@@ -209,6 +218,12 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
           setClosedBy={setClosedBy}
           isPrivate={isPrivate}
           setIsPrivate={setIsPrivate}
+          isProtected={isProtected}
+          setIsProtected={setIsProtected}
+          passphrasePlain={passphrasePlain}
+          setPassphrasePlain={setPassphrasePlain}
+          passphraseHash={passphraseHash}
+          setPassphraseHash={setPassphraseHash}
           isRecordingAllowed={isRecordingAllowed}
           setIsRecordingAllowed={setIsRecordingAllowed}
           isLiveActivityAnnounced={isLiveActivityAnnounced}
@@ -217,6 +232,8 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
           setStageOnly={setStageOnly}
           lud16={lud16}
           setLud16={setLud16}
+          textColor={textColor}
+          roomColor={roomColor}
         />
       </div>
 

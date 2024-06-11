@@ -92,7 +92,7 @@ export default function RoomChat({
             textchats.push([myId, "Supported markdown"]);
             textchats.push([myId, "• To **bold** surround with 2 *"]);
             textchats.push([myId, "• To *italicize* surround with 1 *"]);
-            textchats.push([myId, "• To hide spoilers, surround with 1 |"]);
+            textchats.push([myId, "• To hide spoilers, surround with 2 |"]);
             textchats.push([myId, "• Emoji shortcodes are surrounded by 1 :"]);
             textchats.push([myId, "• /help shows this guidance"]);
             textchats.push([myId, "• /clear resets your text buffer"]);

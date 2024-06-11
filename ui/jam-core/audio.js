@@ -49,6 +49,7 @@ function AudioState({swarm}) {
     remoteStreams,
     broadcastPlayers,
     customStream,
+    passphraseHash,
   }) {
     if (audioContext === null && AudioContext) {
       let shouldHaveAudioContext =

@@ -12,6 +12,7 @@ const defaultProps = {
   hasMediasoup: false,
   hasBroadcast: false,
   customStream: null,
+  passphraseHash: '',
 };
 type Props = typeof defaultProps;
 type ActionType = string | {type: string};
@@ -61,6 +62,7 @@ type RoomType = {
   stageOnly?: boolean;
   videoCall?: boolean;
   isPrivate?: boolean;
+  isProtected?: boolean;
   isRecordingAllowed?: boolean;
   color?: string;
   logoURI?: string;
@@ -69,6 +71,7 @@ type RoomType = {
   access?: AccessType;
   broadcastRoom?: boolean;
   currentSlide?: number;
+  passphraseHash?: string;
 };
 type PeerState = {
   inRoom: boolean;
@@ -79,6 +82,7 @@ type PeerState = {
   shareScreen: boolean;  
   handRaised: boolean;
   handType: string;
+  passphraseHash: string;
 };
 
 const defaultState = {
@@ -110,7 +114,9 @@ const defaultState = {
       },
     },
     isPrivate: true,
+    isProtected: false,
     isRecordingAllowed: false,
+    passphraseHash: '',
   } as RoomType,
   hasRoom: false,
   isRoomLoading: false,
@@ -130,12 +136,14 @@ const defaultState = {
     leftStage: false,
     isRecording: false,
     handType: '',
+    passphraseHash: '',
   },
 
   reactions: {},
   textchats: [],
   handRaised: false,
   handType: '',
+  passphraseHash: '',
 
   soundMuted: true,
   micMuted: true,

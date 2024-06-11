@@ -4,10 +4,12 @@ import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
 import {avatarUrl, displayName} from '../../lib/avatar';
 import {getNpubFromInfo} from '../../nostr/nostr';
+import {dosha256hexrounds} from '../../lib/sha256rounds.js';
 
 export function BasicRoomInfo({
   iOwn,
   info,
+  roomId,
   name,
   setName,
   description,
@@ -20,6 +22,12 @@ export function BasicRoomInfo({
   setClosedBy,
   isPrivate,
   setIsPrivate,
+  isProtected,
+  setIsProtected,
+  passphrasePlain,
+  setPassphrasePlain,
+  passphraseHash,
+  setPassphraseHash,
   isRecordingAllowed,
   setIsRecordingAllowed,
   stageOnly,
@@ -28,11 +36,14 @@ export function BasicRoomInfo({
   setIsLiveActivityAnnounced,
   lud16,
   setLud16,
+  textColor,
+  roomColor,
 }) {
 
   let myname = displayName(info, undefined);
   let userNpub = getNpubFromInfo(info);
   if (iOwn && !userNpub) setIsPrivate(true);  // force a room to private if the owner does not have an npub
+  
 
   let mqp = useMqParser();
   let [expanded, setExpanded] = useState(false);
@@ -172,8 +183,9 @@ export function BasicRoomInfo({
         >
           Close the room
           <div className="p-2 pl-9 text-gray-300 text-sm">
-            Closed rooms can only be joined by administrators and owners. 
-            {closedBy.length > 0 && (`Room was closed by ${closedBy}`)}
+            Closed rooms can only be joined by administrators and owners.
+            {closedBy.length == 0 && (`If you close the room, all non-owners will be ejected.`)}
+            {closedBy.length > 0 && (`Room was closed by ${closedBy}.`)}
           </div>
         </label>
         </>
@@ -226,6 +238,98 @@ export function BasicRoomInfo({
           <p className="text-gray-300 text-sm">
           <span className="font-medium text-gray-300">Public Room</span> - displays on landing page and
           announced by Corny Chat bot.
+          </p>
+        )}
+      </div>
+
+      <div className="mt-2">
+        {iOwn && (
+        <>
+        <input
+          className="ml-2"
+          type="checkbox"
+          name="jam-room-isprotected"
+          id="jam-room-isprotected"
+          onChange={() => {
+            setIsProtected(!isProtected);
+            if (!isProtected) {
+              setPassphrasePlain('');
+              setPassphraseHash('');
+            }
+          }}
+          defaultChecked={isProtected}
+        />
+        <label
+          className="pl-3 ml-0.5 text-sm font-medium text-gray-300 p-2"
+          htmlFor="jam-room-isprotected"
+        >
+          Make room protected
+          <div className="p-2 pl-9 text-gray-300 text-sm">
+            Protected rooms require a passphrase for entry.  Users with the proper passphrase will
+            be allowed entry, while those without are denied access.
+            {((passphraseHash ?? '').length == 0) ? (
+            <>
+            <br />
+            Specify a passphrase in the box below. This value is case sensitive and may contain any 
+            combination of numbers, letters or symbols.
+            <input
+              className={mqp(
+                'rounded-lg placeholder-black bg-gray-400 text-black border-4 pb-2 rounded-lg w-full md:w-96'
+              )}
+              type="password"
+              placeholder=""
+              value={passphrasePlain}
+              name="jam-room-passphrase"
+              autoComplete="off"
+              style={{
+                fontSize: '15px',
+              }}
+              onChange={async(e) => {
+                let plaintext = e.target.value;
+                setPassphrasePlain(plaintext);
+              }}
+              onBlur={async(e) => {
+                let roomPassphrasePlain = `${roomId}.${passphrasePlain}`;
+                let roomPassphraseHash = await dosha256hexrounds(roomPassphrasePlain,21);
+                //console.log(`plan passphrase: ${roomPassphrasePlain} == hashed: ${roomPassphraseHash}`);
+                setPassphraseHash(roomPassphraseHash);
+              }}
+            ></input>
+            </>
+            ) : (
+              <>
+              <br />
+              A passphrase is currently set for this room. &nbsp;
+              <button
+              className="px-2 text-sm rounded-md"
+              style={{
+                color: textColor,
+                backgroundColor: roomColor.buttons.primary,
+              }}
+              onClick={(e) => {
+                e.preventDefault();
+                setPassphrasePlain('');
+                setPassphraseHash('');
+              }}
+            >
+              Clear Passphrase
+            </button>              
+              </>
+            )}
+          </div>
+        </label>
+        </>
+        )}
+        {!iOwn && isProtected && (
+          <p className="text-gray-300 text-sm">
+          <span className="font-medium text-gray-300">Protected Room</span> - Users must have
+          and provide the correct pass code to gain entry. Those without are denied.
+          </p>
+        )}
+        {!iOwn && !isProtected && (
+          <p className="text-gray-300 text-sm">
+          <span className="font-medium text-gray-300">Unprotected Room</span> - All users may
+          access this room. No pass code is required.
           </p>
         )}
       </div>

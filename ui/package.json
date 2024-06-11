@@ -43,6 +43,7 @@
     "bech32": "^2.0.0",
     "buffer": "^6.0.3",
     "color": "^4.2.3",
+    "crypto": "^1.0.1",
     "crypto-js": "^4.2.0",
     "emoji-js": "^3.8.0",
     "emoji-picker-react": "^4.5.16",
