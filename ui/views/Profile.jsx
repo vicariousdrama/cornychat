@@ -193,6 +193,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [userPosts, setUserPosts] = useState(undefined);
   const [editingPetname, setEditingPetname] = useState(false);
+  const maxPostsToDisplay = Math.floor(localStorage.getItem('maxPostsToDisplay') || '3');
 
   const actorNpub = getNpubFromInfo(actorIdentity.info);
   //console.log('userNpub: ', userNpub, ', actorNpub: ', actorNpub);
@@ -605,10 +606,10 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
         )}
         { loadingPosts ? (<h4 className="text-sm text-gray-400">Loading Recent Posts...</h4>) : userPosts && (
         <div style={{maxWidth: '568px'}}>
-          <p className={userPosts ? 'text-xl mr-1 font-semibold text-gray-200' : 'hidden'}>
+          <p className={userPosts && (maxPostsToDisplay > 0) ? 'text-xl mr-1 font-semibold text-gray-200' : 'hidden'}>
             Recent Text Notes
           </p>
-          { userPosts?.slice(0,3).map((event) => {
+          { userPosts?.slice(0,maxPostsToDisplay).map((event) => {
             return <div>
               <p className="text-sm text-gray-300 break-words mb-1"
                  style={{whiteSpace:'pre-line'}}

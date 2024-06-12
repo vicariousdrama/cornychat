@@ -12,6 +12,7 @@ import {time4Ad, value4valueAdSkip} from '../lib/v4v';
 import EditIdentity from './editIdentity/EditIdentity.jsx';
 import {update} from 'minimal-state';
 import {dosha256hexrounds} from '../lib/sha256rounds.js';
+import {canWebRTC} from '../lib/webrtc.js';
 
 const iOS =
   /^iP/.test(navigator.platform) ||
@@ -69,18 +70,19 @@ export default function EnterRoom({
   let [roomPassphrase, setRoomPassphrase] = useState(sessionStorage.getItem(`${roomId}.passphrase`) ?? '');
   let [wrongPassphrase, setWrongPassphrase] = useState(false);
   let showAd = time4Ad();
+  let supportsWebRTC = canWebRTC();
+  if (!supportsWebRTC) showAd = false;
   if (showAd) showAd = !(value4valueAdSkip('EnterRoom'));
-  
-  let [passphraseEnabled, setPassphraseEnabled] = useState(isProtected && (!showAd || !jamConfig.handbill));
-  let [loginEnabled, setLoginEnabled] = useState(!isProtected && (!showAd || !jamConfig.handbill));
+  let [passphraseEnabled, setPassphraseEnabled] = useState(isProtected && (!showAd || !jamConfig.handbill) && (supportsWebRTC));
+  let [loginEnabled, setLoginEnabled] = useState(!isProtected && (!showAd || !jamConfig.handbill) && (supportsWebRTC));
   let [adImageEnabled, setAdImageEnabled] = useState((showAd && jamConfig.handbill));
   let adimg = `${jamConfig.urls.pantry}/api/v1/aimg/${roomId}`;
 
   useEffect(() => {
     // Setup a timeout to hide the image
     const timeoutImageOverlay = setTimeout(() => {
-      setPassphraseEnabled(isProtected);
-      setLoginEnabled(!isProtected);
+      setPassphraseEnabled(isProtected && supportsWebRTC);
+      setLoginEnabled(!isProtected && supportsWebRTC);
       setAdImageEnabled(false);
     }, 5000);
 
@@ -415,6 +417,14 @@ export default function EnterRoom({
             }}
           />
           </center>
+          </p>
+          </div>
+        )}
+
+        {!supportsWebRTC && (
+          <div className="text-center my-3 text-gray-300">
+          <p className="text-gray-400 text-lg text-center">
+            This browser or its settings do not currently support WebRTC, an essential requirement for this application.
           </p>
           </div>
         )}
