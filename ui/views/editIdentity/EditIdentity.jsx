@@ -74,6 +74,9 @@ export default function EditIdentity({close}) {
   let [ghostsEnabled, setGhostsEnabled] = useState(
     localStorage.getItem('ghostsEnabled') ?? 'false'
   );
+  let [maxPostsToDisplay, setMaxPostsToDisplay] = useState(
+    localStorage.getItem('maxPostsToDisplay') ?? '3'
+  );
   let [onlyZapsEnabled, setOnlyZapsEnabled] = useState(
     localStorage.getItem('onlyZapsEnabled') ?? 'false'
   );
@@ -353,6 +356,7 @@ export default function EditIdentity({close}) {
     localStorage.setItem('byeEmoji',byeEmoji);
     localStorage.setItem('animationsEnabled',animEnabled);
     localStorage.setItem('ghostsEnabled',ghostsEnabled);
+    localStorage.setItem('maxPostsToDisplay',maxPostsToDisplay);
     localStorage.setItem('onlyZapsEnabled',onlyZapsEnabled);
     localStorage.setItem('doorbellEnabled',doorbellEnabled);
     localStorage.setItem('textchat.layout',textchatLayout);
@@ -418,6 +422,7 @@ export default function EditIdentity({close}) {
 
   let [expandedAnon, setExpandedAnon] = useState(false);
   let [expandedNostr, setExpandedNostr] = useState(false);
+  let [expandedNotes, setExpandedNotes] = useState(false);
   let [expandedVisuals, setExpandedVisuals] = useState(false);
   let [expandedPetnames, setExpandedPetnames] = useState(false);  
   let [expandedSound, setExpandedSound] = useState(false);
@@ -717,6 +722,34 @@ export default function EditIdentity({close}) {
             </div>
           </div>
 
+        </div>
+      </div>
+
+      <div>
+        <p className="text-lg font-medium text-gray-200 cursor-pointer" onClick={() => setExpandedNotes(!expandedNotes)}>
+          {expandedNotes ? '🔽' : '▶️'} Notes
+        </p>
+        <div className={expandedNotes ? 'p-4 py-2 bg-gray-700 rounded-lg my-3' : 'hidden'}>
+          <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
+            <div className="p-2 text-gray-200 bold">
+              Post Count to Display in Profiles
+            </div>
+            <input
+              className="rounded placeholder-black bg-gray-50 w-48"
+              type="number"
+              placeholder=""
+              min="1"
+              max="100"
+              value={maxPostsToDisplay}
+              onChange={e => {
+                setMaxPostsToDisplay(Math.floor(e.target.value.replace(/[^0-9]/g,'')));
+              }}
+            />
+            <div className="p-2 text-gray-200 italic">
+              Indicate the maximum number of recent posts to render for a nostr user
+              <span className="text-gray-300"> (default: 3)</span>
+            </div>
+          </div>         
         </div>
       </div>
 
