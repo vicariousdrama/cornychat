@@ -24,6 +24,7 @@ import {InvoiceModal} from './Invoice';
 import EditIdentity from './editIdentity/EditIdentity';
 import {useMqParser} from '../lib/tailwind-mqp';
 import {colors, isDark} from '../lib/theme';
+import { KickBanModal } from './KickBanModal';
 
 export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIdentity, close}) {
   async function setUserMetadata() {
@@ -538,7 +539,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
               </button>
             ) : null}
 
-            {isSpeaker && (iModerate || iAmAdmin) ? (
+            {isSpeaker && (iModerate || iOwn || iAmAdmin) ? (
               <button
                 className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
                 onClick={() => removeSpeaker(roomId, peerId).then(close)}
@@ -592,6 +593,27 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
               </button>
             ) : null}
 
+            {(iModerate || iOwn || iAmAdmin) && (
+              <button
+                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
+                onClick={() => {
+                  close();
+                  openModal(KickBanModal, {
+                    peerId,
+                    peerDisplayName: userDisplayName,
+                    actorId: myId,
+                    room,
+                    roomId,
+                    roomColor,
+                    iOwn,
+                    iModerate,
+                    iAmAdmin,
+                  });
+                }}
+              >
+                🦶 Kick User
+              </button>
+            )}
           </div>
         </div>
         { loadingProfile ? (<h4 className="text-sm text-gray-400">Loading Profile...</h4>) : (

@@ -20,7 +20,7 @@ import {PassphraseModal} from './PassphraseModal';
 export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, setShowChat, iAmAdmin}) {
   let mqp = useMqParser();
   const [state, {leaveRoom, sendReaction, retryMic, setProps}] = useJam();
-  let [room, roomId] = use(state, ['room','roomId']);
+  let [room, roomId, myId] = use(state, ['room','roomId','myId']);
   let [myAudio, micMuted, handRaised, handType, iSpeak] = use(state, [
     'myAudio',
     'micMuted',
@@ -73,9 +73,19 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
         })();
       }
     }, 5000);
+    const kickInterval = setInterval(() => {
+      let temp_room3 = {...room};
+      if(!iAmAdmin && temp_room3.kicked) {
+        for (let k of temp_room3.kicked) {
+          if (k.until < Date.now()) continue;
+          if (k.id == myId) leaveRoom();
+        }
+      }
+    },2000);
     return () => {
       clearInterval(textchatInterval);
       clearInterval(passphraseInterval);
+      clearInterval(kickInterval);
     };
   }, [room]);  
 

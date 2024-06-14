@@ -280,6 +280,7 @@ const roomAuthenticator = {
       roomInfo.roomSlides = postingRoom.roomSlides ?? [];
       roomInfo.schedule = (postingRoom.schedule) ? postingRoom.schedule : undefined;
       roomInfo.speakers = postingRoom.speakers ?? roomInfo.moderators;
+      roomInfo.kicked = postingRoom.kicked ?? [];
       req.body = roomInfo;
     } else {
       // rule: for a room to be public, user must have an npub
