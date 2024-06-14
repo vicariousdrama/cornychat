@@ -5,6 +5,7 @@ import {colorThemes, isDark} from '../../lib/theme';
 import {BasicRoomInfo} from './BasicRoomInfo';
 import {DesignRoomInfo} from './DesignRoomInfo';
 import {UserList} from './UserList';
+import {KickedUserList} from './KickedUserList';
 import {Links} from './Links';
 import {Slides} from './Slides';
 import {CustomEmojis} from './CustomEmojis';
@@ -44,6 +45,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
   let [moderatorsDeleting, setModeratorsDeleting] = useState([]);
   let [speakers, setSpeakers] = useState(room.speakers || []);
   let [speakersDeleting, setSpeakersDeleting] = useState([]);
+  let [kicked, setKicked] = useState(room.kicked || []);
   let [closed, setClosed] = useState(room.closed || false);
   let [closedBy, setClosedBy] = useState(room.closedBy || '');
   let [isPrivate, setIsPrivate] = useState(room.isPrivate || false);
@@ -151,6 +153,17 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
     }
     roomSlides = decodedRoomSlides;
 
+    // Cleanup kicked, removing any expired entries
+    let cleankicked = [];
+    let cleannow = Date.now();
+    for (let k of kicked) {
+      if (k.until < cleannow) continue;
+      k.reason = decodeHTMLEncoded(k.reason);
+      cleankicked.push(k);
+    }
+    kicked = cleankicked;
+    setKicked(cleankicked);
+
     // Store the new passphrase in my session
     sessionStorage.setItem(`${roomId}.passphrase`, passphrasePlain);
 
@@ -173,6 +186,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
       owners,
       moderators,
       speakers,
+      kicked,
       roomSlides,
       schedule,
       lud16,
@@ -337,6 +351,19 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
           userDeleteList={speakersDeleting}
           setUserDeletelist={setSpeakersDeleting}
           label={'Speakers'}
+          textColor={textColor}
+          roomColor={roomColor}
+        />
+      </div>
+
+      <div className="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg my-3">
+        <KickedUserList
+          allowModify={true}
+          room={room}
+          roomId={roomId}
+          userlist={kicked}
+          setUserlist={setKicked}
+          label={'Kicked Users'}
           textColor={textColor}
           roomColor={roomColor}
         />

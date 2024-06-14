@@ -7,7 +7,7 @@ import gfm from 'remark-gfm';
 import {useMqParser, useWidth} from '../lib/tailwind-mqp';
 import {useJam} from '../jam-core-react';
 import {colors, isDark} from '../lib/theme.js';
-import {signInExtension, signInPrivateKey} from '../nostr/nostr';
+import {makeLocalDate, signInExtension, signInPrivateKey} from '../nostr/nostr';
 import {time4Ad, value4valueAdSkip} from '../lib/v4v';
 import EditIdentity from './editIdentity/EditIdentity.jsx';
 import {update} from 'minimal-state';
@@ -73,16 +73,28 @@ export default function EnterRoom({
   let supportsWebRTC = canWebRTC();
   if (!supportsWebRTC) showAd = false;
   if (showAd) showAd = !(value4valueAdSkip('EnterRoom'));
-  let [passphraseEnabled, setPassphraseEnabled] = useState(isProtected && (!showAd || !jamConfig.handbill) && (supportsWebRTC));
-  let [loginEnabled, setLoginEnabled] = useState(!isProtected && (!showAd || !jamConfig.handbill) && (supportsWebRTC));
+  let kicked = false;
+  let kickedUntilTime = '';
+  if (room.kicked) {
+    for(let k of room.kicked) {
+      if (k.until < Date.now()) continue;
+      if (k.id == myIdentity.info.id) {
+        kicked = true;
+        kickedUntilTime = makeLocalDate(Math.floor(k.until/1000));
+        break;
+      }
+    }
+  }
+  let [passphraseEnabled, setPassphraseEnabled] = useState(!kicked && isProtected && (!showAd || !jamConfig.handbill) && (supportsWebRTC));
+  let [loginEnabled, setLoginEnabled] = useState(!kicked && !isProtected && (!showAd || !jamConfig.handbill) && (supportsWebRTC));
   let [adImageEnabled, setAdImageEnabled] = useState((showAd && jamConfig.handbill));
   let adimg = `${jamConfig.urls.pantry}/api/v1/aimg/${roomId}`;
 
   useEffect(() => {
     // Setup a timeout to hide the image
     const timeoutImageOverlay = setTimeout(() => {
-      setPassphraseEnabled(isProtected && supportsWebRTC);
-      setLoginEnabled(!isProtected && supportsWebRTC);
+      setPassphraseEnabled(!kicked && isProtected && supportsWebRTC);
+      setLoginEnabled(!kicked && !isProtected && supportsWebRTC);
       setAdImageEnabled(false);
     }, 5000);
 
@@ -427,6 +439,12 @@ export default function EnterRoom({
             This browser or its settings do not currently support WebRTC, an essential requirement for this application.
           </p>
           </div>
+        )}
+
+        {kicked && !adImageEnabled && (
+          <div className={'mt-5 mb--1 p-4 text-red-500 rounded-lg border border-yellow-400 bg-red-50'}>
+          You have been kicked out of this room. You may return {kickedUntilTime}.
+        </div>
         )}
 
         <button
