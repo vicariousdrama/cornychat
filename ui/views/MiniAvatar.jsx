@@ -134,7 +134,7 @@ function Avatar({
           />
           )}
 
-          <table><tr><td width="75%" style={{borderWidth: '0px', textAlign:'center'}}>
+          <table><tbody><tr><td width="75%" style={{borderWidth: '0px', textAlign:'center'}}>
             <div className="w-12 h-8 human-radius mx-auto flex" style={{marginTop: '0px'}}>
               <div className="w-4 h-8" />
               <img
@@ -154,13 +154,13 @@ function Avatar({
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
-                stroke-width="1.5"
+                strokeWidth="1.5"
                 stroke="currentColor"
-                class="w-3 h-3"
+                className="w-3 h-3"
               >
                 <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                   stroke={iconColor}
                   d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"
                 />
@@ -169,7 +169,7 @@ function Avatar({
                   x2="40"
                   y2="25"
                   stroke={iconColor}
-                  stroke-width="1"
+                  strokeWidth="1"
                 />
               </svg>
             </div>
@@ -180,7 +180,7 @@ function Avatar({
               {...{roomColor, handType}}
             />
             )}
-          </td></tr></table>
+          </td></tr></tbody></table>
         </div>
 
       </div>

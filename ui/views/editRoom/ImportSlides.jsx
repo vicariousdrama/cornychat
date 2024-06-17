@@ -107,21 +107,21 @@ export const ImportSlidesModal = ({
                 if (selectedListID == id) {
                     return (
                         <div className="select-none px-0 text-lg rounded-lg m-2 border-2 border-blue-500 w-full">
-                            <table className="w-full" cellpadding="0" cellspacing="0" border="0" style={{maxWidth:'3500px'}}>
+                            <table className="w-full" cellpadding="0" cellspacing="0" border="0" style={{maxWidth:'3500px'}}><tbody>
                             <tr>
                                 <td rowspan="3" style={{width: '72px'}}>
                                     <img src={image}
                                         style={{width: '64px', height: '64px', objectFit: 'cover'}} />
                                 </td>
                                 <td align="left">{name}</td></tr>
-                            <tr><td align="left" class="text-sm">about: {about}</td></tr>
-                            <tr><td><table className="w-full" cellpadding="0" cellspacing="0" border="0">
+                            <tr><td align="left" className="text-sm">about: {about}</td></tr>
+                            <tr><td><table className="w-full" cellpadding="0" cellspacing="0" border="0"><tbody>
                                 <tr>
-                                    <td align="left" class="text-sm">id: {dTag}</td>
-                                    <td align="right" class="text-sm">saved {humanDate}</td>
+                                    <td align="left" className="text-sm">id: {dTag}</td>
+                                    <td align="right" className="text-sm">saved {humanDate}</td>
                                 </tr>
-                                </table></td></tr>
-                            </table>
+                                </tbody></table></td></tr>
+                            </tbody></table>
                         </div>
                     );
                 } else {
@@ -129,21 +129,21 @@ export const ImportSlidesModal = ({
                         <div className="select-none px-0 text-lg rounded-lg m-2 border-2 hover:border-blue-500 w-full cursor-pointer"
                             onClick={() => setSelectedListID(id)}
                         >
-                            <table className="w-full" cellpadding="0" cellspacing="0" border="0" style={{maxWidth:'3500px'}}>
+                            <table className="w-full" cellpadding="0" cellspacing="0" border="0" style={{maxWidth:'3500px'}}><tbody>
                             <tr>
                                 <td rowspan="3" style={{width: '72px'}}>
                                     <img src={image}
                                         style={{width: '64px', height: '64px', objectFit: 'cover'}} />
                                 </td>
                                 <td align="left">{name}</td></tr>
-                            <tr><td align="left" class="text-sm">about: {about}</td></tr>
-                            <tr><td><table className="w-full" cellpadding="0" cellspacing="0" border="0">
+                            <tr><td align="left" className="text-sm">about: {about}</td></tr>
+                            <tr><td><table className="w-full" cellpadding="0" cellspacing="0" border="0"><tbody>
                                 <tr>
-                                    <td align="left" class="text-sm">id: {dTag}</td>
-                                    <td align="right" class="text-sm">saved {humanDate}</td>
+                                    <td align="left" className="text-sm">id: {dTag}</td>
+                                    <td align="right" className="text-sm">saved {humanDate}</td>
                                 </tr>
-                                </table></td></tr>
-                            </table>
+                                </tbody></table></td></tr>
+                            </tbody></table>
                         </div>
                     );
                 }

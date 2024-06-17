@@ -107,7 +107,7 @@ export function UserList({
               }}
             ></input>
             <button
-              className="px-5 h-12 text-sm rounded-md"
+              className="px-5 text-sm rounded-md"
               style={{
                 color: (npubValue.length == 63 && npubValue.startsWith("npub1")) ? textColor : `rgba(244,244,244,1)`,
                 backgroundColor: (npubValue.length == 63 && npubValue.startsWith("npub1")) ? roomColor.buttons.primary : `rgba(192,192,192,1)`,
@@ -170,7 +170,7 @@ export function UserList({
                     <p className="text-sm text-black" style={{overflowWrap: 'break-word'}}>{userDisplayName}</p>
                 </div>
                 {allowModify && (
-                <div className="flex-none cursor-pointer hover:bg-red-500" onClick={() => removeUser(index, user)} >
+                <div className="flex-none cursor-pointer hover:bg-red-500 hover:border-red" onClick={() => removeUser(index, user)} >
                     <Trash />
                 </div>
                 )}

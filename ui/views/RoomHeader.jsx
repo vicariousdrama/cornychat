@@ -5,7 +5,7 @@ import {isDark} from '../lib/theme';
 import {useJamState} from '../jam-core-react/JamContext';
 import {useJam} from '../jam-core-react';
 import {MicOnSvg, Links, Audience, InfoR} from './Svg';
-import {Modal, openModal} from './Modal';
+import {openModal} from './Modal';
 import {InvoiceModal} from './Invoice';
 import {time4Tip, tipRoom, time4Ad, value4valueAdSkip} from '../lib/v4v';
 import {publishStatus} from '../nostr/nostr';
@@ -77,7 +77,7 @@ export default function RoomHeader({
     // Dev Tipping
     let adidx = Math.floor(Date.now() / 1000);
     const chatadinterval = 1*60*1000; // once a minute
-    const intervalAdSkip = setInterval(() => {
+    let intervalAdSkip = setInterval(() => {
       let textchatAds = localStorage.getItem(`textchat.adsenabled`) ?? true;
       let bufferSize = localStorage.getItem(`textchat.bufferSize`) || 50;
       if(textchatAds) {
@@ -156,7 +156,7 @@ export default function RoomHeader({
             This room has no Links
           </p>
         ) : (
-          <p class="flex justify-center" style={{color: textColor}}>ROOM LINKS</p>
+          <p className="flex justify-center" style={{color: textColor}}>ROOM LINKS</p>
         )}
         {roomLinks && roomLinks.length > 0 ? (
           roomLinks.map((links,index) => {
@@ -193,7 +193,7 @@ export default function RoomHeader({
             This room has not set up a description yet.
           </p>
         ) : (
-          <p class="flex justify-center" style={{color: textColor}}>ROOM DESCRIPTION</p>
+          <p className="flex justify-center" style={{color: textColor}}>ROOM DESCRIPTION</p>
         )}
         {description && description.length > 0 ? (
         <ReactMarkdown

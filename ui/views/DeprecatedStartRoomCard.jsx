@@ -1,5 +1,7 @@
 import React from 'react';
 
+/* NOT USED */
+
 export default function StartRoomCard({
     roomInfo,
   }) {
@@ -43,6 +45,8 @@ export default function StartRoomCard({
         </div>
     );
 }
+
+/* NOT USED */
 
 export function StartRoomCardAvatar({
     userData,

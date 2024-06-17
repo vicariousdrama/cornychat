@@ -35,15 +35,15 @@ export default function StartScheduledEvent({
         <div className="select-none px-0 text-lg rounded-lg mt-3"
              style={isExternal ? coloringStyleExternal : coloringStyle}
         >
-            <table cellpadding="0" cellspacing="0" border="0" style={{maxWidth:'350px',width:'350px'}}>
+            <table cellpadding="0" cellspacing="0" border="0" style={{maxWidth:'350px',width:'350px'}}><tbody>
             <tr>
                 <td rowspan="2" style={{width: '72px'}}>
                     <img src={imageUrl}
                         style={{width: '64px', height: '64px', objectFit: 'cover'}} />
                 </td>
                 <td align="left">{eventInfo?.title ?? eventInfo.location}</td></tr>
-            <tr><td align="right" class="text-sm">{localHumanDateTime}</td></tr>
-            </table>
+            <tr><td align="right" className="text-sm">{localHumanDateTime}</td></tr>
+            </tbody></table>
         </div>
         </a>
         </div>

@@ -82,7 +82,7 @@ export function Slides({
       <div className="mb-2">
         <div className="flex justify-between">
           <button
-            className="px-5 h-12 text-sm rounded-md"
+            className="px-5 text-sm rounded-md"
             style={{
               color: (roomSlides.length > 0) ? textColor : `rgba(244,244,244,1)`,
               backgroundColor: (roomSlides.length > 0) ? roomColor.buttons.primary : `rgba(192,192,192,1)`,
@@ -99,7 +99,7 @@ export function Slides({
           {window.nostr ? (
           <>
           <button
-            className="px-5 h-12 text-sm rounded-md"
+            className="px-5 text-sm rounded-md"
             style={{
               color: textColor,
               backgroundColor: roomColor.buttons.primary,
@@ -112,7 +112,7 @@ export function Slides({
             Import Slides
           </button>
           <button
-            className="px-5 h-12 text-sm rounded-md"
+            className="px-5 text-sm rounded-md"
             style={{
               color: (roomSlides.length > 0) ? textColor : `rgba(244,244,244,1)`,
               backgroundColor: (roomSlides.length > 0) ? roomColor.buttons.primary : `rgba(192,192,192,1)`,
@@ -129,7 +129,7 @@ export function Slides({
           </button>
           </>
           ) : (
-          <div className="h-12 mx-2 text-sm rounded-md border-2 border-gray-300 w-full text-center text-gray-200">
+          <div className="mx-2 text-sm rounded-md border-2 border-gray-300 w-full text-center text-gray-200">
             Use a nostr extension for import/export capability
           </div>
           )}
@@ -173,7 +173,7 @@ export function Slides({
             }}
           ></input>
           <button
-            className="px-5 h-12 text-sm rounded-md"
+            className="px-5 text-sm rounded-md"
             style={{
               color: textColor,
               backgroundColor: roomColor.buttons.primary,
@@ -283,7 +283,7 @@ export function Slides({
                     )}                  
                   </div>
                   <div className="flex w-full justify-end" style={{width: '100px', position:'relative'}}>
-                    <table><tr><td>
+                    <table><tbody><tr><td>
                     {(editingSlideIndex == -1) && (
                       <>
                     <div onClick={() => editSlide(index)} className="cursor-pointer text-xl m-2">
@@ -312,7 +312,7 @@ export function Slides({
                     )}
                     </td></tr><tr><td>
                     <div className="text-gray-700" style={{marginTop: '32px'}}>slide {slideNumber}</div>
-                    </td></tr></table>
+                    </td></tr></tbody></table>
                   </div>
                 </div>
               );

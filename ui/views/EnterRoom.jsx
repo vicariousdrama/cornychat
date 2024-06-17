@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {Modal, openModal} from './Modal';
+import {openModal} from './Modal';
 import {avatarUrl, displayName} from '../lib/avatar';
 import {use} from 'use-minimal-state';
 import ReactMarkdown from 'react-markdown';
@@ -236,7 +236,7 @@ export default function EnterRoom({
             Click your avatar to make changes.
           </div>
           {!closed && (
-          <div class="text-sm text-gray-300">
+          <div className="text-sm text-gray-300">
             Use a VPN like Mullvad for better privacy.
           </div>
           )}
@@ -482,7 +482,7 @@ export default function EnterRoom({
           <p className="mt-4 text-gray-300 text-md">
             Corny Chat Simplified Terms of Service and Privacy Policy:
           </p>
-          <p class="text-gray-500 text-xs">
+          <p className="text-gray-500 text-xs">
             You may join rooms anonymously.
             There is no need to login, but using a Nostr account with NIP07 extension will provide an enhanced experience.
             Your data is not sold.
@@ -498,7 +498,7 @@ export default function EnterRoom({
             The service may go down for prolonged periods of time.
             This service is built as a fork of JAM and the <a href="https://github.com/vicariousdrama/cornychat/blob/main/PRIVACY.md">Privacy Considerations for Jam</a> also apply.
           </p>
-          <p class="mt-4 text-gray-600 text-xs">
+          <p className="mt-4 text-gray-600 text-xs">
             Build Date: BUILD_DATE
           </p>
         </div>

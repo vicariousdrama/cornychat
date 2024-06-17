@@ -83,7 +83,9 @@ export default function RoomChat({
 
     function sendText() {
         if (chatText.length == 0) return;                   // ignore if no text
-        chatText = chatText.substring(0,615);               // cashu is about 355
+        if (!chatText.startsWith("cashu")) {
+            chatText = chatText.substring(0,615);           // cashu is about 355 for single proof, a token can have multiple proofs
+        }
         if (chatText.startsWith("/clear")) {
             textchats = [];
             state.textchats = textchats;
@@ -121,7 +123,7 @@ export default function RoomChat({
         text = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
         // Convert *italic* to <i>italic</i>
         text = text.replace(/\*(.*?)\*/g, '<i>$1</i>');
-        // Convert ||spoilertext|| to <a class="spoiler" id="spoilerlink" href="#spoilerlink" title="Tap to reveal">spoilertext</a>
+        // Convert ||spoilertext|| to <a className="spoiler" id="spoilerlink" href="#spoilerlink" title="Tap to reveal">spoilertext</a>
         let spoilermatches = text.match(/\|\|(.*?)\|\|/);
         if (spoilermatches) {
             for(let spoilermatch of spoilermatches) {

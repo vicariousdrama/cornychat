@@ -1,5 +1,7 @@
 import React from 'react';
 
+/* NOT USED */
+
 export default function StartEventSimple({
     eventInfo,
   }) {
@@ -24,10 +26,10 @@ export default function StartEventSimple({
         <div className="select-none px-0 text-lg rounded-lg mt-3"
              style={coloringStyle}
         >
-            <table cellpadding="0" cellspacing="0" border="0" style={{maxWidth:'350px',width:'350px'}}>
+            <table cellpadding="0" cellspacing="0" border="0" style={{maxWidth:'350px',width:'350px'}}><tbody>
             <tr><td align="left">{humanName}</td></tr>
             <tr><td align="right">{humanTime}</td></tr>
-            </table>
+            </tbody></table>
         </div>
         </a>
         </div>

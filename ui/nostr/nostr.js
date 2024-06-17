@@ -634,7 +634,7 @@ export async function followAllNpubsFromIds(inRoomPeerIds) {
     const peerValue = sessionStorage.getItem(peerId);
     if (peerValue == undefined) continue;
     const peerObj = JSON.parse(peerValue);
-    const npub = getNostrNpubFromInfo(peerObj);
+    const npub = getNpubFromInfo(peerObj);
     if (npub == undefined) continue;
     const pubkey = nip19.decode(npub).data;
     let following = false;
@@ -665,19 +665,6 @@ export async function followAllNpubsFromIds(inRoomPeerIds) {
   } else {
     alert('You are already following everyone in the room');
   }
-}
-
-function getNostrNpubFromInfo(info) {
-  if(window.DEBUG) console.log(" in getNostrNpubFromInfo");
-  const hasIdentity = info?.hasOwnProperty('identities');
-  if (hasIdentity && (info?.identities?.length > 0)) {
-    for (let identity of info.identities) {
-      if (identity.type == 'nostr') {
-        return identity.id;
-      }
-    }
-  }
-  return undefined;
 }
 
 export async function verifyNip05(nip05, userNpub) {
@@ -1057,6 +1044,7 @@ export function getNpubFromInfo(info) {
   if ((typeof info) == "string") info = JSON.parse(info);
   const hasIdentity = info?.hasOwnProperty('identities');
   if (!hasIdentity) return undefined;
+  if (info.identities == undefined) return undefined;
   for (let ident of info.identities) {
     if (ident.type == undefined) continue;
     if (ident.type != 'nostr') continue;

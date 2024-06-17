@@ -37,7 +37,7 @@ export default function StartMyRoomSimple({
              style={coloringStyle}
              id={`myrooms-${roomId}`}
         >
-            <table cellpadding="0" cellspacing="0" width="100%">
+            <table cellpadding="0" cellspacing="0" width="100%"><tbody>
                 <tr>
                     <td>
                         <a href={`./${roomId}`}>
@@ -83,7 +83,7 @@ export default function StartMyRoomSimple({
                         </button>
                     </td>
                 </tr>
-            </table>
+            </tbody></table>
         </div>
     );
 }

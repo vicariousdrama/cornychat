@@ -1,4 +1,4 @@
-import React, {useState, useMemo, useEffect} from 'react';
+import React, {useState, useMemo} from 'react';
 import {use} from 'use-minimal-state';
 import EnterRoom from './EnterRoom';
 import RoomHeader from './RoomHeader';
@@ -70,10 +70,6 @@ export default function Room({room, roomId, uxConfig}) {
     'myVideo',
     'remoteVideoStreams',
   ]);
-
-  let [myAdminStatus] = useApiQuery(`/admin/${myId}`, {fetchOnMount: true});
-  let iAmAdmin = myAdminStatus?.admin || false;
-
 
   let myInfo = myIdentity.info;
   let hasEnteredRoom = inRoom === roomId;
@@ -160,6 +156,18 @@ export default function Room({room, roomId, uxConfig}) {
     return <EnterRoom roomId={roomId} name={name} forbidden={true} />;
   }
 
+  // if (sessionStorage.getItem('iAmAdmin') == undefined) {
+  //   let [myId] = use(state, ['myId']);
+  //   let iAmAdmin = false;
+  //   let [myAdminStatus] = useApiQuery(`/admin/${myId}`, {fetchOnMount: true});
+  //   if (myAdminStatus) {
+  //     iAmAdmin = myAdminStatus.admin;
+  //   }
+  //   sessionStorage.setItem('iAmAdmin', iAmAdmin);  
+  // }
+  let iAmAdmin = localStorage.getItem('iAmAdmin') || false;
+  if (iAmAdmin == undefined) iAmAdmin = false;
+
   if (!iOwn && closed) {
     return (
       <EnterRoom
@@ -189,7 +197,6 @@ export default function Room({room, roomId, uxConfig}) {
   if (textchats.length == 0) {
     (async () => {await sendTextChat("*has entered the chat!*");})();
   }
-
   let myPeerId = myInfo.id;
   let stagePeers = stageOnly ? peers : [];
   if (!stageOnly) {

@@ -116,6 +116,8 @@ export function Schedule({
                 <span className="flex-none p-2">
                     Title
                 </span>
+            </div>
+            <div className="flex">
                 <input
                     type="text"
                     className="flex-grow p-2 border rounded bg-gray-400 text-black"
@@ -129,6 +131,8 @@ export function Schedule({
                 <span className="flex-none p-2">
                     Description
                 </span>
+            </div>
+            <div className="flex">
                 <input
                     type="text"
                     className="flex-grow p-2 border rounded bg-gray-400 text-black"
@@ -142,6 +146,8 @@ export function Schedule({
               <span className="flex-none p-2 text-sm font-medium">
                 Starting
               </span>
+            </div>
+            <div className="flex">
               <input
                 type="date"
                 className="flex-grow border rounded bg-gray-400 text-black"
@@ -171,6 +177,8 @@ export function Schedule({
               }
             >
               Timezone: {scheduleCandidate.timezone}{' '}
+            </div>
+            <div className="flex">
               <span
                 className="underline"
                 onClick={() => setShowTimezoneSelect(true)}
@@ -198,6 +206,8 @@ export function Schedule({
               <span className="flex-none p-2 text-sm font-medium">
                 Ending
               </span>
+            </div>
+            <div className="flex">
               <input
                 type="date"
                 className="flex-grow p-2 border rounded bg-gray-400 text-black"

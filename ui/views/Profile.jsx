@@ -181,6 +181,11 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
   let isModerator = moderators?.includes(peerId) || (userNpub != undefined && moderators?.includes(userNpub)) || false;
   let isSpeaker = speakers?.includes(peerId) || (userNpub != undefined && speakers?.includes(userNpub)) || false;
 
+  let canKick = false;
+  if (iAmAdmin && !isPeerAdmin) canKick = true;
+  if (iOwn && !isPeerAdmin) canKick = true;
+  if (iModerate && !(isPeerAdmin || isOwner)) canKick = true;
+
   const [isValidNip05, setIsValidNip05] = useState(false);
   const [lnAddress, setLnAddress] = useState('');
   const [about, setAbout] = useState(undefined);
@@ -593,9 +598,9 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
               </button>
             ) : null}
 
-            {(iModerate || iOwn || iAmAdmin) && (
+            {!isSameId && canKick && (
               <button
-                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
+                className="rounded-lg bg-red-500 text-gray-300 px-3 py-2 mx-1 my-1 text-xs"
                 onClick={() => {
                   close();
                   openModal(KickBanModal, {
@@ -608,6 +613,9 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
                     iOwn,
                     iModerate,
                     iAmAdmin,
+                    isOwner,
+                    isModerator,
+                    isAdmin: isPeerAdmin,
                   });
                 }}
               >
