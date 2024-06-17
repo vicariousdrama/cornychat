@@ -26,7 +26,7 @@ export default function StartRoomSimple({
              style={coloringStyle}
         >
         <a href={`./${roomId}`}>
-          <table style={{width:'300px',margin:'0px',padding:'0px'}}>
+          <table style={{width:'300px',margin:'0px',padding:'0px'}}><tbody>
             <tr>
               <td rowspan="2" style={{width: '140px'}}>
                 <img src={roomLogo}
@@ -41,7 +41,7 @@ export default function StartRoomSimple({
             <tr>
               <td className="text-md">{userCount > 0 ? (`${userCount} users`) : `Nobody Present`}</td>
             </tr>
-          </table>
+          </tbody></table>
           <ReactMarkdown
             className="text-xs h-full mt-3 hidden"
             plugins={[gfm]}

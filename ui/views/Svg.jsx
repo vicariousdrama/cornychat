@@ -41,18 +41,18 @@ function MicOffSvg({stroke}) {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      stroke-width="1.5"
+      strokeWidth="1.5"
       stroke="currentColor"
-      class="w-6 h-6"
+      className="w-6 h-6"
     >
       <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         stroke={stroke}
         d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"
       />
 
-      <line y1="4.5" x2="40" y2="25" stroke={stroke} stroke-width="2" />
+      <line y1="4.5" x2="40" y2="25" stroke={stroke} strokeWidth="2" />
     </svg>
   );
 }
@@ -63,13 +63,13 @@ function MicOnSvg({stroke}) {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      stroke-width="1.5"
+      strokeWidth="1.5"
       stroke="currentColor"
-      class="w-6 h-6"
+      className="w-6 h-6"
     >
       <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         stroke={stroke}
         d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"
       />
@@ -83,13 +83,13 @@ function ThreeDots({color}) {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      stroke-width="1.5"
+      strokeWidth="1.5"
       stroke="currentColor"
-      class="w-6 h-6"
+      className="w-6 h-6"
     >
       <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         stroke={color}
         d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"
       />
@@ -103,13 +103,13 @@ function HandRaised({color}) {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      stroke-width="1.5"
+      strokeWidth="1.5"
       stroke="currentColor"
-      class="w-6 h-6"
+      className="w-6 h-6"
     >
       <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         stroke={color}
         d="M10.05 4.575a1.575 1.575 0 10-3.15 0v3m3.15-3v-1.5a1.575 1.575 0 013.15 0v1.5m-3.15 0l.075 5.925m3.075.75V4.575m0 0a1.575 1.575 0 013.15 0V15M6.9 7.575a1.575 1.575 0 10-3.15 0v8.175a6.75 6.75 0 006.75 6.75h2.018a5.25 5.25 0 003.712-1.538l1.732-1.732a5.25 5.25 0 001.538-3.712l.003-2.024a.668.668 0 01.198-.471 1.575 1.575 0 10-2.228-2.228 3.818 3.818 0 00-1.12 2.687M6.9 7.575V12m6.27 4.318A4.49 4.49 0 0116.35 15m.002 0h-.002"
       />
@@ -123,13 +123,13 @@ function EmojiFace({color}) {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      stroke-width="1.5"
+      strokeWidth="1.5"
       stroke="currentColor"
-      class="w-6 h-6"
+      className="w-6 h-6"
     >
       <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         stroke={color}
         d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z"
       />
@@ -143,13 +143,13 @@ function Leave() {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      stroke-width="1.5"
+      strokeWidth="1.5"
       stroke="currentColor"
-      class="w-6 h-6"
+      className="w-6 h-6"
     >
       <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         stroke="#ffffff"
         d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"
       />
@@ -163,13 +163,13 @@ function Trash() {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      stroke-width="1.5"
+      strokeWidth="1.5"
       stroke="currentColor"
-      class="w-4 h-4"
+      className="w-4 h-4"
     >
       <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         stroke="red"
         d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
       />
@@ -203,13 +203,13 @@ function Edit({color}) {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      stroke-width="1.5"
+      strokeWidth="1.5"
       stroke="currentColor"
-      class="w-4 h-4"
+      className="w-4 h-4"
     >
       <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         stroke={color}
         d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"
       />
@@ -250,13 +250,13 @@ function Stream({color}) {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      stroke-width="1.5"
+      strokeWidth="1.5"
       stroke="currentColor"
-      class="w-4 h-4"
+      className="w-4 h-4"
     >
       <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         stroke={color}
         d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"
       />
@@ -270,14 +270,14 @@ function Stop({color}) {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      stroke-width="1.5"
+      strokeWidth="1.5"
       stroke="currentColor"
-      class="w-4 h-4"
+      className="w-4 h-4"
     >
       <path
-        stroke-linecap="round"
+        strokeLinecap="round"
         stroke={color}
-        stroke-linejoin="round"
+        strokeLinejoin="round"
         d="M5.25 7.5A2.25 2.25 0 017.5 5.25h9a2.25 2.25 0 012.25 2.25v9a2.25 2.25 0 01-2.25 2.25h-9a2.25 2.25 0 01-2.25-2.25v-9z"
       />
     </svg>
@@ -290,13 +290,13 @@ function Mic({color}) {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      stroke-width="1.5"
+      strokeWidth="1.5"
       stroke="currentColor"
-      class="w-4 h-4"
+      className="w-4 h-4"
     >
       <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         stroke={color}
         d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"
       />
@@ -310,13 +310,13 @@ function Share({color}) {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      stroke-width="1.5"
+      strokeWidth="1.5"
       stroke="currentColor"
-      class="w-4 h-4"
+      className="w-4 h-4"
     >
       <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         stroke={color}
         d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z"
       />
@@ -330,13 +330,13 @@ function Links({color}) {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      stroke-width="1.5"
+      strokeWidth="1.5"
       stroke="currentColor"
-      class="w-5 h-5"
+      className="w-5 h-5"
     >
       <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         stroke={color}
         d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"
       />
@@ -350,13 +350,13 @@ function Audience({color}) {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      stroke-width="1.5"
+      strokeWidth="1.5"
       stroke="currentColor"
-      class="w-5 h-5"
+      className="w-5 h-5"
     >
       <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         stroke={color}
         d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
       />
@@ -370,13 +370,13 @@ function Info({color}) {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      stroke-width="1.5"
+      strokeWidth="1.5"
       stroke="currentColor"
-      class="w-7 h-7"
+      className="w-7 h-7"
     >
       <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         stroke={color}
         d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"
       />
@@ -390,14 +390,14 @@ function InfoR({color}) {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      stroke-width="1.5"
+      strokeWidth="1.5"
       stroke="currentColor"
-      class="w-7 h-7"
+      className="w-7 h-7"
       style={{float: 'right'}}
     >
       <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         stroke={color}
         d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"
       />
@@ -411,14 +411,14 @@ function CheckBadged() {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      stroke-width="1.5"
+      strokeWidth="1.5"
       stroke="currentColor"
-      class="w-6 h-6"
+      className="w-6 h-6"
       style={{float: 'left'}}
     >
       <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         stroke="white"
         d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z"
       />
@@ -432,13 +432,13 @@ function OpenLink() {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      stroke-width="1.5"
+      strokeWidth="1.5"
       stroke="currentColor"
-      class="w-5 h-5"
+      className="w-5 h-5"
     >
       <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         stroke="rgba(156,163,175"
         d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
       />
@@ -480,13 +480,13 @@ function CopyToClipboard() {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      stroke-width="1.5"
+      strokeWidth="1.5"
       stroke="currentColor"
-      class="w-5 h-5"
+      className="w-5 h-5"
     >
       <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184"
       />
     </svg>
@@ -499,13 +499,13 @@ function CopiedToClipboard() {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      stroke-width="1.5"
+      strokeWidth="1.5"
       stroke="currentColor"
-      class="w-5 h-5"
+      className="w-5 h-5"
     >
       <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0 1 18 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3 1.5 1.5 3-3.75"
       />
     </svg>
@@ -518,13 +518,13 @@ function Up() {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      stroke-width="1.5"
+      strokeWidth="1.5"
       stroke="currentColor"
-      class="w-5 h-5"
+      className="w-5 h-5"
     >
       <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         d="M235.252,13.406l-0.447-0.998c-3.417-7.622-11.603-12.854-19.677-12.375l-0.3,0.016l-0.302-0.016 C214.194,0.011,213.856,0,213.524,0c-7.706,0-15.386,5.104-18.674,12.413l-0.452,0.998L13.662,176.079 c-6.871,6.183-6.495,12.657-4.971,16.999c2.661,7.559,10.361,13.373,18.313,13.82l1.592,0.297c0.68,0.168,1.356,0.348,2.095,0.427 c23.036,2.381,45.519,2.876,64.472,3.042l5.154,0.048V407.93c0,11.023,7.221,15.152,11.522,16.635l0.967,0.33l0.77,0.671 c3.105,2.717,7.02,4.093,11.644,4.093h179.215c4.626,0,8.541-1.376,11.639-4.093l0.771-0.671l0.965-0.33 c4.307-1.482,11.532-5.611,11.532-16.635V210.706l5.149-0.048c18.961-0.17,41.446-0.666,64.475-3.042 c0.731-0.079,1.407-0.254,2.082-0.422l1.604-0.302c7.952-0.447,15.65-6.262,18.312-13.82c1.528-4.336,1.899-10.811-4.972-16.998 L235.252,13.406z M344.114,173.365c-11.105,0.18-22.216,0.254-33.337,0.254c-5.153,0-9.363,1.607-12.507,4.768 c-3.372,3.4-5.296,8.48-5.266,13.932l0.005,0.65l-0.157,0.629c-0.437,1.767-0.64,3.336-0.64,4.928v194.001H137.458V198.526 c0-1.597-0.201-3.161-0.638-4.928l-0.157-0.629l0.005-0.65c0.031-5.456-1.892-10.537-5.271-13.937 c-3.141-3.161-7.353-4.763-12.507-4.768c-11.124,0-22.224-0.074-33.337-0.254l-13.223-0.218L214.834,44.897l142.503,128.249 L344.114,173.365z"
       />
     </svg>
@@ -537,14 +537,14 @@ function Down() {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      stroke-width="1.5"
+      strokeWidth="1.5"
       stroke="currentColor"
-      class="w-5 h-5"
+      className="w-5 h-5"
       transform="rotate(180)"
     >
       <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         d="M235.252,13.406l-0.447-0.998c-3.417-7.622-11.603-12.854-19.677-12.375l-0.3,0.016l-0.302-0.016 C214.194,0.011,213.856,0,213.524,0c-7.706,0-15.386,5.104-18.674,12.413l-0.452,0.998L13.662,176.079 c-6.871,6.183-6.495,12.657-4.971,16.999c2.661,7.559,10.361,13.373,18.313,13.82l1.592,0.297c0.68,0.168,1.356,0.348,2.095,0.427 c23.036,2.381,45.519,2.876,64.472,3.042l5.154,0.048V407.93c0,11.023,7.221,15.152,11.522,16.635l0.967,0.33l0.77,0.671 c3.105,2.717,7.02,4.093,11.644,4.093h179.215c4.626,0,8.541-1.376,11.639-4.093l0.771-0.671l0.965-0.33 c4.307-1.482,11.532-5.611,11.532-16.635V210.706l5.149-0.048c18.961-0.17,41.446-0.666,64.475-3.042 c0.731-0.079,1.407-0.254,2.082-0.422l1.604-0.302c7.952-0.447,15.65-6.262,18.312-13.82c1.528-4.336,1.899-10.811-4.972-16.998 L235.252,13.406z M344.114,173.365c-11.105,0.18-22.216,0.254-33.337,0.254c-5.153,0-9.363,1.607-12.507,4.768 c-3.372,3.4-5.296,8.48-5.266,13.932l0.005,0.65l-0.157,0.629c-0.437,1.767-0.64,3.336-0.64,4.928v194.001H137.458V198.526 c0-1.597-0.201-3.161-0.638-4.928l-0.157-0.629l0.005-0.65c0.031-5.456-1.892-10.537-5.271-13.937 c-3.141-3.161-7.353-4.763-12.507-4.768c-11.124,0-22.224-0.074-33.337-0.254l-13.223-0.218L214.834,44.897l142.503,128.249 L344.114,173.365z"
       />
     </svg>
@@ -558,8 +558,8 @@ function First({color}) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       stroke="currentColor"
-      stroke-width="1.5"
-      class="w-5 h-5"
+      strokeWidth="1.5"
+      className="w-5 h-5"
     >
       <path
         stroke={color}
@@ -580,8 +580,8 @@ function Previous({color}) {
 	    viewBox="0 0 490 490" 
       xml:space="preserve"
       stroke="currentColor"
-      stroke-width="1.5"
-      class="w-8 h-8"
+      strokeWidth="1.5"
+      className="w-8 h-8"
     >
       <path stroke={color} d="M245,490c135.1,0,245-109.9,245-245S380.1,0,245,0S0,109.9,0,245S109.9,490,245,490z M245,34.3
         c116.2,0,210.7,94.5,210.7,210.7S361.2,455.7,245,455.7S34.3,361.2,34.3,245S128.8,34.3,245,34.3z"/>
@@ -599,8 +599,8 @@ function Next({color}) {
       xmlns:xlink="http://www.w3.org/1999/xlink" 
       viewBox="0 0 512 512" 
       xml:space="preserve"
-      class="w-8 h-8"
-      stroke-width="1.5"
+      className="w-8 h-8"
+      strokeWidth="1.5"
       stroke="currentColor"
     >
       <path stroke={color} d="M256,0C114.618,0,0,114.618,0,256s114.618,256,256,256s256-114.618,256-256S397.382,0,256,0z M256,469.333
@@ -620,8 +620,8 @@ function Last({color}) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       stroke="currentColor"
-      stroke-width="1.5"
-      class="w-5 h-5"
+      strokeWidth="1.5"
+      className="w-5 h-5"
       transform="rotate(180)"
     >
       <path
@@ -925,23 +925,23 @@ function CoinStack() {
   return (
 <svg width="15" height="17" viewBox="0 0 15 17" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path fill-rule="evenodd" clip-rule="evenodd" d="M11.9093 8.29413V9.74867Z" fill="#FFCD00"/>
-<path d="M11.9093 8.29413V9.74867" stroke="black" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M11.9093 8.29413V9.74867" stroke="black" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round"/>
 <path fill-rule="evenodd" clip-rule="evenodd" d="M1 10.4758V12.6576C1 13.4605 3.44218 14.1121 6.45455 14.1121H6.81818" fill="#FFCD00"/>
-<path d="M1 10.4758V12.6576C1 13.4605 3.44218 14.1121 6.45455 14.1121H6.81818" stroke="black" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1 10.4758V12.6576C1 13.4605 3.44218 14.1121 6.45455 14.1121H6.81818" stroke="black" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round"/>
 <path fill-rule="evenodd" clip-rule="evenodd" d="M1 8.29413V10.4759C1 11.2789 3.44218 11.9305 6.45455 11.9305H6.81818" fill="#FFCD00"/>
-<path d="M1 8.29413V10.4759C1 11.2789 3.44218 11.9305 6.45455 11.9305H6.81818" stroke="black" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1 8.29413V10.4759C1 11.2789 3.44218 11.9305 6.45455 11.9305H6.81818" stroke="black" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round"/>
 <path fill-rule="evenodd" clip-rule="evenodd" d="M11.9091 6.11227V8.29409C11.9091 9.097 9.46764 9.74864 6.45455 9.74864C3.44218 9.74864 1 9.097 1 8.29409V6.11227" fill="#FFCD00"/>
-<path d="M11.9091 6.11227V8.29409C11.9091 9.097 9.46764 9.74864 6.45455 9.74864C3.44218 9.74864 1 9.097 1 8.29409V6.11227" stroke="black" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M11.9091 6.11227V8.29409C11.9091 9.097 9.46764 9.74864 6.45455 9.74864C3.44218 9.74864 1 9.097 1 8.29409V6.11227" stroke="black" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round"/>
 <path fill-rule="evenodd" clip-rule="evenodd" d="M11.9091 3.93042V6.11224C11.9091 6.91515 9.46764 7.56678 6.45455 7.56678C3.44218 7.56678 1 6.91515 1 6.11224V3.93042" fill="#FFCD00"/>
-<path d="M11.9091 3.93042V6.11224C11.9091 6.91515 9.46764 7.56678 6.45455 7.56678C3.44218 7.56678 1 6.91515 1 6.11224V3.93042" stroke="black" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M11.9091 3.93042V6.11224C11.9091 6.91515 9.46764 7.56678 6.45455 7.56678C3.44218 7.56678 1 6.91515 1 6.11224V3.93042" stroke="black" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round"/>
 <path fill-rule="evenodd" clip-rule="evenodd" d="M11.9091 1.74878V3.9306C11.9091 4.73351 9.46764 5.38514 6.45455 5.38514C3.44218 5.38514 1 4.73351 1 3.9306V1.74878" fill="#FFCD00"/>
-<path d="M11.9091 1.74878V3.9306C11.9091 4.73351 9.46764 5.38514 6.45455 5.38514C3.44218 5.38514 1 4.73351 1 3.9306V1.74878" stroke="black" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M11.9091 1.74867C11.9091 2.55158 9.46764 3.20322 6.45455 3.20322C3.44218 3.20322 1 2.55158 1 1.74867C1 0.945765 3.44218 0.294128 6.45455 0.294128C9.46764 0.294128 11.9091 0.945765 11.9091 1.74867V1.74867Z" fill="#FFCD00" stroke="black" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M11.9091 1.74878V3.9306C11.9091 4.73351 9.46764 5.38514 6.45455 5.38514C3.44218 5.38514 1 4.73351 1 3.9306V1.74878" stroke="black" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M11.9091 1.74867C11.9091 2.55158 9.46764 3.20322 6.45455 3.20322C3.44218 3.20322 1 2.55158 1 1.74867C1 0.945765 3.44218 0.294128 6.45455 0.294128C9.46764 0.294128 11.9091 0.945765 11.9091 1.74867V1.74867Z" fill="#FFCD00" stroke="black" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round"/>
 <path fill-rule="evenodd" clip-rule="evenodd" d="M14.0912 12.6577V14.8395C14.0912 15.6424 11.6497 16.2941 8.63662 16.2941C5.62426 16.2941 3.18208 15.6424 3.18208 14.8395V12.6577" fill="#FFCD00"/>
-<path d="M14.0912 12.6577V14.8395C14.0912 15.6424 11.6497 16.2941 8.63662 16.2941C5.62426 16.2941 3.18208 15.6424 3.18208 14.8395V12.6577" stroke="black" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M14.0912 12.6577V14.8395C14.0912 15.6424 11.6497 16.2941 8.63662 16.2941C5.62426 16.2941 3.18208 15.6424 3.18208 14.8395V12.6577" stroke="black" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round"/>
 <path fill-rule="evenodd" clip-rule="evenodd" d="M14.0912 10.4756V12.6575C14.0912 13.4604 11.6497 14.112 8.63662 14.112C5.62426 14.112 3.18208 13.4604 3.18208 12.6575V10.4756" fill="#FFCD00"/>
-<path d="M14.0912 10.4756V12.6575C14.0912 13.4604 11.6497 14.112 8.63662 14.112C5.62426 14.112 3.18208 13.4604 3.18208 12.6575V10.4756" stroke="black" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M14.0909 10.4761C14.0909 11.279 11.6495 11.9306 8.6364 11.9306C5.62404 11.9306 3.18186 11.279 3.18186 10.4761C3.18186 9.67318 5.62404 9.02155 8.6364 9.02155C11.6495 9.02155 14.0909 9.67318 14.0909 10.4761V10.4761Z" fill="#FFCD00" stroke="black" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M14.0912 10.4756V12.6575C14.0912 13.4604 11.6497 14.112 8.63662 14.112C5.62426 14.112 3.18208 13.4604 3.18208 12.6575V10.4756" stroke="black" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M14.0909 10.4761C14.0909 11.279 11.6495 11.9306 8.6364 11.9306C5.62404 11.9306 3.18186 11.279 3.18186 10.4761C3.18186 9.67318 5.62404 9.02155 8.6364 9.02155C11.6495 9.02155 14.0909 9.67318 14.0909 10.4761V10.4761Z" fill="#FFCD00" stroke="black" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round"/>
 </svg>
   );
 }
@@ -952,9 +952,9 @@ function ChatBubbles({color}) {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 48 48"
-      stroke-width="1.5"
+      strokeWidth="1.5"
       stroke="currentColor"
-      class="w-8 h-8"
+      className="w-8 h-8"
 >
   <path stroke={color} d="M38.3684,5.9417H6.5526A2.0526,2.0526,0,0,0,4.5,7.9943V28.5206a2.0526,2.0526,0,0,0,2.0526,2.0526h6.1579V37.951a1.0263,1.0263,0,0,0,1.7521.7257l8.1034-8.1035H38.3684a2.0526,2.0526,0,0,0,2.0527-2.0526V7.9943A2.0526,2.0526,0,0,0,38.3684,5.9417Z"/>
   <path stroke={color} d="M12.7105,33.6522H9.6316A2.0526,2.0526,0,0,1,7.5789,31.6V30.5732"/>

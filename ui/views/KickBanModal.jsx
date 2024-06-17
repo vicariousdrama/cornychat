@@ -14,6 +14,9 @@ export const KickBanModal = ({
     iOwn,
     iModerate,
     iAmAdmin,
+    isOwner,
+    isModerator,
+    isAdmin,
 }) => {
 
     const [state, api] = useJam();
@@ -26,6 +29,13 @@ export const KickBanModal = ({
     if (!(iOwn || iModerate || iAmAdmin)) {
         close();
     }
+    // Don't allow kicking an owner if only moderator
+    if (!(iOwn || iAmAdmin) && (isOwner || isAdmin)) {
+        close();
+    }
+    // Don't allow kicking an admin
+    if (isAdmin) close();
+
     let submitUpdate = async partialRoom => {
         return updateRoom(roomId, {...room, ...partialRoom});
     };
@@ -35,7 +45,7 @@ export const KickBanModal = ({
         const kickRecord = {"id":peerId,"kickedBy":actorId,"reason":reason,"until":until};
         let kickRecords = room.kickRecords ?? [];
         kickRecords.push(kickRecord);
-        let ok = await submitUpdate({kicked:kickRecords,kickRecords:null});
+        let ok = await submitUpdate({kicked:kickRecords});
         if (!ok) {
           alert('An error occurred. Your changes were not saved. Exit and reattempt');
         } else {
@@ -47,10 +57,6 @@ export const KickBanModal = ({
     <Modal close={close}>
       <div className="bg-gray-700 text-gray-200 p-6 rounded-lg">
         <h2 className="text-2xl font-bold">Kick User</h2>
-        <>
-        <p>
-            You may kick This room is protected by a passphrase. Enter the passphrase to remain in the room.
-        </p>
         <div className="p-2 text-gray-200 bold">
             User Being Kicked: {peerDisplayName}
         </div>
@@ -84,10 +90,7 @@ export const KickBanModal = ({
             <option key="6" value="86400">1 Day</option>
             <option key="7" value="5000000000">Indefinite</option>
         </select>
-
-
         <div className="h-12"></div>
-
         <div className="flex justify-between">
         <button
             onClick={submit}
@@ -100,7 +103,6 @@ export const KickBanModal = ({
             Kick User
         </button>
         </div>
-        </>
       </div>  
     </Modal>
     );

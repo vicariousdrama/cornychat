@@ -1,6 +1,6 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {use} from 'use-minimal-state';
-import {colors, isDark} from '../lib/theme';
+import {isDark} from '../lib/theme';
 import {useJam} from '../jam-core-react';
 import 'react-slideshow-image/dist/styles.css';
 import '@coreui/coreui/dist/css/coreui.min.css';
@@ -70,7 +70,7 @@ export default function RoomSlides({
           )}
           <div className="flex" style={{color: textColor, backgroundColor: colors.avatarBg}}>
             {(iOwn || iModerate || iAmAdmin) && (
-            <div class="flex-none">
+            <div className="flex-none">
             <button className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
             onClick={async () => {
               currentSlide -= 1;
@@ -88,7 +88,7 @@ export default function RoomSlides({
             {slideText}
             </div>
             {(iOwn || iModerate || iAmAdmin) && (
-            <div class="flex-none">
+            <div className="flex-none">
             <button className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
             onClick={async () => {
               currentSlide += 1;

@@ -5,8 +5,8 @@
   "scripts": {
     "init-start": "esbuild --splitting --bundle ./App.jsx ./bundling/*.js --outdir=./public/js --format=esm --target=es6 --define:process.env.NODE_ENV='\"development\"'",
     "start": "yarn run init-start && JAM_SFU=1 JAM_BROADCAST=1 DEVELOPMENT=1 server/bin/www.js & tailwindcss -o public/css/tailwind.css -c tailwind.config.json --watch & esbuild --splitting --bundle ./App.jsx ./bundling/*.js --outdir=./public/js --format=esm --target=es6 --define:process.env.NODE_ENV='\"development\"' --watch",
-    "start-production": "server/bin/www.js & tailwindcss -o public/css/tailwind.css -c tailwind.config.json --watch & esbuild --splitting --bundle ./App.jsx ./bundling/*.js --outdir=./public/js --format=esm --target=es6 --define:process.env.NODE_ENV='\"production\"' --minify --watch",
-    "build": "tailwindcss --minify -o public/css/tailwind.css -c tailwind.config.json && esbuild --splitting --bundle ./App.jsx ./bundling/*.js --outdir=./public/js --minify --format=esm --target=es6 --define:process.env.NODE_ENV='\"production\"'",
+    "start-production": "server/bin/www.js & tailwindcss -o public/css/tailwind.css -c tailwind.config.json --watch & esbuild --splitting --bundle ./App.jsx ./bundling/*.js --outdir=./public/js --format=esm --target=es6 --define:process.env.NODE_ENV='\"development\"' --minify --watch",
+    "build": "tailwindcss --minify -o public/css/tailwind.css -c tailwind.config.json && esbuild --splitting --bundle ./App.jsx ./bundling/*.js --outdir=./public/js --minify --format=esm --target=es6 --define:process.env.NODE_ENV='\"development\"'",
     "pantry": "LOCAL=1 PORT=3001 JAM_SFU=1 node ../pantry/bin/www",
     "debug": "JAM_PANTRY_URL=http://localhost:3001 yarn start"
   },

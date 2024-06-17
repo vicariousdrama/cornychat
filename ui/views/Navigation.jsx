@@ -48,10 +48,8 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
     // the current passphrase set. If it differs, then they are prompted for passphrase input or will
     // be ejected after about a minute.
     const passphraseInterval = setInterval(() => {
-      // TODO: figure out how to get the updated room state
       let temp_room2 = {...room};
       if(room.passphraseHash != temp_room2.passwordHash) {
-//        console.log(temp_room2.passwordHash);
       }
       //console.log(`protected: ${room.isProtected} - ${room.passphraseHash}`);
       if (room.isProtected && ((room.passphraseHash ?? '').length > 0)) {
@@ -120,7 +118,7 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
         {areEmojisSet ? (
           emojis.map(r => (
             <button
-              class="human-radius text-2xl select-none"
+              className="human-radius text-2xl select-none"
               key={r}
               onClick={() => {
                 queueReaction(r);
@@ -164,8 +162,8 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
   function StickyStatus() {
     let noSticky = '💩';
     return (
-      <div class="flex">
-        <button class="human-radius text-xs select-none"
+      <div className="flex">
+        <button className="human-radius text-xs select-none"
           style={{width:'48px',height:'48px','color':'yellow',lineHeight: '.95'}}
           onClick={() => {
             handRaised = false;
@@ -175,7 +173,7 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
             setShowStickies(s => !s);
           }}
         >Lower Hand</button>
-        <button class="human-radius text-xl select-none"
+        <button className="human-radius text-xl select-none"
           style={{width:'48px',height:'48px',backgroundColor:`rgb(17,17,17)`,color:'yellow'}}
           onClick={() => {
             handRaised = true;
@@ -185,7 +183,7 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
             setShowStickies(s => !s);
           }}
         >✋</button>
-        <button class="human-radius text-xl select-none"
+        <button className="human-radius text-xl select-none"
           style={{width:'48px',height:'48px',backgroundColor:`rgb(17,170,17)`,color:'yellow'}}
           onClick={() => {
             handRaised = true;
@@ -195,7 +193,7 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
             setShowStickies(s => !s);
           }}
         >👍</button>
-        <button class="human-radius text-xl select-none"
+        <button className="human-radius text-xl select-none"
           style={{width:'48px',height:'48px',backgroundColor:`rgb(170,17,17)`,color:'yellow'}}
           onClick={() => {
             handRaised = true;
@@ -205,7 +203,7 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
             setShowStickies(s => !s);
           }}
         >👎</button>
-        <button class="human-radius text-xl select-none"
+        <button className="human-radius text-xl select-none"
           style={{width:'48px',height:'48px',backgroundColor:`rgb(17,17,170)`,color:'yellow'}}
           onClick={() => {
             handRaised = true;
@@ -215,7 +213,7 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
             setShowStickies(s => !s);
           }}
         >BRB</button>
-        <button class="human-radius text-xl select-none"
+        <button className="human-radius text-xl select-none"
           style={{width:'48px',height:'48px',backgroundColor:`rgb(17,17,170)`,color:'yellow'}}
           onClick={() => {
             handRaised = true;
@@ -237,7 +235,7 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
         ) : (
           localStorage.getItem('stickyEmoji1') ?? '☕'
         )}</button>
-        <button class="human-radius text-xl select-none"
+        <button className="human-radius text-xl select-none"
           style={{width:'48px',height:'48px',backgroundColor:`rgb(17,17,170)`,color:'yellow'}}
           onClick={() => {
             handRaised = true;
@@ -375,10 +373,10 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
 
   return (
     <div style={{zIndex: '5',position:'absolute',bottom:'72px',width:'100%',backgroundColor:roomColor.avatarBg}}>
-      <div class="flex justify-center align-center mx-2">
+      <div className="flex justify-center align-center mx-2">
         {showStickies && (
           <div
-            class="text-4xl items-center max-w-md max-h-28 flex flex-wrap overflow-y-none no-scrollbar text-black text-center rounded-lg left-0 bottom-14"
+            className="text-4xl items-center max-w-md max-h-28 flex flex-wrap overflow-y-none no-scrollbar text-black text-center rounded-lg left-0 bottom-14"
             style={{backgroundColor: roomColor.avatarBg}}
           >
             <StickyStatus />
@@ -386,7 +384,7 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
         )}
         {showReactions && (
           <div
-            class="text-4xl items-center max-w-md flex flex-wrap overflow-y-scroll text-black text-center rounded-lg left-0 bottom-14"
+            className="text-4xl items-center max-w-md flex flex-wrap overflow-y-scroll text-black text-center rounded-lg left-0 bottom-14"
             style={{backgroundColor: roomColor.avatarBg, maxHeight: '3.25em'}}
           >
             <ReactionsEmojis />
@@ -402,11 +400,11 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
           </div>
         )}
       </div>
-      <div class="flex justify-center align-center py-4 px-0">
+      <div className="flex justify-center align-center py-4 px-0">
         {/* setting */}
-        <div class="mx-1">
+        <div className="mx-1">
           <button
-            class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
+            className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
             style={{backgroundColor: roomColor.buttons.primary}}
             onClick={() => {
               setShowReactions(false);
@@ -418,9 +416,9 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
           </button>
         </div>
 
-        <div class="mx-1 relative">
+        <div className="mx-1 relative">
           <button
-            class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
+            className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
             style={{backgroundColor: roomColor.buttons.primary}}
             onClick={() => {
               setShowChat(!showChat);
@@ -449,9 +447,9 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
         </div>
 
         {handRaised ? (
-          <div class="mx-1">
+          <div className="mx-1">
             <button
-              class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
+              className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
               style={{backgroundColor: roomColor.buttons.primary, color:iconColor}}
               onClick={() => {
                 setShowMyNavMenu(false);
@@ -460,11 +458,11 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
               }}
             >
             {handType === 'RH' ? (
-              <span class="text-lg" style={{textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'}}>✋</span>
+              <span className="text-lg" style={{textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'}}>✋</span>
             ):( handType === 'TU' ? (
-              <span class="text-lg" style={{textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'}}>👍</span>
+              <span className="text-lg" style={{textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'}}>👍</span>
             ):( handType === 'TD' ? ( 
-              <span class="text-lg" style={{textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'}}>👎</span>
+              <span className="text-lg" style={{textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'}}>👎</span>
             ):( handType.toString().toUpperCase().startsWith('E') ? (
               <img
                 src={`/img/emojis/emoji-${handType.toString().toUpperCase()}.png`}
@@ -484,9 +482,9 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
             </button>
           </div>
         ) : (
-          <div class="mx-1">
+          <div className="mx-1">
             <button
-              class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
+              className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
               style={{backgroundColor: roomColor.buttons.primary}}
               onClick={() => {
                 setShowMyNavMenu(false);
@@ -500,7 +498,7 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
         )}
 
         {iSpeak ? (
-          <div class="mx-1">
+          <div className="mx-1">
             <button
               onClick={
                 iSpeak ? talk : () => setProps('handRaised', !handRaised)
@@ -509,7 +507,7 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
                 // don't allow clicking mute button with space bar to prevent confusion with push-to-talk w/ space bar
                 if (e.key === ' ') e.preventDefault();
               }}
-              class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
+              className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
               style={{backgroundColor: roomColor.buttons.primary}}
             >
               {iSpeak && (
@@ -517,7 +515,7 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
                   {micOn && micMuted && (
                     <>
                       <MicOffSvg
-                        class="w-5 h-5 mr-2 opacity-80 inline-block"
+                        className="w-5 h-5 mr-2 opacity-80 inline-block"
                         stroke={iconColor}
                       />
                     </>
@@ -525,7 +523,7 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
                   {micOn && !micMuted && (
                     <>
                       <MicOnSvg
-                        class="w-5 h-5 mr-2 opacity-80 inline-block"
+                        className="w-5 h-5 mr-2 opacity-80 inline-block"
                         stroke={iconColor}
                       />
                     </>
@@ -533,7 +531,7 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
                   {!micOn && (
                     <>
                       <MicOffSvg
-                        class="w-5 h-5 mr-2 opacity-80 inline-block"
+                        className="w-5 h-5 mr-2 opacity-80 inline-block"
                         stroke={iconColorBad}
                       />
                     </>
@@ -546,9 +544,9 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
 
         {/* emoji */}
         {areEmojisSet ? (
-          <div class="mx-1">
+          <div className="mx-1">
             <button
-              class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
+              className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
               style={{backgroundColor: roomColor.buttons.primary}}
               onClick={() => {
                 setShowMyNavMenu(false);
@@ -562,9 +560,9 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
         ) : null}
 
         {/* Leave room */}
-        <div class="mx-1">
+        <div className="mx-1">
           <button
-            class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center transition-all hover:opacity-80"
+            className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center transition-all hover:opacity-80"
             onClick={async() => {
               byeEmojiExit();
             }}

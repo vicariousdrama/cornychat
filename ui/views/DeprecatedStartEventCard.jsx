@@ -1,5 +1,7 @@
 import React from 'react';
 
+/* NOT USED */
+
 export default function StartEventCard({
     eventInfo,
   }) {

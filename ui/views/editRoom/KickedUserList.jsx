@@ -135,7 +135,7 @@ export function KickedUserList({
                     <p className="text-sm text-black" style={{overflowWrap: 'break-word'}}>until: {until}</p>
                 </div>
                 {allowModify && (
-                <div className="flex-none cursor-pointer hover:bg-red-500" onClick={() => removeUser(index, user)} >
+                <div className="flex-none cursor-pointer hover:bg-red-500 hover:border-red" onClick={() => removeUser(index, user)} >
                     <Trash />
                 </div>
                 )}

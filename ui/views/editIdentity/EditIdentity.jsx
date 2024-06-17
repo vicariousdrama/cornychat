@@ -1003,21 +1003,27 @@ export default function EditIdentity({close}) {
               value={nwcConnectURL ?? ''}
               onChange={e => {
                 const nwc = e.target.value;
-                let a = nwc.replace('nostr+walletconnect://','').replace('http://', '');
-                let relay = undefined;
-                let secret = undefined;
-                let pubkey = a.split("?")[0]; // pubkey
-                let b = (a.split("?")[1]).split("&");
-                for (let c of b) {
-                  let d = c.split("=")[0];
-                  let f = c.split("=")[1];
-                  if (d == 'relay') relay = f;
-                  if (d == 'secret') secret = f;
-                }
-                if (relay != undefined && secret != undefined && pubkey != undefined) {
-                  setNWCWSPubkey(pubkey);
-                  setNWCRelay(relay);
-                  setNWCSecret(secret);
+                if (nwc.length > 0) {
+                  let a = nwc.replace('nostr+walletconnect://','').replace('http://', '');
+                  let relay = undefined;
+                  let secret = undefined;
+                  let pubkey = a.split("?")[0]; // pubkey
+                  let b = (a.split("?")[1]).split("&");
+                  for (let c of b) {
+                    let d = c.split("=")[0];
+                    let f = c.split("=")[1];
+                    if (d == 'relay') relay = f;
+                    if (d == 'secret') secret = f;
+                  }
+                  if (relay != undefined && secret != undefined && pubkey != undefined) {
+                    setNWCWSPubkey(pubkey);
+                    setNWCRelay(relay);
+                    setNWCSecret(secret);
+                  }
+                } else {
+                  setNWCWSPubkey('');
+                  setNWCRelay('');
+                  setNWCSecret('');
                 }
                 setNWCConnectURL(nwc);
               }}

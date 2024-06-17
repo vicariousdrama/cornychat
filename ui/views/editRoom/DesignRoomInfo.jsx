@@ -62,7 +62,7 @@ export function DesignRoomInfo({
             >
               <div className="mx-2 my-2 h-20 flex flex-col justify-between">
                 <div>{colorThemeName}</div>
-                <div class="flex">
+                <div className="flex">
                   <div
                     onMouseEnter={() => displayTooltip(index, 'Background')}
                     className="w-1/5 p-4"
@@ -85,7 +85,7 @@ export function DesignRoomInfo({
                 </div>
                 <div>
                   {tooltipStates[index] ? (
-                    <p class="text-center text-xs">{colorType}</p>
+                    <p className="text-center text-xs">{colorType}</p>
                   ) : null}
                 </div>
               </div>
@@ -126,7 +126,7 @@ export function DesignRoomInfo({
 
       {iOwn ? (
       <div className="my-2">
-        <span class="flex items-center text-sm font-medium text-gray-300">
+        <span className="flex items-center text-sm font-medium text-gray-300">
           Choose a Color Theme:  <b>{color}</b>
         </span>
         <div className="flex flex-wrap justify-between">
@@ -218,7 +218,7 @@ export function DesignRoomInfo({
       </div>
       ) : (
       <div className="my-2">
-        <span class="flex items-center text-sm font-medium text-gray-300">
+        <span className="flex items-center text-sm font-medium text-gray-300">
           Color Theme:  <b>{color}</b>
         </span>
       </div>

@@ -80,7 +80,7 @@ export function Links({
       <div className="mb-2">
         <div className="flex justify-between">
           <button
-            className="px-5 h-12 text-sm rounded-md"
+            className="px-5 text-sm rounded-md"
             style={{
               color: (roomLinks.length > 0) ? textColor : `rgba(244,244,244,1)`,
               backgroundColor: (roomLinks.length > 0) ? roomColor.buttons.primary : `rgba(192,192,192,1)`,
@@ -97,7 +97,7 @@ export function Links({
           {window.nostr ? (
           <>
           <button
-            className="px-5 h-12 text-sm rounded-md"
+            className="px-5 text-sm rounded-md"
             style={{
               color: textColor,
               backgroundColor: roomColor.buttons.primary,
@@ -110,7 +110,7 @@ export function Links({
             Import Links
           </button>
           <button
-            className="px-5 h-12 text-sm rounded-md"
+            className="px-5 text-sm rounded-md"
             style={{
               color: (roomLinks.length > 0) ? textColor : `rgba(244,244,244,1)`,
               backgroundColor: (roomLinks.length > 0) ? roomColor.buttons.primary : `rgba(192,192,192,1)`,
@@ -127,7 +127,7 @@ export function Links({
           </button>
           </>
           ) : (
-          <div className="h-12 mx-2 text-sm rounded-md border-2 border-gray-300 w-full text-center text-gray-200">
+          <div className="mx-2 text-sm rounded-md border-2 border-gray-300 w-full text-center text-gray-200">
             Use a nostr extension for import/export capability
           </div>
           )}
@@ -171,7 +171,7 @@ export function Links({
             }}
           ></input>
           <button
-            className="px-5 h-12 text-sm rounded-md"
+            className="px-5 text-sm rounded-md"
             style={{
               color: textColor,
               backgroundColor: roomColor.buttons.primary,
@@ -249,7 +249,7 @@ export function Links({
                     )}
                   </div>
                   <div className="flex w-full justify-end" style={{width: '100px',position: 'relative'}}>
-                  <table><tr><td>
+                  <table><tbody><tr><td>
                     {(editingLinkIndex == -1) && (
                     <>
                     <div onClick={() => editLink(index)} className="cursor-pointer text-xl m-2">
@@ -278,7 +278,7 @@ export function Links({
                     )}
                     </td></tr><tr><td>
                     <div className="text-gray-700" style={{marginTop: '32px'}}>link {linkNumber}</div>
-                    </td></tr></table>                    
+                    </td></tr></tbody></table>                    
                   </div>
                 </div>
               );
