@@ -135,7 +135,7 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
           <p className="text-md cursor-pointer">Leave Stage</p>
         </div>
       )}
-      {!stageOnly && !iModerate && iSpeak && (
+      {!stageOnly && !(iOwn || iModerate || iAmAdmin) && iSpeak && (
         <div
           onClick={() => {
             leaveStage();

@@ -76,6 +76,7 @@ export default function Room({room, roomId, uxConfig}) {
 
   let [showMyNavMenu, setShowMyNavMenu] = useState(false);
   let [showChat, setShowChat] = useState(false);
+  let [iAmAdmin, setIAmAdmin] = useState((localStorage.getItem('iAmAdmin') || 'false') == 'true');
   const [showLinks, setShowLinks] = useState(false);
   const inRoomPeerIds = peers.filter(id => peerState[id]?.inRoom);
   const nJoinedPeers = inRoomPeerIds.length;
@@ -151,22 +152,9 @@ export default function Room({room, roomId, uxConfig}) {
     CacheIdentities(moderators);
     CacheIdentities(speakers);
   }
-
   if (!iMayEnter) {
     return <EnterRoom roomId={roomId} name={name} forbidden={true} />;
   }
-
-  // if (sessionStorage.getItem('iAmAdmin') == undefined) {
-  //   let [myId] = use(state, ['myId']);
-  //   let iAmAdmin = false;
-  //   let [myAdminStatus] = useApiQuery(`/admin/${myId}`, {fetchOnMount: true});
-  //   if (myAdminStatus) {
-  //     iAmAdmin = myAdminStatus.admin;
-  //   }
-  //   sessionStorage.setItem('iAmAdmin', iAmAdmin);  
-  // }
-  let iAmAdmin = localStorage.getItem('iAmAdmin') || false;
-  if (iAmAdmin == undefined) iAmAdmin = false;
 
   if (!iOwn && closed) {
     return (
@@ -194,7 +182,7 @@ export default function Room({room, roomId, uxConfig}) {
     );
   }
   let {textchats} = state;
-  if (textchats.length == 0) {
+  if (textchats == undefined || textchats.length == 0) {
     (async () => {await sendTextChat("*has entered the chat!*");})();
   }
   let myPeerId = myInfo.id;
@@ -382,6 +370,11 @@ export default function Room({room, roomId, uxConfig}) {
           <RoomChat
             {...{
               room,
+              iModerate,
+              iOwn,
+              iAmAdmin,
+              identities,
+              myIdentity,
             }}
           />
         )}
