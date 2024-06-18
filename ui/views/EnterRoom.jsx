@@ -418,9 +418,9 @@ export default function EnterRoom({
         )}
 
         {adImageEnabled && (
-          <div className="text-center my-3 text-gray-300">
-          <p className="text-gray-400 text-sm text-center">you can enter after this 5 second ad...
+          <div className="text-center my-3 text-gray-300 text-center">
           <center>
+          <p className="text-gray-400 text-sm text-center">you can enter after this 5 second ad...
           <img src={adimg} className="w-72 text-center"
             onClick={() => {
               setPassphraseEnabled(isProtected);
@@ -428,8 +428,8 @@ export default function EnterRoom({
               setAdImageEnabled(false);
             }}
           />
-          </center>
           </p>
+          </center>
           </div>
         )}
 

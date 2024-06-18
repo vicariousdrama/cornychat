@@ -6,14 +6,20 @@ import {colors, isDark} from '../lib/theme';
 import {useJam} from '../jam-core-react';
 import {avatarUrl, displayName} from '../lib/avatar';
 import {getNpubFromInfo, getRelationshipPetname} from '../nostr/nostr';
-import {time4Ad, value4valueAdSkip} from '../lib/v4v';
+import {openModal} from './Modal';
+import {Profile} from './Profile';
 
 export default function RoomChat({
     room,
+    iModerate,
+    iOwn,
+    iAmAdmin,
+    identities,
+    myIdentity,
 }) {
     const mqp = useMqParser();
     const [state, {sendTextChat}] = useJam();
-    let {textchats,roomId, myIdentity} = state;
+    let {textchats,roomId} = state;
     let [chatText, setChatText] = useState('');
     let [chatScrollPosition, setChatScrollPosition] = useState(sessionStorage.getItem(`${roomId}.textchat.scrollpos`) ?? -999);
     let myId = myIdentity.info.id;
@@ -175,6 +181,7 @@ export default function RoomChat({
             onWheel={handleUserChatScroll}
         >
         {textchats.map((textentry, index) => {
+            let chatindex = `chatindex_${index}`;
             let userid = textentry[0];
             let userobj = JSON.parse(sessionStorage.getItem(userid)) ?? {id: '', avatar: ''};
             let username = displayName(userobj, room);
@@ -186,7 +193,7 @@ export default function RoomChat({
             let thetext = textentry[1];
             // skip duplicates
             if (previoususerid == userid && previoustext == thetext) {
-                return (<></>);
+                return (<span key={chatindex}></span>);
             }
             previoususerid = userid;
             previoustext = thetext;
@@ -208,7 +215,7 @@ export default function RoomChat({
                     /* ignore */
                 }
                 return (
-                    <center className="text-xs text-gray-400 cursor-pointer">
+                    <center key={chatindex} className="text-xs text-gray-400 cursor-pointer">
                     <div style={{width:'330px',height:'60px',border:'3px solid lightgreen',backgroundColor:'green',color:'white',textAlign:'center'}}
                         onClick={async () => {
                             await window.navigator.clipboard.writeText(thetext);
@@ -257,7 +264,7 @@ export default function RoomChat({
                             if (adlist[adidnum].hasLink) {
                                 adlink = adlist[adidnum].link;
                                 return (
-                                    <center className="text-xs text-gray-400">linked advertisement
+                                    <center key={chatindex} className="text-xs text-gray-400">linked advertisement
                                     <a href={`${adlink}`} target="_blank">
                                     <div style={{width:'330px',height:'60px',border:'3px solid orange'}}>
                                     <img style={{width:'320px',height:'50px',marginTop:'2px'}} src={adimgsrc} />
@@ -287,9 +294,21 @@ export default function RoomChat({
                     thetext = (textchatShowNames ? username + ": " : "") + thetext;
                 }
                 return (
-                    <div className="flex w-full justify-between bg-gray-700 text-white" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
+                    <div key={chatindex} className="flex w-full justify-between bg-gray-700 text-white" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
                         {textchatShowAvatar && (
-                        <img className="flex w-6 h-6 human-radius" src={useravatar} />
+                        <img className="flex w-6 h-6 human-radius" src={useravatar} 
+                        onClick={() =>
+                            openModal(Profile, {
+                              info: identities[userid],
+                              room,
+                              peerId: userid,
+                              iOwn,
+                              iModerate,
+                              actorIdentity: myIdentity,
+                              iAmAdmin,
+                            })
+                          }                        
+                        />
                         )}
                         <div className="flex-grow text-sm break-words ml-1" 
                              style={{color: chatLineTextColor}}
@@ -303,12 +322,24 @@ export default function RoomChat({
                 }
                 
                 return (
-                    <div className="flex w-full justify-between bg-gray-700 text-white" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
+                    <div key={chatindex} className="flex w-full justify-between bg-gray-700 text-white" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
                         <div className="flex-grow text-sm text-right break-words mr-1" 
                              style={{color: chatLineTextColor}}
                              dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext) }} />
                         {textchatShowAvatar && (
-                        <img className="flex w-6 h-6 human-radius" src={useravatar} />
+                        <img className="flex w-6 h-6 human-radius" src={useravatar} 
+                        onClick={() =>
+                            openModal(Profile, {
+                              info: identities[userid],
+                              room,
+                              peerId: userid,
+                              iOwn,
+                              iModerate,
+                              actorIdentity: myIdentity,
+                              iAmAdmin,
+                            })
+                          }                        
+                        />
                         )}
                     </div>
                 );

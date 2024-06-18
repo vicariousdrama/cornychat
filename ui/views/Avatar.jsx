@@ -102,13 +102,14 @@ function Avatar({
     isAdmin = peerAdminStatus?.admin ?? false;
   }
 
+  const bShowAdmin = (Math.floor(Date.now() / 1000) % 10) > 5;
   const colorTheme = room?.color ?? 'default';
   const roomColor = colors(colorTheme, room.customColor);
   const iconColor = isDark(roomColor.background) ? roomColor.icons.light : roomColor.icons.dark;
   const avatarCardBG = !inRoom ? 'rgba(21,21,21,.5)' : (isSpeaking ? roomColor.buttons.primary : roomColor.avatarBg);
   const avatarCardFG = !inRoom ? 'rgba(69,69,69,.75)' : (isDark(avatarCardBG) ? roomColor.text.light : roomColor.text.dark);
   const roleName = (!inRoom ? 'Outside' : (isAdmin ? 'Admin' : (isOwner ? 'Room Owner' : (isModerator ? 'Moderator' : (canSpeak ? 'Speaker' : 'Audience')))));
-  const roleSymbol = (!inRoom ? '🚪' : (isAdmin ? '🅰️' : (isOwner ? '👑' : (isModerator ? '🛡️' : (canSpeak ? '🎤' : '👂')))));
+  const roleSymbol = (!inRoom ? '🚪' : (bShowAdmin && isAdmin ? '🅰️' : (isOwner ? '👑' : (isModerator ? '🛡️' : (canSpeak ? '🎤' : '👂')))));
   let userDisplayName = info?.name ?? '';
   if (userDisplayName.length == 0) {
     userDisplayName = displayName(info, room);

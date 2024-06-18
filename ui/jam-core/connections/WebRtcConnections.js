@@ -1,8 +1,10 @@
 import {connectPeer, disconnectPeer} from '../../lib/swarm';
 import {use} from '../../lib/state-tree';
+import { getNpubFromInfo } from '../../nostr/nostr';
 
 export default function WebRtcConnections({swarm, hasMediasoup}) {
   const webRtcConnections = new Set();
+  const checkIfSpeakerFromNpub = true;
 
   return function WebRtcConnections({roomState}) {
     let {
@@ -29,6 +31,20 @@ export default function WebRtcConnections({swarm, hasMediasoup}) {
       // if mediasoup is used, only speakers should connect with each other
       // otherwise, speakers should connect with everyone and audience only with speakers
       let theyAreSpeaker = stageOnly || speakers.includes(connection.peerId);
+      if (checkIfSpeakerFromNpub && !theyAreSpeaker) {
+        let peerObject = sessionStorage.getItem(connection.peerId);
+        if (peerObject != undefined) {
+          let peerNpub = getNpubFromInfo(peerObject);
+          if (peerNpub != undefined) {
+            for (let id of speakers) {
+              if (id == peerNpub) {
+                theyAreSpeaker = true;
+                break;
+              }
+            }
+          }
+        }
+      }
       let shouldConnect = hasMediasoup
         ? iAmSpeaker && theyAreSpeaker
         : iAmSpeaker || theyAreSpeaker;
