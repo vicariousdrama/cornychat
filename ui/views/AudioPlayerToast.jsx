@@ -131,7 +131,7 @@ function AudioPlayerToast({close}) {
         <div className="text-md flex">
           <div className="flex" onClick={end} style={{cursor: 'pointer',border:'1px solid white'}}><CloseSvg color="white" /></div>
           <div className="flex-grow"> Streaming to the room</div>
-          <div clsasName="flex">
+          <div className="flex">
             <button className="h-6 rounded-full flex items-center justify-center transition-all text-sm hover:opacity-80 outline"
               style={{position:'absolute',right:'25px',cursor:'pointer',paddingLeft:'5px',paddingRight:'5px',border:'1px solid white'}}
               id="audioplaypause"

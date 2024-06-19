@@ -639,8 +639,9 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
           <p className={userPosts && (maxPostsToDisplay > 0) ? 'text-xl mr-1 font-semibold text-gray-200' : 'hidden'}>
             Recent Text Notes
           </p>
-          { userPosts?.slice(0,maxPostsToDisplay).map((event) => {
-            return <div>
+          { userPosts?.slice(0,maxPostsToDisplay).map((event, index) => {
+            let eventkey = `eventkey_${index}`;
+            return <div key={eventkey}>
               <p className="text-sm text-gray-300 break-words mb-1"
                  style={{whiteSpace:'pre-line'}}
               >{event.content}</p>

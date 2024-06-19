@@ -454,10 +454,10 @@ function ModeratorIcon({color}) {
       y="0px"
       fill={color}
       xmlns="http://www.w3.org/2000/svg"
-      xmlns:xlink="http://www.w3.org/1999/xlink"
+      xmlnsXlink="http://www.w3.org/1999/xlink"
       viewBox="0 0 100 100"
       enableBackground="new 0 0 100 100"
-      xml:space="preserve"
+      xmlSpace="preserve"
     >
       <path
         d="M31.375,40.219l1.249,1.563l-5.475,4.379C27.676,48.357,29.645,50,32,50c2.527,0,4.622-1.885,4.954-4.32l5.849-2.508
@@ -576,7 +576,7 @@ function Previous({color}) {
     <svg 
       fill={color}
       xmlns="http://www.w3.org/2000/svg" 
-      xmlns:xlink="http://www.w3.org/1999/xlink" 
+      xmlnsXlink="http://www.w3.org/1999/xlink" 
 	    viewBox="0 0 490 490" 
       xml:space="preserve"
       stroke="currentColor"
@@ -596,7 +596,7 @@ function Next({color}) {
     <svg 
       fill={color}
       xmlns="http://www.w3.org/2000/svg" 
-      xmlns:xlink="http://www.w3.org/1999/xlink" 
+      xmlnsXlink="http://www.w3.org/1999/xlink" 
       viewBox="0 0 512 512" 
       xml:space="preserve"
       className="w-8 h-8"
@@ -642,7 +642,7 @@ function GuyFawkes() {
     xmlns="http://www.w3.org/2000/svg"
     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
     xmlns:cc="http://creativecommons.org/ns#"
-    xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlnsXlink="http://www.w3.org/1999/xlink"
     xmlns:dc="http://purl.org/dc/elements/1.1/"
     xmlns:svg="http://www.w3.org/2000/svg"
     xmlns:ns1="http://sozi.baierouge.fr"

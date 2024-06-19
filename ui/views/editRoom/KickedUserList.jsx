@@ -75,6 +75,7 @@ export function KickedUserList({
       )}
 
       {userlist.map((user, index) => {
+        let userkey = `kickeduserkey_${index}`;
         if (user.id in umap) {
           let info = umap[user.id];
           if (info) {
@@ -103,7 +104,7 @@ export function KickedUserList({
                 }
             }
             return (
-                <div className="flex w-full justify-between my-3">
+                <div key={userkey} className="flex w-full justify-between my-3">
                 <div className="flex-none">
                     <img src={userAvatar} style={{width:'32px',height:'32px'}} />
                 </div>
@@ -135,7 +136,7 @@ export function KickedUserList({
                     <p className="text-sm text-black" style={{overflowWrap: 'break-word'}}>until: {until}</p>
                 </div>
                 {allowModify && (
-                <div className="flex-none cursor-pointer hover:bg-red-500 hover:border-red" onClick={() => removeUser(index, user)} >
+                <div className="flex-none cursor-pointer rounded-lg px-2 py-2 hover:bg-red-500 hover:border-red" onClick={() => removeUser(index, user)} >
                     <Trash />
                 </div>
                 )}
@@ -146,7 +147,7 @@ export function KickedUserList({
           if (user.id.startsWith("npub1")) {
             let petname = localStorage.getItem(`${user.id}.petname`);
             return (
-              <div className="flex w-full justify-between my-3">
+              <div key={userkey} className="flex w-full justify-between my-3">
               <div className="flex-none text-xs">
                 <div title={'Nostr pubkey in npub format'}>
                   <img

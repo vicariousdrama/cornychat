@@ -38,11 +38,13 @@ export const ExportSlidesModal = ({
     return (
       <>
       {roomSlides.map((roomSlide, index) => {
+        let roomslidekey = `roomslidekey_${index}`;
         let roomSlideUrl = roomSlide[0];
         let roomSlideChoiceUrl = roomSlideUrl;
         if (roomSlideUrl == slideUrl) {
         return (
           <div
+            key={roomslidekey}
             className="w-16 h-16 m-2 border-2 rounded-lg border-blue-500"
           >
             <img
@@ -54,6 +56,7 @@ export const ExportSlidesModal = ({
         } else {
         return (
           <div
+            key={roomslidekey}
             onClick={() => setSlideUrl(roomSlideChoiceUrl)}
             className="w-16 h-16 m-2 cursor-pointer hover:border-blue-500"
           >

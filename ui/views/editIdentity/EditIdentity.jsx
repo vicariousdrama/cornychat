@@ -186,10 +186,12 @@ export default function EditIdentity({close}) {
       <>
       {avatarChoices.map((avatarChoice, index) => {
         let avatarChoiceUrl = avatarChoice;
+        let avatarkey=`avatarkey_${index}`;
         if (avatarChoiceUrl == avatar) {
         avatarFound = true;
         return (
           <div
+            key={avatarkey}
             className="w-16 h-16 m-2 border-2 rounded-lg border-blue-500"
           >
             <img
@@ -201,6 +203,7 @@ export default function EditIdentity({close}) {
         } else {
         return (
           <div
+            key={avatarkey}
             onClick={() => setAvatar(avatarChoiceUrl)}
             className="w-16 h-16 m-2 cursor-pointer hover:border-blue-500"
           >
@@ -780,16 +783,17 @@ export default function EditIdentity({close}) {
             {petnames.length > 0 && (
             <>
             <div className="p-2 text-gray-200 bold">Petnames stored locally</div>
-            <table className="w-full">
-            {petnames.map((petnameInfo) => {
+            <table className="w-full"><tbody>
+            {petnames.map((petnameInfo, index) => {
+              let petnamekey = `petnamekey_${index}`;
               let n = petnameInfo.npub;
               let shortNpub = n.substring(0,8) + "..." + n.substring(n.length-8);
-              return <tr className="p-2 text-gray-200">
+              return <tr key={petnamekey} className="p-2 text-gray-200">
                   <td>{shortNpub}</td>
                   <td>{petnameInfo.petname}</td>
                 </tr>
             })}
-            </table>
+            </tbody></table>
             </>
             )}
           </div>         
@@ -813,8 +817,9 @@ export default function EditIdentity({close}) {
               className={'border mt-3 ml-2 p-2 text-black rounded'}
             >
             <option key="0" value="0">None</option>
-            {doorbellsounds?.map((doorbellinfo, doorbellindex) => {
-              return <option key={(doorbellindex+1)} value={(doorbellindex+1)}>{doorbellinfo[1]}</option>
+            {doorbellsounds?.map((doorbellinfo, index) => {
+              let doorbellkey = `doorbellkey_${index}`;
+              return <option key={doorbellkey} value={(index+1)}>{doorbellinfo[1]}</option>
             })}
           </select>
           <button
@@ -1087,12 +1092,12 @@ export default function EditIdentity({close}) {
                   }}
                   className={'border mt-3 ml-2 p-2 text-black rounded'}
                 >
-                <option key="0" value="5">5</option>
-                <option key="0" value="10">10</option>
-                <option key="0" value="15">15</option>
-                <option key="0" value="20">20</option>
-                <option key="0" value="30">30</option>
-                <option key="0" value="60">60</option>
+                <option key="v4vSkipAdFrequency5" value="5">5</option>
+                <option key="v4vSkipAdFrequency10" value="10">10</option>
+                <option key="v4vSkipAdFrequency15" value="15">15</option>
+                <option key="v4vSkipAdFrequency20" value="20">20</option>
+                <option key="v4vSkipAdFrequency30" value="30">30</option>
+                <option key="v4vSkipAdFrequency60" value="60">60</option>
                 </select>
                 minutes.
               </>
@@ -1151,12 +1156,12 @@ export default function EditIdentity({close}) {
                   }}
                   className={'border mt-3 ml-2 p-2 text-black rounded'}
                 >
-                <option key="0" value="5">5</option>
-                <option key="0" value="10">10</option>
-                <option key="0" value="15">15</option>
-                <option key="0" value="20">20</option>
-                <option key="0" value="30">30</option>
-                <option key="0" value="60">60</option>
+                <option key="v4vTipRoomFrequency5" value="5">5</option>
+                <option key="v4vTipRoomFrequency10" value="10">10</option>
+                <option key="v4vTipRoomFrequency15" value="15">15</option>
+                <option key="v4vTipRoomFrequency20" value="20">20</option>
+                <option key="v4vTipRoomFrequency30" value="30">30</option>
+                <option key="v4vTipRoomFrequency60" value="60">60</option>
                 </select>                
                 minutes.  When in a room, toggle autotipping with the option in the upper left corner.
               </>
