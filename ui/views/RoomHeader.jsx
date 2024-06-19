@@ -161,8 +161,9 @@ export default function RoomHeader({
         {roomLinks && roomLinks.length > 0 ? (
           roomLinks.map((links,index) => {
             let linkNumber = 1 + index;
+            let roomlinkkey = `roomlinkkey_${linkNumber}`;
             return (
-              <div key={linkNumber} className="mb-2">
+              <div key={roomlinkkey} className="mb-2">
                 <a href={links[1]} target="_blank">
                   <p className="text-xs" style={{color: textColor}}>
                     {linkNumber}. {links[0]}

@@ -66,8 +66,10 @@ export function CustomEmojis({
           </p>
           <div className="flex flex-wrap cursor-pointer">
             {customEmojis?.map((emoji, index) => {
+              let customemojikey = `customemojikey_${index}`;
               return (
                 <div
+                  key={customemojikey}
                   className="p-2 m-2 bg-gray-200 rounded-lg hover:bg-red-500"
                   onClick={() => removeEmoji(index)}
                 >
@@ -88,14 +90,14 @@ export function CustomEmojis({
           </div>
 
           <button
-            className="px-5 h-12 text-sm rounded-md"
+            className="px-5 py-2 text-sm rounded-md"
             style={{
               color: textColor,
               backgroundColor: roomColor.buttons.primary,
             }}
             onClick={() => resetEmojis()}
           >
-            Reset to default emojis
+            Reset to default
           </button>
         </div>
       </div>
@@ -104,8 +106,9 @@ export function CustomEmojis({
       {!iOwn && (
       <div className="flex flex-wrap">
         {customEmojis?.map((emoji, index) => {
+          let customemojikey = `customemojikey_${index}`;
           return (
-            <div className="p-2 m-2 bg-gray-200 rounded-lg">
+            <div key={customemojikey} className="p-2 m-2 bg-gray-200 rounded-lg">
               <p>{emoji.toString().toUpperCase().startsWith('E') ? (
                 <img
                   src={`/img/emojis/emoji-${emoji.toString().toUpperCase()}.png`}

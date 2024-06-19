@@ -50,8 +50,10 @@ export function DesignRoomInfo({
       <>
         {paletteColors.map((colorPalette, index) => {
           const colorThemeName = colorPalette[0];
+          let palettekey = `palettekey_${index}`;
           return (
             <div
+              key={palettekey}
               className={
                 color === colorThemeName
                   ? 'border-2 m-2 pb-2 rounded-lg border-blue-500'
@@ -168,7 +170,7 @@ export function DesignRoomInfo({
         <div className="mt-3">
           <div className="flex flex-wrap justify-between mt-3">
             <div
-              className="mx-1.5 cursor-pointer flex flex-col items-center"
+              className={'mx-1.5 cursor-pointer flex border-2 m-2 pb-2 rounded-lg ' + (colorPickerBg ? 'border-blue-500' : 'hover:border-blue-500')}
               onClick={() => {
                 setColorPickerBg(!colorPickerBg);
                 setColorPickerAvatar(false);
@@ -181,10 +183,14 @@ export function DesignRoomInfo({
                   backgroundColor: styleBg,
                 }}
               ></div>
-              <span className="text-xs">Background / Alternate</span>
+              <div className="flex text-xs">Background / Alternate</div>
             </div>
+          </div>
+        </div>
+        <div className="mt-3">
+          <div className="flex flex-wrap justify-between mt-3">
             <div
-              className="mx-1.5 cursor-pointer flex flex-col items-center"
+              className={'mx-1.5 cursor-pointer flex border-2 m-2 pb-2 rounded-lg ' + (colorPickerAvatar ? 'border-blue-500' : 'hover:border-blue-500')}
               onClick={() => {
                 setColorPickerAvatar(!colorPickerAvatar);
                 setColorPickerBg(false);
@@ -195,10 +201,14 @@ export function DesignRoomInfo({
                 className="w-8 h-8 rounded-full"
                 style={{backgroundColor: styleAvatar}}
               ></div>
-              <span className="text-xs">Panel background</span>
+              <div className="flex text-xs">Panel background</div>
             </div>
+          </div>
+        </div>
+        <div className="mt-3">
+          <div className="flex flex-wrap justify-between mt-3">
             <div
-              className="mx-1.5 cursor-pointer flex flex-col items-center"
+              className={'mx-1.5 cursor-pointer flex border-2 m-2 pb-2 rounded-lg ' + (colorPickerButton ? 'border-blue-500' : 'hover:border-blue-500')}
               onClick={() => {
                 setColorPickerButton(!colorPickerButton);
                 setColorPickerBg(false);
@@ -209,7 +219,7 @@ export function DesignRoomInfo({
                 className="w-8 h-8 rounded-full"
                 style={{backgroundColor: styleButtons}}
               ></div>
-              <span className="text-xs">Buttons</span>
+              <div className="flex text-xs">Buttons</div>
             </div>
           </div>
         </div>

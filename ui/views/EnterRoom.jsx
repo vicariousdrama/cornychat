@@ -313,7 +313,7 @@ export default function EnterRoom({
           className={
             (closed && !iOwn && iAmAdmin) || forbidden
               ? 'hidden'
-              : 'mt-5 select-none w-full h-12 px-6 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
+              : 'mt-5 select-none w-full p-3 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
           }
           style={{
             backgroundColor: roomColor.buttons.primary,
@@ -331,7 +331,7 @@ export default function EnterRoom({
           className={
             (closed && !iOwn && !iAmAdmin) || forbidden
               ? 'hidden'
-              : 'mt-5 select-none w-full h-12 px-6 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
+              : 'mt-5 select-none w-full p-3 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
           }
           style={{
             backgroundColor: roomColor.buttons.primary,
@@ -350,7 +350,7 @@ export default function EnterRoom({
             className={
               closed || forbidden
                 ? 'hidden'
-                : 'mt-5 select-none w-full h-12 px-6 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
+                : 'mt-5 select-none w-full p-3 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
             }
             style={{
               backgroundColor: `rgba(192,192,192,1)`,
@@ -396,7 +396,7 @@ export default function EnterRoom({
               setReturnToHomepage(false);
               handlerSignIn('nsec');
             }}
-            className="select-none px-5 h-12 text-lg text-white focus:shadow-outline"
+            className="select-none p-6 text-lg text-white focus:shadow-outline"
             style={{
               backgroundColor: roomColor.buttons.primary,
               color: textColor,
@@ -452,7 +452,7 @@ export default function EnterRoom({
             setReturnToHomepage(false);
             window.location.href = window.location.href.replace(window.location.pathname, '/');
           }}
-          className={'mt-5 select-none w-full h-12 px-6 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'}
+          className={'mt-5 select-none w-full p-3 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'}
           style={{
             backgroundColor: roomColor.buttons.primary,
             color: textColor,
@@ -461,7 +461,7 @@ export default function EnterRoom({
           Return to Homepage
         </button>
 
-        <a className={schedule ? 'block mt-5 text-center h-12 p-3 px-6 text-lg text-gray-300' : 'hidden'}
+        <a className={schedule ? 'block mt-5 text-center p-3 px-6 text-lg text-gray-300' : 'hidden'}
           href={`/${roomId}.ics`} download={`${name || 'room'}.ics`}
         >
           🗓 Add to Calendar

@@ -75,6 +75,7 @@ export function UserList({
     }
   }
 
+  let keytype = label.toLowerCase().replaceAll(" ","");
   return (
 
     <div>
@@ -129,6 +130,7 @@ export function UserList({
       )}
 
       {userlist.map((user, index) => {
+        let userlistkey = `userlistkey_${keytype}_${index}`;
         if (user in umap) {
           let info = umap[user];
           if (info) {
@@ -143,7 +145,7 @@ export function UserList({
             let userAvatar = avatarUrl(info, room);
             let isNostrSigned = isValidNostr(info);
             return (
-                <div className="flex w-full justify-between my-3">
+                <div key={userlistkey} className="flex w-full justify-between my-3">
                 <div className="flex-none">
                     <img src={userAvatar} style={{width:'32px',height:'32px'}} />
                 </div>
@@ -170,7 +172,7 @@ export function UserList({
                     <p className="text-sm text-black" style={{overflowWrap: 'break-word'}}>{userDisplayName}</p>
                 </div>
                 {allowModify && (
-                <div className="flex-none cursor-pointer hover:bg-red-500 hover:border-red" onClick={() => removeUser(index, user)} >
+                <div className="flex-none cursor-pointer rounded-lg px-2 py-2 hover:bg-red-500 hover:border-red" onClick={() => removeUser(index, user)} >
                     <Trash />
                 </div>
                 )}
@@ -181,7 +183,7 @@ export function UserList({
           if (user.startsWith("npub1")) {
             let petname = localStorage.getItem(`${user}.petname`);
             return (
-              <div className="flex w-full justify-between my-3">
+              <div key={userlistkey} className="flex w-full justify-between my-3">
               <div className="flex-none text-xs">
                 <div title={'Nostr pubkey in npub format'}>
                   <img

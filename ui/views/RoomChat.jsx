@@ -181,7 +181,7 @@ export default function RoomChat({
             onWheel={handleUserChatScroll}
         >
         {textchats.map((textentry, index) => {
-            let chatindex = `chatindex_${index}`;
+            let chatkey = `chatkey_${index}`;
             let userid = textentry[0];
             let userobj = JSON.parse(sessionStorage.getItem(userid)) ?? {id: '', avatar: ''};
             let username = displayName(userobj, room);
@@ -193,7 +193,7 @@ export default function RoomChat({
             let thetext = textentry[1];
             // skip duplicates
             if (previoususerid == userid && previoustext == thetext) {
-                return (<span key={chatindex}></span>);
+                return (<span key={chatkey}></span>);
             }
             previoususerid = userid;
             previoustext = thetext;
@@ -215,7 +215,7 @@ export default function RoomChat({
                     /* ignore */
                 }
                 return (
-                    <center key={chatindex} className="text-xs text-gray-400 cursor-pointer">
+                    <center key={chatkey} className="text-xs text-gray-400 cursor-pointer">
                     <div style={{width:'330px',height:'60px',border:'3px solid lightgreen',backgroundColor:'green',color:'white',textAlign:'center'}}
                         onClick={async () => {
                             await window.navigator.clipboard.writeText(thetext);
@@ -238,13 +238,11 @@ export default function RoomChat({
                 );
             }
             if(thetext.startsWith("/srfm")) {
-                return (<></>);
+                return (<span key={chatkey}></span>);                
             }
             if(thetext.startsWith("/chatad")) {
                 if (!jamConfig.handbill) {
-                    return (
-                      <></>  
-                    );
+                    return (<span key={chatkey}></span>);
                 }
                 let chatadparts = thetext.split(":");
                 let adidx = chatadparts[1];
@@ -264,7 +262,7 @@ export default function RoomChat({
                             if (adlist[adidnum].hasLink) {
                                 adlink = adlist[adidnum].link;
                                 return (
-                                    <center key={chatindex} className="text-xs text-gray-400">linked advertisement
+                                    <center key={chatkey} className="text-xs text-gray-400">linked advertisement
                                     <a href={`${adlink}`} target="_blank">
                                     <div style={{width:'330px',height:'60px',border:'3px solid orange'}}>
                                     <img style={{width:'320px',height:'50px',marginTop:'2px'}} src={adimgsrc} />
@@ -274,7 +272,7 @@ export default function RoomChat({
                                 );                                
                             } else {
                                 return (
-                                    <center className="text-xs text-gray-400">advertisement
+                                    <center key={chatkey} className="text-xs text-gray-400">advertisement
                                     <img style={{width:'320px',height:'50px'}} src={adimgsrc} />
                                     </center>
                                 );            
@@ -283,7 +281,7 @@ export default function RoomChat({
                     }             
                 } catch (error) { /*ignore*/ }
                 // still here? return empty
-                return (<></>);
+                return (<span key={chatkey}></span>);
             }
             
             if(userid != myId || textchatLayout == 'left') {
@@ -294,7 +292,7 @@ export default function RoomChat({
                     thetext = (textchatShowNames ? username + ": " : "") + thetext;
                 }
                 return (
-                    <div key={chatindex} className="flex w-full justify-between bg-gray-700 text-white" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
+                    <div key={chatkey} className="flex w-full justify-between bg-gray-700 text-white" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
                         {textchatShowAvatar && (
                         <img className="flex w-6 h-6 human-radius" src={useravatar} 
                         onClick={() =>
@@ -322,7 +320,7 @@ export default function RoomChat({
                 }
                 
                 return (
-                    <div key={chatindex} className="flex w-full justify-between bg-gray-700 text-white" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
+                    <div key={chatkey} className="flex w-full justify-between bg-gray-700 text-white" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
                         <div className="flex-grow text-sm text-right break-words mr-1" 
                              style={{color: chatLineTextColor}}
                              dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext) }} />

@@ -197,11 +197,12 @@ export function Links({
           ) : (
           <>
             {roomLinks.map((link, index) => {
+              let roomlinkskey = `roomlinkskey_${index}`;
               let renderURI = link[1];
               let renderText = link[0];
               linkNumber += 1;
               return (
-                <div className="flex w-full justify-between my-3" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
+                <div key={roomlinkskey} className="flex w-full justify-between my-3" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
                   <div style={{width: '400px'}}>
                     {(editingLinkIndex != index) && (
                     <>

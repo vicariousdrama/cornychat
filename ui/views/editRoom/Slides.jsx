@@ -200,6 +200,7 @@ export function Slides({
           ) : (
             <>
             {roomSlides.map((slide, index) => {
+              let roomslideskey = `roomslideskey_${index}`;
               let slideURI = slide[0];
               let slideText = slide[1];
               slideNumber += 1;
@@ -219,7 +220,7 @@ export function Slides({
               isIFrame = !(isVideo || isImage);
         
               return (
-                <div className="flex w-full justify-between my-3" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
+                <div key={roomslideskey} className="flex w-full justify-between my-3" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
                   <div style={{width: '400px'}}>
                   {(editingSlideIndex != index) && (
                     <>

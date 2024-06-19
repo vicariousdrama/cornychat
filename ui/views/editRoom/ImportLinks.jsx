@@ -75,7 +75,8 @@ export const ImportLinksModal = ({
         );
     }
     return (<>
-        {linkLists.map((linkList) => {
+        {linkLists.map((linkList, index) => {
+            let linklistkey = `linklistkey_${index}`;
             let created_at = linkList.created_at;
             let id = linkList.id;
             let dTag = '';
@@ -100,49 +101,24 @@ export const ImportLinksModal = ({
             var dateOptions = { weekday: 'long', month: 'long', day: 'numeric' }; 
             const humanDate = new Intl.DateTimeFormat('en-us',dateOptions).format(date);
             if (linkcount > 0) {
-                if (selectedListID == id) {
-                    return (
-                        <div className="select-none px-0 text-lg rounded-lg m-2 border-2 border-blue-500 w-full">
-                            <table className="w-full" cellpadding="0" cellspacing="0" border="0" style={{maxWidth:'3500px'}}><tbody>
-                            <tr>
-                                <td rowspan="3" style={{width: '72px'}}>
-                                    <img src={image}
-                                        style={{width: '64px', height: '64px', objectFit: 'cover'}} />
-                                </td>
-                                <td align="left">{name}</td></tr>
-                            <tr><td align="left" className="text-sm">about: {about}</td></tr>
-                            <tr><td><table className="w-full" cellpadding="0" cellspacing="0" border="0"><tbody>
-                                <tr>
-                                    <td align="left" className="text-sm">id: {dTag}</td>
-                                    <td align="right" className="text-sm">saved {humanDate}</td>
-                                </tr>
-                                </tbody></table></td></tr>
-                            </tbody></table>
-                        </div>
-                    );
-                } else {
-                    return (
-                        <div className="select-none px-0 text-lg rounded-lg m-2 border-2 hover:border-blue-500 w-full cursor-pointer"
-                            onClick={() => setSelectedListID(id)}
-                        >
-                            <table className="w-full" cellpadding="0" cellspacing="0" border="0" style={{maxWidth:'3500px'}}><tbody>
-                            <tr>
-                                <td rowspan="3" style={{width: '72px'}}>
-                                    <img src={image}
-                                        style={{width: '64px', height: '64px', objectFit: 'cover'}} />
-                                </td>
-                                <td align="left">{name}</td></tr>
-                            <tr><td align="left" className="text-sm">about: {about}</td></tr>
-                            <tr><td><table className="w-full" cellpadding="0" cellspacing="0" border="0"><tbody>
-                                <tr>
-                                    <td align="left" className="text-sm">id: {dTag}</td>
-                                    <td align="right" className="text-sm text-nowrap">saved {humanDate}</td>
-                                </tr>
-                                </tbody></table></td></tr>
-                            </tbody></table>
-                        </div>
-                    );
-                }
+              let linkclass = 'select-none px-2 text-sm rounded-sm m-2 border-2 w-full ' + (selectedListID == id ? ' border-blue-500' : ' hover:border-blue-500 cursor-pointer');
+              return (
+                  <div key={linklistkey} className={linkclass}
+                  onClick={() => setSelectedListID(id)}                        
+                  >
+                    <div className="flex">
+                      <img src={image} style={{width: '64px', height: '64px', objectFit: 'cover'}} />
+                    </div>
+                    <div className="flex">id: {dTag}</div>
+                    {about.length > 0 && (
+                    <div className="flex">about: {about}</div>
+                    )}
+                    <div className="flex">saved: {humanDate}</div>
+                  </div>
+              );
+
+            } else {
+              return (<span key={linklistkey}></span>);
             }
         })}
     </>);
@@ -150,11 +126,11 @@ export const ImportLinksModal = ({
 
   return (
     <Modal close={close}>
-      <div className="bg-gray-700 text-gray-200 p-6 rounded-lg">
+      <div className="bg-gray-700 text-gray-200 p-2 rounded-lg">
         <h2 className="text-2xl font-bold">Import Links</h2>
         <>
         <p>
-          Link Lists
+          Select from your previously saved link lists
         </p>
         <div className="flex flex-wrap justify-between">
           { loadingData ? (<h4>Loading...</h4>) : ( <LinkListChoices /> )}
@@ -191,7 +167,7 @@ export const ImportLinksModal = ({
             }
           }}
         >
-          Add links to room from selected link list
+          Import
         </button>
         )}
         </div>
