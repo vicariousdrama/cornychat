@@ -50,7 +50,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
   let [closedBy, setClosedBy] = useState(room.closedBy || '');
   let [isPrivate, setIsPrivate] = useState(room.isPrivate || false);
   let [isProtected, setIsProtected] = useState(room.isProtected || false);
-  let [passphrasePlain, setPassphrasePlain] = useState(sessionStorage.getItem(`${roomId}.passphrase`) ?? '');
+  let [passphrasePlain, setPassphrasePlain] = useState(localStorage.getItem(`${roomId}.passphrase`) ?? (sessionStorage.getItem(`${roomId}.passphrase`) ?? ''));
   let [passphraseHash, setPassphraseHash] = useState(room.passphraseHash || '');
   let [isRecordingAllowed, setIsRecordingAllowed] = useState(room.isRecordingAllowed || false);
   let [isLiveActivityAnnounced, setIsLiveActivityAnnounced] = useState(room.isLiveActivityAnnounced || false);
@@ -165,7 +165,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
     setKicked(cleankicked);
 
     // Store the new passphrase in my session
-    sessionStorage.setItem(`${roomId}.passphrase`, passphrasePlain);
+    localStorage.setItem(`${roomId}.passphrase`, passphrasePlain); 
 
     let ok = await submitUpdate({
       name,

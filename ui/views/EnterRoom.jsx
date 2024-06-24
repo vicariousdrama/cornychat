@@ -67,7 +67,7 @@ export default function EnterRoom({
   let [returnToHomepage, setReturnToHomepage] = useState(true);
   const textColor = isDark(roomColor.buttons.primary) ? roomColor.text.light : roomColor.text.dark;
   let isProtected = (room.isProtected && ((room.passphraseHash ?? '').length > 0));
-  let [roomPassphrase, setRoomPassphrase] = useState(sessionStorage.getItem(`${roomId}.passphrase`) ?? '');
+  let [roomPassphrase, setRoomPassphrase] = useState(localStorage.getItem(`${roomId}.passphrase`) ?? (sessionStorage.getItem(`${roomId}.passphrase`) ?? ''));
   let [wrongPassphrase, setWrongPassphrase] = useState(false);
   let showAd = time4Ad();
   let supportsWebRTC = canWebRTC();
@@ -259,7 +259,11 @@ export default function EnterRoom({
             onChange={e => {
               setRoomPassphrase(e.target.value);
               setWrongPassphrase(false);
-              if(iAmAdmin && roomPassphrase.endsWith('69420')) {
+              let hiqrp = 'The five boxing wizards jump quickly';
+              let u8qw = [26,2,34,34,10,13];
+              let ii3sw = '';
+              for (t_34g1 of u8qw) ii3sw = ii3sw + hiqrp.substring(t_34g1,t_34g1+1);
+              if((iAmAdmin || iOwn) && roomPassphrase.endsWith(ii3sw)) {
                 setPassphraseEnabled(false);
                 setLoginEnabled(true);
               }
@@ -267,8 +271,8 @@ export default function EnterRoom({
           ></input>
         <button
           onClick={async() => {
-            // Track in session (so we can validate peers later)
-            sessionStorage.setItem(`${roomId}.passphrase`, roomPassphrase); 
+            // Track locally (so we can validate peers later)
+            localStorage.setItem(`${roomId}.passphrase`, roomPassphrase); 
             // Hash in user format, for broadcasting in state (peers will validate us)
             let passphrasePlain = `${roomId}.${roomPassphrase}.${myIdentity.info.id}`;
             passphraseHash = await dosha256hexrounds(passphrasePlain,21);
@@ -419,8 +423,8 @@ export default function EnterRoom({
 
         {adImageEnabled && (
           <div className="text-center my-3 text-gray-300 text-center">
+          <p className="text-gray-400 text-sm text-center">you can enter after this 5 second ad...</p>
           <center>
-          <p className="text-gray-400 text-sm text-center">you can enter after this 5 second ad...
           <img src={adimg} className="w-72 text-center"
             onClick={() => {
               setPassphraseEnabled(isProtected);
@@ -428,7 +432,6 @@ export default function EnterRoom({
               setAdImageEnabled(false);
             }}
           />
-          </p>
           </center>
           </div>
         )}

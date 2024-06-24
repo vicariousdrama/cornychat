@@ -16,10 +16,12 @@ export default function RoomChat({
     iAmAdmin,
     identities,
     myIdentity,
+    peers,
 }) {
     const mqp = useMqParser();
     const [state, {sendTextChat}] = useJam();
     let {textchats,roomId} = state;
+    let [chatTarget, setChatTarget] = useState('0');
     let [chatText, setChatText] = useState('');
     let [chatScrollPosition, setChatScrollPosition] = useState(sessionStorage.getItem(`${roomId}.textchat.scrollpos`) ?? -999);
     let myId = myIdentity.info.id;
@@ -84,6 +86,9 @@ export default function RoomChat({
             sessionStorage.setItem(`${roomId}.textchat.scrollpos`, newpos);
             setChatScrollPosition(newpos);
             //console.log('saving position as ', newpos);
+
+            //try to maximize height of chat
+            c.style.height = String(document.body.clientHeight - 156 - c.getClientRects()[0].top) + 'px';
         }
     }
 
@@ -97,20 +102,31 @@ export default function RoomChat({
             state.textchats = textchats;
             update(state, 'textchats');
         } else if (chatText.startsWith("/help")) {
-            textchats.push([myId, "Supported markdown"]);
-            textchats.push([myId, "• To **bold** surround with 2 *"]);
-            textchats.push([myId, "• To *italicize* surround with 1 *"]);
-            textchats.push([myId, "• To hide spoilers, surround with 2 |"]);
-            textchats.push([myId, "• Emoji shortcodes are surrounded by 1 :"]);
-            textchats.push([myId, "• /help shows this guidance"]);
-            textchats.push([myId, "• /clear resets your text buffer"]);
-            textchats.push([myId, "• /me emotes a statement"]);
+            textchats.push([myId, "Supported markdown", false]);
+            textchats.push([myId, "• To **bold** surround with 2 *", false]);
+            textchats.push([myId, "• To *italicize* surround with 1 *", false]);
+            textchats.push([myId, "• To hide spoilers, surround with 2 |", false]);
+            textchats.push([myId, "• Emoji shortcodes are surrounded by 1 :", false]);
+            textchats.push([myId, "• /help shows this guidance", false]);
+            textchats.push([myId, "• /clear resets your text buffer", false]);
+            textchats.push([myId, "• /me emotes a statement", false]);
             state.textchats = textchats;
             update(state, 'textchats');
         } else {
-            (async () => {await sendTextChat(chatText);})(); // send to swarm (including us) as text-chat
+            // TODO: Refactor to send to a specific peerid
+
+            (async () => {await sendTextChat(chatText, chatTarget);})(); // send to swarm (including us) as text-chat
         }
         setChatText('');                                    // clear the field
+    }
+
+    function isImage(url) {
+        if (url.endsWith(".gif")) return true;
+        if (url.endsWith(".jpg")) return true;
+        if (url.endsWith(".png")) return true;
+        if (url.endsWith(".webp")) return true;
+        if (url.startsWith("https://www.tradingview.com/x/")) return true;
+        return false;
     }
 
     function createLinksSanitized(text) {
@@ -158,10 +174,17 @@ export default function RoomChat({
                 url = match.substring(0, queryOrFragmentIndex);
                 queryString = match.substring(queryOrFragmentIndex);
             }
-            // Return the <a> tag with the base URL and a second <a> tag for the full URL including the query string
-            const baseUrlTag = `<a href="${url}" target="_blank" style="text-decoration:underline;">${url}</a>`;
-            const fullUrlTag = queryString ? `<a href="${url}${queryString}" target="_blank" style="font-weight:300; text-decoration:underline;">${queryString}</a>` : '';
-            return baseUrlTag + (queryString ? fullUrlTag: '');
+            if ((queryString.length == 0) && isImage(url)) {
+                // Assume image
+                const baseImageTag = `<a href="${url}" target="_blank"><img src="${url}" style="max-height:20rem" /></a>`;
+                return baseImageTag;
+            } else {
+                // Assume hyperlink
+                // Return the <a> tag with the base URL and a second <a> tag for the full URL including the query string
+                const baseUrlTag = `<a href="${url}" target="_blank" style="text-decoration:underline;">${url}</a>`;
+                const fullUrlTag = queryString ? `<a href="${url}${queryString}" target="_blank" style="font-weight:300; text-decoration:underline;">${queryString}</a>` : '';
+                return baseUrlTag + (queryString ? fullUrlTag: '');
+            }
         });
     }
     
@@ -182,7 +205,7 @@ export default function RoomChat({
         >
         {textchats.map((textentry, index) => {
             let chatkey = `chatkey_${index}`;
-            let userid = textentry[0];
+            let userid = ((textentry != undefined && textentry.length > 0) ? textentry[0] : '');
             let userobj = JSON.parse(sessionStorage.getItem(userid)) ?? {id: '', avatar: ''};
             let username = displayName(userobj, room);
             const userNpub = getNpubFromInfo(userobj);
@@ -190,7 +213,8 @@ export default function RoomChat({
                 username = getRelationshipPetname(userNpub, username);
               }            
             let useravatar = avatarUrl(userobj, room);
-            let thetext = textentry[1];
+            let thetext = ((textentry != undefined && textentry.length > 1) ? textentry[1] : '');
+            let isdm = ((textentry != undefined && textentry.length > 2) ? textentry[2] : false);
             // skip duplicates
             if (previoususerid == userid && previoustext == thetext) {
                 return (<span key={chatkey}></span>);
@@ -311,6 +335,7 @@ export default function RoomChat({
                         <div className="flex-grow text-sm break-words ml-1" 
                              style={{color: chatLineTextColor}}
                              dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext) }} />
+                        {isdm && (<span style={{backgroundColor: 'rgb(32,128,32)',color:'rgb(255,255,255)'}}>Private Message</span>)}
                     </div>
                 );
             } else {
@@ -324,6 +349,7 @@ export default function RoomChat({
                         <div className="flex-grow text-sm text-right break-words mr-1" 
                              style={{color: chatLineTextColor}}
                              dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext) }} />
+                        {isdm && (<span style={{backgroundColor: 'rgb(32,128,32)',color:'rgb(255,255,255)'}}>Private Message</span>)}
                         {textchatShowAvatar && (
                         <img className="flex w-6 h-6 human-radius" src={useravatar} 
                         onClick={() =>
@@ -347,6 +373,20 @@ export default function RoomChat({
         <div className="flex w-full justify-between"
             style={{position: 'absolute', bottom: '0px'}}
         >
+            <select id="chattarget" defaultValue={chatTarget} onChange={e => {setChatTarget(e.target.value);}}
+                className={mqp('rounded placeholder-black bg-gray-400 text-black flex mx-1')}
+            >
+                <option key="0" value="0">Everyone</option>
+            {peers?.map((peerId, index) => {
+                let identity = identities[peerId];
+                let userDisplayName = displayName(identity, room);
+                let userNpub = getNpubFromInfo(identity);
+                if (userNpub != undefined) {
+                  userDisplayName = getRelationshipPetname(userNpub, userDisplayName);
+                }
+                return <option key={peerId} value={peerId}>{userDisplayName}</option>
+            })}
+            </select>
             <input id="chatentry"
                 className={mqp('rounded placeholder-black bg-gray-400 text-black flex-grow mx-1')}
                 type="text"

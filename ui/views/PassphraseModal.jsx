@@ -43,8 +43,8 @@ export const PassphraseModal = ({
 
     let submit = async e => {
         e.preventDefault();
-        // Store the new passphrase in my session
-        sessionStorage.setItem(`${roomId}.passphrase`, passphrasePlain);
+        // Store the new passphrase in local storage
+        localStorage.setItem(`${roomId}.passphrase`, passphrasePlain);
         if (roomPassphraseHash != passphraseHash) {
             setWrongPassphrase(true);
         } else {
