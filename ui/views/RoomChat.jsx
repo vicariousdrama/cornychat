@@ -215,6 +215,7 @@ export default function RoomChat({
             let useravatar = avatarUrl(userobj, room);
             let thetext = ((textentry != undefined && textentry.length > 1) ? textentry[1] : '');
             let isdm = ((textentry != undefined && textentry.length > 2) ? textentry[2] : false);
+            
             // skip duplicates
             if (previoususerid == userid && previoustext == thetext) {
                 return (<span key={chatkey}></span>);
@@ -224,6 +225,7 @@ export default function RoomChat({
             let emoting = thetext.startsWith("/me");
             let sentv4v = (thetext.includes("zapped") || thetext.includes("tipped")) && thetext.includes("⚡");
             let chatLineTextColor = emoting ? 'rgb(59,130,246)' : (sentv4v ? 'rgb(255,155,55)' : 'rgb(255,255,255)');
+            let chatBackgroundColor = isdm ? (myId == userid ? 'rgb(24,64,24)' : 'rgb(24,24,64)') : 'rgb(55,65,81)';
             if(thetext.startsWith("cashu") && thetext.length > 350) {
 
                 let cashuamount = '?';
@@ -316,7 +318,8 @@ export default function RoomChat({
                     thetext = (textchatShowNames ? username + ": " : "") + thetext;
                 }
                 return (
-                    <div key={chatkey} className="flex w-full justify-between bg-gray-700 text-white" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
+                    <div key={chatkey} className="flex w-full justify-between bg-gray-700 text-white" 
+                        style={{borderBottom: '1px solid rgb(55,65,81)', backgroundColor: chatBackgroundColor }}>
                         {textchatShowAvatar && (
                         <img className="flex w-6 h-6 human-radius" src={useravatar} 
                         onClick={() =>
@@ -335,7 +338,7 @@ export default function RoomChat({
                         <div className="flex-grow text-sm break-words ml-1" 
                              style={{color: chatLineTextColor}}
                              dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext) }} />
-                        {isdm && (<span style={{backgroundColor: 'rgb(32,128,32)',color:'rgb(255,255,255)'}}>Private Message</span>)}
+                        {isdm && (<span style={{backgroundColor: 'rgb(32,128,32)',color:'rgb(255,255,255)'}}>{myId==userid ? 'Sent Private Message' : 'Received Private Message'}</span>)}
                     </div>
                 );
             } else {
@@ -345,11 +348,12 @@ export default function RoomChat({
                 }
                 
                 return (
-                    <div key={chatkey} className="flex w-full justify-between bg-gray-700 text-white" style={{borderBottom: '1px solid rgb(55,65,81)'}}>
+                    <div key={chatkey} className="flex w-full justify-between bg-gray-700 text-white" 
+                    style={{borderBottom: '1px solid rgb(55,65,81)', backgroundColor: chatBackgroundColor }}>
                         <div className="flex-grow text-sm text-right break-words mr-1" 
                              style={{color: chatLineTextColor}}
                              dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext) }} />
-                        {isdm && (<span style={{backgroundColor: 'rgb(32,128,32)',color:'rgb(255,255,255)'}}>Private Message</span>)}
+                        {isdm && (<span style={{backgroundColor: 'rgb(32,128,32)',color:'rgb(255,255,255)'}}>{myId==userid ? 'Sent Private Message' : 'Received Private Message'}</span>)}
                         {textchatShowAvatar && (
                         <img className="flex w-6 h-6 human-radius" src={useravatar} 
                         onClick={() =>
@@ -378,13 +382,18 @@ export default function RoomChat({
             >
                 <option key="0" value="0">Everyone</option>
             {peers?.map((peerId, index) => {
+                let chattargetkey = `chattargetkey_${index}`;
                 let identity = identities[peerId];
-                let userDisplayName = displayName(identity, room);
-                let userNpub = getNpubFromInfo(identity);
-                if (userNpub != undefined) {
-                  userDisplayName = getRelationshipPetname(userNpub, userDisplayName);
+                if (identity == undefined) {
+                    return <option key={chattargetkey} value={peerId}>Unknown</option>
+                } else {
+                    let userDisplayName = displayName(identity, room);
+                    let userNpub = getNpubFromInfo(identity);
+                    if (userNpub != undefined) {
+                    userDisplayName = getRelationshipPetname(userNpub, userDisplayName);
+                    }
+                    return <option key={chattargetkey} value={peerId}>{userDisplayName}</option>
                 }
-                return <option key={peerId} value={peerId}>{userDisplayName}</option>
             })}
             </select>
             <input id="chatentry"
