@@ -102,7 +102,7 @@ export default function EnterRoom({
     const timeoutToHomepage = setTimeout(() => {
       let hasEnteredRoom = inRoom === roomId;
       if (!hasEnteredRoom && returnToHomepage) {
-        window.location.href = window.location.href.replace(window.location.pathname, '/');
+        window.location.href = window.location.href.substring(0,window.location.href.lastIndexOf('/'));
       }
     }, 35000);
 
@@ -453,7 +453,7 @@ export default function EnterRoom({
         <button
           onClick={() => {
             setReturnToHomepage(false);
-            window.location.href = window.location.href.replace(window.location.pathname, '/');
+            window.location.href = window.location.href.substring(0,window.location.href.lastIndexOf('/'));
           }}
           className={'mt-5 select-none w-full p-3 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'}
           style={{
