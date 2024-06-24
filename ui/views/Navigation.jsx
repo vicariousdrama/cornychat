@@ -21,12 +21,13 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
   let mqp = useMqParser();
   const [state, {leaveRoom, sendReaction, retryMic, setProps}] = useJam();
   let [room, roomId, myId] = use(state, ['room','roomId','myId']);
-  let [myAudio, micMuted, handRaised, handType, iSpeak] = use(state, [
+  let [myAudio, micMuted, handRaised, handType, iSpeak, iOwn] = use(state, [
     'myAudio',
     'micMuted',
     'handRaised',
     'handType',
     'iAmSpeaker',
+    'iAmOwner', 
   ]);
   
   const [time, setTime] = useState(Date.now());
@@ -53,7 +54,7 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
       }
       //console.log(`protected: ${room.isProtected} - ${room.passphraseHash}`);
       if (room.isProtected && ((room.passphraseHash ?? '').length > 0)) {
-        let roomPassphrase = (sessionStorage.getItem(`${roomId}.passphrase`) ?? '');
+        let roomPassphrase = localStorage.getItem(`${roomId}.passphrase`) ?? (sessionStorage.getItem(`${roomId}.passphrase`) ?? '');
         let roomPassphrasePlain = `${roomId}.${roomPassphrase}`;
         let roomPassphraseHash = '';
         (async () => {
@@ -62,7 +63,7 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
           if (room.passphraseHash != roomPassphraseHash && !iAmAdmin) {
             checkcount += 1;
             console.log('room passphrase required. time remaining: ', (60 - ((checkcount-1) * 5)));
-            if (checkcount == 13) leaveRoom();
+            if (checkcount == 13 && !(iAmAdmin || iOwn)) leaveRoom();
             if (checkcount == 1) openModal(PassphraseModal, {roomId: roomId, roomPassphraseHash: room.passphraseHash, roomColor: roomColor, checkcount: checkcount});
           } else {
             // reset check counter

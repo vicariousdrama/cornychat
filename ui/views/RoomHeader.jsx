@@ -91,7 +91,7 @@ export default function RoomHeader({
             if (!textchats) textchats = [];
             let lastline = textchats.slice(-1);
             if ((lastline.length == 0) || (lastline[0].length != 2) || (lastline[0][0] != adPeerId) || (lastline[0][1] != textchat)) {
-              textchats.push([adPeerId, textchat]);
+              textchats.push([adPeerId, textchat, false]);
               state.textchats = textchats.slice(-1 * bufferSize);
               update(state, 'textchats');
               let n = Math.floor(sessionStorage.getItem(`${roomId}.textchat.unread`) ?? 0) + 1;

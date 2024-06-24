@@ -76,6 +76,7 @@ export default function Room({room, roomId, uxConfig}) {
 
   let [showMyNavMenu, setShowMyNavMenu] = useState(false);
   let [showChat, setShowChat] = useState(false);
+  let fullsizeAvatars = (localStorage.getItem('fullsizeAvatars') ?? 'true') == 'true';
   let [iAmAdmin, setIAmAdmin] = useState((localStorage.getItem('iAmAdmin') || 'false') == 'true');
   const [showLinks, setShowLinks] = useState(false);
   const inRoomPeerIds = peers.filter(id => peerState[id]?.inRoom);
@@ -310,7 +311,7 @@ export default function Room({room, roomId, uxConfig}) {
         </div>
         )}
 
-        { showChat ? (
+        { showChat && !fullsizeAvatars ? (
         <MiniRoomMembers
           {...{
             audienceBarBG,
@@ -375,6 +376,7 @@ export default function Room({room, roomId, uxConfig}) {
               iAmAdmin,
               identities,
               myIdentity,
+              peers,
             }}
           />
         )}

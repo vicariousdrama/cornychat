@@ -80,6 +80,9 @@ export default function EditIdentity({close}) {
   let [onlyZapsEnabled, setOnlyZapsEnabled] = useState(
     localStorage.getItem('onlyZapsEnabled') ?? 'false'
   );
+  let [showFullsizeAvatars, setShowFullsizeAvatars] = useState(
+    localStorage.getItem('fullsizeAvatars') ?? 'true'
+  );
   let [doorbellEnabled, setDoorbellEnabled] = useState(
     localStorage.getItem('doorbellEnabled') ?? '0'
   );
@@ -359,6 +362,7 @@ export default function EditIdentity({close}) {
     localStorage.setItem('byeEmoji',byeEmoji);
     localStorage.setItem('animationsEnabled',animEnabled);
     localStorage.setItem('ghostsEnabled',ghostsEnabled);
+    localStorage.setItem('fullsizeAvatars',showFullsizeAvatars);
     localStorage.setItem('maxPostsToDisplay',maxPostsToDisplay);
     localStorage.setItem('onlyZapsEnabled',onlyZapsEnabled);
     localStorage.setItem('doorbellEnabled',doorbellEnabled);
@@ -721,6 +725,24 @@ export default function EditIdentity({close}) {
             </div>
             <div className="p-2 text-gray-200 italic">
               When enabled, you'll only send the lightning bolt emoji as reactions from the nav menu, and most of your static stickies will appear as the poo emoji
+              <span className="text-gray-300"> (optional)</span>
+            </div>
+          </div>
+
+          <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
+            <div className="p-2 text-gray-200 bold">
+              <input
+                className="rounded placeholder-black bg-gray-400 text-black w-8"
+                type="checkbox"
+                checked={showFullsizeAvatars == 'true' ? true : false}
+                onChange={e => {
+                  setShowFullsizeAvatars(e.target.checked ? 'true' : 'false');
+                }}
+              />
+              Always show full size avatars.
+            </div>
+            <div className="p-2 text-gray-200 italic">
+              When enabled, large avatars will be shown even when the text chat is open.  If not enabled, then mini avatars will be rendered when the chat is open which may be more suitable for mobile.
               <span className="text-gray-300"> (optional)</span>
             </div>
           </div>

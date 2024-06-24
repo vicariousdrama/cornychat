@@ -145,7 +145,7 @@ function createApi<T extends StateType>(
     leaveRoom: () => dispatch(actions.JOIN, null),
     leaveStage: () => dispatch(actions.LEAVE_STAGE),
     sendReaction: (reaction: string) => dispatch(actions.REACTION, reaction),
-    sendTextChat: (textchat: string) => dispatch(actions.TEXT_CHAT, textchat),
+    sendTextChat: (textchat: string, peerId: string) => dispatch(actions.TEXT_CHAT, {textchat:textchat, peerId:peerId}),
     retryMic: () => dispatch(actions.RETRY_MIC),
     retryAudio: () => dispatch(actions.RETRY_AUDIO),
     autoJoinOnce: () => dispatch(actions.AUTO_JOIN),
