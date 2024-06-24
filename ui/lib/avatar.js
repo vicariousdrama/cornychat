@@ -3,6 +3,10 @@ import {decode} from './identity-utils';
 const DEFAULT_AVATAR = `/img/avatars/avatar-default.png`;
 
 const roomAvatar = (info, room, defaultAvatar) => {
+  if (info?.id == undefined) {
+    console.log('info has no id when calling roomAvatar');
+    return DEFAULT_AVATAR;
+  }  
   let cornAvatarList = [];
   for (let i = 0; i < 9; i ++) {
     cornAvatarList.push('/img/avatars/avatar-corn-' + i.toString() + '.png');
@@ -22,6 +26,12 @@ const roomAvatar = (info, room, defaultAvatar) => {
 };
 
 const roomDisplayName = (info, room) => {
+  // if incomplete info, return first name
+  if (info?.id == undefined) {
+    console.log('in roomDisplayName and info does not have id');
+    console.log(info);
+    return names[0];
+  }
   if (room.userDisplay?.identities) {
     return (
       room.userDisplay.identities[info.id].name ||
@@ -39,7 +49,7 @@ const roomDisplayName = (info, room) => {
 };
 
 export const avatarUrl = (info, room, defaultAvatar = DEFAULT_AVATAR) => {
-  let avatar = '/img/avatar/avatar-default.png';
+  let avatar = DEFAULT_AVATAR;
   if (info.avatar && !room.access?.lockedIdentities && info.avatar !== '') {
     avatar = info.avatar;
   } else {
@@ -52,6 +62,12 @@ export const avatarUrl = (info, room, defaultAvatar = DEFAULT_AVATAR) => {
 };
 
 export const displayName = (info, room) => {
+  // if incomplete info, return first name
+  if (info?.id == undefined) {
+    console.log('in displayName and info does not have id');
+    console.log(info);
+    return names[0];
+  }
   const infoName = info?.name ?? '';
   if (infoName && !room?.access?.lockedIdentities) {
     return infoName;
@@ -63,7 +79,15 @@ export const displayName = (info, room) => {
 };
 
 const selectFromList = (id, list) => {
-  return list[publicKeyToIndex(id, list.length)];
+  if (id != undefined) {
+    return list[publicKeyToIndex(id, list.length)];
+  }
+  console.log('no id when calling selectFromList');
+  if (list != undefined) {
+    return list[0];
+  }
+  console.log('no list when calling selectFromList');
+  return 'No Id No List';
 };
 
 const names = [
