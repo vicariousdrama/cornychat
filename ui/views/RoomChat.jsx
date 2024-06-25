@@ -1,4 +1,3 @@
-import {update} from 'minimal-state';
 import React, {useState, useEffect} from 'react';
 import EmojiConvertor from 'emoji-js';
 import {useMqParser} from '../lib/tailwind-mqp';
@@ -20,7 +19,8 @@ export default function RoomChat({
 }) {
     const mqp = useMqParser();
     const [state, {sendTextChat}] = useJam();
-    let {textchats,roomId} = state;
+    let {roomId} = state;
+    let textchats = JSON.parse(sessionStorage.getItem(`${roomId}.textchat`) || '[]');
     let [chatTarget, setChatTarget] = useState('0');
     let [chatText, setChatText] = useState('');
     let [chatScrollPosition, setChatScrollPosition] = useState(sessionStorage.getItem(`${roomId}.textchat.scrollpos`) ?? -999);
@@ -41,16 +41,31 @@ export default function RoomChat({
       const intervalChatScroll = setInterval(() => {
         setTime(Date.now());    // forces update ?
         sessionStorage.setItem(`${roomId}.textchat.unread`, 0);
+        let rc = document.getElementById('roomChat');
         let c = document.getElementById('chatlines');
         if (c) {
             let p = sessionStorage.getItem(`${roomId}.textchat.scrollpos`) ?? -999;
             let n = (p>=0) ? p : c.scrollHeight;
             if (c.scrollTop != n) c.scrollTop = n;
         }
+        // resize to fit?
+        if (true && rc && c) {
+            let nh0 = 56; // height of selector, text entry, send button
+            let mh0 = 224; // minimum height of chatlines
+            //try to maximize height of chat
+            let nh1 = document.body.clientHeight - 232 - c.getClientRects()[0].top;
+            if (nh1 < mh0) nh1 = mh0;
+            c.style.height = String(nh1) + 'px';
+            c.style.maxHeight = c.style.height;
+            let nh2 = document.body.clientHeight - 176 - c.getClientRects()[0].top;
+            if (nh2 < (mh0+nh0)) nh2 = (mh0+nh0);
+            rc.style.height = String(nh2) + 'px';
+            rc.style.maxHeight = rc.style.height;
+        }
         if (!siv) {
             document.getElementById('chatentry').scrollIntoView();
             siv = true;
-        }
+        }        
       }, 1000);   
 
       return () => {
@@ -86,9 +101,6 @@ export default function RoomChat({
             sessionStorage.setItem(`${roomId}.textchat.scrollpos`, newpos);
             setChatScrollPosition(newpos);
             //console.log('saving position as ', newpos);
-
-            //try to maximize height of chat
-            c.style.height = String(document.body.clientHeight - 156 - c.getClientRects()[0].top) + 'px';
         }
     }
 
@@ -98,9 +110,7 @@ export default function RoomChat({
             chatText = chatText.substring(0,615);           // cashu is about 355 for single proof, a token can have multiple proofs
         }
         if (chatText.startsWith("/clear")) {
-            textchats = [];
-            state.textchats = textchats;
-            update(state, 'textchats');
+            sessionStorage.setItem(`${roomId}.textchat`,'[]');
         } else if (chatText.startsWith("/help")) {
             textchats.push([myId, "Supported markdown", false]);
             textchats.push([myId, "• To **bold** surround with 2 *", false]);
@@ -110,14 +120,11 @@ export default function RoomChat({
             textchats.push([myId, "• /help shows this guidance", false]);
             textchats.push([myId, "• /clear resets your text buffer", false]);
             textchats.push([myId, "• /me emotes a statement", false]);
-            state.textchats = textchats;
-            update(state, 'textchats');
+            sessionStorage.setItem(`${roomId}.textchat`,JSON.stringify(textchats));
         } else {
-            // TODO: Refactor to send to a specific peerid
-
             (async () => {await sendTextChat(chatText, chatTarget);})(); // send to swarm (including us) as text-chat
         }
-        setChatText('');                                    // clear the field
+        setChatText('');
     }
 
     function isImage(url) {
@@ -126,6 +133,7 @@ export default function RoomChat({
         if (url.endsWith(".png")) return true;
         if (url.endsWith(".webp")) return true;
         if (url.startsWith("https://www.tradingview.com/x/")) return true;
+        if (url.startsWith("https://imgprxy.stacker.news/")) return true;
         return false;
     }
 
@@ -175,11 +183,11 @@ export default function RoomChat({
                 queryString = match.substring(queryOrFragmentIndex);
             }
             if ((queryString.length == 0) && isImage(url)) {
-                // Assume image
+                // Images without a querystring
                 const baseImageTag = `<a href="${url}" target="_blank"><img src="${url}" style="max-height:20rem" /></a>`;
                 return baseImageTag;
             } else {
-                // Assume hyperlink
+                // Hyperlink
                 // Return the <a> tag with the base URL and a second <a> tag for the full URL including the query string
                 const baseUrlTag = `<a href="${url}" target="_blank" style="text-decoration:underline;">${url}</a>`;
                 const fullUrlTag = queryString ? `<a href="${url}${queryString}" target="_blank" style="font-weight:300; text-decoration:underline;">${queryString}</a>` : '';
@@ -191,13 +199,12 @@ export default function RoomChat({
     let previoususerid = '';
     let previoustext = '';
     return (
-    <div id="roomChat" className="max-h-96 h-full w-full bg-gray-700"
+    <div id="roomChat" className="h-full w-full bg-gray-700"
         style={{position: 'relative'}}
     >
         <div
             id="chatlines" 
             className="flex-col-reverse justify-end mb-2 overflow-y-scroll"
-            style={{maxHeight: '21rem', height: '21rem'}}
             onScroll={handleUserChatScroll}
             onTouchEnd={handleUserChatScroll}
             onMouseUp={handleUserChatScroll}
@@ -211,10 +218,21 @@ export default function RoomChat({
             const userNpub = getNpubFromInfo(userobj);
             if (userNpub != undefined) {
                 username = getRelationshipPetname(userNpub, username);
-              }            
+            }
             let useravatar = avatarUrl(userobj, room);
             let thetext = ((textentry != undefined && textentry.length > 1) ? textentry[1] : '');
             let isdm = ((textentry != undefined && textentry.length > 2) ? textentry[2] : false);
+            let todm = ((textentry != undefined && textentry.length > 3) ? textentry[3] : '');
+            // Get who the message was sent to when DMing
+            let tousername = '';
+            if (todm) {
+                let todmobj = JSON.parse(sessionStorage.getItem(todm)) ?? {id: '', avatar: ''};
+                tousername = displayName(todmobj, room);
+                let todmnpub = getNpubFromInfo(todmobj);
+                if (todmnpub != undefined) {
+                    tousername = getRelationshipPetname(todmnpub, tousername);
+                }
+            }
             
             // skip duplicates
             if (previoususerid == userid && previoustext == thetext) {
@@ -338,7 +356,7 @@ export default function RoomChat({
                         <div className="flex-grow text-sm break-words ml-1" 
                              style={{color: chatLineTextColor}}
                              dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext) }} />
-                        {isdm && (<span style={{backgroundColor: 'rgb(32,128,32)',color:'rgb(255,255,255)'}}>{myId==userid ? 'Sent Private Message' : 'Received Private Message'}</span>)}
+                        {isdm && (<span className="rounded" style={{backgroundColor: 'rgb(32,128,32)',color:'rgb(255,255,255)'}}>{myId==userid ? '>>' + (textchatShowNames ? tousername : "") : '<<'}</span>)}
                     </div>
                 );
             } else {
@@ -353,7 +371,7 @@ export default function RoomChat({
                         <div className="flex-grow text-sm text-right break-words mr-1" 
                              style={{color: chatLineTextColor}}
                              dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext) }} />
-                        {isdm && (<span style={{backgroundColor: 'rgb(32,128,32)',color:'rgb(255,255,255)'}}>{myId==userid ? 'Sent Private Message' : 'Received Private Message'}</span>)}
+                        {isdm && (<span className="rounded" style={{backgroundColor: 'rgb(32,128,32)',color:'rgb(255,255,255)'}}>{myId==userid ? '>>' + (textchatShowNames ? tousername : "") : '<<'}</span>)}
                         {textchatShowAvatar && (
                         <img className="flex w-6 h-6 human-radius" src={useravatar} 
                         onClick={() =>
@@ -374,11 +392,12 @@ export default function RoomChat({
             }
         })}
         </div>
+        <div style={{height:'56px'}} className="bg-gray-700"></div>
         <div className="flex w-full justify-between"
             style={{position: 'absolute', bottom: '0px'}}
         >
             <select id="chattarget" defaultValue={chatTarget} onChange={e => {setChatTarget(e.target.value);}}
-                className={mqp('rounded placeholder-black bg-gray-400 text-black flex mx-1')}
+                className={mqp('rounded placeholder-black bg-gray-400 text-black w-24 mx-0')}
             >
                 <option key="0" value="0">Everyone</option>
             {peers?.map((peerId, index) => {
@@ -392,12 +411,12 @@ export default function RoomChat({
                     if (userNpub != undefined) {
                     userDisplayName = getRelationshipPetname(userNpub, userDisplayName);
                     }
-                    return <option key={chattargetkey} value={peerId}>{userDisplayName}</option>
+                    return <option key={chattargetkey} value={peerId} style={{}}>{userDisplayName}</option>
                 }
             })}
             </select>
             <input id="chatentry"
-                className={mqp('rounded placeholder-black bg-gray-400 text-black flex-grow mx-1')}
+                className={mqp('rounded placeholder-black bg-gray-400 text-black w-full mx-1')}
                 type="text"
                 placeholder=""
                 value={chatText}

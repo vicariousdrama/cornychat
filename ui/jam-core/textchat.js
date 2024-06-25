@@ -1,4 +1,3 @@
-import {update} from 'minimal-state';
 import {useAction, useOn, useRootState} from '../lib/state-tree';
 import {sendPeerEvent, sendEventToOnePeer} from '../lib/swarm';
 import {actions} from './state';
@@ -11,22 +10,22 @@ function TextChat({swarm}) {
   });
 
   function incrementUnread(roomId) {
-    let bufferSize = localStorage.getItem(`textchat.bufferSize`) || 50;
     let n = Math.floor(sessionStorage.getItem(`${roomId}.textchat.unread`) ?? 0) + 1;
     sessionStorage.setItem(`${roomId}.textchat.unread`, n);
   }
 
   function showTextChat(peerId, payload) {
+    let {roomId} = state;
     let textchat = payload.t;
     let isdm = payload.d;
-    let bufferSize = localStorage.getItem(`textchat.bufferSize`) || 50;
-    let {roomId, textchats} = state;
-    if (!textchats) textchats = [];
+    let todm = payload.p;
+    let bufferSize = sessionStorage.getItem(`textchat.bufferSize`) || 50;
+    let textchats = JSON.parse(sessionStorage.getItem(`${roomId}.textchat`) || '[]');
     let lastline = textchats.slice(-1);
     if ((lastline.length == 0) || (lastline[0].length != 2) || (lastline[0][0] != peerId) || (lastline[0][1] != textchat)) {
-        textchats.push([peerId, textchat, isdm]);
-        state.textchats = textchats.slice(-1 * bufferSize);
-        update(state, 'textchats');
+        textchats.push([peerId, textchat, isdm, todm]);
+        textchats = textchats.slice(-1 * bufferSize);
+        sessionStorage.setItem(`${roomId}.textchat`, JSON.stringify(textchats));
         let okToIncrement = true;
         if (textchat.startsWith("*has entered the chat!*")) okToIncrement = false;
         if (handleSessionCommand("srfm",peerId,roomId,textchat)) okToIncrement = false;
@@ -52,10 +51,10 @@ function TextChat({swarm}) {
       let textchat = payload.textchat;
       let peerId = payload.peerId;
       if (!textchat) textchat = payload;
+      let myId = JSON.parse(localStorage.getItem('identities'))._default.publicKey;
       if (peerId && peerId != '0') {
-        let myId = JSON.parse(localStorage.getItem('identities'))._default.publicKey;
-        sendEventToOnePeer(swarm, peerId, 'text-chat', {d:true,t:textchat});
-        sendEventToOnePeer(swarm, myId, 'text-chat', {d:true,t:textchat});
+        sendEventToOnePeer(swarm, peerId, 'text-chat', {d:true,t:textchat,p:peerId});
+        sendEventToOnePeer(swarm, myId, 'text-chat', {d:true,t:textchat,p:peerId});
       } else {
         sendPeerEvent(swarm, 'text-chat', {d:false,t:textchat});
       }

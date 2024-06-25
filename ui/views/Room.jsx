@@ -182,10 +182,7 @@ export default function Room({room, roomId, uxConfig}) {
       />
     );
   }
-  let {textchats} = state;
-  if (textchats == undefined || textchats.length == 0) {
-    (async () => {await sendTextChat("*has entered the chat!*");})();
-  }
+
   let myPeerId = myInfo.id;
   let stagePeers = stageOnly ? peers : [];
   if (!stageOnly) {

@@ -140,7 +140,6 @@ const defaultState = {
   },
 
   reactions: {},
-  textchats: [],
   handRaised: false,
   handType: '',
   passphraseHash: '',

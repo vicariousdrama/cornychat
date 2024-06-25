@@ -9,7 +9,6 @@ import {openModal} from './Modal';
 import {InvoiceModal} from './Invoice';
 import {time4Tip, tipRoom, time4Ad, value4valueAdSkip} from '../lib/v4v';
 import {publishStatus} from '../nostr/nostr';
-import {update} from 'minimal-state';
 
 export default function RoomHeader({
   colors,
@@ -32,7 +31,7 @@ export default function RoomHeader({
   ]);
 
   const [state, {sendTextChat}] = useJam();
-  let {textchats} = state;
+  let textchats = JSON.parse(sessionStorage.getItem(`${roomId}.textchat`) || '[]');
   let {npub} = room || {};
   if (npub == undefined || npub == "") npub = `fakenpub-${roomId}`;
   let roomInfo = {identities:[{type:"nostr",id:npub}]};
@@ -50,6 +49,15 @@ export default function RoomHeader({
 
   useEffect(() => {
     let tipToggle = true;
+
+    // Indicate that we entered the chat
+    let timeoutEntered = undefined;
+    const entertimeout = 1*500;
+    timeoutEntered = setTimeout(() => {
+      if (textchats == undefined || textchats.length == 0) {
+        (async () => {await sendTextChat("*has entered the chat!*");})();
+      }        
+    }, entertimeout);
 
     // Room Tipping
     const roomtiptimeout = 1*60*1000;
@@ -92,8 +100,8 @@ export default function RoomHeader({
             let lastline = textchats.slice(-1);
             if ((lastline.length == 0) || (lastline[0].length != 2) || (lastline[0][0] != adPeerId) || (lastline[0][1] != textchat)) {
               textchats.push([adPeerId, textchat, false]);
-              state.textchats = textchats.slice(-1 * bufferSize);
-              update(state, 'textchats');
+              textchats = textchats.slice(-1 * bufferSize);
+              sessionStorage.setItem(`${roomId}.textchat`, JSON.stringify(textchats));
               let n = Math.floor(sessionStorage.getItem(`${roomId}.textchat.unread`) ?? 0) + 1;
               sessionStorage.setItem(`${roomId}.textchat.unread`, n);
             }
@@ -124,6 +132,7 @@ export default function RoomHeader({
 
     // This function is called when component unmounts
     return () => {
+      clearTimeout(timeoutEntered);
       clearInterval(intervalRoomTip);
       clearTimeout(timeoutRoomTip);
       clearInterval(intervalAdSkip);
