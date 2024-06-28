@@ -566,7 +566,7 @@ const publishLiveActivity = async (roomId, dtt, roomInfo, userInfo, status) => {
     const title = roomInfo?.name ?? `Corny Chat: ${roomId}`;
     const summary = (roomInfo?.description ?? `This is a live event on Corny Chat in room: ${roomId}`);
     // the image is either the logouri, or the current slide. if no image, then use a default
-    let defaultImage = 'https://i.nostr.build/o7jx.png'
+    let defaultImage = `https://${jamHost}/img/cornychat-defaultroomlogo.png`;
     let imageURI = roomInfo?.logoURI ?? defaultImage;
     if (roomInfo?.currentSlide) {
         if (Math.floor(roomInfo.currentSlide) > 0) {
@@ -637,7 +637,7 @@ const publishRoomActive = async (roomId, dtt, roomInfo, userInfo, isnew) => {
     if(pmd) console.log("in publishRoomActive for ", roomId);
     const kind = 1;
     const roomUrl = `https://${jamHost}/${roomId}`;
-    const leadingText = `TALK TO LIVE NOSTRICHES NOW! \n 🚨Check out the open chat rooms on Cornychat.com 🚨\n https://i.nostr.build/mk4k.png`;
+    const leadingText = `TALK TO LIVE NOSTRICHES NOW! \n 🚨Check out the open chat rooms on Cornychat.com 🚨\n https://${jamHost}/img/cornychat-letschat.png`;
     const trailingText = `#plebchain #audiospace #grownostr`;
     const sk = nip19.decode(serverNsec).data;
     const pk = getPublicKey(sk);
@@ -657,7 +657,7 @@ const publishRoomActive = async (roomId, dtt, roomInfo, userInfo, isnew) => {
     const title = roomInfo?.name ?? `Corny Chat: ${roomId}`;
     const summary = (roomInfo?.description ?? `This is a live event on Corny Chat in room: ${roomId}`);
     // the image is either the logouri, or the current slide. if no image, then use a default
-    let defaultImage = 'https://i.nostr.build/o7jx.png'
+    let defaultImage = `https://${jamHost}/img/cornychat-defaultroomlogo.png`;
     let imageURI = roomInfo?.logoURI ?? defaultImage;
     if (roomInfo?.currentSlide) {
         if (Math.floor(roomInfo.currentSlide) > 0) {

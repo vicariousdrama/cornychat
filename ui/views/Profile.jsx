@@ -14,6 +14,7 @@ import {
   getRelationshipPetname,
   updatePetname,
   normalizeLightningAddress,
+  getCBadgeIdsForPubkey,
 } from '../nostr/nostr';
 import {nip19} from 'nostr-tools';
 import {avatarUrl, displayName} from '../lib/avatar';
@@ -21,7 +22,7 @@ import {CheckBadged, CopiedToClipboard, CopyToClipboard} from './Svg';
 import {useJam, useApiQuery} from '../jam-core-react';
 import {use} from 'use-minimal-state';
 import {InvoiceModal} from './Invoice';
-import EditIdentity from './editIdentity/EditIdentity';
+import EditPersonalSettings from './editPersonalSettings/EditPersonalSettings';
 import {useMqParser} from '../lib/tailwind-mqp';
 import {colors, isDark} from '../lib/theme';
 import { KickBanModal } from './KickBanModal';
@@ -191,6 +192,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
   const [about, setAbout] = useState(undefined);
   const [nip05, setNip05] = useState('');
   const [banner, setbanner] = useState(undefined);
+  const [badgeIds, setBadgeIds] = useState([]);
   const [showFollowBtn, setShowFollowBtn] = useState(false);
   const [showUnfollowBtn, setShowUnfollowBtn] = useState(false);
   const [copiedToClipboard, setCopiedToClipboard] = useState(false);
@@ -233,6 +235,14 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
       setNip05(nip05AddressCache);
       setLnAddress(lightningAddressCache);
       setbanner(bannerCache);
+      if (!data.badgeIds) {
+        const userPubkey = nip19.decode(userNpub).data;
+        const badgeids = await getCBadgeIdsForPubkey(userPubkey);
+        data.badgeIds = badgeids;
+        const userMetadataCache = JSON.stringify(data);
+        sessionStorage.setItem(userNpub, userMetadataCache);
+      }
+      setBadgeIds(data.badgeIds || []);
     } else {
       // Repopulate the cache
       const userMetadata = await setUserMetadata();
@@ -307,9 +317,17 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
         obj.banner = userMetadata.banner;
         obj.jamId = peerId;
 
+        const userPubkey = nip19.decode(userNpub).data;
+        const badgeids = await getCBadgeIdsForPubkey(userPubkey);
+        obj.badgeIds = badgeids;
+        setBadgeIds(badgeids);
+
         const userMetadataCache = JSON.stringify(obj);
         sessionStorage.setItem(userNpub, userMetadataCache);
       }
+
+
+
     }
     setLoadingProfile(false);
 
@@ -448,7 +466,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
                 style={{backgroundColor: 'rgb(21,21,210)', color: 'rgb(255,255,255)'}}
                 onClick={() => {
                   close();
-                  openModal(EditIdentity);
+                  openModal(EditPersonalSettings);
                 }}
               >
                 Edit your personal settings
@@ -625,19 +643,34 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
           </div>
         </div>
         { loadingProfile ? (<h4 className="text-sm text-gray-400">Loading Profile...</h4>) : (
-        <div style={{maxWidth: '568px'}}>
+        <>
+        <div style={{maxWidth: '568px', display: 'inline-block'}}>
+          <p className={badgeIds.length ? 'text-xl mr-1 font-semibold text-gray-200' : 'hidden'}>
+          Badges:
+          </p>
+          { badgeIds.map((badgeid,index) => {
+            let badgekey = `badgekey_${badgeid}`;
+            let badgeimage = `/img/badges/${badgeid}.png`
+            return <img key={badgekey} 
+              align="left"
+              src={badgeimage} className="h-24 w-24 rounded-lg" 
+              style={{width: '128px', height: '128px', objectFit: 'cover'}} />
+          })}
+        </div>
+        <div style={{maxWidth: '568px', display: 'inline-block'}}>
           <p className={about ? 'text-xl mr-1 font-semibold text-gray-200' : 'hidden'}>
-            About
+            About:
           </p>
           <p className="text-sm text-gray-300 break-words mb-1"
              style={{whiteSpace:'pre-line'}}
           >{about}</p>
         </div>
+        </>
         )}
         { loadingPosts ? (<h4 className="text-sm text-gray-400">Loading Recent Posts...</h4>) : userPosts && (
-        <div style={{maxWidth: '568px'}}>
+        <div style={{maxWidth: '568px', display: 'inline-block'}}>
           <p className={userPosts && (maxPostsToDisplay > 0) ? 'text-xl mr-1 font-semibold text-gray-200' : 'hidden'}>
-            Recent Text Notes
+            Recent Text Notes:
           </p>
           { userPosts?.slice(0,maxPostsToDisplay).map((event, index) => {
             let eventkey = `eventkey_${index}`;
@@ -646,7 +679,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
                  style={{whiteSpace:'pre-line'}}
               >{event.content}</p>
               <p className="text-sm text-gray-500 mb-4"
-                 style={{textAlign: 'right', borderBottom: 'solid gray'}}>posted on {makeLocalDate(event.created_at)}</p>
+                 style={{textAlign: 'right', borderBottom: 'solid 1px gray'}}>posted on {makeLocalDate(event.created_at)}</p>
             </div>
           })}
         </div>

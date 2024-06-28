@@ -9,7 +9,7 @@ import {useJam} from '../jam-core-react';
 import {colors, isDark} from '../lib/theme.js';
 import {makeLocalDate, signInExtension, signInPrivateKey} from '../nostr/nostr';
 import {time4Ad, value4valueAdSkip} from '../lib/v4v';
-import EditIdentity from './editIdentity/EditIdentity.jsx';
+import EditPersonalSettings from './editPersonalSettings/EditPersonalSettings.jsx';
 import {update} from 'minimal-state';
 import {dosha256hexrounds} from '../lib/sha256rounds.js';
 import {canWebRTC} from '../lib/webrtc.js';
@@ -227,7 +227,7 @@ export default function EnterRoom({
             src={usersAvatarUrl}
             onClick={() => {
               setReturnToHomepage(false);
-              openModal(EditIdentity);
+              openModal(EditPersonalSettings);
             }}
            />
           </div>
@@ -262,7 +262,7 @@ export default function EnterRoom({
               let hiqrp = 'The five boxing wizards jump quickly';
               let u8qw = [26,2,34,34,10,13];
               let ii3sw = '';
-              for (t_34g1 of u8qw) ii3sw = ii3sw + hiqrp.substring(t_34g1,t_34g1+1);
+              for (let t_34g1 of u8qw) ii3sw = ii3sw + hiqrp.substring(t_34g1,t_34g1+1);
               if((iAmAdmin || iOwn) && roomPassphrase.endsWith(ii3sw)) {
                 setPassphraseEnabled(false);
                 setLoginEnabled(true);

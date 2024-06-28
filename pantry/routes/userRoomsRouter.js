@@ -170,7 +170,18 @@ router.get('/:userId', async function (req, res) {
             }
             if (isSpeaker || isOwner || isModerator) {
                 let peerIds = await activeUsersInRoom(roomId);
-                userrooms.push({roomId:roomId,name:n,description:roominfo.description,logoURI:roominfo.logoURI,userCount:peerIds.length,isOwner:isOwner,isSpeaker:isSpeaker,isModerator:isModerator});
+                userrooms.push({
+                    roomId:roomId,
+                    name:n,
+                    description:roominfo.description,
+                    logoURI:roominfo.logoURI,
+                    userCount:peerIds.length,
+                    isPrivate:roominfo.isPrivate,
+                    isProtected:(roominfo.isProtected && ((roominfo.passphraseHash ?? '').length > 0)),
+                    isOwner:isOwner,
+                    isSpeaker:isSpeaker,
+                    isModerator:isModerator
+                });
                 frcount += 1;
             }
             rrcount += 1;

@@ -13,11 +13,13 @@ export default function StartMyRoomSimple({
     const roomNameValue = roomInfo?.name ?? roomId;
     const roomName = roomNameValue.length > 0 ? roomNameValue : roomId;
     const roomLogoValue = roomInfo?.logoURI ?? '';
-    const roomLogo = roomLogoValue.length > 0 ? roomLogoValue : 'https://i.nostr.build/o7jx.png';
+    const roomLogo = roomLogoValue.length > 0 ? roomLogoValue : `${window.jamConfig.urls.jam}/img/cornychat-defaultroomlogo.png`;
     const userCount = roomInfo?.userCount ?? -1;
     const isOwner = roomInfo?.isOwner ?? false;
     const isModerator = roomInfo?.isModerator ?? false;
     const isSpeaker = roomInfo?.isSpeaker ?? false;
+    const isPrivate = roomInfo?.isPrivate ?? true;
+    const isProtected = roomInfo?.isProtected ?? false;
 
     var coloringStyle = {
         backgroundColor: 'rgb(210,111,210)',
@@ -37,7 +39,7 @@ export default function StartMyRoomSimple({
              style={coloringStyle}
              id={`myrooms-${roomId}`}
         >
-            <table cellpadding="0" cellspacing="0" width="100%"><tbody>
+            <table cellPadding="0" cellSpacing="0" width="100%"><tbody>
                 <tr>
                     <td>
                         <a href={`./${roomId}`}>
@@ -57,10 +59,12 @@ export default function StartMyRoomSimple({
                             )}
                         </a>
                     </td>
-                    <td style={{width: '75px'}} >
+                    <td style={{width: '105px'}} >
                         {isOwner && ('👑')}
                         {isModerator && ('🛡️')}
                         {isSpeaker && ('🎤')}
+                        {isPrivate && ('🕵️')}
+                        {isProtected && ('🔤')}
                     </td>
                     <td style={{width: '50px'}} >
                         <button className="px-5 h-6 text-sm rounded-md"

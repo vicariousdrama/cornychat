@@ -28,7 +28,7 @@ function addNostr(identities, nostrNpub, nostrNoteId, nostrEvent) {
   }
 }
 
-export default function EditIdentity({close}) {
+export default function EditPersonalSettings({close}) {
   const [state, {updateInfo}] = useJam();
   const [id, myIdentity] = use(state, ['myId', 'myIdentity']);
   const info = myIdentity?.info;
