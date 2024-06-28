@@ -199,8 +199,12 @@ const roomAuthenticator = {
     }
     // - force set createdTime and updateTime
     let theTime = Date.now();
-    req.body.createdTime = theTime;
-    req.body.updateTime = theTime;
+    if (!req.body.updateTime) {
+      req.body.updateTime = theTime;
+    }
+    if (!req.body.createdTime) {
+      req.body.createdTime = req.body.updateTime;
+    }
 
     // if we got this far, the authorization checks succeeded and ok to write
     next();

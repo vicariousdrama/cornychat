@@ -696,14 +696,14 @@ export async function verifyNip05(nip05, userNpub) {
 }
 
 export function normalizeLightningAddress(address) {
-  let isDecodedAddress = address.includes('@');
+  let isDecodedAddress = (address && address.includes('@'));
   if (isDecodedAddress) return address;
   let isLNUrl = address.toLowerCase().startsWith('lnurl');
   if (isLNUrl) {
     let decoded = bech32.decode(address, 2000);
     let buf = bech32.fromWords(decoded.words);
     let decodedLNurl = new TextDecoder().decode(Uint8Array.from(buf));
-    if (decodedLNurl.includes("@")) return decodedLNurl; // username@domain identity
+    if (decodedLNurl && decodedLNurl.includes('@')) return decodedLNurl; // username@domain identity
   }
   // not in proper address format
   return undefined;
@@ -1386,3 +1386,75 @@ export async function publishStatus(status, url) {
   }  
 }
 
+export async function getCBadgeIdsForPubkey(pubkey) {
+  if(window.DEBUG) console.log("in getCBadgeIdsForPubkey for pubkey ", pubkey);
+  return new Promise(async(res, rej) => {
+    //const pool = new RelayPool();
+    try {
+      let events = [];
+      const defaultRelays = getDefaultOutboxRelays();
+      const myPubkey = await window.nostr.getPublicKey();
+      const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
+      let myOutboxRelays = [];
+      if (userRelays?.length == 0) {
+        const myNpub = nip19.npubEncode(myPubkey);
+        myOutboxRelays = await getOutboxRelays(myPubkey); // (async() => {await getOutboxRelays(myPubkey)})();
+        if(window.DEBUG) console.log('myOutboxRelays from await call', myOutboxRelays);
+        updateCacheOutboxRelays(myOutboxRelays, myNpub);
+      }
+      const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
+      const timestamp = Math.floor(Date.now() / 1000);
+      const filter = {kinds:[8],limit:500};
+      const ap = "30009:21b419102da8fc0ba90484aec934bf55b7abcf75eedb39124e8d75e491f41a5e";
+      const badgeids = [
+        "Corny-Chat-In-The-Room-Where-It-Happened",
+        "Corny-Chat-Bug-Stomper-OG",
+        "Corny-Chat-Survivor-of-Upside-Down-Day",
+        "1-Million-Minute-Member"
+      ];
+      let filterbadges = []
+      for (let b of badgeids) { filterbadges.push(`${ap}:${b}`)}
+      filter["#a"] = filterbadges;
+      filter["#p"] = [pubkey];
+      const filters = [filter];
+      setTimeout(() => {
+        let foundBadgeIds = [];
+        for (let event of events) {
+          for (let tag of event.tags) {
+            if (tag.length > 1) {
+              let k = tag[0];
+              let v = tag[1];
+              if (k != 'a') continue;
+              if (!v.startsWith(ap)) continue;
+              if (v.split(":").length < 3) continue;
+              let badgeid = v.split(":")[2];
+              foundBadgeIds.push(badgeid);
+              break;
+            }
+          }
+        }
+        // force our preferred order of matches
+        let foundBadgeIds2 = []
+        for (let b of badgeids) {
+          if (foundBadgeIds.includes(b)) {
+            foundBadgeIds2.push(b);
+          }
+        }
+        //pool.close();
+        res(foundBadgeIds2);
+      }, 3000);
+      pool.subscribe(
+        filters,
+        relaysToUse,
+        (event, onEose, url) => { events.push(event); },
+        undefined,
+        undefined,
+        { unsubscribeOnEose: true, allowDuplicateEvents: false, allowOlderEvents: false }
+      );
+    } catch (error) {
+      console.log('There was an error when getting badges: ', error);
+      //pool.close();
+      rej(undefined);
+    }
+  });
+}

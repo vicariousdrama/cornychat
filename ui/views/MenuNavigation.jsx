@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {use} from 'use-minimal-state';
 import {openModal} from './Modal';
-import EditIdentity from './editIdentity/EditIdentity';
+import EditPersonalSettings from './editPersonalSettings/EditPersonalSettings';
 import StreamingModal from './StreamingModal';
 import {isDark} from '../lib/theme';
 import {useJam} from '../jam-core-react';

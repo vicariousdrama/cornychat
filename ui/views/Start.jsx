@@ -72,7 +72,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
     roomId = mn[0] + mn[1] + roomNum;
 
     (async () => {
-      let roomPosted = {stageOnly, videoEnabled, currentSlide: 1, roomSlides : [
+      let roomPosted = {stageOnly, videoEnabled, currentSlide: 1, updateTime: Date.now(), roomSlides : [
         ["/img/tutorial/tutorial-01.png","Tutorial Start"],
         ["/img/tutorial/tutorial-02.png","Room Settings"],
         ["/img/tutorial/tutorial-03.png","Basic Room Info"],

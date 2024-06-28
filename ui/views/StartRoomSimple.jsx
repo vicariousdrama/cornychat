@@ -4,12 +4,13 @@ import gfm from 'remark-gfm';
 
 export default function StartRoomSimple({
     roomInfo,
+    key,
   }) {
     const roomId = roomInfo?.roomId ?? 'unknown-room';
     const roomName = roomInfo?.name ?? roomId;
     const roomDescription = roomInfo?.description ?? '';
     const roomLogoValue = roomInfo?.logoURI ?? '';
-    const roomLogo = roomLogoValue.length > 0 ? roomLogoValue : 'https://i.nostr.build/o7jx.png';
+    const roomLogo = roomLogoValue.length > 0 ? roomLogoValue : '/img/cornychat-defaultroomlogo.png';
     const userCount = roomInfo?.userCount ?? -1;
 
     var coloringStyle = {
