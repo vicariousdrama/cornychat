@@ -166,6 +166,7 @@ function handleConnection(ws, req) {
         let dt = new Date();
         let dti = dt.toISOString();
         let dts = dti.replaceAll('-','').replace('T','').slice(0,10);
+        // add to room
         let k = `usagetracking/${dts}/${roomId}`;
         let v = await get(k);
         if (v == undefined || v == null) {
@@ -173,6 +174,31 @@ function handleConnection(ws, req) {
         } else if (!v.includes(userId)) {
           v.push(userId);
           set(k, v);
+        }
+        // track for user
+        let dtm = dti.replaceAll('-','').replace('T','').slice(0,6);
+        let dtd = dti.replaceAll('-','').replace('T','').slice(6,8);
+        let dth = dti.replaceAll('-','').replace('T','').slice(8,10);
+        k = `usertracking/${userId}/${dtm}`;
+        v = await get(k);
+        if (v == undefined || v == null) {
+          // not yet set for the month, initialize
+          v = {};
+          v[dtd] = [dth];
+          set(k,v);
+        } else {
+          if (v.hasOwnProperty(dtd)) {
+            // has day...
+            if (!v[dtd].includes(dth)) {
+              // but not the hour, add it
+              v[dtd].push(dth);
+              set(k,v);
+            }
+          } else {
+            // does not have day
+            v[dtd] = [dth];
+            set(k,v);
+          }
         }
       };
       recordTime();
