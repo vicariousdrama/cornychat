@@ -45,7 +45,16 @@ router.get('', async function (req, res) {
             if (isPrivate || isClosed) {
                 continue;
             }
-            rooms.push({"roomId":roomId,"name":roomInfo.name,"description":roomInfo.description,"logoURI":roomInfo.logoURI,"userCount":userCount,"userInfo":userInfo});
+            let isProtected = ((roomInfo.isProtected || false) && ((roomInfo.passphraseHash ?? '').length > 0));
+            rooms.push({
+                roomId:roomId,
+                name:roomInfo.name,
+                description:roomInfo.description,
+                logoURI:roomInfo.logoURI,
+                userCount:userCount,
+                userInfo:userInfo,
+                isProtected:isProtected,
+            });
         }
     };
     res.send(rooms);

@@ -6,9 +6,9 @@ export default function DataTypes() {
       <h1>Corny Chat Data Types</h1>
 
       <p className="text-lg">
-        This page describes the nostr kind data types used within the application, along with hook points so that
+        This page describes the nostr kind data types used within the application, along with hook points, so that
         developers wanting to make improvements to the application, or make use of Corny Chat related nostr events
-        have a central point of guidance.  Corny Chat provides audio spaces, aka rooms for which users can have
+        have a central point of guidance.  Corny Chat provides audio spaces, a.k.a. rooms, for which users can have
         voice conversations and share resources with each other.
       </p>
 
@@ -21,6 +21,7 @@ export default function DataTypes() {
       <li><a href="#kind1scheduledevent">Kind 1 - Scheduled Event</a></li>
       <li><a href="#kind3follow">Kind 3 - Follow List</a></li>
       <li><a href="#kind5eventdeletion">Kind 5 - Event Deletions</a></li>
+      <li><a href="#kind8badgeawards">Kind 8 - Badge Awards</a></li>
       <li><a href="#kind9734zaprequest">Kind 9734 - Zap Request</a></li>
       <li><a href="#kind10002relaylist">Kind 10002 - Relay List Metadata</a></li>
       <li><a href="#kind23194nip47request">Kind 23194 - Nostr Wallet Connect Request</a></li>
@@ -34,8 +35,8 @@ export default function DataTypes() {
       </ul>
       <a name="kind0userprofile"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 0 - User Profile</h2>
       <p>
-        Within the application, a user is anonymous by default. They may choose to <a href="#kind1extensionlogin">sign in</a> 
-        with a <a href="https://github.com/nostr-protocol/nips/blob/master/07.md">NIP-07</a> compliant nostr extension, or 
+        Within the application, a user is anonymous by default. They may choose to <a href="#kind1extensionlogin">sign in</a> with 
+        a <a href="https://github.com/nostr-protocol/nips/blob/master/07.md">NIP-07</a> compliant nostr extension, or 
         provide verification using a <a href="#kind1verification">kind 1</a> event.  If the user identifies with nostr, then
         their corresponding user profile may be read from a kind 0 event authored by their pubkey. The following fields are 
         read from the user metadata and displayed on the profile page:
@@ -52,7 +53,7 @@ export default function DataTypes() {
       <a name="kind0roomprofile"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 0 - Room Profile</h2>
       <p>
         Each room within Corny Chat can support a nostr profile. When a room owner sets the topic for the room, its room 
-        description, the logo for the room, background image or lightning address, these are mapped to metadata settings
+        description, the logo for the room, the background image or the lightning address, these are mapped to metadata settings
         for a nostr profile and published with a generated nsec for the room maintained by the server. The mappings for
         these fields are as follows:
       </p>
@@ -67,8 +68,8 @@ export default function DataTypes() {
       <p>
         When a room's profile is saved, it is automatically assigned the nip05 field based on a concatenation
         of the room id, hyphenated to the string `room` at the host under which the service is running. For example,
-        the room `mainchat` has a nip05 of mainchat-room@{location.hostname}. For more information, see
-        <a href="https://github.com/nostr-protocol/nips/blob/master/05.md">NIP-05</a>.
+        the room `mainchat` has a nip05 of mainchat-room@{location.hostname}. For more information, 
+        see <a href="https://github.com/nostr-protocol/nips/blob/master/05.md">NIP-05</a>.
       </p>
 
       <a name="kind1extensionlogin"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 1 - Extension Login</h2>
@@ -77,7 +78,7 @@ export default function DataTypes() {
         key generated for Corny Chat by the software. This is a completely different public key from the nostr public key.
         Once the event is signed, it is parsed from fields saved in local storage in the browser profile as well as
         published to the Corny Chat server to support identity lookups and peer verification.  These server publications
-        are also signed by the local client with a keypair independent of the nostr keys and is validated on the server.
+        are also signed by the local client with a key pair independent of the nostr keys and is validated on the server.
         The details on this process are not important for nostr and originate from the Jam codebase.
       </p>
 
@@ -90,14 +91,14 @@ export default function DataTypes() {
         the nostr event should be provided in personal settings and submitted for verification. If found on relays and
         successfully valiated, it will be included in their local storage and published to the Corny Chat server for
         identity lookups and peer verification.  These server publications are also signed by the local client with 
-        a keypair independent of the nostr keys and is validated on the server.
+        a key pair independent of the nostr keys and is validated on the server.
       </p>
 
       <a name="kind1userpost"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 1 - User Post</h2>
       <p>
-        When the a user views the profile of a room particpant, recent posts autored by that participant are loaded
-        and displayed if the participant is a nostr user.  This is from the kind 1 posts that are made.  Up to 3
-        of these kinds of posts will be displayed, aftering having been fetched from the relays associated with that
+        When a user views the profile of a room particpant, recent posts authored by that participant are loaded
+        and displayed if the participant is a nostr user.  This is from the kind 1 posts that are made.  By default, 
+        up to 3 of these kinds of posts will be displayed, after having been fetched from the relays associated with that
         user's relay list metadata.  At this time, transformations of content beyond new paragraphs or breaking for
         line returns are not performed. For example, inline image or link urls are not rendered, nor are there any
         treatments of tags.
@@ -105,45 +106,52 @@ export default function DataTypes() {
 
       <a name="kind1scheduledevent"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 1 - Scheduled Event</h2>
       <p>
-        When a room owner or moderator schedules an event for the room, it is published as a 
-        <a href="#kind31923scheduledevent">Time-Based Calendar Event</a>. As not all users are aware of calendar
-        applications, a kind 1 note is posted under the rooms nostr identity for convenience. The content of this
-        note simply informs when the next event is, topic and summary along with link to the room.
+        When a room owner or moderator schedules an event for the room, it is published as 
+        a <a href="#kind31923scheduledevent">Time-Based Calendar Event</a>. As not all users are aware of calendar
+        applications, a kind 1 note is posted under the room's nostr identity for convenience. The content of this
+        note simply informs when the next event is, topic and summary along with a link to the room.
       </p>
 
       <a name="kind3follow"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 3 - Follow List</h2>
       <p>
         If a user has a nostr extension, they will also be presented with options to Follow or Unfollow a participant when
-        viewing the participant avatar's profile. A user can view another's profile by clicking on their avatar image while
+        viewing their profile. A user can view another's profile by clicking on their avatar image while
         in a Corny Chat audio room. For the first time during the browsing session, the client will fetch the 
         contact list and check if they are following the user whose profile they are viewing.  The current contact
         list is stored in session storage and updated based on follow/unfollow actions performed.  When a change
         is made to who a user is following through the app, it will publish an updated follow list as kind 3 as
-        defined in <a href="https://github.com/nostr-protocol/nips/blob/master/02.md">NIP-02</a>. Neither main relay url, 
-        nor pet names are assigned when following a user.
+        defined in <a href="https://github.com/nostr-protocol/nips/blob/master/02.md">NIP-02</a>. Neither the main 
+        relay url, nor pet names are assigned when following a user.
       </p>
 
       <a name="kind5eventdeletion"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 5 - Event Deletions</h2>
       <p>
         If a room owner or moderator creates a scheduled event for a room, it will be published as a nostr
         Time Based Calendar Event.  If that event is later deleted, then the server will publish a kind 5 deletion
-        event for the referenced <a href="#kind31923scheduledevent">schedule event</a> for 
-        <a href="https://github.com/nostr-protocol/nips/blob/master/09.md">NIP-09</a> semantics. Specifically, these
+        event for the referenced <a href="#kind31923scheduledevent">schedule event</a> 
+        for <a href="https://github.com/nostr-protocol/nips/blob/master/09.md">NIP-09</a> semantics. Specifically, these
         events are published by the server NSEC, and deleted by providing an `a` tag as the composite of the kind, 
         server pubkey and the `d` tag of the event.  The d tag is deterministic based on the room identifier.
       </p>
 
+      <a name="kind8badgeawards"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 8 - Badge Awards</h2>
+      <p>
+        When viewing another user's profile, if they are a nostr user, then a list of Corny Chat badges that have been
+        awarded to that user will be retrieved following <a href="https://github.com/nostr-protocol/nips/blob/master/58.md">NIP-58</a>.
+        For each badge awarded, an image is depicted of the badge.
+      </p>
+
       <a name="kind9734zaprequest"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 9734 - Zap Request</h2>
       <p>
-        Within the application, users can zap or initiate lightning payments by clicking on another room participants
+        Within the application, users can zap or initiate lightning payments by clicking on another room participant's
         avatar, or clicking the Tip button for a room that has it enabled. Users may zap other users if they have 
         a nostr extension enabled. If they don't have a nostr extension, then they can only send a direct lightning
-        payment with an optional comment.  In either case, an invoice is requested following 
-        <a href="https://github.com/nostr-protocol/nips/blob/master/57.md">NIP-57</a> for nostr, which
+        payment with an optional comment.  In either case, an invoice is requested 
+        following <a href="https://github.com/nostr-protocol/nips/blob/master/57.md">NIP-57</a> for nostr, which
         relies on relevant <a href="https://github.com/lnurl/luds/">LNURL LUD specifications</a> 
         (<a href="https://github.com/lnurl/luds/blob/luds/06.md">06</a>, 
-         <a href="https://github.com/lnurl/luds/blob/luds/12.md">12</a>, 
-         <a href="https://github.com/lnurl/luds/blob/luds/16.md">16</a>).  In the case of a creation of a zap, the
+         <a href="https://github.com/lnurl/luds/blob/luds/12.md"> 12</a>, 
+         <a href="https://github.com/lnurl/luds/blob/luds/16.md"> 16</a>).  In the case of a creation of a zap, the
         protocol flow builds a kind 9734 zap request, signs it, and passes it to the custodial lightning callback 
         endpoint for the payee.
       </p>
@@ -160,8 +168,8 @@ export default function DataTypes() {
       <a name="kind23194nip47request"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 23194 - Nostr Wallet Connect Request</h2>
       <p>
         When setting up a zap request, if nostr wallet connect is enabled in the user's personal settings, then a
-        request to pay an invoice will be made using the connection url. This follows the guidance outlined in
-        <a href="https://github.com/nostr-protocol/nips/blob/master/47.md">NIP-47</a> using the getalby sdk.
+        request to pay an invoice will be made using the connection url. This follows the guidance outlined 
+        in <a href="https://github.com/nostr-protocol/nips/blob/master/47.md">NIP-47</a> using the getalby sdk.
       </p>
 
       <a name="kind23195nip47response"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 23195 - Nostr Wallet Connect Response</h2>
@@ -171,20 +179,20 @@ export default function DataTypes() {
       </p>
 
       <a name="kind30311liveactivities"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 30311 - Live Activities</h2>
-      <p>Room Owners can denote a room setting to announce the room as a live activity. At this time, this only publishes
-        the key state of the room including the current slideshow image or room logo url, the room's title, description,
+      <p>Room owners can denote a room setting to announce the room as a live activity. At this time, this only publishes
+        the key state of the room, including the current slideshow image or room logo url, the room's title, description,
         and room participants. A combined audio feed may be made available for streaming externally at a later date.
       </p>
       <p>
-        Corny Chat promotes integrations with other like kind applications.  Corny Chat is a live audio space, and
+        Corny Chat promotes integration with other like kind applications.  Corny Chat is a live audio space, and
         lists active rooms on its landing page.  In an effort to promote greater discovery through the Nostr universe,
         Corny Chat also seeks to list live activities published to nostr that are presumably still active.  To do
         this, the list of scheduled events is periodically updated, and includes those of kind 30311 that meet the
         following requirements:
       </p>
       <ul style={{listStyleType: 'circle', margin: '20px'}}>
-        <li>The live activity must have a `d` tag and not be marked as deleted (per
-          <a href="https://github.com/nostr-protocol/nips/blob/master/09.md">NIP-09</a> kind 5 or with `deleted` tag)</li>
+        <li>The live activity must have a `d` tag and not be marked as deleted (
+          per <a href="https://github.com/nostr-protocol/nips/blob/master/09.md">NIP-09</a> kind 5 or with `deleted` tag)</li>
         <li>The live activity must have a `title` tag with a value that isn't an empty string</li>
         <li>It must have started, or start within the next week as defined by a required `starts` tag.</li>
         <li>If it has started, it must not have ended more than an hour ago as defined by an optional `ends` tag.</li>
@@ -199,14 +207,13 @@ export default function DataTypes() {
       </ul>
 
       <a name="kind30315livestatuses"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 30315 - Live Statuses</h2>
-      <p>Users can optionally choose to automatically pubish status updates once an hour of the room(s) they are in.
+      <p>Users can optionally choose to automatically publish status updates once an hour of the room(s) they are in.
         These conform to <a href="https://github.com/nostr-protocol/nips/blob/master/38.md">NIP-38</a> and the
         update indicates that the user is chatting in the room specified by URL, are set to expire one hour
         after creation, and use the `music` value for the d tag.
       </p>      
 
       <a name="kind30382relationships"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 30382 - Relationships</h2>
-      <span style={{backgroundColor:'#ffff00',color:'#000000'}}>Experimental</span>
       <p>
         Relationships are defind in <a href="https://github.com/vitorpamplona/nips/blob/relationship-status/81.md">NIP-81</a> as
         replaceable event using kind 30382. Corny Chat uses these relationships to allow users to set petnames/nicknames for
@@ -218,12 +225,12 @@ export default function DataTypes() {
 
       <a name="kind30388slideset"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 30388 - Slide Sets</h2>
       <p>
-        A slide set is a collection of URLs that represent images which can be displayed within a Corny Chat room.  Owners
+        A slide set is a collection of URLs that represent images that can be displayed within a Corny Chat room.  Owners
         and moderators with a nostr extension can export and import slide sets from room settings.  As a replaceable event,
         a `d` tag is required to be set, and is defaulted by the application based on a concatenation of the string
         `cornychat`, the room identifier, and the date and time in ISO format.  Reusing the same value allows for replacing
         a prior published event when doing an export.  The expected tags for import, which are set automatically during
-        export are as follows:
+        export, are as follows:
       </p>
 
       <table style={{borderCollapse:'collapse', border: '1px solid #FF0000', margin: '20px', fontFamily: 'courier', fontSize: '.8em'}}>

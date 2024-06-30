@@ -8,10 +8,10 @@ export default function Me() {
       <h1>Your Identity</h1>
 
       <p className="mt-4 text-gray-200">
-        This is your identity on {window.location.hostname}
+        This is your public key identity for this device on {window.location.hostname}
       </p>
 
-      <pre className="rounded-md bg-yellow-50 not-italic text-xs text-center py-2 -ml-2 mt-4 md:text-base">
+      <pre className="rounded-md bg-yellow-50 text-gray-700 not-italic text-xs text-center py-2 -ml-2 mt-4 md:text-base">
         {myId}
       </pre>
     </div>

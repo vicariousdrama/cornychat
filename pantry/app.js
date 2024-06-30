@@ -31,6 +31,8 @@ const squareAdRouter = require('./routes/adRouterSquare');
 const chatAdRouter = require('./routes/adRouterChat');
 const adReportRouter = require('./routes/adReportRouter');
 const userRoomRouter = require('./routes/userRoomsRouter');
+const oldRoomsRouter = require('./routes/oldRoomsRouter');
+const oldIdentitiesRouter = require('./routes/oldIdentitiesRouter');
 
 const app = express();
 
@@ -76,5 +78,7 @@ if(adEnabled) {
 }
 app.use('/api/v1/adr/:year/:month', adReportRouter);
 app.use('/api/v1/userrooms/', userRoomRouter);
+app.use('/api/v1/oldrooms/', oldRoomsRouter);
+app.use('/api/v1/oldidentities/', oldIdentitiesRouter);
 
 module.exports = app;

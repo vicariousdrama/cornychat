@@ -2,12 +2,6 @@ const express = require('express');
 const {get,set,del,list} = require('../services/redis');
 const {activeUsersInRoom} = require('../services/ws');
 const router = express.Router({mergeParams: true});
-  
-//   router.delete('/:identity', verifyAdmin, async (req, res) => {
-//     const serverAdminId = req.params.identity;
-//     await removeAdmin(serverAdminId);
-//     res.json({success: true});
-//   });
 
 function removeValues(o, v1, v2) {
     let b = false;
@@ -177,10 +171,10 @@ router.get('/:userId', async function (req, res) {
                     logoURI:roominfo.logoURI,
                     userCount:peerIds.length,
                     isPrivate:roominfo.isPrivate,
-                    isProtected:(roominfo.isProtected && ((roominfo.passphraseHash ?? '').length > 0)),
+                    isProtected:((roominfo.isProtected || false) && ((roominfo.passphraseHash ?? '').length > 0)),
                     isOwner:isOwner,
                     isSpeaker:isSpeaker,
-                    isModerator:isModerator
+                    isModerator:isModerator,
                 });
                 frcount += 1;
             }
