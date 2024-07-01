@@ -43,6 +43,8 @@ export default function RoomChat({
         sessionStorage.setItem(`${roomId}.textchat.unread`, 0);
         let rc = document.getElementById('roomChat');
         let c = document.getElementById('chatlines');
+        let n = document.getElementById('navbar');
+        // text scrolling
         if (c) {
             let p = sessionStorage.getItem(`${roomId}.textchat.scrollpos`) ?? -999;
             let n = (p>=0) ? p : c.scrollHeight;
@@ -53,12 +55,19 @@ export default function RoomChat({
             let nh0 = 56; // height of selector, text entry, send button
             let mh0 = 224; // minimum height of chatlines
             //try to maximize height of chat
-            let nh1 = document.body.clientHeight - 232 - c.getClientRects()[0].top;
-            if (nh1 < mh0) nh1 = mh0;
+            let nt = n.getClientRects()[0].top;
+            let ct = c.getClientRects()[0].top;
+            let nh1 = document.body.clientHeight - 232 - ct;
+            if (nh1 < mh0) nh1 = mh0; // minimum height for chat lines
+            if (ct + nh1 > nt) nh1 = nt - ct; // but not under navbar
+            let nh2 = document.body.clientHeight - 176 - ct;
+            if (nh2 < (mh0+nh0)) nh2 = (mh0+nh0); // minimum height for chat lines + entry
+            if (ct + nh2 > nt) { // but not under navbar
+                nh2 = nt - ct;
+                nh1 = nh2 - nh0;
+            }
             c.style.height = String(nh1) + 'px';
             c.style.maxHeight = c.style.height;
-            let nh2 = document.body.clientHeight - 176 - c.getClientRects()[0].top;
-            if (nh2 < (mh0+nh0)) nh2 = (mh0+nh0);
             rc.style.height = String(nh2) + 'px';
             rc.style.maxHeight = rc.style.height;
         }
