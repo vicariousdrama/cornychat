@@ -1410,7 +1410,8 @@ export async function getCBadgeIdsForPubkey(pubkey) {
         "Corny-Chat-In-The-Room-Where-It-Happened",
         "Corny-Chat-Bug-Stomper-OG",
         "Corny-Chat-Survivor-of-Upside-Down-Day",
-        "1-Million-Minute-Member"
+        "1-Million-Minute-Member",
+        "Corny-Chat-Supporter-Via-PubPay.me"
       ];
       let filterbadges = []
       for (let b of badgeids) { filterbadges.push(`${ap}:${b}`)}

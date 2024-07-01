@@ -373,7 +373,7 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
   let [showStickies, setShowStickies] = useState(false);
 
   return (
-    <div style={{zIndex: '5',position:'absolute',bottom:'72px',width:'100%',backgroundColor:roomColor.avatarBg}}>
+    <div id="navbar" style={{zIndex: '5',position:'absolute',bottom:'72px',width:'100%',backgroundColor:roomColor.avatarBg}}>
       <div className="flex justify-center align-center mx-2">
         {showStickies && (
           <div
