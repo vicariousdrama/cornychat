@@ -1386,7 +1386,7 @@ export async function publishStatus(status, url) {
   }  
 }
 
-export async function getCBadgeIdsForPubkey(pubkey) {
+export async function getCBadgeConfigsForPubkey(pubkey) {
   if(window.DEBUG) console.log("in getCBadgeIdsForPubkey for pubkey ", pubkey);
   return new Promise(async(res, rej) => {
     //const pool = new RelayPool();
@@ -1406,15 +1406,19 @@ export async function getCBadgeIdsForPubkey(pubkey) {
       const timestamp = Math.floor(Date.now() / 1000);
       const filter = {kinds:[8],limit:500};
       const ap = "30009:21b419102da8fc0ba90484aec934bf55b7abcf75eedb39124e8d75e491f41a5e";
-      const badgeids = [
-        "Corny-Chat-In-The-Room-Where-It-Happened",
-        "Corny-Chat-Bug-Stomper-OG",
-        "Corny-Chat-Survivor-of-Upside-Down-Day",
-        "1-Million-Minute-Member",
-        "Corny-Chat-Supporter-Via-PubPay.me"
+      // rare 12, super rare 21, epic 32, legend 42
+      const badgeconfigs = [
+        ["Corny-Chat-In-The-Room-Where-It-Happened", "You were in the room where it happened, taking part in discussions of a domain name for a new instance of Nostr Live Audio Spaces. From tell me things, to a hullabaloo, we all got an earful. Vic, Noshole, Puzzles, Kajoozie, Sai, New1, B, Companion", 42],
+        ["Corny-Chat-Bug-Stomper-OG", "You helped test and try out Corny Chat in the earliest days of its existence, enduring outages, crazy UI, and routine restarts.", 32],
+        ["Corny-Chat-Survivor-of-Upside-Down-Day", "Recipients of this badge visited Corny Chat on April 1, 2024.  Users could experience the application interface presented in an upside down format.", 0],
+        ["1-Million-Minute-Member", "Awardees of this badge were an integral part of Corny Chat's early success, having been in rooms for at least 1 of the first million minutes.", 21], 
+        ["Corny-Chat-Supporter-Via-PubPay.me", "You supported Corny Chat development by contributing through a fundraiser on PubPay.me in July 2024!", 0]
       ];
       let filterbadges = []
-      for (let b of badgeids) { filterbadges.push(`${ap}:${b}`)}
+      for (let badgeconfig of badgeconfigs) { 
+        let b = badgeconfig[0];
+        filterbadges.push(`${ap}:${b}`)
+      }
       filter["#a"] = filterbadges;
       filter["#p"] = [pubkey];
       const filters = [filter];
@@ -1435,14 +1439,14 @@ export async function getCBadgeIdsForPubkey(pubkey) {
           }
         }
         // force our preferred order of matches
-        let foundBadgeIds2 = []
-        for (let b of badgeids) {
-          if (foundBadgeIds.includes(b)) {
-            foundBadgeIds2.push(b);
+        let foundBadgeConfigs = [];
+        for (let badgeconfig of badgeconfigs) {
+          if (foundBadgeIds.includes(badgeconfig[0])) {
+            foundBadgeConfigs.push(badgeconfig);
           }
         }
         //pool.close();
-        res(foundBadgeIds2);
+        res(foundBadgeConfigs);
       }, 3000);
       pool.subscribe(
         filters,
