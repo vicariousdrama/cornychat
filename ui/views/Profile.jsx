@@ -14,7 +14,7 @@ import {
   getRelationshipPetname,
   updatePetname,
   normalizeLightningAddress,
-  getCBadgeIdsForPubkey,
+  getCBadgeConfigsForPubkey,
 } from '../nostr/nostr';
 import {nip19} from 'nostr-tools';
 import {avatarUrl, displayName} from '../lib/avatar';
@@ -149,6 +149,18 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
     }, 2500);
   }
 
+  function showBadgeDetail(img,txt) {
+    let i = document.getElementById('badgeDetailImage');
+    if(i) i.src = img;
+    let t = document.getElementById('badgeDetailText');
+    if(t) t.textContent = txt;
+    let b = document.getElementById('badgeDetail');
+    if(b) b.style.display = 'initial';
+  }
+  function hideBadgeDetail() {
+    document.getElementById('badgeDetail').style.display='none';
+  }
+
   const [state, api] = useJam();
   const {
     addSpeaker,
@@ -192,7 +204,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
   const [about, setAbout] = useState(undefined);
   const [nip05, setNip05] = useState('');
   const [banner, setbanner] = useState(undefined);
-  const [badgeIds, setBadgeIds] = useState([]);
+  const [badgeConfigs, setBadgeConfigs] = useState([]);
   const [showFollowBtn, setShowFollowBtn] = useState(false);
   const [showUnfollowBtn, setShowUnfollowBtn] = useState(false);
   const [copiedToClipboard, setCopiedToClipboard] = useState(false);
@@ -235,14 +247,14 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
       setNip05(nip05AddressCache);
       setLnAddress(lightningAddressCache);
       setbanner(bannerCache);
-      if (!data.badgeIds) {
+      if (!data.badgeConfigs) {
         const userPubkey = nip19.decode(userNpub).data;
-        const badgeids = await getCBadgeIdsForPubkey(userPubkey);
-        data.badgeIds = badgeids;
+        const badgeconfigs = await getCBadgeConfigsForPubkey(userPubkey);
+        data.badgeConfigs = badgeconfigs;
         const userMetadataCache = JSON.stringify(data);
         sessionStorage.setItem(userNpub, userMetadataCache);
       }
-      setBadgeIds(data.badgeIds || []);
+      setBadgeConfigs(data.badgeConfigs || []);
     } else {
       // Repopulate the cache
       const userMetadata = await setUserMetadata();
@@ -318,9 +330,9 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
         obj.jamId = peerId;
 
         const userPubkey = nip19.decode(userNpub).data;
-        const badgeids = await getCBadgeIdsForPubkey(userPubkey);
-        obj.badgeIds = badgeids;
-        setBadgeIds(badgeids);
+        const badgeconfigs = await getCBadgeConfigsForPubkey(userPubkey);
+        obj.badgeConfigs = badgeconfigs;
+        setBadgeConfigs(badgeconfigs);
 
         const userMetadataCache = JSON.stringify(obj);
         sessionStorage.setItem(userNpub, userMetadataCache);
@@ -645,23 +657,32 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
         { loadingProfile ? (<h4 className="text-sm text-gray-400">Loading Profile...</h4>) : (
         <>
         <div style={{maxWidth: '568px', display: 'inline-block'}}>
-          <p className={badgeIds.length ? 'text-xl mr-1 font-semibold text-gray-200' : 'hidden'}>
+          <p className={badgeConfigs.length ? 'text-xl mr-1 font-semibold text-gray-200' : 'hidden'}>
           Badges:
           </p>
-          { badgeIds.map((badgeid,index) => {
-            let badgekey = `badgekey_${badgeid}`;
-            let badgeimage = `/img/badges/${badgeid}.png`
+          { badgeConfigs.map((badgeconfig,index) => {
+            let badgekey = `badgekey_${badgeconfig[0]}_${index}`;
+            let smallBadgeImage = `/img/badges/${badgeconfig[0]}.96.png`;
+            let bigBadgeImage = `/img/badges/${badgeconfig[0]}.png`;
+            let badgeText = badgeconfig[1];
             return <img key={badgekey} 
               align="left"
-              src={badgeimage} className="h-24 w-24 rounded-lg" 
-              style={{width: '128px', height: '128px', objectFit: 'cover'}} />
+              src={smallBadgeImage} className="h-24 w-24 rounded-lg" 
+              onClick={async () => {showBadgeDetail(bigBadgeImage, badgeText)}}
+              style={{margin: '2px', width: '96px', height: '96px', objectFit: 'cover', cursor: 'pointer'}} />
           })}
+          <div id="badgeDetail" style={{display:'none',position:'absolute',top:'20px',left:'0px',zIndex:'20',cursor:'pointer'}}
+                onClick={async () => {hideBadgeDetail()}}
+          >
+            <img id="badgeDetailImage" style={{cursor: 'pointer'}} src="" />
+            <div id="badgeDetailText" style={{cursor: 'pointer', backgroundColor: 'rgb(255,192,128)'}}>x</div>
+          </div>
         </div>
         <div style={{maxWidth: '568px', display: 'inline-block'}}>
           <p className={about ? 'text-xl mr-1 font-semibold text-gray-200' : 'hidden'}>
             About:
           </p>
-          <p className="text-sm text-gray-300 break-words mb-1"
+          <p className="text-sm text-gray-300 break-all mb-1"
              style={{whiteSpace:'pre-line'}}
           >{about}</p>
         </div>
@@ -675,7 +696,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
           { userPosts?.slice(0,maxPostsToDisplay).map((event, index) => {
             let eventkey = `eventkey_${index}`;
             return <div key={eventkey}>
-              <p className="text-sm text-gray-300 break-words mb-1"
+              <p className="text-sm text-gray-300 break-all mb-1"
                  style={{whiteSpace:'pre-line'}}
               >{event.content}</p>
               <p className="text-sm text-gray-500 mb-4"
