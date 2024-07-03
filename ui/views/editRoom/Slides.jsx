@@ -20,6 +20,7 @@ export function Slides({
   let [editingSlideIndex, setEditingSlideIndex] = useState(-1);
   let [editingSlideURI, setEditingSlideURI] = useState('');
   let [editingSlideText, setEditingSlideText] = useState('');
+  let [slideInsertionStyle, setSlideInsertionStyle] = useState('end');
 
   const videoTypes = [".mp4",".webm",".ogg"];
   const imageTypes = [".bmp",".gif","jpg","jpeg",".png",".svg",".webp"];
@@ -137,7 +138,17 @@ export function Slides({
         {(editingSlideIndex == -1) && (
           <>
         <p className="text-sm font-medium text-gray-300 p-2">
-          Add a slide to the end of the list:
+          Add a slide to the <select
+            name="slideInsertionStyle"
+            defaultValue={slideInsertionStyle}
+            onChange={e => {
+              setSlideInsertionStyle(e.target.value);
+            }}
+            className={'border mt-3 ml-2 p-2 text-black rounded'}
+          >
+            <option key="sis_top" value="top">top</option>
+            <option key="sis_end" value="end">end</option>
+          </select> of the list:
         </p>
         <div className="flex">
           <input
@@ -156,6 +167,8 @@ export function Slides({
               setSlideText(e.target.value);
             }}
           ></input>
+        </div>
+        <div className="flex">
           <input
             className={mqp(
               'rounded placeholder-black bg-gray-400 text-black w-full mx-1 md:w-full'
@@ -172,6 +185,8 @@ export function Slides({
               setSlideURI(e.target.value);
             }}
           ></input>
+        </div>
+        <div className="flex">
           <button
             className="px-5 text-sm rounded-md"
             style={{
@@ -180,7 +195,11 @@ export function Slides({
             }}
             onClick={(e) => {
               e.preventDefault();
-              setRoomSlides([...roomSlides, [slideURI, slideText]]);
+              if(slideInsertionStyle == 'end') {
+                setRoomSlides([...roomSlides, [slideURI, slideText]]);
+              } else {
+                setRoomSlides([[slideURI, slideText], ...roomSlides]);
+              }
               setSlideURI('');
               setSlideText('');
             }}

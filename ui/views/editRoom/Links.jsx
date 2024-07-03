@@ -20,6 +20,7 @@ export function Links({
   let [editingLinkIndex, setEditingLinkIndex] = useState(-1);
   let [editingLinkURI, setEditingLinkURI] = useState('');
   let [editingLinkText, setEditingLinkText] = useState('');
+  let [linkInsertionStyle, setLinkInsertionStyle] = useState('top');
 
   function removeLink(indexLink) {
     let result = confirm('Are you sure you want to remove this link?');
@@ -135,7 +136,17 @@ export function Links({
         {(editingLinkIndex == -1) && (
           <>
         <p className="text-sm font-medium text-gray-300 p-2">
-          Add a link to the top of the list:
+          Add a link to the <select
+            name="linkInsertionStyle"
+            defaultValue={linkInsertionStyle}
+            onChange={e => {
+              setLinkInsertionStyle(e.target.value);
+            }}
+            className={'border mt-3 ml-2 p-2 text-black rounded'}
+          >
+            <option key="lis_top" value="top">top</option>
+            <option key="lis_end" value="end">end</option>
+          </select> of the list:
         </p>
         <div className="flex">
           <input
@@ -154,6 +165,8 @@ export function Links({
               setLinkText(e.target.value);
             }}
           ></input>
+        </div>
+        <div className="flex">
           <input
             className={mqp(
               'rounded placeholder-black bg-gray-400 text-black w-full mx-1 md:w-full'
@@ -170,6 +183,8 @@ export function Links({
               setLinkURI(e.target.value);
             }}
           ></input>
+        </div>
+        <div className="flex">
           <button
             className="px-5 text-sm rounded-md"
             style={{
@@ -177,7 +192,11 @@ export function Links({
               backgroundColor: roomColor.buttons.primary,
             }}
             onClick={() => {
-              setRoomLinks([[linkText, linkURI], ...roomLinks]);
+              if (linkInsertionStyle == 'top') {
+                setRoomLinks([[linkText, linkURI], ...roomLinks]);
+              } else {
+                setRoomLinks([...roomLinks, [linkText, linkURI]]);
+              }
               setLinkURI('');
               setLinkText('');
             }}

@@ -25,6 +25,6 @@ COPY --from=builder /public/js ./public/js/
 COPY --from=builder /public/css/tailwind.css ./public/css
 RUN yarn
 
-CMD node server/bin/www.js
+CMD ["node", "server/bin/www.js"]
 
 EXPOSE 3000
