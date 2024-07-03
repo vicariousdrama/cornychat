@@ -8,4 +8,4 @@ RUN yarn
 COPY . /pantry
 RUN sed -i "s/BUILD_DATE/${BUILD_DATE}/g" /pantry/services/ws.js
 EXPOSE 3001
-CMD node ./bin/www
+CMD ["node", "./bin/www"]

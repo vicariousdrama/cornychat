@@ -6,4 +6,4 @@ WORKDIR /pantry-sfu
 COPY yarn.lock package.json /pantry-sfu/
 RUN yarn
 COPY . /pantry-sfu
-CMD node run.js
+CMD ["node", "run.js"]
