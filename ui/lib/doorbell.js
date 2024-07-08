@@ -1,4 +1,7 @@
+//import {useJam} from '../jam-core-react';
+
 function doorbell(d, myPeerId, roomId) {
+  //const [state, {sendCSAR}] = useJam();
   if (!localStorage.getItem('doorbellEnabled')) return;
   // Doorbell check
   let keyDoorbellTime = `${roomId}.doorbellTime`;
@@ -42,6 +45,7 @@ function doorbell(d, myPeerId, roomId) {
         dbs.src = doorbellsounds[dbe-1][0];
         dbs.volume = .5;
         dbs.play();
+        //sendCSAR("playdoorbell");
         // Mark time last played
         sessionStorage.setItem(keyDoorbellTime, Math.floor(Date.now() / 1000));
       } else {

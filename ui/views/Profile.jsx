@@ -172,6 +172,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
     addAdmin,
     removeAdmin,
     signEvent,
+    sendCSAR,
   } = api;
 
   let mqp = useMqParser();
@@ -393,6 +394,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
                   }}
                   onChange={e => {
                     setPetname(e.target.value);
+                    sendCSAR("setpetname");
                   }}
                 ></input>
                 <button

@@ -30,7 +30,7 @@ export default function RoomHeader({
     'isSomeonePodcasting',
   ]);
 
-  const [state, {sendTextChat}] = useJam();
+  const [state, {sendTextChat, sendCSAR}] = useJam();
   let textchats = JSON.parse(sessionStorage.getItem(`${roomId}.textchat`) || '[]');
   let {npub} = room || {};
   if (npub == undefined || npub == "") npub = `fakenpub-${roomId}`;
@@ -71,12 +71,9 @@ export default function RoomHeader({
         if (v4vtiproomEnabled && thisroomTipEnabled) {      
           if (time4Tip(roomId)) {
             const roomtipamount = Math.floor(localStorage.getItem(`v4vtiproom.amount`) ?? '0');
-            let tipped = tipRoom(roomId, room.lud16, roomtipamount);
-            if (tipped) {
-              tipToggle = !tipToggle;
-              let chatText = `*tipped the room owner ⚡${roomtipamount} sats${tipToggle ? "!":"."}*`;
-              (async () => {await sendTextChat(chatText);})(); // send to swarm (including us) as text-chat
-            }
+            tipToggle = !tipToggle;
+            let chatText = `*tipped the room owner ⚡${roomtipamount} sats${tipToggle ? "!":"."}*`;
+            let tipped = tipRoom(roomId, room.lud16, roomtipamount, chatText);
           }
         }
       }, roomtipinterval);
@@ -91,7 +88,9 @@ export default function RoomHeader({
       if(textchatAds) {
         if(time4Ad()) {
           const adskipamount = Math.floor(localStorage.getItem('v4v2skipad.amount') ?? '0');
-          if (!value4valueAdSkip('RoomChat')) {
+          tipToggle = !tipToggle;
+          let chatText = `*tipped the corny chat dev ⚡${adskipamount} sats${tipToggle ? "!":"."}*`;
+          if (!value4valueAdSkip('RoomChat', sendTextChat, chatText)) {
             adidx += 1;
             let adreqdt = Math.floor(Date.now() / 1000);
             let adPeerId = `ad-${adidx}`;
@@ -105,10 +104,6 @@ export default function RoomHeader({
               let n = Math.floor(sessionStorage.getItem(`${roomId}.textchat.unread`) ?? 0) + 1;
               sessionStorage.setItem(`${roomId}.textchat.unread`, n);
             }
-          } else {
-            tipToggle = !tipToggle;
-            let chatText = `*tipped the corny chat dev ⚡${adskipamount} sats${tipToggle ? "!":"."}*`;
-            (async () => {await sendTextChat(chatText);})(); // send to swarm (including us) as text-chat
           }
         }
       }
@@ -126,6 +121,7 @@ export default function RoomHeader({
           const nostrStatus = `${urlStatus}`;
           let r = (async () => {await publishStatus(nostrStatus, urlStatus);})();
           localStorage.setItem('publishStatus.timechecked', Date.now());
+          sendCSAR("nostrstatus");
         }
       }
     }, statusintervalCheck);

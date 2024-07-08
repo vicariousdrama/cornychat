@@ -4,6 +4,7 @@ const verifyIdentities = require('../verifications');
 const {restrictRoomCreation} = require('../config');
 const {getRoomNSEC, publishNostrSchedule, deleteNostrSchedule, updateNostrProfile} = require('../nostr/nostr');
 const {nip19, validateEvent, verifyEvent, getPublicKey } = require('nostr-tools');
+const { saveCSAR } = require('../nostr/csar');
 
 const isAnyInList = (tokens, publicKeys) => {
   return tokens.some(token => publicKeys.includes(token));
@@ -205,6 +206,10 @@ const roomAuthenticator = {
     if (!req.body.createdTime) {
       req.body.createdTime = req.body.updateTime;
     }
+
+    // achievement
+    const senderId = req.body.owners[0];
+    saveCSAR(senderId, roomId, "makeroom");
 
     // if we got this far, the authorization checks succeeded and ok to write
     next();

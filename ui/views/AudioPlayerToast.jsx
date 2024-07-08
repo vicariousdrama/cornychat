@@ -13,7 +13,8 @@ export function ShowAudioPlayerToast() {
 }
 
 function AudioPlayerToast({close}) {
-  const [state] = useJam();
+  const [state, {sendCSAR}] = useJam();
+  //const [state] = useJam();
   let {name} = use(state, 'audioFile') ?? {};
   let audio = use(state, 'audioFileElement');
   let [element, setElement] = useState();
@@ -79,6 +80,7 @@ function AudioPlayerToast({close}) {
       audio.style.width = '100%';
       element.appendChild(audio);
       element.appendChild(audiotable);
+      sendCSAR("playaudio");
 
       const seekInterval = setInterval(() => {
         try {
@@ -140,7 +142,12 @@ function AudioPlayerToast({close}) {
                 let ca = document.getElementById('audio');
                 let capp = document.getElementById('audioplaypause');
                 if (!ca) return;
-                if (ca.paused) { ca.play(); } else { ca.pause(); }
+                if (ca.paused) { 
+                  ca.play();
+                  sendCSAR("continueaudio");
+                } else { 
+                  ca.pause(); 
+                }
                 if (!capp) return;
                 if (ca.paused) { capp.innerText = 'Play'; } else { capp.innerText = 'Pause'; }
               }}

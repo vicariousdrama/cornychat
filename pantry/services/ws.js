@@ -2,6 +2,7 @@ const WebSocket = require('ws');
 const querystring = require('querystring');
 const {get, set, del} = require('../services/redis');
 const {ssrVerifyToken} = require('../ssr');
+const {saveCSAR} = require('../nostr/csar');
 
 module.exports = {
   addWebsocket,
@@ -102,6 +103,20 @@ async function handleMessage(connection, roomId, msg) {
       if (receiver !== undefined) {
         sendMessage(receiver, {t: 'direct', d: data, p: senderId});
       }
+      if (data.type != undefined) {
+        if (data.type == 'peer-event') {
+          if (data.data != undefined && data.data.t != undefined) {
+            if (data.data.t == 'text-chat') {
+              if (data.data.d != undefined && data.data.d.t != undefined) {
+                let t = data.data.d.t;
+                if (t.length > 0) {
+                  saveCSAR(senderId, roomId, "sendprivatemessage");
+                }
+              }
+            }
+          }
+        }
+      }
       break;
     }
     case 'moderator': {
@@ -116,7 +131,60 @@ async function handleMessage(connection, roomId, msg) {
       }
       break;
     }
+    case 'csar': {
+      saveCSAR(senderId, roomId, data);
+      break;
+    }
+    case 'all': {
+      publish(roomId, topic, {t: topic, d: data, p: senderId});
+      if (data.type != undefined) {
+        if (data.type == 'peer-event') {
+          if (data.data != undefined && data.data.t != undefined) {
+            if (data.data.t == 'reaction') {
+              if (data.data.d != undefined && data.data.d == '🌽') {
+                saveCSAR(senderId, roomId, 'sendcorn');
+              }
+            }
+            if (data.data.t == 'text-chat') {
+              if (data.data.d != undefined && data.data.d.t != undefined) {
+                let t = data.data.d.t;
+                if (t.indexOf('*tipped the room owner ⚡') > -1) {
+                  saveCSAR(senderId, roomId, 'tiproom');
+                }
+                if (t.indexOf('*tipped the corny chat dev ⚡') > -1) {
+                  saveCSAR(senderId, roomId, 'tipdev');
+                }
+                if (t.indexOf('cashu') == 0) {
+                  saveCSAR(senderId, roomId, 'sendcashu');
+                }
+                let spoilermatches = t.match(/\|\|(.*?)\|\|/);
+                if (spoilermatches) {
+                  saveCSAR(senderId, roomId, 'sendspoiler');
+                }
+              }
+            }
+          }
+        }
+        if (data.type == 'shared-state') {
+          if (data.data != undefined && data.data.state != undefined) {
+            if (data.data.state.handType != undefined) {
+              if (data.data.state.handType == 'RH') {
+                saveCSAR(senderId, roomId, 'sethandup');
+              }
+              if (data.data.state.handType == 'TU') {
+                saveCSAR(senderId, roomId, 'setthumbup');
+              }
+              if (data.data.state.handType == 'TD') {
+                saveCSAR(senderId, roomId, 'setthumbdown');
+              }
+            }
+          }
+        }
+      }
+      break;
+    }
     default:
+      //console.log(`in pantry services/ws.js handleMessage topic ${topic}, data: ${data}`);
       // normal topic that everyone can subscribe
       publish(roomId, topic, {t: topic, d: data, p: senderId});
   }
@@ -160,9 +228,14 @@ function handleConnection(ws, req) {
       ws.close();
       closeWs();
     }
+    const userId = peerId.split('.')[0];
+    // 10 minutes in, track it
+    if ((pingCount % 120) == 119) {
+      saveCSAR(userId, roomId, "useroom");
+    }
+    // 45 seconds in, track it
     if ((pingCount % 60) == 9) {
       const recordTime = async () => {
-        let userId = peerId.slice(0, -5);
         let dt = new Date();
         let dti = dt.toISOString();
         let dts = dti.replaceAll('-','').replace('T','').slice(0,10);
@@ -383,7 +456,7 @@ function removePeer(roomId, connection) {
 
 async function removeKeys(roomId, userId) {
   const newRoomId = roomId + 'Keys';
-  const newUserId = userId.slice(0, -5);
+  const newUserId = userId.split('.')[0];
   const roomPeers = getPeers(roomId);
   let roomsKeys = await get(newRoomId);
 

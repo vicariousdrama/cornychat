@@ -1,6 +1,7 @@
 import {is} from 'minimal-state';
 import {domEvent} from '../../lib/util';
 import {useUpdate, useRootState} from '../../lib/state-tree';
+//import {useJam} from '../../jam-core-react';
 
 export default function AudioFile() {
   let audioState = 'initial'; // 'loading', 'playing'
@@ -9,7 +10,8 @@ export default function AudioFile() {
   let stream = null;
   const update = useUpdate();
   const state = useRootState();
-
+  //Uncaught Error: Invalid hook call. Hooks can only be called inside of the body of a function component. 
+  //const [state, {sendCSAR}] = useJam();
   async function createAudioFileStream(file, ctx) {
     let url = URL.createObjectURL(file);
     audio = new Audio(url);
@@ -21,7 +23,7 @@ export default function AudioFile() {
     source.connect(ctx.destination);
     stream = streamDestination.stream;
     await audio.play();
-
+    //sendCSAR("playaudio");
     audioState = 'playing';
 
     update();
