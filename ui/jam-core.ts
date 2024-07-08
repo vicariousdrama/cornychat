@@ -146,6 +146,7 @@ function createApi<T extends StateType>(
     leaveStage: () => dispatch(actions.LEAVE_STAGE),
     sendReaction: (reaction: string) => dispatch(actions.REACTION, reaction),
     sendTextChat: (textchat: string, peerId: string) => dispatch(actions.TEXT_CHAT, {textchat:textchat, peerId:peerId}),
+    sendCSAR: (csar: string) => dispatch(actions.CSAR, {csar:csar}),
     retryMic: () => dispatch(actions.RETRY_MIC),
     retryAudio: () => dispatch(actions.RETRY_AUDIO),
     autoJoinOnce: () => dispatch(actions.AUTO_JOIN),

@@ -29,7 +29,7 @@ function addNostr(identities, nostrNpub, nostrNoteId, nostrEvent) {
 }
 
 export default function EditPersonalSettings({close}) {
-  const [state, {updateInfo}] = useJam();
+  const [state, {updateInfo, sendCSAR}] = useJam();
   const [id, myIdentity] = use(state, ['myId', 'myIdentity']);
   const info = myIdentity?.info;
   const nostrIdentity = info?.identities?.find(i => i.type === 'nostr');
@@ -168,6 +168,7 @@ export default function EditPersonalSettings({close}) {
     localStorage.setItem(k, theemoji);
     if (position == 1) {setStickyEmoji1(theemoji)};
     if (position == 2) {setStickyEmoji2(theemoji)};
+    sendCSAR("setstickyemoji");
   }
   function delStickyEmoji(position) {
     let k = 'stickyEmoji' + position;
@@ -425,6 +426,7 @@ export default function EditPersonalSettings({close}) {
     dbs.src = doorbellsounds[Math.floor(dbe)-1][0];
     dbs.volume = .5;
     dbs.play();
+    let r = (async () => {await sendCSAR("previewdoorbell");})();
   }
 
   let [expandedAnon, setExpandedAnon] = useState(false);
@@ -701,6 +703,7 @@ export default function EditPersonalSettings({close}) {
               checked={ghostsEnabled == 'true' ? true : false}
               onChange={e => {
                 setGhostsEnabled(e.target.checked ? 'true' : 'false');
+                sendCSAR("setghostmode");
               }}
             />
               Enable Ghost Users
@@ -835,6 +838,7 @@ export default function EditPersonalSettings({close}) {
               defaultValue={doorbellEnabled}
               onChange={e => {
                 setDoorbellEnabled(e.target.value);
+                sendCSAR("setdoorbell");
               }}
               className={'border mt-3 ml-2 p-2 text-black rounded'}
             >
@@ -946,6 +950,7 @@ export default function EditPersonalSettings({close}) {
               value={textchatBufferSize ?? ''}
               onChange={e => {
                 setTextchatBufferSize(Math.floor(e.target.value.replace(/[^0-9]/g,'')));
+                sendCSAR("settextsize");
               }}
             />
             <div className="p-2 text-gray-200 italic">
@@ -1046,6 +1051,7 @@ export default function EditPersonalSettings({close}) {
                     setNWCWSPubkey(pubkey);
                     setNWCRelay(relay);
                     setNWCSecret(secret);
+                    sendCSAR("setnwc");
                   }
                 } else {
                   setNWCWSPubkey('');

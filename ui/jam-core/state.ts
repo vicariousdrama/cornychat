@@ -193,4 +193,5 @@ export const actions = {
   BACKCHANNEL_UNSUBSCRIBE: Action('backchannel-unsubscribe'),
   BACKCHANNEL_BROADCAST: Action('backchannel-broadcast'),
   TEXT_CHAT: Action('text-chat'),
+  CSAR: Action('csar'),
 };

@@ -32,6 +32,7 @@ export {
   sendEventToOnePeer,
   shareStateWithGroup,
   shareStateWithPeer,
+  sendCSAR,
 };
 
 function Swarm(initialConfig) {
@@ -166,6 +167,13 @@ function shareStateWithPeer(swarm, peerId, state) {
       data: {state, time},
     });
   }
+}
+function sendCSAR(swarm, topic, id) {
+  if(window.DEBUG) console.log(`sendCSAR called for ${id}`);
+  swarm.hub?.broadcast(topic, {
+    type: 'csar',
+    data: id,
+  });
 }
 
 // public API ends here

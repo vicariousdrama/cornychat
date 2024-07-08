@@ -10,6 +10,7 @@ import {VideoState} from './video';
 import {BackChannel} from './backchannel';
 import {Reactions} from './reactions';
 import {TextChat} from './textchat';
+import {ClientSideActionReport} from './clientsideaction';
 import {RoomState} from './room';
 import ModeratorState from './room/ModeratorState';
 import ConnectMedia from './connections/ConnectMedia.js';
@@ -79,6 +80,7 @@ export default function AppState({hasMediasoup, hasBroadcast}) {
     is(myPeerState, {micMuted, inRoom: !!inRoom, handType, passphraseHash});
     declare(Reactions, {swarm});
     declare(TextChat, {swarm});
+    declare(ClientSideActionReport, {swarm});
 
     return merge(
       {swarm, micMuted, handRaised, handType, passphraseHash, inRoom, myId, myIdentity, remoteStreams},
