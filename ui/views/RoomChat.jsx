@@ -7,7 +7,6 @@ import {avatarUrl, displayName} from '../lib/avatar';
 import {getNpubFromInfo, getRelationshipPetname} from '../nostr/nostr';
 import {openModal} from './Modal';
 import {Profile} from './Profile';
-import crypto from 'crypto-js';
 
 export default function RoomChat({
     room,
@@ -63,10 +62,11 @@ export default function RoomChat({
             if (ct + nh1 > nt) nh1 = nt - ct; // but not under navbar
             let nh2 = document.body.clientHeight - 176 - ct;
             if (nh2 < (mh0+nh0)) nh2 = (mh0+nh0); // minimum height for chat lines + entry
-//            if (ct + nh2 > nt) { // but not under navbar
-//                nh2 = nt - ct;
-//                nh1 = nh2 - nh0;
-//            }
+            if (ct + nh2 > nt) { // but not under navbar
+                nh2 = nt - ct;
+                if (nh2 < (mh0+nh0)) nh2 = (mh0+nh0); // minimum height for chat lines + entry
+                nh1 = nh2 - nh0;
+            }
             c.style.height = String(nh1) + 'px';
             c.style.maxHeight = c.style.height;
             rc.style.height = String(nh2) + 'px';
