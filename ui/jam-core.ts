@@ -17,7 +17,6 @@ import {
 } from './jam-core/state';
 import {
   addModerator,
-  addNostrPrivateKey,
   addOwner,
   addPresenter,
   addSpeaker,
@@ -27,7 +26,6 @@ import {
   removeSelfFromRoom,
   removeSpeaker,
   setCurrentSlide,
-  signEvent,
 } from './jam-core/room';
 import {staticConfig} from './jam-core/config';
 import {
@@ -105,17 +103,12 @@ function createApi<T extends StateType>(
       addAdmin(state, peerId) as Promise<boolean>,
     addModerator: (roomId: string, peerId: string) =>
       addModerator(state, roomId, peerId) as Promise<boolean>,
-    addNostrPrivateKey: (roomId: string, state: string, payload: any) =>
-      addNostrPrivateKey(roomId, state, payload),
     addOwner: (roomId: string, peerId: string) =>
       addOwner(state, roomId, peerId) as Promise<boolean>,
     addPresenter: (roomId: string, peerId: string) =>
       addPresenter(state, roomId, peerId) as Promise<boolean>,
     addSpeaker: (roomId: string, peerId: string) =>
       addSpeaker(state, roomId, peerId) as Promise<boolean>,
-
-    signEvent: (state: string, roomId: string, event: any) =>
-      signEvent(state, roomId, event),
 
     removeAdmin: (peerId: string) =>
       removeAdmin(state, peerId) as Promise<boolean>,

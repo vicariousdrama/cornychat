@@ -73,7 +73,12 @@ export default function RoomHeader({
             const roomtipamount = Math.floor(localStorage.getItem(`v4vtiproom.amount`) ?? '0');
             tipToggle = !tipToggle;
             let chatText = `*tipped the room owner ⚡${roomtipamount} sats${tipToggle ? "!":"."}*`;
-            let tipped = tipRoom(roomId, room.lud16, roomtipamount, chatText);
+            (async () => {
+              let tipped = await tipRoom(roomId, room.lud16, roomtipamount, chatText);
+              if (!tipped) {
+                console.log("room tip failed");
+              }
+            })();
           }
         }
       }, roomtipinterval);
@@ -90,21 +95,26 @@ export default function RoomHeader({
           const adskipamount = Math.floor(localStorage.getItem('v4v2skipad.amount') ?? '0');
           tipToggle = !tipToggle;
           let chatText = `*tipped the corny chat dev ⚡${adskipamount} sats${tipToggle ? "!":"."}*`;
-          if (!value4valueAdSkip('RoomChat', sendTextChat, chatText)) {
-            adidx += 1;
-            let adreqdt = Math.floor(Date.now() / 1000);
-            let adPeerId = `ad-${adidx}`;
-            let textchat = `/chatad:${adidx}:${adreqdt}`;
-            if (!textchats) textchats = [];
-            let lastline = textchats.slice(-1);
-            if ((lastline.length == 0) || (lastline[0].length != 2) || (lastline[0][0] != adPeerId) || (lastline[0][1] != textchat)) {
-              textchats.push([adPeerId, textchat, false]);
-              textchats = textchats.slice(-1 * bufferSize);
-              sessionStorage.setItem(`${roomId}.textchat`, JSON.stringify(textchats));
-              let n = Math.floor(sessionStorage.getItem(`${roomId}.textchat.unread`) ?? 0) + 1;
-              sessionStorage.setItem(`${roomId}.textchat.unread`, n);
+          (async () => {
+            let v4vadskip = await value4valueAdSkip('RoomChat', sendTextChat, chatText);
+            if (!v4vadskip) {
+              adidx += 1;
+              let adreqdt = Math.floor(Date.now() / 1000);
+              let adPeerId = `ad-${adidx}`;
+              let textchat = `/chatad:${adidx}:${adreqdt}`;
+              if (!textchats) textchats = [];
+              let lastline = textchats.slice(-1);
+              if ((lastline.length == 0) || (lastline[0].length != 2) || (lastline[0][0] != adPeerId) || (lastline[0][1] != textchat)) {
+                textchats.push([adPeerId, textchat, false]);
+                textchats = textchats.slice(-1 * bufferSize);
+                sessionStorage.setItem(`${roomId}.textchat`, JSON.stringify(textchats));
+                let n = Math.floor(sessionStorage.getItem(`${roomId}.textchat.unread`) ?? 0) + 1;
+                sessionStorage.setItem(`${roomId}.textchat.unread`, n);
+              }  
+            } else {
+              console.log("dev tip failed");
             }
-          }
+          })();
         }
       }
     }, chatadinterval);

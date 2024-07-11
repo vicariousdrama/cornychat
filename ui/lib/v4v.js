@@ -4,6 +4,9 @@ import {getLNService, loadNWCUrl} from '../nostr/nostr';
 function getMyName() {
     return JSON.parse(localStorage.getItem('identities'))._default.info?.name || 'anonymous user';
 }
+function getMyId() {
+    return JSON.parse(localStorage.getItem('identities'))._default.publicKey || '';
+}
 
 function isTime(key, periodLength) {
     const lastTime = localStorage.getItem(key);
@@ -20,7 +23,7 @@ export function time4Ad() {
     return isTime(key, periodLength);
 }
 
-export function value4valueAdSkip (sourceNote, fnSuccess, textForSuccess) {
+export async function value4valueAdSkip (sourceNote, fnSuccess, textForSuccess) {
     if ((localStorage.getItem('v4v2skipad.enabled') ?? 'false') != 'true') return false;
     const myName = getMyName();
     const currentTimestamp = Math.floor(Date.now() / 1000);
@@ -29,7 +32,7 @@ export function value4valueAdSkip (sourceNote, fnSuccess, textForSuccess) {
     const lightningAddress = window.jamConfig.v4vLN;
     const satAmount = Math.floor(localStorage.getItem('v4v2skipad.amount') ?? '0');
     if (satAmount < 1) return false;
-    return sendSats(lightningAddress, satAmount, comment, fnSuccess, textForSuccess, 'v4v2skipad.timepaid');
+    return await sendSats(lightningAddress, satAmount, comment, fnSuccess, textForSuccess, 'v4v2skipad.timepaid');
 }
 
 export function time4Tip(roomId) {
@@ -39,14 +42,14 @@ export function time4Tip(roomId) {
     return isTime(key, periodLength);
 }
 
-export function tipRoom(roomId, lightningAddress, satAmount, fnSuccess, textForSuccess) {
+export async function tipRoom(roomId, lightningAddress, satAmount, fnSuccess, textForSuccess) {
     if ((localStorage.getItem(`v4vtiproom.enabled`) ?? 'false') != 'true') return false;
     const myName = getMyName();
     const comment = `🌽💬 tip from ${myName} in ${jamConfig.urls.jam}/${roomId}`;
-    return sendSats(lightningAddress, satAmount, comment, fnSuccess, textForSuccess, `roomtip-${roomId}.timepaid`);
+    return await sendSats(lightningAddress, satAmount, comment, fnSuccess, textForSuccess, `roomtip-${roomId}.timepaid`);
 }
 
-function sendSats(lightningAddress, satAmount, comment, fnSuccess, textForSuccess, keyForSuccess) {
+async function sendSats(lightningAddress, satAmount, comment, fnSuccess, textForSuccess, keyForSuccess) {
     if (lightningAddress == undefined) return false;
     if (lightningAddress.length == 0) return false;
     if (satAmount == undefined) return false;
@@ -81,7 +84,9 @@ function sendSats(lightningAddress, satAmount, comment, fnSuccess, textForSucces
         console.log(`in sendSats, y: ${y}`);
         return y; // always a pending promise?
     } catch (e) {
-        console.log('Error in sendSats', e);
+        let m = `ERROR sending sats: ${e}`;
+        (async () => {await fnSuccess(m, getMyId());})();
+        console.log(m);
         return false;
     }    
 }

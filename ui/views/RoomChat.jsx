@@ -7,6 +7,7 @@ import {avatarUrl, displayName} from '../lib/avatar';
 import {getNpubFromInfo, getRelationshipPetname} from '../nostr/nostr';
 import {openModal} from './Modal';
 import {Profile} from './Profile';
+import crypto from 'crypto-js';
 
 export default function RoomChat({
     room,
@@ -62,10 +63,10 @@ export default function RoomChat({
             if (ct + nh1 > nt) nh1 = nt - ct; // but not under navbar
             let nh2 = document.body.clientHeight - 176 - ct;
             if (nh2 < (mh0+nh0)) nh2 = (mh0+nh0); // minimum height for chat lines + entry
-            if (ct + nh2 > nt) { // but not under navbar
-                nh2 = nt - ct;
-                nh1 = nh2 - nh0;
-            }
+//            if (ct + nh2 > nt) { // but not under navbar
+//                nh2 = nt - ct;
+//                nh1 = nh2 - nh0;
+//            }
             c.style.height = String(nh1) + 'px';
             c.style.maxHeight = c.style.height;
             rc.style.height = String(nh2) + 'px';
@@ -251,7 +252,8 @@ export default function RoomChat({
             previoustext = thetext;
             let emoting = thetext.startsWith("/me");
             let sentv4v = (thetext.includes("zapped") || thetext.includes("tipped")) && thetext.includes("⚡");
-            let chatLineTextColor = emoting ? 'rgb(59,130,246)' : (sentv4v ? 'rgb(255,155,55)' : 'rgb(255,255,255)');
+            let iserror = (thetext.startsWith("ERROR"));
+            let chatLineTextColor = iserror ? 'rgb(192,0,0)' : (emoting ? 'rgb(59,130,246)' : (sentv4v ? 'rgb(255,155,55)' : 'rgb(255,255,255)'));
             let chatBackgroundColor = isdm ? (myId == userid ? 'rgb(24,64,24)' : 'rgb(24,24,64)') : 'rgb(55,65,81)';
             if(thetext.startsWith("cashu") && thetext.length > 350) {
 
@@ -264,12 +266,13 @@ export default function RoomChat({
                     if (cashuobj.unit) cashuunit = cashuobj.unit;
                     cashumint = cashuobj.token[0].mint;
                 } catch(cashuerror) {
-                    console.log(`Error parsing cashu token:`, cashuerror);
+                    let m = `ERROR parsing cashu token: ${cashuerror}`;
+                    console.log(m);
                     /* ignore */
                 }
                 return (
                     <center key={chatkey} className="text-xs text-gray-400 cursor-pointer">
-                    <div style={{width:'330px',height:'60px',border:'3px solid lightgreen',backgroundColor:'green',color:'white',textAlign:'center'}}
+                    <div style={{width:'330px',height:'60px',border:'3px solid lightgreen',backgroundColor: (cashuamount == '?' ? 'red' : 'green'),color:'white',textAlign:'center'}}
                         onClick={async () => {
                             await window.navigator.clipboard.writeText(thetext);
                             alert('Cashu token copied to clipboard. Paste in your wallet to redeem.');

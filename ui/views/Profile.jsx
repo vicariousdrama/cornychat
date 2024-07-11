@@ -73,15 +73,14 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
     if (!iFollow) setShowFollowBtn(true);
   }
 
-  async function handleFollowBtn(userNpub, state, signEvent) {
+  async function handleFollowBtn(userNpub, state) {
     const myFollowList = sessionStorage.getItem('myFollowList');
     const parsedFollowingList = JSON.parse(myFollowList);
     const updateBtn = await followUser(
       userNpub,
       parsedFollowingList,
       state,
-      state.roomId,
-      signEvent
+      state.roomId
     );
     const ok = updateBtn[0];
     if (!ok) {
@@ -93,15 +92,14 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
     setShowFollowBtn(false);
   }
 
-  async function handleUnfollowBtn(userNpub, state, signEvent) {
+  async function handleUnfollowBtn(userNpub, state) {
     const myFollowList = sessionStorage.getItem('myFollowList');
     const parsedFollowingList = JSON.parse(myFollowList);
     const updateBtn = await unFollowUser(
       userNpub,
       parsedFollowingList,
       state,
-      state.roomId,
-      signEvent
+      state.roomId
     );
     const ok = updateBtn[0];
     if (!ok) {
@@ -171,7 +169,6 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
     removeOwner,
     addAdmin,
     removeAdmin,
-    signEvent,
     sendCSAR,
   } = api;
 
@@ -591,7 +588,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
               <button
                 className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
                 onClick={() => {
-                  handleFollowBtn(userNpub, state, signEvent);
+                  handleFollowBtn(userNpub, state);
                 }}
               >
                 Follow
@@ -605,7 +602,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
                   if (result != true) {
                     return;
                   }
-                  handleUnfollowBtn(userNpub, state, signEvent);
+                  handleUnfollowBtn(userNpub, state);
                 }}
               >
                 ❌ Unfollow

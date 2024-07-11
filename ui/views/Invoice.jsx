@@ -44,7 +44,7 @@ const DisplayInvoice = ({invoice, shortInvoice, room}) => {
 export const InvoiceModal = ({info, room, close}) => {
   const [comment, setComment] = useState(localStorage.getItem('zaps.defaultComment') ?? 'Zapping from Corny Chat!');
   const [amount, setAmount] = useState(localStorage.getItem('zaps.defaultAmount') ?? (localStorage.getItem('defaultZap') ?? ''));
-  const [state, {signEvent, sendTextChat}] = useJam();
+  const [state, {sendTextChat}] = useJam();
   const [displayInvoice, setDisplayInvoice] = useState(false);
   const [invoice, setInvoice] = useState('');
   const [displayError, setDisplayError] = useState(false);
@@ -252,8 +252,7 @@ export const InvoiceModal = ({info, room, close}) => {
                 npub,
                 comment,
                 amount,
-                state,
-                signEvent
+                state
               );
               await handleResult(result);
             }}

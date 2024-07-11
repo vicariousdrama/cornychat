@@ -17,7 +17,6 @@ export {
   updateRoom,
   getRoom,
   recordingsDownloadLink,
-  signNostrEvent,
   getRoomList,
   getScheduledEvents,
   getStaticRoomsList,
@@ -52,20 +51,6 @@ async function authenticatedApiRequest({myIdentity}, method, path, payload) {
   return res.ok;
 }
 
-async function signEvent({myIdentity}, path, payload) {
-  let res = await fetch(API + path, {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    },
-    body: payload
-      ? JSON.stringify(await signData(myIdentity, payload))
-      : undefined,
-  });
-  return res.json();
-}
-
 // returns [data, ok, status]
 async function get(path) {
   let res = await fetch(API + path, {
@@ -93,10 +78,6 @@ async function authedGet({myIdentity}, path) {
 
 async function post(state, path, payload) {
   return authenticatedApiRequest(state, 'POST', path, payload);
-}
-
-async function signNostrEvent(state, path, payload) {
-  return await signEvent(state, path, payload);
 }
 
 async function put(state, path, payload) {
