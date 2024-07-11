@@ -6,7 +6,11 @@ function TextChat({swarm}) {
   const state = useRootState();
 
   useOn(swarm.peerEvent, 'text-chat', (peerId, payload) => {
-    if(payload) showTextChat(peerId, payload);
+    if(payload) {
+      (async () => {
+        await showTextChat(peerId, payload);
+      })();
+    }
   });
 
   function incrementUnread(roomId) {
@@ -14,11 +18,14 @@ function TextChat({swarm}) {
     sessionStorage.setItem(`${roomId}.textchat.unread`, n);
   }
 
-  function showTextChat(peerId, payload) {
+  async function showTextChat(peerId, payload) {
     let {roomId} = state;
     let textchat = payload.t;
     let isdm = payload.d;
     let todm = payload.p;
+    if (isdm) {
+      textchat = await decryptFromPeerId(peerId, textchat);
+    }
     let bufferSize = sessionStorage.getItem(`textchat.bufferSize`) || 50;
     let textchats = JSON.parse(sessionStorage.getItem(`${roomId}.textchat`) || '[]');
     let lastline = textchats.slice(-1);
@@ -44,6 +51,55 @@ function TextChat({swarm}) {
     return false;
   }
 
+  async function decryptFromPeerId(peerId, textchat) {
+    try {
+      if (!textchat.startsWith('📩')) return textchat;
+      let plaintext = '';
+      let decoder = new TextDecoder();
+      let jwkobj = JSON.parse(window.atob(sessionStorage.getItem('dmPrivkey')));
+      let privkey = await window.crypto.subtle.importKey("jwk", jwkobj, {name: "RSA-OAEP", modulusLength: 2048, publicExponent: new Uint8Array([0x01, 0x00, 0x01]), hash: "SHA-256"}, true, ["decrypt"]);
+      let encryptedParts = [];
+      let t = textchat.replaceAll('📩','');
+      while (t.length > 0) {
+        let p = t.slice(0,512); // always 512 when decrypting as encrypted is 256 * 2 for hexadecimal
+        encryptedParts.push(p);
+        t = t.slice(512);
+      }
+      for (let hex of encryptedParts) {
+        let pairs = hex.match(/[\dA-F]{2}/gi);
+        let i = pairs.map(function(s) {return parseInt(s,16);});
+        var a = new Uint8Array(i);
+        let b = a.buffer;
+        let decrypted = await window.crypto.subtle.decrypt({name: "RSA-OAEP"}, privkey, b);
+        let decoded = decoder.decode(decrypted);
+        plaintext = plaintext + decoded;
+      }
+      return `🔓${plaintext}`;
+    } catch(error) {
+      console.log(`error in decryptFromPeerId: ${error}`)
+      return `⚠️${textchat}`;
+    }
+  }
+
+  async function encryptToPeerId(peerId, textchat) {
+    try {
+      let peerObj = sessionStorage.getItem(peerId);
+      if (!peerObj) return '';
+      peerObj = JSON.parse(peerObj);
+      if (!peerObj.dmPubkey) return '';
+      let jwkobj = JSON.parse(window.atob(peerObj.dmPubkey));
+      let pubkey = await window.crypto.subtle.importKey("jwk", jwkobj, {name: "RSA-OAEP", modulusLength: 2048, publicExponent: new Uint8Array([0x01, 0x00, 0x01]), hash: "SHA-256"}, true, ["encrypt"]);
+      let encoder = new TextEncoder();
+      let data = encoder.encode(textchat);
+      const encrypted = await window.crypto.subtle.encrypt({name: "RSA-OAEP"}, pubkey, data);
+      const hex = [...new Uint8Array(encrypted)].map(x => x.toString(16).padStart(2, '0')).join('');
+      return `📩${hex}`;
+    } catch(error) {
+      console.log(`error in encryptToPeerId: ${error}`)
+      return '';
+    }
+  }
+
   return function TextChat() {
     let [isTextChat, payload] = useAction(actions.TEXT_CHAT);
     if (isTextChat) {
@@ -51,10 +107,39 @@ function TextChat({swarm}) {
       let textchat = payload.textchat;
       let peerId = payload.peerId;
       if (!textchat) textchat = payload;
+      if (textchat.length == 0) return;
       let myId = JSON.parse(localStorage.getItem('identities'))._default.publicKey;
       if (peerId && peerId != '0') {
-        sendEventToOnePeer(swarm, peerId, 'text-chat', {d:true,t:textchat,p:peerId});
-        sendEventToOnePeer(swarm, myId, 'text-chat', {d:true,t:textchat,p:peerId});
+        // peer to peer can optionally (by default) be encrypted so only the recipient and sender can read
+        (async () => {
+          let fulltext = textchat;
+          let toPeer = '';
+          let toMe = '';
+          if ((localStorage.getItem('textchat.encryptPM') ?? 'true') == 'true') {
+            let maxsize = 100; // must be less than 192. rsa-oaep will end up transforming and padded to 256. 
+            while(textchat.length > 0) {
+              let partialtext = textchat.slice(0,maxsize);
+              let encPeerId = await encryptToPeerId(peerId, partialtext);
+              let encMyId = await encryptToPeerId(myId, partialtext);
+              if (encPeerId.length == 0 || encMyId.length == 0) {
+                // failure to encrypt, revert to sending plain
+                toPeer = `⚠️fulltext`;
+                toMe = `⚠️fulltext`;
+                textchat = '';
+              } else {
+                // concatenate encrypted portions
+                toPeer = toPeer + encPeerId;
+                toMe = toMe + encMyId;
+              }
+              textchat = textchat.slice(maxsize);
+            }
+          } else {
+            toPeer = fulltext;
+            toMe = fulltext;
+          }
+          sendEventToOnePeer(swarm, peerId, 'text-chat', {d:true,t:toPeer,p:peerId});
+          sendEventToOnePeer(swarm, myId, 'text-chat', {d:true,t:toMe,p:peerId});
+        })();
       } else {
         sendPeerEvent(swarm, 'text-chat', {d:false,t:textchat});
       }

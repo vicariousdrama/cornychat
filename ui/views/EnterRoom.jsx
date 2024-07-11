@@ -7,7 +7,7 @@ import gfm from 'remark-gfm';
 import {useMqParser, useWidth} from '../lib/tailwind-mqp';
 import {useJam} from '../jam-core-react';
 import {colors, isDark} from '../lib/theme.js';
-import {makeLocalDate, signInExtension, signInPrivateKey} from '../nostr/nostr';
+import {makeLocalDate, signInExtension, getDMPubkey} from '../nostr/nostr';
 import {time4Ad, value4valueAdSkip} from '../lib/v4v';
 import EditPersonalSettings from './editPersonalSettings/EditPersonalSettings.jsx';
 import {update} from 'minimal-state';
@@ -31,7 +31,7 @@ export default function EnterRoom({
 }) {
   const [
     state,
-    {enterRoom, setProps, updateInfo, addNostrPrivateKey},
+    {enterRoom, setProps, updateInfo},
   ] = useJam();
 
   let [
@@ -53,9 +53,7 @@ export default function EnterRoom({
   ]);
 
   let mqp = useMqParser();
-  let [nostrPrivateKey, setNostrPrivateKey] = React.useState('');
   let [loadingExtension, setLoadingExtension] = useState(false);
-  let [loadingNsec, setLoadingNsec] = useState(false);
   let width = useWidth();
   let leftColumn = width < 720 ? 'hidden' : 'w-full';
   let rightColumn = width < 720 ? 'w-full bg-white p-10' : 'w-9/12 bg-white p-10';
@@ -141,20 +139,6 @@ export default function EnterRoom({
   };
 
   const handlerSignIn = async type => {
-    if (type === 'nsec') {
-      setLoadingNsec(true);
-      //sessionStorage.clear();
-      const ok = await signInPrivateKey(
-        nostrPrivateKey,
-        state,
-        setProps,
-        updateInfo,
-        enterRoom,
-        addNostrPrivateKey
-      );
-      if (!ok) setLoadingNsec(false);
-    }
-
     if (type === 'extension') {
       setLoadingExtension(true);
       //sessionStorage.clear();
@@ -309,7 +293,9 @@ export default function EnterRoom({
         {loginEnabled && (
           <>
         <button
-          onClick={() => {
+          onClick={async() => {
+            myIdentity.info.dmPubkey = await getDMPubkey();
+            await updateInfo(myIdentity.info);
             setReturnToHomepage(false);
             setProps({userInteracted: true});
             enterRoom(roomId);
@@ -371,53 +357,6 @@ export default function EnterRoom({
           </p>
         </div>
         )}
-        <div className={'hidden'}>
-        <div
-          className={closed || forbidden ? 'hidden' : 'my-3 w-full text-center'}
-        >
-          <p>Or</p>
-        </div>
-        <div
-          className={
-            closed || forbidden ? 'hidden' : 'flex w-full justify-between'
-          }
-        >
-          <input
-            className={mqp(
-              'rounded w-full placeholder-black bg-gray-50 w-full md:w-96'
-            )}
-            value={nostrPrivateKey}
-            type="text"
-            placeholder="A Nostr nsec"
-            name="jam-room-topic"
-            autoComplete="off"
-            onChange={e => {
-              setNostrPrivateKey(e.target.value);
-            }}
-          ></input>
-          <button
-            onClick={() => {
-              setReturnToHomepage(false);
-              handlerSignIn('nsec');
-            }}
-            className="select-none p-6 text-lg text-white focus:shadow-outline"
-            style={{
-              backgroundColor: roomColor.buttons.primary,
-              color: textColor,
-            }}
-          >
-            {loadingNsec ? <LoadingIcon /> : 'Login'}
-          </button>
-        </div>
-        <div
-          className={closed || forbidden ? 'hidden' : 'my-3 w-full text-center'}
-        >
-          <p className="text-gray-400 text-sm">
-            This option should only be used for testing purposes. Do not use
-            your primary user NSEC.
-          </p>
-        </div>
-        </div>
         </>
         )}
 

@@ -1,4 +1,4 @@
-import {put, post, signNostrEvent, apiUrl, deleteRequest} from './backend';
+import {put, post, apiUrl, deleteRequest} from './backend';
 import {staticConfig} from './config';
 import {use} from '../lib/state-tree';
 import GetRequest, {getCache} from '../lib/GetRequest';
@@ -11,8 +11,6 @@ export {
   addModerator,
   removeModerator,
   emptyRoom,
-  addNostrPrivateKey,
-  signEvent,
   setCurrentSlide,
   addOwner,
   removeOwner,
@@ -206,15 +204,6 @@ async function removeSelfFromRoom(state, roomId, userId) {
   const path = `/userrooms/${userId}/${roomId}`;
   console.log(`calling deleteRequest for ${path}`);
   return await deleteRequest(state, path, {});
-}
-
-async function addNostrPrivateKey(state, roomId, payload) {
-  return await post(state, `/rooms/${roomId}/privatekeys`, payload);
-}
-
-async function signEvent(state, roomId, event) {
-  const payload = [state.myId, event];
-  return await signNostrEvent(state, `/rooms/${roomId}/sign`, payload);
 }
 
 // TODO: Convert to new endpoint and migrate slide data out of room settings

@@ -24,8 +24,6 @@ const scheduledEventsRouter = require('./routes/scheduledEventsRouter');
 const staticRoomsRouter = require('./routes/staticRoomsRouter');
 const staticEventsRouter = require('./routes/staticEventsRouter');
 const roomModeratorsRouter = require('./routes/roomModerators');
-const privateKeysRouter = require('./routes/privateKeys');
-const signEventRouter = require('./routes/signEvent');
 const nip05Router = require('./routes/nip05Router');
 const squareAdRouter = require('./routes/adRouterSquare');
 const chatAdRouter = require('./routes/adRouterChat');
@@ -56,8 +54,6 @@ app.use('/api/v1/', controller('rooms', roomAuthenticator,
 app.use('/api/v1/rooms/:id/roomKey', roomKeyRouter);
 app.use('/api/v1/rooms/:id/live', liveRoomRouter);
 app.use('/api/v1/rooms/:id/recordings.zip', recordingsRouter);
-app.use('/api/v1/rooms/:id/privatekeys', privateKeysRouter);
-app.use('/api/v1/rooms/:id/sign', signEventRouter);
 app.use('/api/v1/rooms/:id/moderators', roomModeratorsRouter);
 
 app.use('/api/v1/', controller('identities', identityAuthenticator));

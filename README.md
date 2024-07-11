@@ -9,7 +9,7 @@ Roadmap
 - ✅ Login Enhancements
   - ✅ Anon login
   - ✅ Nostr Login with NIP-07 extension
-  - ✅ Nostr Login with user provided NSEC
+  - ~~✅ Nostr Login with user provided NSEC~~
 - ✅ Recognition of User Profile (kind 0)
   - ✅ Fetch and display Name (kind 0)
   - ✅ Fetch and display Avatar Image from picture (kind 0)

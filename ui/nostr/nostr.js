@@ -103,6 +103,37 @@ export async function getOutboxRelays(pubkey) {
   });  
 }
 
+async function createDMKeys() {
+  const { publicKey, privateKey } = await window.crypto.subtle.generateKey(
+    {
+      name: "RSA-OAEP",
+      modulusLength: 2048, // can be 1024, 2048, or 4096
+      publicExponent: new Uint8Array([0x01, 0x00, 0x01]), // 65537
+      hash: "SHA-256" // can be "SHA-1", "SHA-256", "SHA-384", or "SHA-512"
+    },
+    true, // whether the key is extractable (i.e. can be used in exportKey)
+    ["encrypt", "decrypt"] // can be any combination of "encrypt" and "decrypt"
+  );
+  const exportedPubkey = await window.crypto.subtle.exportKey("jwk", publicKey);
+  const exportedPubkeyString = window.btoa(JSON.stringify(exportedPubkey));
+  const exportedPrivkey = await window.crypto.subtle.exportKey("jwk", privateKey);
+  const exportedPrivkeyString = window.btoa(JSON.stringify(exportedPrivkey));
+  sessionStorage.setItem('dmPubkey', exportedPubkeyString);
+  sessionStorage.setItem('dmPrivkey', exportedPrivkeyString);
+}
+export async function getDMPrivkey() {
+  if ((sessionStorage.getItem("dmPrivkey") || '') == '' || (sessionStorage.getItem("dmPubkey") || '') == '') {
+    await createDMKeys();
+  }
+  return sessionStorage.getItem("dmPrivkey");
+}
+export async function getDMPubkey() {
+  if ((sessionStorage.getItem("dmPubkey") || '') == '' || (sessionStorage.getItem("dmPrivkey") || '') == '') {
+    await createDMKeys();
+  }
+  return sessionStorage.getItem("dmPubkey");
+}
+
 export async function signInExtension(
   state,
   setProps,
@@ -124,11 +155,13 @@ export async function signInExtension(
     let loginEvent = {created_at: created_at, pubkey: pubkey, kind: kind, tags: tags, content: myId};
     let signedLogin = await window.nostr.signEvent(loginEvent);
     let npub = nip19.npubEncode(pubkey);
+    let dmPubkey = await getDMPubkey();
+    if(window.DEBUG) console.log(dmPubkey);
     let identities = [{type: 'nostr', id: npub, loginTime: created_at, loginId: signedLogin.id, loginSig: signedLogin.sig}];
     let metadata = await getUserMetadata(pubkey, id);
     setProps({userInteracted: true});
     if (!metadata) {
-      await updateInfo({identities});
+      await updateInfo({identities, dmPubkey});
     } else {
       let name = metadata.display_name || metadata.name;
       let avatar = metadata.picture;
@@ -136,6 +169,7 @@ export async function signInExtension(
         name,
         identities,
         avatar,
+        dmPubkey,
       });
     }
     await enterRoom(roomId);
@@ -308,59 +342,7 @@ export async function getUserMetadata(pubkey, id) {
   });
 }
 
-export async function signInPrivateKey(
-  privateKey,
-  state,
-  setProps,
-  updateInfo,
-  enterRoom,
-  addNostrPrivateKey
-) {
-  if(window.DEBUG) console.log("in signInPrivateKey");
-  try {
-    const isValidLength = privateKey.length === 63 || privateKey.length === 64;
-
-    if (!isValidLength) {
-      throw new Error('Invalid private key length');
-    }
-
-    const nostrPrivateKey = privateKey.startsWith('nsec') ? nip19.decode(privateKey).data : privateKey;
-    const roomId = state.roomId;
-    const {cipherText, encryptionKey} = encryptPrivatekey(nostrPrivateKey);
-    const payload = [state.myId, cipherText, encryptionKey];
-
-    const ok = await addNostrPrivateKey(state, roomId, payload);
-
-    if (!ok) {
-      throw new Error('Failed to add nostr private key');
-    }
-
-    const userId = state.myId;
-    const userPubkey = getPublicKey(nostrPrivateKey);
-    let metadata = await getUserMetadata(userPubkey, userId);
-
-    if (!metadata) {
-      const npub = nip19.npubEncode(userPubkey);
-      setProps({userInteracted: true});
-      const identities = [{type: 'nostr', id: npub}];
-      await updateInfo({identities});
-      await enterRoom(roomId);
-    } else {
-      const name = metadata.name;
-      const avatar = metadata.picture;
-      const identities = [{type: 'nostr', id: metadata.npub}];
-
-      setProps({userInteracted: true});
-      await updateInfo({name, identities, avatar});
-      await enterRoom(roomId);
-    }
-  } catch (error) {
-    console.log('There was an error when setting up user session: ', error);
-    return undefined;
-  }
-}
-
-export async function sendZaps(npubToZap, comment, amount, state, signEvent) {
+export async function sendZaps(npubToZap, comment, amount, state) {
   if(window.DEBUG) console.log("in sendZaps");
   try {
     // Validate and set sats
@@ -403,8 +385,7 @@ export async function sendZaps(npubToZap, comment, amount, state, signEvent) {
         comment,
         pubkeyToZap,
         satsAmount,
-        state,
-        signEvent
+        state
       );
       // happens if they cancel signing the zap request
       if (!signedEvent[0]) {
@@ -556,7 +537,6 @@ export async function unFollowUser(
   myFollowList,
   state,
   roomId,
-  signEvent
 ) {
   if(window.DEBUG) console.log('in unFollowUser for ' + npubToUnfollow);
   if (!window.nostr) {
@@ -578,7 +558,7 @@ export async function unFollowUser(
   return [true];
 }
 
-export async function followUser(npubToFollow, myFollowList, state, roomId, signEvent) {
+export async function followUser(npubToFollow, myFollowList, state, roomId) {
   if(window.DEBUG) console.log('in followUser for ' + npubToFollow);
   if (!window.nostr) {
     return [null, 'A nostr extension is required to follow a user'];
@@ -746,7 +726,7 @@ async function getLNInvoice(zapEvent, lightningAddress, LNService, amount, comme
   }
 }
 
-async function getZapEvent(content, receiver, amount, state, signEvent) {
+async function getZapEvent(content, receiver, amount, state) {
   if(window.DEBUG) console.log("in getZapEvent");
   let event = {
     id: null,
@@ -776,11 +756,7 @@ async function getZapEvent(content, receiver, amount, state, signEvent) {
     return [true, eventSignedEncoded];
   }
 
-  const signedEvent = await signEvent(state, state.roomId, event);
-  const hasError = signedEvent.hasOwnProperty('error');
-  if (hasError) return [null, signedEvent.error];
-  const eventSignedEncoded = encodeURI(JSON.stringify(signedEvent.nostrEvent));
-  return [true, eventSignedEncoded];
+  return [null, 'Unable to sign nostr zap request event without a nostr extension'];
 }
 
 function encryptPrivatekey(privateKey) {
@@ -1347,12 +1323,12 @@ export function loadNWCUrl() {
 
 export async function publishStatus(status, url) {
   let kind = 30315;
-  let expiration = Math.floor(Date.now() / 1000) + 60*60;
+  let expiration = Math.floor(Date.now() / 1000) + (60*60); // 1 hour from now
   let tags = [
     ["d", "music"],
-    ["r", url],
-    ["expiration", `${expiration}`]
+    ["r", url]
   ];
+  //tags.push(["expiration", `${expiration}`]);
   console.log(`Publishing status to nostr: ${status}, with url ${url}`);
   let event = {
     id: null,
