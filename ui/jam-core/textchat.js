@@ -123,8 +123,8 @@ function TextChat({swarm}) {
               let encMyId = await encryptToPeerId(myId, partialtext);
               if (encPeerId.length == 0 || encMyId.length == 0) {
                 // failure to encrypt, revert to sending plain
-                toPeer = `⚠️fulltext`;
-                toMe = `⚠️fulltext`;
+                toPeer = `⚠️${fulltext}`;
+                toMe = `⚠️${fulltext}`;
                 textchat = '';
               } else {
                 // concatenate encrypted portions
