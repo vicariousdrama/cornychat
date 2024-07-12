@@ -15,7 +15,6 @@
     <link rel="apple-touch-icon" href="<%= metaInfo.favIcon %>" />
     <link href="/css/tailwind.css" rel="stylesheet" />
     <link href="/css/main.css" rel="stylesheet" />
-    <link href="/css/hearts.css" rel="stylesheet" />
     <link rel="manifest" href="<%= metaInfo.ogUrl %>/manifest.json">
     <link
             rel="alternate"
@@ -27,6 +26,7 @@
 <body>
 <div id="root"></div>
 <script>
+    const thed = new Date();
     const sleep = ms => new Promise(r => setTimeout(r, ms));
     window.jamConfig = <%- jamConfigString %>;
     window.existingRoomInfo = <%- roomInfoString %>;
@@ -66,23 +66,47 @@
         document.head.appendChild(script_app);
     }
     
-    var script_snowflakes = document.createElement('script');
-    script_snowflakes.setAttribute('src','https://unpkg.com/magic-snowflakes/dist/snowflakes.min.js');
-    document.head.appendChild(script_snowflakes);
+    if (thed.getMonth() == 11) {
+        var script_snowflakes = document.createElement('script');
+        script_snowflakes.setAttribute('src','https://unpkg.com/magic-snowflakes/dist/snowflakes.min.js');
+        document.head.appendChild(script_snowflakes);
+    }
+    function linkCSS(u) {
+        var link_css = document.createElement('link');
+        link_css.setAttribute('href', u);
+        link_css.setAttribute('rel', 'stylesheet');
+        document.head.appendChild(link_css);
+    }
     let animInterval = '';
     function load_animation() {
-        const thed = new Date();
         // Valentines
         if (thed.getDate() == 14 && thed.getMonth() == 1) {
-            animInterval = setInterval(createHeart, 1500);
+            linkCSS('/css/hearts.css');
+            animInterval = setInterval(makeHearts, 1500);
             // to stop: clearInterval(animInterval);
+            return;
         }
-        // var mysnowflakes = new Snowflakes({color: "#d7c1f9",minOpacity: 0.4,maxOpacity: 0.8,maxSize:50,speed:3});
+
         // April First
         if (thed.getDate() == 1 && thed.getMonth() == 3) {
             if(Math.round(Math.random() * 10) > 7) {
                 flipit();
+                return;
             }
+        }
+
+        // Corn Days
+        if (thed.getDate() >= 11 && thed.getDate() <= 13) {
+            linkCSS('/css/corns.css');
+            animInterval = setInterval(makeCorn, 1388);
+            // to stop: clearInterval(animInterval);
+            return;
+        }
+
+        // Snow during December + January
+        if (thed.getMonth() == 11 || thed.getMonth() == 0) {
+            var mysnowflakes = new Snowflakes({color: "#d7c1f9",minOpacity: 0.4,maxOpacity: 0.8,maxSize:50,speed:3});
+            return;
         }
     }
     if (animationsEnabled == 'true') {
@@ -92,31 +116,26 @@
             window.attachEvent('load', load_animation);
         }
     }
-
-    function createHeart() {
-        const e_rose = '🌹';
-        const e_heart = '💗';
-        const heart = document.createElement('div');
-        heart.classList.add('heart');
-        heart.style.left = Math.random() * 100 + "vw";
-        heart.style.animationDuration = Math.random() * 2 + 3 + "s";
-        switch (Math.round(Math.random() * 3)) {
-          case 0:
-            heart.innerText = e_rose;
-            break;
-          case 1:
-            heart.innerText = e_heart;
-            break;
-          default:
-            heart.innerText = 'Happy Valentines Day';
-            break;
-        }
-        document.body.appendChild(heart);
-        setTimeout(() => {
-            heart.remove();
-        }, 5000);
+    function makeCorn() {
+        makeAnim('🌽', 'corn');
     }
-
+    function makeHearts() {
+        const t = 'heart';
+        switch (Math.round(Math.random() * 3)) {
+            case 0: makeAnim(t, '🌹'); break;
+            case 1: makeAnim(t, '💗'); break;
+            case 2: makeAnim(t, 'Happy Valentines Day'); break;
+        }
+    }
+    function makeAnim(t, s) {
+        const c = document.createElement('div');
+        c.classList.add(s);
+        c.style.left = Math.random() * 100 + "vw";
+        c.style.animationDuration = Math.random() * 2 + 3 + "s";
+        c.innerText = t;
+        document.body.appendChild(c);
+        setTimeout(() => {c.remove();}, 5000);
+    }
     function flipit() {
         document.getElementById('root').classList.add("flipdiv");
         window.scrollTo(0, document.body.scrollHeight);
