@@ -1,0 +1,38 @@
+@import url("https://fonts.googleapis.com/css2?family=Stylish:wght@200;400;600&display=swap");
+
+@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css");
+
+* {
+  box-sizing: border-box;
+}
+.cd__main{
+   background: darkolivegreen !important;
+   font-family: 'Stylish', cursive !important;
+   min-height: 450px;
+}
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Stylish', cursive;
+  margin: 0;
+  min-height: 100vh;
+}
+
+.corn {
+  position: fixed;
+  font-size: 5vh;
+  top: -1vh;
+  transform: translateY(0);
+  animation: fall 6s linear forwards;
+  color: green;
+}
+
+@keyframes fall {
+  from {
+     transform: translateY(0vh) translateX(-10vw);
+  }
+  to {
+     transform: translateY(105vh) translateX(10vw);
+  }
+}
