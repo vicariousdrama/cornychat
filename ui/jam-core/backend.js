@@ -22,6 +22,7 @@ export {
   getStaticRoomsList,
   getStaticEventsList,
   getMyRoomList,
+  getRoomATag,
 };
 
 let API = `${staticConfig.urls.pantry}/api/v1`;
@@ -223,4 +224,10 @@ async function getStaticEventsList() {
 
 async function getMyRoomList(userId) {
   return await get(`/userrooms/${userId}/`);
+}
+
+async function getRoomATag(roomId) {
+  if (!roomId) return "";
+  let aTag = (await get(`/rooms/${roomId}/nip53`))[0];
+  return aTag;
 }

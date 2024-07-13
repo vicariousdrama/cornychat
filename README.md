@@ -56,7 +56,7 @@ Roadmap
   - ✅ Periodically update cache of scheduled events
 - ☑️ Nostr Live Activity + Chat
   - ✅ Create and Publish Nostr Live Activity for Rooms (kind 30311 per NIP-53)
-  - ~~⬜ Live Chat Message tied to the Live Activity (kind 1311)~~
+  - ✅ Live Chat Message tied to the Live Activity (kind 1311)
   - ⬜ Ability for user to react to chat message
   - ⬜ Ability for user to zap a chat message
 - ☑️ Landing Page

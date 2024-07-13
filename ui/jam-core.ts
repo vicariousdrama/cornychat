@@ -40,6 +40,7 @@ import {
   getStaticRoomsList,
   getStaticEventsList,
   getMyRoomList,
+  getRoomATag,
 } from './jam-core/backend';
 import {addAdmin, removeAdmin} from './jam-core/admin';
 import AppState from './jam-core/AppState';
@@ -96,6 +97,8 @@ function createApi<T extends StateType>(
 
     getRoom: (roomId: string) =>
       (getRoom(roomId) as unknown) as Promise<RoomType | undefined>,
+    getRoomATag: (roomId: string) =>
+      (getRoomATag(roomId) as unknown) as Promise<String | undefined>,
     getDisplayName: (info: IdentityInfo, room: RoomType) =>
       displayName(info, room) as string,
 

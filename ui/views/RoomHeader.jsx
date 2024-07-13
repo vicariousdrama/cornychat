@@ -30,7 +30,7 @@ export default function RoomHeader({
     'isSomeonePodcasting',
   ]);
 
-  const [state, {sendTextChat, sendCSAR}] = useJam();
+  const [state, {sendTextChat, sendCSAR, getRoomATag}] = useJam();
   let textchats = JSON.parse(sessionStorage.getItem(`${roomId}.textchat`) || '[]');
   let {npub} = room || {};
   if (npub == undefined || npub == "") npub = `fakenpub-${roomId}`;
@@ -136,6 +136,24 @@ export default function RoomHeader({
       }
     }, statusintervalCheck);
 
+    // Room ATag
+    let ataginterval = 1*20*1000; // once every 20 seconds
+    let atagfetching = false;
+    let intervalATagUpdate = setInterval(() => {
+      if ((localStorage.getItem('textchat.tonostr') || 'false') == 'true') {
+        let atagkey = `${roomId}.atag`;
+        let roomATag = sessionStorage.getItem(atagkey) || '';
+        if (roomATag.length == 0 && !atagfetching) {
+          atagfetching = true;
+          let r = (async () => {
+            roomATag = await getRoomATag(roomId);
+            sessionStorage.setItem(atagkey, roomATag);
+            atagfetching = false;
+          })();
+        }
+      }
+    }, ataginterval);
+
     // This function is called when component unmounts
     return () => {
       clearTimeout(timeoutEntered);
@@ -143,6 +161,7 @@ export default function RoomHeader({
       clearTimeout(timeoutRoomTip);
       clearInterval(intervalAdSkip);
       clearInterval(intervalStatusUpdate);
+      clearInterval(intervalATagUpdate);
     }
   }, []);
 
