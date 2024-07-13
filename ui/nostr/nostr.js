@@ -1439,3 +1439,41 @@ export async function getCBadgeConfigsForPubkey(pubkey) {
     }
   });
 }
+
+export async function sendLiveChat(roomATag, textchat) {
+  if (!window.nostr) return;
+  let kind = 1311;
+  let tags = [
+    ["a", roomATag]
+  ];
+  let event = {
+    id: null,
+    pubkey: null,
+    created_at: Math.floor(Date.now() / 1000),
+    kind: kind,
+    tags: tags,
+    content: textchat,
+    sig: null,
+  };
+  const eventSigned = await window.nostr.signEvent(event);
+  if (!eventSigned) {
+    return [false, 'There was an error with your nostr extension'];
+  } else {
+    // push to relays
+    const defaultRelays = getDefaultOutboxRelays();
+    const myPubkey = await window.nostr.getPublicKey();
+    const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
+    let myOutboxRelays = [];
+    if (userRelays?.length == 0) {
+      const myNpub = nip19.npubEncode(myPubkey);
+      myOutboxRelays = await getOutboxRelays(myPubkey); // (async() => {await getOutboxRelays(myPubkey)})();
+      updateCacheOutboxRelays(myOutboxRelays, myNpub);
+    }
+    const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
+    //const pool = new RelayPool();
+    pool.publish(eventSigned, relaysToUse);
+    const sleeping = await sleep(100);
+    //pool.close();
+    return [true, ''];
+  }  
+}

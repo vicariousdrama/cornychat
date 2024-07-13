@@ -1,6 +1,7 @@
 import {useAction, useOn, useRootState} from '../lib/state-tree';
 import {sendPeerEvent, sendEventToOnePeer} from '../lib/swarm';
 import {actions} from './state';
+import {sendLiveChat} from '../nostr/nostr';
 
 function TextChat({swarm}) {
   const state = useRootState();
@@ -101,6 +102,7 @@ function TextChat({swarm}) {
   }
 
   return function TextChat() {
+    let {roomId} = state;
     let [isTextChat, payload] = useAction(actions.TEXT_CHAT);
     if (isTextChat) {
       // The payload can either be just the text string to send to everyone, or it can potentially be targetting a single peer
@@ -142,6 +144,13 @@ function TextChat({swarm}) {
         })();
       } else {
         sendPeerEvent(swarm, 'text-chat', {d:false,t:textchat});
+        if (window.nostr && (localStorage.getItem('textchat.tonostr') || 'false') == 'true') {
+          let atagkey = `${roomId}.atag`;
+          let roomATag = sessionStorage.getItem(atagkey) || '';
+          if (roomATag.length > 0) {
+            sendLiveChat(roomATag, textchat);
+          }
+        }
       }
     }
   };

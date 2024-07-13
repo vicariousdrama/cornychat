@@ -22,6 +22,7 @@ export default function DataTypes() {
       <li><a href="#kind3follow">Kind 3 - Follow List</a></li>
       <li><a href="#kind5eventdeletion">Kind 5 - Event Deletions</a></li>
       <li><a href="#kind8badgeawards">Kind 8 - Badge Awards</a></li>
+      <li><a href="#kind1311livetext">Kind 1311 - Live Text</a></li>
       <li><a href="#kind9734zaprequest">Kind 9734 - Zap Request</a></li>
       <li><a href="#kind10002relaylist">Kind 10002 - Relay List Metadata</a></li>
       <li><a href="#kind23194nip47request">Kind 23194 - Nostr Wallet Connect Request</a></li>
@@ -139,6 +140,14 @@ export default function DataTypes() {
         When viewing another user's profile, if they are a nostr user, then a list of Corny Chat badges that have been
         awarded to that user will be retrieved following <a href="https://github.com/nostr-protocol/nips/blob/master/58.md">NIP-58</a>.
         For each badge awarded, an image is depicted of the badge.
+      </p>
+
+      <a name="kind1311livetext"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 1311 - Live Text</h2>
+      <p>
+        When <a href="#kind30311liveactivities">live activites</a> are announced for a room, a corresponding live text message
+        will be published by the room to give guidance to users on how to participate in the audio room.  Users of Corny Chat
+        that have nostr accounts can also publish their text chat messages as live text to the activity if they enable it 
+        in their personal settings.
       </p>
 
       <a name="kind9734zaprequest"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 9734 - Zap Request</h2>

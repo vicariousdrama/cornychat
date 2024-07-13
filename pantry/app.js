@@ -31,6 +31,7 @@ const adReportRouter = require('./routes/adReportRouter');
 const userRoomRouter = require('./routes/userRoomsRouter');
 const oldRoomsRouter = require('./routes/oldRoomsRouter');
 const oldIdentitiesRouter = require('./routes/oldIdentitiesRouter');
+const nip53Router = require('./routes/nip53Router');
 
 const app = express();
 
@@ -55,6 +56,7 @@ app.use('/api/v1/rooms/:id/roomKey', roomKeyRouter);
 app.use('/api/v1/rooms/:id/live', liveRoomRouter);
 app.use('/api/v1/rooms/:id/recordings.zip', recordingsRouter);
 app.use('/api/v1/rooms/:id/moderators', roomModeratorsRouter);
+app.use('/api/v1/rooms/:id/nip53', nip53Router);
 
 app.use('/api/v1/', controller('identities', identityAuthenticator));
 

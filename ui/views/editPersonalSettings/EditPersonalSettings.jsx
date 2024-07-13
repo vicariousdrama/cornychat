@@ -101,6 +101,9 @@ export default function EditPersonalSettings({close}) {
   let [textchatEncryptPM, setTextchatEncryptPM] = useState(
     localStorage.getItem('textchat.encryptPM') ?? 'true'
   );
+  let [textchatToNostr, setTextchatToNostr] = useState(
+    localStorage.getItem('textchat.tonostr') ?? 'false'
+  );
   let [nwcEnabled, setNWCEnabled] = useState(    
     localStorage.getItem('nwc.enabled') ?? 'false'
   );
@@ -375,6 +378,7 @@ export default function EditPersonalSettings({close}) {
     localStorage.setItem('textchat.showAvatars',textchatShowAvatars);
     localStorage.setItem('textchat.bufferSize', textchatBufferSize);
     localStorage.setItem('textchat.encryptPM', textchatEncryptPM);
+    localStorage.setItem('textchat.tonostr', textchatToNostr);
     localStorage.setItem('nwc.enabled', nwcEnabled);
     localStorage.setItem('nwc.pubkey', nwcWSPubkey);
     localStorage.setItem('nwc.relay', nwcRelay);
@@ -975,7 +979,19 @@ export default function EditPersonalSettings({close}) {
               Encrypt Private Messages
             </div>
           </div>
-
+          <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
+            <div className="p-2 text-gray-200 bold">
+              <input
+                className="rounded placeholder-black bg-gray-400 text-black w-8"
+                type="checkbox"
+                checked={textchatToNostr == 'true' ? true : false}
+                onChange={e => {
+                  setTextchatToNostr(e.target.checked ? 'true' : 'false');
+                }}
+              />
+              Publish my public text chat to nostr when live activities are enabled for the room
+            </div>
+          </div>
         </div>
       </div>
 

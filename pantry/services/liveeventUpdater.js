@@ -103,8 +103,8 @@ const liveeventUpdater = async () => {
                     // Creating new live activity, assign the time
                     activeRoomTimes[roomId] = dtt;
                 }
-                // Publish as live only once per five minutes
-                if (runCounter % 5 == 0) {
+                // Publish as live only once per twenty minutes
+                if (runCounter % 20 == 1) {
                     let pla = await publishLiveActivity(roomId, dttr, roomInfo, userInfo, 'live');
                 }
             }
@@ -128,9 +128,14 @@ const liveeventUpdater = async () => {
         Object.keys(activeRoomTimes).forEach(key => {
             if (!roomsWithUsers.includes(key)) {
                 activeRoomsToRemove.push(key);
-                let dtt = activeRoomTimes[key];
-                // TODO: publish as ended ?    
-                (async() => {let dla = await deleteLiveActivity(key, dtt);})();
+                (async() => {
+                    let dtt = activeRoomTimes[key];
+                    let userInfo = [];
+                    let roomKey = `rooms/${key}`;
+                    let roomInfo = await get(roomKey);
+                    let pla = await publishLiveActivity(key, dtt, roomInfo, userInfo, 'ended');
+                    let dla = await deleteLiveActivity(key, dtt);
+                })();
             }
         })
         for (let k of activeRoomsToRemove) {

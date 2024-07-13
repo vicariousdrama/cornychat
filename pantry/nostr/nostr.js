@@ -561,7 +561,7 @@ const publishLiveActivity = async (roomId, dtt, roomInfo, userInfo, status) => {
     const kind = 30311;
     const eventUUID = `${dtt}`;
     const pk = getPublicKey(roomSk);
-    const aTagValue = `${kind}:${pk}:${eventUUID}`;
+    const aTagValue = `${kind}:${pk}:${dtt}`;
     const roomUrl = `https://${jamHost}/${roomId}`;
     const title = roomInfo?.name ?? `Corny Chat: ${roomId}`;
     const summary = (roomInfo?.description ?? `This is a live event on Corny Chat in room: ${roomId}`);
@@ -701,6 +701,27 @@ const publishRoomActive = async (roomId, dtt, roomInfo, userInfo, isnew) => {
     if(pmd) console.log('Event to be published', JSON.stringify(event));
     writepool.publish(event, relaysToUse);
     await sleep(250);
+
+    // have the room announce a live text message if its new
+    if (isnew) {
+        output = `🌽 Audio Space started! 🌽\n\nJoin the audio feed at ${roomUrl}\n\nIndividual participants can choose whether their text chat is sent to this live feed.`;
+        const liveTextKind = 1311;
+        const liveTextATag = `30311:${pk}:${dtt}`;
+        const liveTextTags = [
+            ["a", liveTextATag],
+            ["L", labelNamespace],                              // Need to document all these tags for sanity
+            ["l", jamHost, labelNamespace],    
+        ];
+        const liveTextEvent = finalizeEvent({
+            created_at: Math.floor(Date.now() / 1000),
+            kind: liveTextKind,
+            tags: liveTextTags,
+            content: output,
+        }, sk);
+        if(pmd) console.log('Event to be published', JSON.stringify(liveTextEvent));
+        writepool.publish(liveTextEvent, relaysToUse);
+        await sleep(250);
+    }
 }
 
 module.exports = {
