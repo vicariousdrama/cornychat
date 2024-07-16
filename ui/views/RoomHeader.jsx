@@ -74,7 +74,7 @@ export default function RoomHeader({
             tipToggle = !tipToggle;
             let chatText = `*tipped the room owner ⚡${roomtipamount} sats${tipToggle ? "!":"."}*`;
             (async () => {
-              let tipped = await tipRoom(roomId, room.lud16, roomtipamount, chatText);
+              let tipped = await tipRoom(roomId, room.lud16, roomtipamount, sendTextChat, chatText);
               if (!tipped) {
                 console.log("room tip failed");
               }

@@ -31,7 +31,7 @@ export default function EnterRoom({
 }) {
   const [
     state,
-    {enterRoom, setProps, updateInfo},
+    {enterRoom, setProps, updateInfo, sendTextChat},
   ] = useJam();
 
   let [
@@ -70,7 +70,8 @@ export default function EnterRoom({
   let showAd = time4Ad();
   let supportsWebRTC = canWebRTC();
   if (!supportsWebRTC) showAd = false;
-  if (showAd) showAd = !(value4valueAdSkip('EnterRoom'));
+  let enterRoomChatText = `*tipped the corny chat dev ⚡*`;
+  if (showAd) showAd = !(value4valueAdSkip('EnterRoom', sendTextChat, enterRoomChatText));
   let kicked = false;
   let kickedUntilTime = '';
   if (room.kicked) {

@@ -72,7 +72,9 @@ async function sendSats(lightningAddress, satAmount, comment, fnSuccess, textFor
             const nwcResponse = await nwc.sendPayment(paymentRequest);
             if (nwcResponse?.preimage) {
                 console.log(`Value 4 Value payment of ${satAmount} sats completed (${comment}). Preimage: ${nwcResponse.preimage}`);
-                (async () => {await fnSuccess(textForSuccess);})();
+                if (fnSuccess && textForSuccess) {
+                    (async () => {await fnSuccess(textForSuccess);})();
+                }
                 localStorage.setItem(keyForSuccess, Date.now());
                 //res(true);
                 return true;
@@ -85,7 +87,9 @@ async function sendSats(lightningAddress, satAmount, comment, fnSuccess, textFor
         return y; // always a pending promise?
     } catch (e) {
         let m = `ERROR sending sats: ${e}`;
-        (async () => {await fnSuccess(m, getMyId());})();
+        if (fnSuccess) {
+            (async () => {await fnSuccess(m, getMyId());})();
+        }
         console.log(m);
         return false;
     }    
