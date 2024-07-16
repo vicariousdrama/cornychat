@@ -35,11 +35,11 @@ function AudioPlayerToast({close}) {
       volslide.setAttribute("type", "range");
       volslide.setAttribute("min", "1");
       volslide.setAttribute("max", "100");
-      volslide.setAttribute("value", "50");
+      volslide.setAttribute("value", String(Number(localStorage.getItem('audio.volume') || '.5') * 100));
       volslide.setAttribute("class", "slider w-full h-8 mb-2");
       volslide.setAttribute("id", "volslide");
       //volslide.setAttribute("orient", "vertical");
-      volslide.setAttribute("oninput", "audio.volume = (this.value / 100); vollabel.innerText = 'Volume: ' + this.value + '%';");
+      volslide.setAttribute("oninput", "audio.volume = (this.value / 100); vollabel.innerText = 'Volume: ' + this.value + '%'; localStorage.setItem('audio.volume', String(audio.volume));");
       let vollabel = document.createElement('span');
       vollabel.setAttribute("id", "vollabel");
       vollabel.setAttribute("class", "text-xs");
@@ -76,7 +76,7 @@ function AudioPlayerToast({close}) {
 
       audio.id = 'audio';
       audio.controls = false;
-      audio.volume = .5;
+      audio.volume = Number(localStorage.getItem('audio.volume') || '.5');
       audio.style.width = '100%';
       element.appendChild(audio);
       element.appendChild(audiotable);
