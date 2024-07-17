@@ -35,7 +35,8 @@ router.get('', async function (req, res) {
         let userCount = peerIds.length;
         let userInfo = [];
         if(userCount > 0) {
-           userInfo = await Promise.all(peerIds.map(id => get(`identities/${id}`)));
+           let uis = await Promise.all(peerIds.map(id => get(`identities/${id}`)));
+           for (let ui of uis) userInfo.push({id:ui.id,name:ui.name,avatar:ui.avatar,npub:ui?.identities?.find(i => i.type === 'nostr')?.id});
         }
         if(userCount > 0) {
             let roomKey = "rooms/" + roomId;
@@ -51,9 +52,9 @@ router.get('', async function (req, res) {
                 name:roomInfo.name,
                 description:roomInfo.description,
                 logoURI:roomInfo.logoURI,
+                isProtected:isProtected,
                 userCount:userCount,
                 userInfo:userInfo,
-                isProtected:isProtected,
             });
         }
     };
