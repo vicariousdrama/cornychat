@@ -27,13 +27,13 @@ function TextChat({swarm}) {
     if (isdm) {
       textchat = await decryptFromPeerId(peerId, textchat);
     }
-    let bufferSize = sessionStorage.getItem(`textchat.bufferSize`) || 50;
-    let textchats = JSON.parse(sessionStorage.getItem(`${roomId}.textchat`) || '[]');
+    let bufferSize = localStorage.getItem(`textchat.bufferSize`) || 50;
+    let textchats = JSON.parse(localStorage.getItem(`${roomId}.textchat`) || '[]');
     let lastline = textchats.slice(-1);
     if ((lastline.length == 0) || (lastline[0].length != 2) || (lastline[0][0] != peerId) || (lastline[0][1] != textchat)) {
         textchats.push([peerId, textchat, isdm, todm]);
         textchats = textchats.slice(-1 * bufferSize);
-        sessionStorage.setItem(`${roomId}.textchat`, JSON.stringify(textchats));
+        localStorage.setItem(`${roomId}.textchat`, JSON.stringify(textchats));
         let okToIncrement = true;
         if (textchat.startsWith("*has entered the chat!*")) okToIncrement = false;
         if (handleSessionCommand("srfm",peerId,roomId,textchat)) okToIncrement = false;

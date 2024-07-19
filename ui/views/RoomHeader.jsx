@@ -31,7 +31,7 @@ export default function RoomHeader({
   ]);
 
   const [state, {sendTextChat, sendCSAR, getRoomATag}] = useJam();
-  let textchats = JSON.parse(sessionStorage.getItem(`${roomId}.textchat`) || '[]');
+  let textchats = JSON.parse(localStorage.getItem(`${roomId}.textchat`) || '[]');
   let {npub} = room || {};
   if (npub == undefined || npub == "") npub = `fakenpub-${roomId}`;
   let roomInfo = {identities:[{type:"nostr",id:npub}]};
@@ -107,7 +107,7 @@ export default function RoomHeader({
               if ((lastline.length == 0) || (lastline[0].length != 2) || (lastline[0][0] != adPeerId) || (lastline[0][1] != textchat)) {
                 textchats.push([adPeerId, textchat, false]);
                 textchats = textchats.slice(-1 * bufferSize);
-                sessionStorage.setItem(`${roomId}.textchat`, JSON.stringify(textchats));
+                localStorage.setItem(`${roomId}.textchat`, JSON.stringify(textchats));
                 let n = Math.floor(sessionStorage.getItem(`${roomId}.textchat.unread`) ?? 0) + 1;
                 sessionStorage.setItem(`${roomId}.textchat.unread`, n);
               }  
