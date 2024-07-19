@@ -20,7 +20,7 @@ export default function RoomChat({
     const mqp = useMqParser();
     const [state, {sendTextChat}] = useJam();
     let {roomId} = state;
-    let textchats = JSON.parse(sessionStorage.getItem(`${roomId}.textchat`) || '[]');
+    let textchats = JSON.parse(localStorage.getItem(`${roomId}.textchat`) || '[]');
     let [chatTarget, setChatTarget] = useState('0');
     let [chatText, setChatText] = useState('');
     let [chatScrollPosition, setChatScrollPosition] = useState(sessionStorage.getItem(`${roomId}.textchat.scrollpos`) ?? -999);
@@ -120,7 +120,7 @@ export default function RoomChat({
             chatText = chatText.substring(0,615);           // cashu is about 355 for single proof, a token can have multiple proofs
         }
         if (chatText.startsWith("/clear")) {
-            sessionStorage.setItem(`${roomId}.textchat`,'[]');
+            localStorage.setItem(`${roomId}.textchat`,'[]');
         } else if (chatText.startsWith("/help")) {
             textchats.push([myId, "Supported markdown", false]);
             textchats.push([myId, "• To **bold** surround with 2 *", false]);
@@ -130,7 +130,7 @@ export default function RoomChat({
             textchats.push([myId, "• /help shows this guidance", false]);
             textchats.push([myId, "• /clear resets your text buffer", false]);
             textchats.push([myId, "• /me emotes a statement", false]);
-            sessionStorage.setItem(`${roomId}.textchat`,JSON.stringify(textchats));
+            localStorage.setItem(`${roomId}.textchat`,JSON.stringify(textchats));
         } else {
             (async () => {await sendTextChat(chatText, chatTarget);})(); // send to swarm (including us) as text-chat
         }
