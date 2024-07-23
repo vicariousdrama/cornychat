@@ -161,6 +161,7 @@ services:
       jam:
         aliases:
           - ${JAM_HOST}
+          - ${LNBITS_HOST}
     hostname: traefik
     image: traefik
     restart: always
@@ -178,7 +179,7 @@ services:
       - "--metrics.prometheus.addEntryPointsLabels=true"
       - "--metrics.prometheus.addServicesLabels=true"
     labels:
-      - traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)
+      - "traefik.http.routers.http-catchall.rule=Host(`${JAM_HOST}`) || Host(`${LNBITS_HOST}`) || HostRegexp(`{subdomain:[az0-9]+}.${JAM_HOST}`)"
       - traefik.http.routers.http-catchall.entrypoints=web
       - traefik.http.routers.http-catchall.middlewares=redirect-to-https@docker
       - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
@@ -190,6 +191,24 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ../data/traefik/acme:/acme
     profiles: [ "web" ]
+  lnbits:
+    networks:
+      - jam
+    image: lnbits/lnbits:0.12.10
+    labels:
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}_lnbits.rule=Host(`${LNBITS_HOST}`)
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}_lnbits.tls=true
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}_lnbits.tls.certresolver=letsencrypt
+      - traefik.enable=true
+    volumes:
+      - ../data/lnbits:/app/data
+      - ./lnbits/.env:/app/.env
+      - ./lnbits/tls.crt:/app/tls.crt
+      - ./lnbits/lnbits-invoiceonly.macaroon:/app/lnbits.macaroon
+    ports:
+      - "5000:5000"
+    restart: always
+    profiles: [ "lnbits" ]
 volumes:
   prometheus_data: {}
   grafana_data: {}

@@ -1,6 +1,6 @@
-@import url("https://fonts.googleapis.com/css2?family=Pacifico:wght@200;400;600&display=swap");
+@import url("./fonts/Pacifico.css");
 
-@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css");
+@import url("./fonts/all.min.css");
 
 * {
   box-sizing: border-box;
