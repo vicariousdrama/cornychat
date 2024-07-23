@@ -12,3 +12,5 @@ ui/esbuild.json
 data
 jam-config
 __pycache__
+*.macaroon
+tls.crt
