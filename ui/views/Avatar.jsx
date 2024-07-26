@@ -18,6 +18,7 @@ export function StageAvatar({
   info,
   onClick,
   iAmAdmin,
+  nameSymbols,
 }) {
   return (
     <Avatar {...{
@@ -32,6 +33,7 @@ export function StageAvatar({
       info,
       onClick,
       iAmAdmin,
+      nameSymbols,
     }}
     />
   );
@@ -47,6 +49,7 @@ export function AudienceAvatar({
   info,
   onClick,
   iAmAdmin,
+  nameSymbols,
 }) {
   let speaking = undefined;
   let canSpeak = false;
@@ -63,6 +66,7 @@ export function AudienceAvatar({
       info,
       onClick,
       iAmAdmin,
+      nameSymbols,
     }}
     />
   );
@@ -80,6 +84,7 @@ function Avatar({
   info,
   onClick,
   iAmAdmin,
+  nameSymbols,
 }) {
   let isSpeaking = false;
   if (speaking) {
@@ -117,18 +122,6 @@ function Avatar({
   if (userNpub != undefined) {
     userDisplayName = getRelationshipPetname(userNpub, userDisplayName);
   }
-  const nameSymbols = [
-    {"name":"Marie","symbol":"🌹","title":"Valentine"},
-    {"npub":"npub1el3mgvtdjpfntdkwq446pmprpdv85v6rs85zh7dq9gvy7tgx37xs2kl27r","symbol":"🌹","title":"Valentine"},
-    {"name":"TheNoshole","symbol":"🌹","title":"Puzzles Valentine"},
-    {"npub":"npub1ymt2j3n8tesrlr0yhaheem6yyqmmwrr7actslurw6annls6vnrcslapxnz","symbol":"🌹","title":"Puzzles Valentine"},
-    {"name":"island","symbol":"🥃","title":"Likes Bourbon"},
-    {"npub":"npub1jzuma368395gu523y4vk4d34p0lxgctk436hggn4qcuj93075qgqtn3vm0","symbol":"🥃","title":"Likes Bourbon"},
-    {"name":"Sai","symbol":"🎭","title":"Tragic Comedy"},
-    {"npub":"npub16tnq9ruem6evwmywhu69xxl0qk802f03vf8hftvkuvw0n7mmz83stxcvw5","symbol":"🎭","title":"Tragic Comedy"},
-    {"name":"puzzles","symbol":"🧩","title":"Retired Puzzle Maker"},
-    {"npub":"npub12r0yjt8723ey2r035qtklhmdj90f0j6an7xnan8005jl7z5gw80qat9qrx","symbol":"🧩","title":"Retired Puzzle Maker"},
-  ];
   let hasNameSymbol = false;
   let userSymbol = null;
   let userSymbolTitle = null;

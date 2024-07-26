@@ -29,6 +29,7 @@ export default function RoomMembers({
   stageOnly,
   stagePeers,
   state,
+  nameSymbols,
 }) {
 
 
@@ -51,6 +52,7 @@ export default function RoomMembers({
                   peerState={myPeerState}
                   info={myInfo}
                   iAmAdmin={iAmAdmin}
+                  nameSymbols={nameSymbols}
                   onClick={() => {
                     openModal(Profile, {
                       info: state.myIdentity.info,
@@ -73,6 +75,7 @@ export default function RoomMembers({
                   peerState={peerState[peerId]}
                   info={identities[peerId]}
                   iAmAdmin={iAmAdmin}
+                  nameSymbols={nameSymbols}
                   onClick={() => {
                     openModal(Profile, {
                       info: identities[peerId],
@@ -105,6 +108,7 @@ export default function RoomMembers({
                     peerState={myPeerState}
                     info={myInfo}
                     iAmAdmin={iAmAdmin}
+                    nameSymbols={nameSymbols}
                     onClick={() => {
                       openModal(Profile, {
                         info: state.myIdentity.info,
@@ -126,6 +130,7 @@ export default function RoomMembers({
                     peerState={peerState[peerId]}
                     info={identities[peerId]}
                     iAmAdmin={iAmAdmin}
+                    nameSymbols={nameSymbols}
                     onClick={() =>
                       openModal(Profile, {
                         info: identities[peerId],
