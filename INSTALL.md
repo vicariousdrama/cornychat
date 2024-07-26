@@ -229,6 +229,8 @@ nano .env
 
 7. If you want to use LNbits, set the `LNBITS_HOST` value to the domain name you intend to use for lnbits. This will currently need to be different from the chat server domain due to the way some internal paths are handled.  You'll also need to add `,lnbits` to the end of the `COMPOSE_PROFILES` value. Be sure to follow the section _Configuring LNbits_ below
 
+8. If you want to have backups (probably a good idea), you can add `,backup` to the end of the `COMPOSE_PROFILES` value. Be sure to follow the section _Configuring Backups_ below
+
 Press CTRL+O, CTRL+X to save and exit
 
 **Edit the turnserver.conf file**
@@ -243,7 +245,7 @@ nano ~/cornychat/deployment/turnserver.conf
 
 Press CTRL+O, CTRL+X to save and exit
 
-**Configuring LNbits**
+## **Configuring LNbits**
 
 If you are not enabling LNbits, then you can skip this section.
 
@@ -295,6 +297,33 @@ echo "long-string-of-hexadecimal-characters" | xxd -p -r - > ~/cornychat/deploym
 
 After docker compose is started for the first time below, you'll need to login to the LNbits instance, setting up the super user, and finishing configuration.
 
+## **Configuring Backups**
+
+If you are not enabling backups, then you can skip this section.
+
+At the time of writing, backups can be performed for the pantry server data (stored in redis) as well as lnbits to an Amazon Web Services S3 bucket.
+Getting an account with Amazon Web Services is outside the scope of this guide, but you will need to establish an S3 bucket and have IAM user access key id and secret access key already prepared. The bucket policy should allow your IAM credentials to list the contents and write (put) files to it.
+
+Within your .env file, ensure that the `COMPOSE_PROFILES` value includes `backup`.  This enables the docker images for backup in the stack.
+
+Then set values for `BACKUP_AWS_ACCESS_KEY_ID`, `BACKUP_AWS_SECRET_ACCESS_KEY`, `BACKUP_AWS_S3_BUCKET` and `BACKUP_AWS_REGION`.
+
+Backups will be created every 12 hours. If running the dev-docker-compose file, its every 2 hours.  Currently backups are perpetually held so storage costs will rise over time.  Within the S3 bucket, a folder structure will be created as follows:
+
+```
+/cornychat-backups/pantryredis/pantryredis-YYYY-mm-dd_HH-MM-SS.tar.gz
+/cornychat-backups/lnbits/lnbits-YYYY-mm-dd_HH-MM-SS.tar.gz
+```
+
+And for development,
+
+```
+/cornychat-backups-dev/pantryredis/pantryredis-YYYY-mm-dd_HH-MM-SS.tar.gz
+/cornychat-backups-dev/lnbits/lnbits-YYYY-mm-dd_HH-MM-SS.tar.gz
+```
+
+## Build UI and Docker Containers
+
 **Build the UI**
 
 ```sh
@@ -306,6 +335,9 @@ yarn
 
 ```sh
 cd ~/cornychat/ui
+sudo chmod +x buildit.sh
+./buildit.sh
+cd ~/cornychat/s3backup
 sudo chmod +x buildit.sh
 ./buildit.sh
 cd ~/cornychat/pantry
@@ -322,6 +354,8 @@ If the pantry-sfu image fails, then perform the following to pull the prebuilt i
 docker pull registry.gitlab.com/jam-systems/jam/pantry-sfu:master
 docker tag registry.gitlab.com/jam-systems/jam/pantry-sfu:master cornychat/pantry-sfu:stable
 ```
+
+## Starting the Docker Containers
 
 **Start Docker**
 
@@ -348,6 +382,8 @@ cd ~/cornychat/deployment
 docker-compose -f dev-docker-compose.yml up -d
 ```
 
+## Post Startup
+
 **Finishing LNbits Configuration to setup Server Lightning Address**
 
 You will need to perform the following steps after startup
@@ -364,4 +400,9 @@ You will need to perform the following steps after startup
 
 6. Test your new lightning address. In another browser tab, access the url corresponding to the lightning address username. For example, if your domain is "example.com" and the username you created was "sample", then the url you want to visit is<br />https://example.com/.well-known/lnurlp/sample<br />If successful it should return a json including information about the callback url to use and parameters for the minimum and maximum amount and support for comments.  If this does not work, review your configuration. If it is fine, take the callback url and open it in another tab with a test amount by adding the querystring<br />`?amount=1000&comment=test` .<br />For example, if the callback value is<br />https://example.com/lnurlp/api/v1/lnurl/tb/8uXzj4, then you would call this address<br />https://example.com/lnurlp/api/v1/lnurl/tb/8uXzj4?amount=1000&comment=test<br />If the server is able to access the funding source it should return a json response that includes a field for `pr` indicating the payment request. Try paying that invoice using another wallet, converting to a QR code to scan if necessary.
 
-7. Once satisfied that all is working as desired, you can use this lightning address for the `SERVER_PROFILE_LUD16` value in the ~/cornychat/deployment/.env file 
+7. Once satisfied that all is working as desired, you can use this lightning address for the `SERVER_PROFILE_LUD16` value in the ~/cornychat/deployment/.env file. For it to take effect, youll need to restart the pantry
+
+```sh
+cd ~/cornychat/deployment
+docker-compose restart pantry
+```

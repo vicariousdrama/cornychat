@@ -96,6 +96,23 @@ services:
     volumes:
       - "../data/pantryredis:/data"
     command: "redis-server --appendonly yes"
+  backupredis:
+    depends_on:
+      - pantryredis
+    image: cornychat/s3backup
+    #build: ../s3backup
+    #image: peterrus/s3-cron-backup
+    environment:
+      - AWS_ACCESS_KEY_ID=${BACKUP_AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${BACKUP_AWS_SECRET_ACCESS_KEY}
+      - S3_BUCKET_URL=s3://${BACKUP_AWS_S3_BUCKET}/cornychat-backups/pantryredis
+      - AWS_DEFAULT_REGION=${BACKUP_AWS_REGION}
+      - CRON_SCHEDULE=23 */12 * * * # run every 12 hours
+      - BACKUP_NAME=pantryredis
+    volumes: # use :ro to make sure volume gets mounted read only
+      - ../data/pantryredis:/data/pantryredis:ro
+    restart: always
+    profiles: [ "backup" ]
   pantry-sfu:
     #build: ../pantry-sfu
     #image: registry.gitlab.com/jam-systems/jam/pantry-sfu:${CHANNEL}
@@ -209,6 +226,23 @@ services:
       - "5000:5000"
     restart: always
     profiles: [ "lnbits" ]
+  backuplnbits:
+    depends_on:
+      - lnbits
+    image: cornychat/s3backup
+    #build: ../s3backup
+    #image: peterrus/s3-cron-backup
+    environment:
+      - AWS_ACCESS_KEY_ID=${BACKUP_AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${BACKUP_AWS_SECRET_ACCESS_KEY}
+      - S3_BUCKET_URL=s3://${BACKUP_AWS_S3_BUCKET}/cornychat-backups/lnbits
+      - AWS_DEFAULT_REGION=${BACKUP_AWS_REGION}
+      - CRON_SCHEDULE=41 */12 * * * # run every 12 hours, at 41 minutes after
+      - BACKUP_NAME=lnbits
+    volumes: # use :ro to make sure volume gets mounted read only
+      - ../data/lnbits:/data/lnbits:ro
+    restart: always
+    profiles: [ "backup" ]
 volumes:
   prometheus_data: {}
   grafana_data: {}
