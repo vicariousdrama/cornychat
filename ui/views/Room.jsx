@@ -22,6 +22,20 @@ const inWebView =
     (userAgent.os?.name === 'iOS' &&
       userAgent.browser?.name !== 'Mobile Safari'));
 
+const nameSymbols = [
+  {"name":"Marie","symbol":"🌹","title":"Valentine"},
+  {"npub":"npub1el3mgvtdjpfntdkwq446pmprpdv85v6rs85zh7dq9gvy7tgx37xs2kl27r","symbol":"🌹","title":"Valentine"},
+  {"name":"TheNoshole","symbol":"🌹","title":"Puzzles Valentine"},
+  {"npub":"npub1ymt2j3n8tesrlr0yhaheem6yyqmmwrr7actslurw6annls6vnrcslapxnz","symbol":"🌹","title":"Puzzles Valentine"},
+  {"name":"island","symbol":"🥃","title":"Likes Bourbon"},
+  {"npub":"npub1jzuma368395gu523y4vk4d34p0lxgctk436hggn4qcuj93075qgqtn3vm0","symbol":"🥃","title":"Likes Bourbon"},
+  {"name":"Sai","symbol":"🎭","title":"Tragic Comedy"},
+  {"npub":"npub16tnq9ruem6evwmywhu69xxl0qk802f03vf8hftvkuvw0n7mmz83stxcvw5","symbol":"🎭","title":"Tragic Comedy"},
+  {"name":"puzzles","symbol":"🧩","title":"Retired Puzzle Maker"},
+  {"npub":"npub12r0yjt8723ey2r035qtklhmdj90f0j6an7xnan8005jl7z5gw80qat9qrx","symbol":"🧩","title":"Retired Puzzle Maker"},
+  {"npub":"npub1xd5apfmrpzfpr7w9l7uezm2fn8ztrdhvrtj3tlrmvvv8l6czqatshccdx5","symbol":"🐝","title":"Sweet Honeybee"},
+];    
+
 export default function Room({room, roomId, uxConfig}) {
   // room = {name, description, moderators: [peerId], speakers: [peerId], access}
   const [state, {sendTextChat}] = useJam();
@@ -100,8 +114,6 @@ export default function Room({room, roomId, uxConfig}) {
     closed,
     stageOnly,
     lud16,
-    isProtected,
-    passphraseHash,
   } = room || {};
 
   function CacheAds() {
@@ -360,6 +372,7 @@ export default function Room({room, roomId, uxConfig}) {
             stageOnly,
             stagePeers,
             state,
+            nameSymbols,
           }}
         />
         )}
@@ -388,8 +401,6 @@ export default function Room({room, roomId, uxConfig}) {
           showChat,
           setShowChat,
           iAmAdmin,
-//          isProtected,
-//          passphraseHash,
         }}
       />
     </div>
