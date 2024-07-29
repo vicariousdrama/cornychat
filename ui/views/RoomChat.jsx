@@ -28,6 +28,8 @@ export default function RoomChat({
     let textchatLayout = localStorage.getItem("textchat.layout") ?? 'versus';
     let textchatShowNames = ((localStorage.getItem('textchat.showNames') ?? 'true') == 'true');
     let textchatShowAvatar = ((localStorage.getItem('textchat.showAvatars') ?? 'true') == 'true');
+    let textchatShowDates = ((localStorage.getItem("textchat.showDates") ?? 'false') == 'true');
+    let textchatShowDatesDuration = localStorage.getItem("textchat.showDates.duration") ?? 3600;
     const colorTheme = room?.color ?? 'default';
     const roomColor = colors(colorTheme, room.customColor);
     const textColor = isDark(roomColor.avatarBg) ? roomColor.text.light : roomColor.text.dark;
@@ -122,14 +124,15 @@ export default function RoomChat({
         if (chatText.startsWith("/clear")) {
             localStorage.setItem(`${roomId}.textchat`,'[]');
         } else if (chatText.startsWith("/help")) {
-            textchats.push([myId, "Supported markdown", false]);
-            textchats.push([myId, "• To **bold** surround with 2 *", false]);
-            textchats.push([myId, "• To *italicize* surround with 1 *", false]);
-            textchats.push([myId, "• To hide spoilers, surround with 2 |", false]);
-            textchats.push([myId, "• Emoji shortcodes are surrounded by 1 :", false]);
-            textchats.push([myId, "• /help shows this guidance", false]);
-            textchats.push([myId, "• /clear resets your text buffer", false]);
-            textchats.push([myId, "• /me emotes a statement", false]);
+            let textTime = Math.floor(Date.now() / 1000);
+            textchats.push([myId, "Supported markdown", false, null, textTime]);
+            textchats.push([myId, "• To **bold** surround with 2 *", false, null, textTime]);
+            textchats.push([myId, "• To *italicize* surround with 1 *", false, null, textTime]);
+            textchats.push([myId, "• To hide spoilers, surround with 2 |", false, null, textTime]);
+            textchats.push([myId, "• Emoji shortcodes are surrounded by 1 :", false, null, textTime]);
+            textchats.push([myId, "• /help shows this guidance", false, null, textTime]);
+            textchats.push([myId, "• /clear resets your text buffer", false, null, textTime]);
+            textchats.push([myId, "• /me emotes a statement", false, null, textTime]);
             localStorage.setItem(`${roomId}.textchat`,JSON.stringify(textchats));
         } else {
             (async () => {await sendTextChat(chatText, chatTarget);})(); // send to swarm (including us) as text-chat
@@ -208,6 +211,9 @@ export default function RoomChat({
     
     let previoususerid = '';
     let previoustext = '';
+    let previoustime = '';
+    let dateOptions = {month: 'long', day: 'numeric'};
+    let timeOptions = { timeStyle: 'short'};
     return (
     <div id="roomChat" className="h-full w-full bg-gray-700"
         style={{position: 'relative'}}
@@ -233,6 +239,15 @@ export default function RoomChat({
             let thetext = ((textentry != undefined && textentry.length > 1) ? textentry[1] : '');
             let isdm = ((textentry != undefined && textentry.length > 2) ? textentry[2] : false);
             let todm = ((textentry != undefined && textentry.length > 3) ? textentry[3] : '');
+            let texttime = ((textentry != undefined && textentry.length > 4) ? textentry[4] : 0);
+            let textdate = new Date((Math.floor(texttime/textchatShowDatesDuration)*textchatShowDatesDuration) * 1000);
+            let humanDate = new Intl.DateTimeFormat('en-us',dateOptions).format(textdate);
+            let humanTime = new Intl.DateTimeFormat('en-us',timeOptions).format(textdate);
+            let textdate2 = new Date((Math.floor((texttime+textchatShowDatesDuration)/textchatShowDatesDuration)*textchatShowDatesDuration) * 1000);
+            let humanTime2 = new Intl.DateTimeFormat('en-us',timeOptions).format(textdate2);
+            let textstring = texttime > 0 ? `${humanDate} ${humanTime} - ${humanTime2}` : 'Older Messages';
+            //console.log('textstring',textstring);
+
             // Get who the message was sent to when DMing
             let tousername = '';
             if (todm) {
@@ -243,10 +258,15 @@ export default function RoomChat({
                     tousername = getRelationshipPetname(todmnpub, tousername);
                 }
             }
-            
+            // set line prefix
+            let lineprefix = '';
+            if (textchatShowDates && textstring != previoustime) {
+                lineprefix = textstring;
+                console.log('lineprefix: ', lineprefix);
+            }            
             // skip duplicates
             if (previoususerid == userid && previoustext == thetext) {
-                return (<span key={chatkey}></span>);
+                return (<><span key={chatkey}></span></>);
             }
             previoususerid = userid;
             previoustext = thetext;
@@ -270,7 +290,8 @@ export default function RoomChat({
                     console.log(m);
                     /* ignore */
                 }
-                return (
+                previoustime = textstring;
+                return (<>{lineprefix && (<div className="bg-gray-500 text-gray-700"><center>{lineprefix}</center></div>)}
                     <center key={chatkey} className="text-xs text-gray-400 cursor-pointer">
                     <div style={{width:'330px',height:'60px',border:'3px solid lightgreen',backgroundColor: (cashuamount == '?' ? 'red' : 'green'),color:'white',textAlign:'center'}}
                         onClick={async () => {
@@ -291,14 +312,15 @@ export default function RoomChat({
                         )}
                     </div>
                     </center>
+                    </>
                 );
             }
             if(thetext.startsWith("/srfm")) {
-                return (<span key={chatkey}></span>);                
+                return (<><span key={chatkey}></span></>);
             }
             if(thetext.startsWith("/chatad")) {
                 if (!jamConfig.handbill) {
-                    return (<span key={chatkey}></span>);
+                    return (<><span key={chatkey}></span></>);
                 }
                 let chatadparts = thetext.split(":");
                 let adidx = chatadparts[1];
@@ -315,9 +337,10 @@ export default function RoomChat({
                             adidnum = adidnum % adlist.length;
                             let adimg = adlist[adidnum].image;
                             let adimgsrc = `${jamConfig.urls.pantry}/api/v1/cimg/${roomId}/${adimg}?r=${adreqdt}`;
+                            previoustime = textstring;
                             if (adlist[adidnum].hasLink) {
                                 adlink = adlist[adidnum].link;
-                                return (
+                                return (<>{lineprefix && (<div className="bg-gray-500 text-gray-700"><center>{lineprefix}</center></div>)}
                                     <center key={chatkey} className="text-xs text-gray-400">linked advertisement
                                     <a href={`${adlink}`} target="_blank">
                                     <div style={{width:'330px',height:'60px',border:'3px solid orange'}}>
@@ -325,21 +348,24 @@ export default function RoomChat({
                                     </div>
                                     </a>
                                     </center>
+                                    </>
                                 );                                
                             } else {
-                                return (
+                                return (<>{lineprefix && (<div className="bg-gray-500 text-gray-700"><center>{lineprefix}</center></div>)}
                                     <center key={chatkey} className="text-xs text-gray-400">advertisement
                                     <img style={{width:'320px',height:'50px'}} src={adimgsrc} />
                                     </center>
+                                    </>
                                 );            
                             }
                         }
                     }             
                 } catch (error) { /*ignore*/ }
                 // still here? return empty
-                return (<span key={chatkey}></span>);
+                return (<><span key={chatkey}></span></>);
             }
             
+            previoustime = textstring;
             if(userid != myId || textchatLayout == 'left') {
                 // others : left aligned
                 if (emoting) {
@@ -348,8 +374,11 @@ export default function RoomChat({
                     thetext = (textchatShowNames ? username + ": " : "") + thetext;
                 }
                 return (
+                    <>
+                    {lineprefix && (<div className="bg-gray-500 text-gray-700"><center>{lineprefix}</center></div>)}
                     <div key={chatkey} className="flex w-full justify-between bg-gray-700 text-white" 
                         style={{borderBottom: '1px solid rgb(55,65,81)', backgroundColor: chatBackgroundColor }}>
+                        
                         {textchatShowAvatar && (
                         <img className="flex w-6 h-6 human-radius" src={useravatar} 
                         onClick={() =>
@@ -370,6 +399,7 @@ export default function RoomChat({
                              dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext) }} />
                         {isdm && (<span className="rounded" style={{backgroundColor: 'rgb(32,128,32)',color:'rgb(255,255,255)'}}>{myId==userid ? '>>' + (textchatShowNames ? tousername : "") : '<<'}</span>)}
                     </div>
+                    </>
                 );
             } else {
                 // me : avatar on right side
@@ -378,6 +408,8 @@ export default function RoomChat({
                 }
                 
                 return (
+                    <>
+                    {lineprefix && (<div className="bg-gray-500 text-gray-700"><center>{lineprefix}</center></div>)}
                     <div key={chatkey} className="flex w-full justify-between bg-gray-700 text-white" 
                     style={{borderBottom: '1px solid rgb(55,65,81)', backgroundColor: chatBackgroundColor }}>
                         <div className="flex-grow text-sm text-right break-words mr-1" 
@@ -400,6 +432,7 @@ export default function RoomChat({
                         />
                         )}
                     </div>
+                    </>
                 );
             }
         })}

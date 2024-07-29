@@ -98,6 +98,9 @@ export default function EditPersonalSettings({close}) {
   let [textchatShowNames, setTextchatShowNames] = useState(
     localStorage.getItem('textchat.showNames') ?? 'true'
   );
+  let [textchatShowDates, setTextchatShowDates] = useState(
+    localStorage.getItem('textchat.showDates') ?? 'false'
+  );
   let [textchatEncryptPM, setTextchatEncryptPM] = useState(
     localStorage.getItem('textchat.encryptPM') ?? 'true'
   );
@@ -376,6 +379,7 @@ export default function EditPersonalSettings({close}) {
     localStorage.setItem('textchat.layout',textchatLayout);
     localStorage.setItem('textchat.showNames',textchatShowNames);
     localStorage.setItem('textchat.showAvatars',textchatShowAvatars);
+    localStorage.setItem('textchat.showDates',textchatShowDates);
     localStorage.setItem('textchat.bufferSize', textchatBufferSize);
     localStorage.setItem('textchat.encryptPM', textchatEncryptPM);
     localStorage.setItem('textchat.tonostr', textchatToNostr);
@@ -917,6 +921,19 @@ export default function EditPersonalSettings({close}) {
             </div>
             <div className="p-2 text-gray-200 italic">
               Choose versus for messaging style left/right alignment. Or All left for traditional chat.
+            </div>
+          </div>
+          <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
+            <div className="p-2 text-gray-200 bold">
+              <input
+                className="rounded placeholder-black bg-gray-400 text-black w-8"
+                type="checkbox"
+                checked={textchatShowDates == 'true' ? true : false}
+                onChange={e => {
+                  setTextchatShowDates(e.target.checked ? 'true' : 'false');
+                }}
+              />
+              Show Date Headers in Text Chat
             </div>
           </div>
           <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">

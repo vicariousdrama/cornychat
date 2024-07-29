@@ -91,13 +91,13 @@ If successful, it will pick up the SSH public key
 
 ## Install some common tools
 
-**Python3, Git, JPEG Development Library, ImageMagic and Inkscape, JQ and Netcat**
+**Git, JQ and Netcat**
 
 
 ```sh
 sudo apt-get update
 
-sudo apt-get install -y python3 python3-venv git libjpeg-dev zlib1g-dev imagemagick inkscape jq netcat
+sudo apt-get install -y git jq netcat
 ```
 
 **Fail2Ban**

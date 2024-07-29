@@ -104,12 +104,13 @@ export default function RoomHeader({
               let textchat = `/chatad:${adidx}:${adreqdt}`;
               if (!textchats) textchats = [];
               let lastline = textchats.slice(-1);
+              let textTime = Math.floor(Date.now() / 1000);
               if ((lastline.length == 0) || (lastline[0].length != 2) || (lastline[0][0] != adPeerId) || (lastline[0][1] != textchat)) {
-                textchats.push([adPeerId, textchat, false]);
+                textchats.push([adPeerId, textchat, false, null, textTime]);
                 textchats = textchats.slice(-1 * bufferSize);
                 localStorage.setItem(`${roomId}.textchat`, JSON.stringify(textchats));
-                let n = Math.floor(sessionStorage.getItem(`${roomId}.textchat.unread`) ?? 0) + 1;
-                sessionStorage.setItem(`${roomId}.textchat.unread`, n);
+                //let n = Math.floor(sessionStorage.getItem(`${roomId}.textchat.unread`) ?? 0) + 1;
+                //sessionStorage.setItem(`${roomId}.textchat.unread`, n);
               }  
             } else {
               console.log("dev tip failed");

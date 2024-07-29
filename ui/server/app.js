@@ -41,15 +41,15 @@ console.log(`jamServerOperator: ${jamServerOperator}`);
 const preloadScript = getPreloadScript();
 
 let jamConfigFromFile = {};
-try {
-  jamConfigFromFile = JSON.parse(
-    fs
-      .readFileSync(process.env.JAM_CONFIG_DIR + '/jam-config.json')
-      .toString('utf-8')
-  );
-} catch (e) {
-  console.log('No config file found, starting with empty config');
-}
+// try {
+//   jamConfigFromFile = JSON.parse(
+//     fs
+//       .readFileSync(process.env.JAM_CONFIG_DIR + '/jam-config.json')
+//       .toString('utf-8')
+//   );
+// } catch (e) {
+//   console.log('No config file found, starting with empty config');
+// }
 
 const jamConfig = {
   ...jamConfigFromFile,
@@ -257,7 +257,66 @@ async function getRoomMetaInfo(route) {
       roomId,
     };
   } catch (e) {
-    console.log(`getRoomMetaInfo Error getting info for ${route} : ${e.toString()}`);
+    console.log(`Unable to retrieve info for ${route} : ${e.toString()}`);
+    return {metaInfo: defaultMetaInfo};
+  }
+}
+
+async function getRoomMetaInfoNew(route) {
+  if (reservedRoutes.includes(route)) return {metaInfo: defaultMetaInfo};
+  try {
+    // remove .ics or other suffixes
+    const [roomIdCS] = route.split('.');
+    let roomId = roomIdCS;
+    let roomInfo = {}
+    let success = false;
+    try {
+      let roomInfoCS = await (await fetch(`${pantryApiPrefix}/${roomId}`)).json();
+      roomInfo = roomInfoCS;
+      success = true;
+    } catch (eCS) {
+      console.log(`Unable to retrieve room metadata using case sensitive value ${roomId}.`);
+      //console.log(`getRoomMetaInfo Error 1 getting info for ${route} : ${eCS.toString()}`);
+      roomId = roomIdCS.toLowerCase();
+      if (roomId != roomIdCS) {
+        console.log(`Attempting as lowercase ${roomId}`);
+        try {
+          let roomInfoLower = await (await fetch(`${pantryApiPrefix}/${roomId}`)).json();
+          roomInfo = roomInfoLower;
+          success = true;
+        } catch (eLower) {
+          console.log(`Error getting room metadata for ${route} : ${eLower.toString()}`);
+          return {
+            metaInfo: defaultMetaInfo,
+            roomInfo,
+            roomId,
+          };    
+        }
+      }
+    }
+    if (success) {
+      console.log('Preparing response to getRoomMetaInfo');
+      return {
+        metaInfo: {
+          ...defaultMetaInfo,
+          ogTitle: roomInfo.name,
+          ogDescription: roomInfo.description,
+          ogUrl: `${urls.jam}/${roomId}`,
+          ogImage: roomInfo.logoURI || jamServerImage,
+          color: roomInfo.color || '',
+          id: roomId || '',
+          favIcon: roomInfo.logoURI || jamServerFavicon,
+          schedule: roomInfo.schedule,
+        },
+        roomInfo,
+        roomId,
+      };
+    } else {
+      console.log(`Using default meta info for ${route}`);
+      return {metaInfo: defaultMetaInfo}
+    }
+  } catch (e) {
+    console.log(`getRoomMetaInfo Error 3 getting info for ${route} : ${e.toString()}`);
     return {metaInfo: defaultMetaInfo};
   }
 }
