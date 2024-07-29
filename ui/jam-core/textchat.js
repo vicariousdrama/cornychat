@@ -30,14 +30,30 @@ function TextChat({swarm}) {
     let bufferSize = localStorage.getItem(`textchat.bufferSize`) || 50;
     let textchats = JSON.parse(localStorage.getItem(`${roomId}.textchat`) || '[]');
     let lastline = textchats.slice(-1);
-    if ((lastline.length == 0) || (lastline[0].length != 2) || (lastline[0][0] != peerId) || (lastline[0][1] != textchat)) {
-        textchats.push([peerId, textchat, isdm, todm]);
-        textchats = textchats.slice(-1 * bufferSize);
-        localStorage.setItem(`${roomId}.textchat`, JSON.stringify(textchats));
-        let okToIncrement = true;
-        if (textchat.startsWith("*has entered the chat!*")) okToIncrement = false;
-        if (handleSessionCommand("srfm",peerId,roomId,textchat)) okToIncrement = false;
-        if (okToIncrement) incrementUnread(roomId);
+    let textTime = Math.floor(Date.now() / 1000); // time by second is now added to the end and can be descriminator
+    let okToAdd = true;
+    if (lastline[0].length > 1) {
+      let samepeer = (lastline[0][0] == peerId);
+      let sametext = (lastline[0][1] == textchat);
+      if (samepeer && sametext) {
+        if (lastline[0].length > 4) {
+          let sametime = (lastline[0][4] == textTime); // same person, text and time? ignore it.
+          if (sametime) okToAdd = false;
+        } else {
+          okToAdd = false; // no time, but same person and text? ignore it.
+        }
+      }
+    }
+
+    if (okToAdd) {
+      textchats.push([peerId, textchat, isdm, todm, textTime]);
+      textchats = textchats.slice(-1 * bufferSize);
+      localStorage.setItem(`${roomId}.textchat`, JSON.stringify(textchats));
+      let okToIncrement = true;
+      if (textchat.startsWith("*has entered the chat!*")) okToIncrement = false;
+      if (textchat.startsWith("/chatad")) okToIncrement = false;
+      if (handleSessionCommand("srfm",peerId,roomId,textchat)) okToIncrement = false;
+      if (okToIncrement) incrementUnread(roomId);
     }
   }
 
