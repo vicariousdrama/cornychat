@@ -3,6 +3,7 @@ import {makeLocalDate} from '../nostr/nostr';
 
 export default function StartScheduledEvent({
     eventInfo,
+    index,
   }) {
     //available fields:  startTime, endTime, image, location, title
     const localHumanDateTime = makeLocalDate(eventInfo.startTime);
@@ -30,14 +31,14 @@ export default function StartScheduledEvent({
     var imageUrl = eventInfo?.image ?? 'https://cornychat.com/img/cornychat-app-icon.jpg';
 
     return (
-        <div className="">
+        <div className="" key={`scheduled_${index}`}>
         <a href={`${eventInfo.location}`}>
         <div className="select-none px-0 text-lg rounded-lg mt-3"
              style={isExternal ? coloringStyleExternal : coloringStyle}
         >
-            <table cellpadding="0" cellspacing="0" border="0" style={{maxWidth:'350px',width:'350px'}}><tbody>
+            <table cellPadding="0" cellSpacing="0" border="0" style={{maxWidth:'350px',width:'350px'}}><tbody>
             <tr>
-                <td rowspan="2" style={{width: '72px'}}>
+                <td rowSpan="2" style={{width: '72px'}}>
                     <img src={imageUrl}
                         style={{width: '64px', height: '64px', objectFit: 'cover'}} />
                 </td>

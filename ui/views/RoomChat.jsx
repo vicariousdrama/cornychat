@@ -4,7 +4,7 @@ import {useMqParser} from '../lib/tailwind-mqp';
 import {colors, isDark} from '../lib/theme';
 import {useJam} from '../jam-core-react';
 import {avatarUrl, displayName} from '../lib/avatar';
-import {getNpubFromInfo, getRelationshipPetname} from '../nostr/nostr';
+import {getNpubFromInfo, getRelationshipPetname, makeLocalDate} from '../nostr/nostr';
 import {openModal} from './Modal';
 import {Profile} from './Profile';
 
@@ -25,11 +25,12 @@ export default function RoomChat({
     let [chatText, setChatText] = useState('');
     let [chatScrollPosition, setChatScrollPosition] = useState(sessionStorage.getItem(`${roomId}.textchat.scrollpos`) ?? -999);
     let myId = myIdentity.info.id;
-    let textchatLayout = localStorage.getItem("textchat.layout") ?? 'versus';
+    let textchatLayout = localStorage.getItem("textchat.layout") ?? 'left'; //versus
     let textchatShowNames = ((localStorage.getItem('textchat.showNames') ?? 'true') == 'true');
     let textchatShowAvatar = ((localStorage.getItem('textchat.showAvatars') ?? 'true') == 'true');
     let textchatShowDates = ((localStorage.getItem("textchat.showDates") ?? 'false') == 'true');
-    let textchatShowDatesDuration = localStorage.getItem("textchat.showDates.duration") ?? 3600;
+    let textchatShowDatesDuration = Math.floor(localStorage.getItem("textchat.showDates.duration") ?? '0');
+    let textchatShowTimestamps = ((localStorage.getItem("textchat.showTimestamps") ?? 'false') == 'true');
     const colorTheme = room?.color ?? 'default';
     const roomColor = colors(colorTheme, room.customColor);
     const textColor = isDark(roomColor.avatarBg) ? roomColor.text.light : roomColor.text.dark;
@@ -122,7 +123,7 @@ export default function RoomChat({
             chatText = chatText.substring(0,615);           // cashu is about 355 for single proof, a token can have multiple proofs
         }
         if (chatText.startsWith("/clear")) {
-            localStorage.setItem(`${roomId}.textchat`,'[]');
+            localStorage.setItem(`${roomId}.textchat`,JSON.stringify([]));
         } else if (chatText.startsWith("/help")) {
             let textTime = Math.floor(Date.now() / 1000);
             textchats.push([myId, "Supported markdown", false, null, textTime]);
@@ -211,7 +212,7 @@ export default function RoomChat({
     
     let previoususerid = '';
     let previoustext = '';
-    let previoustime = '';
+    let previousTimeString = '';
     let dateOptions = {month: 'long', day: 'numeric'};
     let timeOptions = { timeStyle: 'short'};
     return (
@@ -245,9 +246,10 @@ export default function RoomChat({
             let humanTime = new Intl.DateTimeFormat('en-us',timeOptions).format(textdate);
             let textdate2 = new Date((Math.floor((texttime+textchatShowDatesDuration)/textchatShowDatesDuration)*textchatShowDatesDuration) * 1000);
             let humanTime2 = new Intl.DateTimeFormat('en-us',timeOptions).format(textdate2);
-            let textstring = texttime > 0 ? `${humanDate} ${humanTime} - ${humanTime2}` : 'Older Messages';
-            //console.log('textstring',textstring);
-
+            let groupTimeString = texttime > 0 ? `${humanDate} ${humanTime} - ${humanTime2}` : 'Older Messages';
+            let timestampString1 = texttime > 0 ? makeLocalDate(texttime) : 'Historic Message';
+            let timestampString2 = texttime > 0 ? (new Intl.DateTimeFormat('en-us',{timeStyle:'short'}).format(new Date(texttime * 1000)).split(' ')[0]) : 'Older';
+            let timestampString = timestampString2;
             // Get who the message was sent to when DMing
             let tousername = '';
             if (todm) {
@@ -259,24 +261,23 @@ export default function RoomChat({
                 }
             }
             // set line prefix
-            let lineprefix = '';
-            if (textchatShowDates && textstring != previoustime) {
-                lineprefix = textstring;
-                console.log('lineprefix: ', lineprefix);
+            let dateHeader = '';
+            if (textchatShowDates && groupTimeString != previousTimeString) {
+                dateHeader = groupTimeString;
+                //console.log('dateHeader: ', dateHeader);
             }            
             // skip duplicates
             if (previoususerid == userid && previoustext == thetext) {
-                return (<><span key={chatkey}></span></>);
+                return (<span key={chatkey}></span>);
             }
             previoususerid = userid;
             previoustext = thetext;
-            let emoting = thetext.startsWith("/me");
+            let emoting = thetext.startsWith("/me") || thetext.includes("has entered the chat");
             let sentv4v = (thetext.includes("zapped") || thetext.includes("tipped")) && thetext.includes("⚡");
             let iserror = (thetext.startsWith("ERROR"));
             let chatLineTextColor = iserror ? 'rgb(192,0,0)' : (emoting ? 'rgb(59,130,246)' : (sentv4v ? 'rgb(255,155,55)' : 'rgb(255,255,255)'));
             let chatBackgroundColor = isdm ? (myId == userid ? 'rgb(24,64,24)' : 'rgb(24,24,64)') : 'rgb(55,65,81)';
-            if(thetext.startsWith("cashu") && thetext.length > 350) {
-
+            if(thetext.startsWith("cashu") && thetext.length > 200) {
                 let cashuamount = '?';
                 let cashuunit = 'sats';
                 let cashumint = 'unknown mint';
@@ -290,9 +291,10 @@ export default function RoomChat({
                     console.log(m);
                     /* ignore */
                 }
-                previoustime = textstring;
-                return (<>{lineprefix && (<div className="bg-gray-500 text-gray-700"><center>{lineprefix}</center></div>)}
-                    <center key={chatkey} className="text-xs text-gray-400 cursor-pointer">
+                previousTimeString = groupTimeString;
+                return (<span key={chatkey}>
+                    {dateHeader && (<div className="bg-gray-500 text-gray-700"><center>{dateHeader}</center></div>)}
+                    <center className="text-xs text-gray-400 cursor-pointer">
                     <div style={{width:'330px',height:'60px',border:'3px solid lightgreen',backgroundColor: (cashuamount == '?' ? 'red' : 'green'),color:'white',textAlign:'center'}}
                         onClick={async () => {
                             await window.navigator.clipboard.writeText(thetext);
@@ -312,15 +314,15 @@ export default function RoomChat({
                         )}
                     </div>
                     </center>
-                    </>
+                    </span>
                 );
             }
             if(thetext.startsWith("/srfm")) {
-                return (<><span key={chatkey}></span></>);
+                return (<span key={chatkey}></span>);
             }
             if(thetext.startsWith("/chatad")) {
                 if (!jamConfig.handbill) {
-                    return (<><span key={chatkey}></span></>);
+                    return (<span key={chatkey}></span>);
                 }
                 let chatadparts = thetext.split(":");
                 let adidx = chatadparts[1];
@@ -337,35 +339,37 @@ export default function RoomChat({
                             adidnum = adidnum % adlist.length;
                             let adimg = adlist[adidnum].image;
                             let adimgsrc = `${jamConfig.urls.pantry}/api/v1/cimg/${roomId}/${adimg}?r=${adreqdt}`;
-                            previoustime = textstring;
+                            previousTimeString = groupTimeString;
                             if (adlist[adidnum].hasLink) {
                                 adlink = adlist[adidnum].link;
-                                return (<>{lineprefix && (<div className="bg-gray-500 text-gray-700"><center>{lineprefix}</center></div>)}
-                                    <center key={chatkey} className="text-xs text-gray-400">linked advertisement
+                                return (<span key={chatkey}>
+                                    {dateHeader && (<div className="bg-gray-500 text-gray-700"><center>{dateHeader}</center></div>)}
+                                    <center className="text-xs text-gray-400">linked advertisement
                                     <a href={`${adlink}`} target="_blank">
                                     <div style={{width:'330px',height:'60px',border:'3px solid orange'}}>
                                     <img style={{width:'320px',height:'50px',marginTop:'2px'}} src={adimgsrc} />
                                     </div>
                                     </a>
                                     </center>
-                                    </>
+                                    </span>
                                 );                                
                             } else {
-                                return (<>{lineprefix && (<div className="bg-gray-500 text-gray-700"><center>{lineprefix}</center></div>)}
-                                    <center key={chatkey} className="text-xs text-gray-400">advertisement
+                                return (<span key={chatkey}>
+                                    {dateHeader && (<div className="bg-gray-500 text-gray-700"><center>{dateHeader}</center></div>)}
+                                    <center className="text-xs text-gray-400">advertisement
                                     <img style={{width:'320px',height:'50px'}} src={adimgsrc} />
                                     </center>
-                                    </>
+                                    </span>
                                 );            
                             }
                         }
                     }             
                 } catch (error) { /*ignore*/ }
                 // still here? return empty
-                return (<><span key={chatkey}></span></>);
+                return (<span key={chatkey}></span>);
             }
             
-            previoustime = textstring;
+            previousTimeString = groupTimeString;
             if(userid != myId || textchatLayout == 'left') {
                 // others : left aligned
                 if (emoting) {
@@ -374,11 +378,14 @@ export default function RoomChat({
                     thetext = (textchatShowNames ? username + ": " : "") + thetext;
                 }
                 return (
-                    <>
-                    {lineprefix && (<div className="bg-gray-500 text-gray-700"><center>{lineprefix}</center></div>)}
-                    <div key={chatkey} className="flex w-full justify-between bg-gray-700 text-white" 
+                    <span key={chatkey}>
+                    {dateHeader && (<div className="bg-gray-500 text-gray-700"><center>{dateHeader}</center></div>)}
+                    <div className="flex w-full justify-between bg-gray-700 text-white" 
                         style={{borderBottom: '1px solid rgb(55,65,81)', backgroundColor: chatBackgroundColor }}>
-                        
+                        {textchatShowTimestamps && (
+                        <div className="flex text-sm break-words mr-1"
+                             style={{color: chatLineTextColor}}>{timestampString}</div>
+                        )}
                         {textchatShowAvatar && (
                         <img className="flex w-6 h-6 human-radius" src={useravatar} 
                         onClick={() =>
@@ -399,7 +406,7 @@ export default function RoomChat({
                              dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext) }} />
                         {isdm && (<span className="rounded" style={{backgroundColor: 'rgb(32,128,32)',color:'rgb(255,255,255)'}}>{myId==userid ? '>>' + (textchatShowNames ? tousername : "") : '<<'}</span>)}
                     </div>
-                    </>
+                    </span>
                 );
             } else {
                 // me : avatar on right side
@@ -408,9 +415,9 @@ export default function RoomChat({
                 }
                 
                 return (
-                    <>
-                    {lineprefix && (<div className="bg-gray-500 text-gray-700"><center>{lineprefix}</center></div>)}
-                    <div key={chatkey} className="flex w-full justify-between bg-gray-700 text-white" 
+                    <span key={chatkey}>
+                    {dateHeader && (<div className="bg-gray-500 text-gray-700"><center>{dateHeader}</center></div>)}
+                    <div className="flex w-full justify-between bg-gray-700 text-white" 
                     style={{borderBottom: '1px solid rgb(55,65,81)', backgroundColor: chatBackgroundColor }}>
                         <div className="flex-grow text-sm text-right break-words mr-1" 
                              style={{color: chatLineTextColor}}
@@ -431,8 +438,12 @@ export default function RoomChat({
                           }                        
                         />
                         )}
+                        {textchatShowTimestamps && (
+                        <div className="flex text-sm break-words ml-1"
+                             style={{color: chatLineTextColor}}>{timestampString}</div>
+                        )}
                     </div>
-                    </>
+                    </span>
                 );
             }
         })}
