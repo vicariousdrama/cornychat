@@ -64,6 +64,10 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
   }, []);
 
   let submit = e => {
+    let result = confirm('Are you sure you want to create a new room?');
+    if (result != true) {
+      return;
+    }
     e.preventDefault();
     setProps('userInteracted', true);
     let roomId;
@@ -116,7 +120,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
           <br />
           </>
         )}
-        You can use the button below to start a new room named room.
+        You can use the button below to start a new room.
       </div>
 
       <br />
@@ -169,8 +173,8 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
                 </>
               )}
               {roomList.length > 0 && (
-                roomList.map((roomInfo) => {
-                  return <StartRoomSimple roomInfo={roomInfo} key={roomInfo.roomId} />
+                roomList.map((roomInfo,i) => {
+                  return <StartRoomSimple roomInfo={roomInfo} index={i} key={i} />
                 })
               )}
               </>
@@ -184,8 +188,8 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
                 </>
               )}
               {myRoomList.length > 0 && (
-                myRoomList.map((myRoomInfo) => {
-                  return <StartMyRoomSimple roomInfo={myRoomInfo} key={myRoomInfo.roomId} myId={myId} />
+                myRoomList.map((myRoomInfo,i) => {
+                  return <StartMyRoomSimple roomInfo={myRoomInfo} index={i} myId={myId} key={i} />
                 })
               )}
               </>
@@ -199,8 +203,8 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
                 </>
               )}
               {eventList.length > 0 && (
-                eventList.map((eventInfo) => {
-                  return <StartScheduledEvent eventInfo={eventInfo} key={eventInfo.location} />
+                eventList.map((eventInfo,i) => {
+                  return <StartScheduledEvent eventInfo={eventInfo} index={i} key={i} />
                 })
               )}
               </>

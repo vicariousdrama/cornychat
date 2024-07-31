@@ -32,7 +32,7 @@ function TextChat({swarm}) {
     let lastline = textchats.slice(-1);
     let textTime = Math.floor(Date.now() / 1000); // time by second is now added to the end and can be descriminator
     let okToAdd = true;
-    if (lastline[0].length > 1) {
+    if (lastline.length > 0 && lastline[0].length > 1) {
       let samepeer = (lastline[0][0] == peerId);
       let sametext = (lastline[0][1] == textchat);
       if (samepeer && sametext) {

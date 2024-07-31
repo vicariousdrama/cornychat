@@ -3,7 +3,7 @@ import {useJam} from '../jam-core-react';
 
 export default function StartMyRoomSimple({
     roomInfo,
-    key,
+    index,
     myId,
   }) {
 
@@ -30,12 +30,13 @@ export default function StartMyRoomSimple({
 
     if (roomInfo.hidden) {
         return (
-            <></>
+            <span key={`myroom_${index}`}></span>
         );
     }
 
     return (
         <div className="text-lg rounded-lg mr-2 w-full"
+            key={`myroom_${index}`}
              style={coloringStyle}
              id={`myrooms-${roomId}`}
         >

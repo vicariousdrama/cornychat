@@ -4,7 +4,7 @@ import gfm from 'remark-gfm';
 
 export default function StartRoomSimple({
     roomInfo,
-    key,
+    index,
   }) {
     const roomId = roomInfo?.roomId ?? 'unknown-room';
     const roomName = roomInfo?.name ?? roomId;
@@ -12,6 +12,7 @@ export default function StartRoomSimple({
     const roomLogoValue = roomInfo?.logoURI ?? '';
     const roomLogo = roomLogoValue.length > 0 ? roomLogoValue : '/img/cornychat-defaultroomlogo.png';
     const userCount = roomInfo?.userCount ?? -1;
+    const isProtected = roomInfo?.isProtected ?? false;
 
     var coloringStyle = {
         backgroundColor: 'rgb(1,111,210)',
@@ -25,11 +26,16 @@ export default function StartRoomSimple({
     return (
         <div className="px-0 text-lg rounded-lg mr-2 mb-2"
              style={coloringStyle}
+             key={`room_${index}`}
         >
+        {isProtected && (
+          <div className="italic text-xs"
+               style={{position:'relative',bottom:'0px',left:'0px',backgroundColor:'rgb(255,128,21)'}} 
+               title={'A passphrase is required to enter this room'}>A passphrase is required for entry to this room</div>)}
         <a href={`./${roomId}`}>
           <table style={{width:'300px',margin:'0px',padding:'0px'}}><tbody>
             <tr>
-              <td rowspan="2" style={{width: '140px'}}>
+              <td rowSpan="2" style={{width: '140px'}}>
                 <img src={roomLogo}
                      style={{width: '128px', height: '128px', objectFit: 'cover'}} />
               </td>

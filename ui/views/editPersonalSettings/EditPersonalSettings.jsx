@@ -87,7 +87,7 @@ export default function EditPersonalSettings({close}) {
     localStorage.getItem('doorbellEnabled') ?? '0'
   );
   let [textchatLayout, setTextchatLayout] = useState(
-    localStorage.getItem('textchat.layout') ?? 'versus'
+    localStorage.getItem('textchat.layout') ?? 'left'
   );
   let [textchatBufferSize, setTextchatBufferSize] = useState(
     localStorage.getItem('textchat.bufferSize') ?? '50'
@@ -100,6 +100,12 @@ export default function EditPersonalSettings({close}) {
   );
   let [textchatShowDates, setTextchatShowDates] = useState(
     localStorage.getItem('textchat.showDates') ?? 'false'
+  );
+  let [textchatShowDatesDuration, setTextchatShowDatesDuration] = useState(
+    localStorage.getItem('textchat.showDates.duration') ?? '3600'
+  );
+  let [textchatShowTimestamps, setTextchatShowTimestamps] = useState(
+    localStorage.getItem('textchat.showTimestamps') ?? 'false'
   );
   let [textchatEncryptPM, setTextchatEncryptPM] = useState(
     localStorage.getItem('textchat.encryptPM') ?? 'true'
@@ -380,6 +386,8 @@ export default function EditPersonalSettings({close}) {
     localStorage.setItem('textchat.showNames',textchatShowNames);
     localStorage.setItem('textchat.showAvatars',textchatShowAvatars);
     localStorage.setItem('textchat.showDates',textchatShowDates);
+    localStorage.setItem('textchat.showDates.duration',textchatShowDatesDuration);
+    localStorage.setItem('textchat.showTimestamps',textchatShowTimestamps);
     localStorage.setItem('textchat.bufferSize', textchatBufferSize);
     localStorage.setItem('textchat.encryptPM', textchatEncryptPM);
     localStorage.setItem('textchat.tonostr', textchatToNostr);
@@ -933,9 +941,42 @@ export default function EditPersonalSettings({close}) {
                   setTextchatShowDates(e.target.checked ? 'true' : 'false');
                 }}
               />
-              Show Date Headers in Text Chat
+              Group messages by Date Headers
+              {textchatShowDates == 'true' && (
+              <>
+                &nbsp;Adjust the duration for each date/time header block
+                <select
+                  name="textchatShowDatesDuration"
+                  defaultValue={textchatShowDatesDuration}
+                  onChange={e => {
+                    setTextchatShowDatesDuration(e.target.value);
+                  }}
+                  className={'border mt-3 ml-2 p-2 text-black rounded'}
+                >
+                <option key="textchatShowDatesDuration5" value="300">5 minutes</option>
+                <option key="textchatShowDatesDuration10" value="600">10 minutes</option>
+                <option key="textchatShowDatesDuration15" value="900">15 minutes</option>
+                <option key="textchatShowDatesDuration30" value="1800">30 minutes</option>
+                <option key="textchatShowDatesDuration60" value="3600">1 hour</option>
+                <option key="textchatShowDatesDuration120" value="7200">2 hours</option>
+                </select>
+              </>
+              )}
             </div>
           </div>
+          <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
+            <div className="p-2 text-gray-200 bold">
+              <input
+                className="rounded placeholder-black bg-gray-400 text-black w-8"
+                type="checkbox"
+                checked={textchatShowTimestamps == 'true' ? true : false}
+                onChange={e => {
+                  setTextchatShowTimestamps(e.target.checked ? 'true' : 'false');
+                }}
+              />
+              Show Timestamps in Text Chat
+            </div>
+          </div>          
           <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
             <div className="p-2 text-gray-200 bold">
               <input
