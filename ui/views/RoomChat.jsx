@@ -241,6 +241,7 @@ export default function RoomChat({
             let isdm = ((textentry != undefined && textentry.length > 2) ? textentry[2] : false);
             let todm = ((textentry != undefined && textentry.length > 3) ? textentry[3] : '');
             let texttime = ((textentry != undefined && textentry.length > 4) ? textentry[4] : 0);
+            if (texttime == undefined) texttime = 0;
             let textdate = new Date((Math.floor(texttime/textchatShowDatesDuration)*textchatShowDatesDuration) * 1000);
             let humanDate = new Intl.DateTimeFormat('en-us',dateOptions).format(textdate);
             let humanTime = new Intl.DateTimeFormat('en-us',timeOptions).format(textdate);
