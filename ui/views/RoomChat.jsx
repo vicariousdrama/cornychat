@@ -109,11 +109,9 @@ export default function RoomChat({
             let scrollTop = c.scrollTop;
             let scrollHeight = c.scrollHeight;
             let clientHeight = c.clientHeight;
-            //console.log(`scrolled to scrollTop: ${scrollTop}, scrollHeight: ${scrollHeight}, clientHeight: ${clientHeight}`);
             let newpos = ((scrollTop) >= (scrollHeight - clientHeight)) ? -1 : scrollTop;
             sessionStorage.setItem(`${roomId}.textchat.scrollpos`, newpos);
             setChatScrollPosition(newpos);
-            //console.log('saving position as ', newpos);
         }
     }
 
@@ -242,13 +240,15 @@ export default function RoomChat({
             let todm = ((textentry != undefined && textentry.length > 3) ? textentry[3] : '');
             let texttime = ((textentry != undefined && textentry.length > 4) ? textentry[4] : 0);
             if (texttime == undefined) texttime = 0;
+            if (String(texttime).length > 10) texttime = Math.floor(texttime / 1000);
+            if (window.DEBUG) console.log('texttime:',texttime);
             let textdate = new Date((Math.floor(texttime/textchatShowDatesDuration)*textchatShowDatesDuration) * 1000);
             let humanDate = new Intl.DateTimeFormat('en-us',dateOptions).format(textdate);
             let humanTime = new Intl.DateTimeFormat('en-us',timeOptions).format(textdate);
             let textdate2 = new Date((Math.floor((texttime+textchatShowDatesDuration)/textchatShowDatesDuration)*textchatShowDatesDuration) * 1000);
             let humanTime2 = new Intl.DateTimeFormat('en-us',timeOptions).format(textdate2);
             let groupTimeString = texttime > 0 ? `${humanDate} ${humanTime} - ${humanTime2}` : 'Older Messages';
-            let timestampString1 = texttime > 0 ? makeLocalDate(texttime) : 'Historic Message';
+            let timestampString1 = texttime > 0 ? makeLocalDate(texttime) : 'Older Message';
             let timestampString2 = texttime > 0 ? (new Intl.DateTimeFormat('en-us',{timeStyle:'short'}).format(new Date(texttime * 1000)).split(' ')[0]) : 'Older';
             let timestampString = timestampString2;
             // Get who the message was sent to when DMing
@@ -261,12 +261,8 @@ export default function RoomChat({
                     tousername = getRelationshipPetname(todmnpub, tousername);
                 }
             }
-            // set line prefix
-            let dateHeader = '';
-            if (textchatShowDates && groupTimeString != previousTimeString) {
-                dateHeader = groupTimeString;
-                //console.log('dateHeader: ', dateHeader);
-            }            
+            // set date header based on group strings
+            let dateHeader = (textchatShowDates && groupTimeString != previousTimeString) ? groupTimeString : "";
             // skip duplicates
             if (previoususerid == userid && previoustext == thetext) {
                 return (<span key={chatkey}></span>);

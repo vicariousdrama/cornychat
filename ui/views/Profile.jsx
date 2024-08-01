@@ -214,7 +214,6 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
   const maxPostsToDisplay = Math.floor(localStorage.getItem('maxPostsToDisplay') || '3');
 
   const actorNpub = getNpubFromInfo(actorIdentity.info);
-  //console.log('userNpub: ', userNpub, ', actorNpub: ', actorNpub);
   const shortNpub = userNpub ? userNpub.substring(0, 20) : null;
   const hasNostrIdentity = checkNostrIdentity(info.identities);
   const isSameId = info.id === actorIdentity.info.id;
