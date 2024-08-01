@@ -83,7 +83,7 @@ async function sendSats(lightningAddress, satAmount, comment, fnSuccess, textFor
             return false;
         });
         let y = x();
-        console.log(`in sendSats, y: ${y}`);
+        if (window.DEBUG) console.log(`in sendSats, y: ${y}`);
         return y; // always a pending promise?
     } catch (e) {
         let m = `ERROR sending sats: ${e}`;

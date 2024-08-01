@@ -291,7 +291,6 @@ export function BasicRoomInfo({
               onBlur={async(e) => {
                 let roomPassphrasePlain = `${roomId}.${passphrasePlain}`;
                 let roomPassphraseHash = await dosha256hexrounds(roomPassphrasePlain,21);
-                //console.log(`plan passphrase: ${roomPassphrasePlain} == hashed: ${roomPassphraseHash}`);
                 setPassphraseHash(roomPassphraseHash);
               }}
             ></input>

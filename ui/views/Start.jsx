@@ -30,7 +30,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
         setRoomList([]); //mainroomonly);
       }
       setLoadingRooms(false);
-      console.log(roomlist);
+      if (window.DEBUG) console.log(roomlist);
     };
     loadRooms();
     const loadEvents = async () => {
@@ -42,14 +42,14 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
         setEventList([]);
       }
       setLoadingEvents(false);
-      console.log(eventlist);
+      if (window.DEBUG) console.log(eventlist);
     };
     loadEvents();  
     const loadMyRooms = async () => {
       setLoadingMyRooms(true);
-      console.log(myId)
+      if (window.DEBUG) console.log(myId)
       let myroomlist = await(listMyRooms(myId));
-      console.log(myroomlist);
+      if (window.DEBUG) console.log(myroomlist);
       if (myroomlist.length > 0) {
         setMyRoomList(myroomlist[0]);
       } else {

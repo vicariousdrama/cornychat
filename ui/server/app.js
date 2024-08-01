@@ -279,7 +279,7 @@ async function getRoomMetaInfoNew(route) {
       //console.log(`getRoomMetaInfo Error 1 getting info for ${route} : ${eCS.toString()}`);
       roomId = roomIdCS.toLowerCase();
       if (roomId != roomIdCS) {
-        console.log(`Attempting as lowercase ${roomId}`);
+        if (window.DEBUG) console.log(`Attempting as lowercase ${roomId}`);
         try {
           let roomInfoLower = await (await fetch(`${pantryApiPrefix}/${roomId}`)).json();
           roomInfo = roomInfoLower;
@@ -295,7 +295,7 @@ async function getRoomMetaInfoNew(route) {
       }
     }
     if (success) {
-      console.log('Preparing response to getRoomMetaInfo');
+      if (window.DEBUG) console.log('Preparing response to getRoomMetaInfo');
       return {
         metaInfo: {
           ...defaultMetaInfo,

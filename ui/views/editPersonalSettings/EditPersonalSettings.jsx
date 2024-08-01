@@ -354,7 +354,7 @@ export default function EditPersonalSettings({close}) {
               let userDisplayName = displayName(myIdentity.info, room);
               name = userDisplayName;
             }
-            console.log('setting name for anonymous user and clearing identity verification');
+            if (window.DEBUG) console.log('setting name for anonymous user and clearing identity verification');
             let ok = await updateInfo({name, avatar, identities});
             if (ok) {
               close();
@@ -703,7 +703,6 @@ export default function EditPersonalSettings({close}) {
               type="checkbox"
               checked={animEnabled == 'true' ? true : false}
               onChange={e => {
-                console.log('changing animEnabled',e.target.checked);
                 setAnimEnabled(e.target.checked ? 'true' : 'false');
               }}
             />

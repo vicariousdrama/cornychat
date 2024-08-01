@@ -247,7 +247,7 @@ export async function getUserEventById(pubkey, id) {
         if (userEvents.length === 0) {
           //pool.close();
           res(undefined);
-          console.log('Nostr relays did not return any events');
+          if (window.DEBUG) console.log('Nostr relays did not return any events');
         }
       }, 2700);
 
@@ -397,7 +397,7 @@ export async function sendZaps(npubToZap, comment, amount, state) {
           satsAmount,
           comment
         );
-        console.log('ui/nostr/nostr.js', lnInvoice);
+        if (window.DEBUG) console.log('ui/nostr/nostr.js', lnInvoice);
         return [true, lnInvoice.pr];
       }
       // zap request was signed...
@@ -876,7 +876,7 @@ export async function saveList(dTagValue, name, about, image, kind, theList) {
   if (!eventSigned) {
     return [false, 'There was an error with your nostr extension'];
   } else {
-    console.log(eventSigned);
+    if (window.DEBUG) console.log(eventSigned);
     // push to relays
     const defaultRelays = getDefaultOutboxRelays();
     const myPubkey = await window.nostr.getPublicKey();
@@ -888,11 +888,11 @@ export async function saveList(dTagValue, name, about, image, kind, theList) {
       updateCacheOutboxRelays(myOutboxRelays, myNpub);
     }
     const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
-    console.log(relaysToUse);
+    if (window.DEBUG) console.log(relaysToUse);
     //const pool = new RelayPool();
-    console.log("992-publishing");
+    if (window.DEBUG) console.log("992-publishing");
     pool.publish(eventSigned, relaysToUse);
-    console.log("994-published");
+    if (window.DEBUG) console.log("994-published");
     const sleeping = await sleep(100);
     //pool.close();
     return [true, ''];
@@ -1090,7 +1090,7 @@ export async function loadPetnames() {
           }
           if (allowDecrypting) {
             let enc = event.content;
-            console.log('loadPetnames checking encrypted content');
+            if (window.DEBUG) console.log('loadPetnames checking encrypted content');
             if (enc != undefined && enc.length > 0 && window.nostr.nip44) {
               let dec = ''; // await window.nostr.nip44.decrypt(myPubkey, enc);
               (async () => {let response = await window.nostr.nip44.decrypt(myPubkey, enc); dec = response})();
@@ -1329,7 +1329,7 @@ export async function publishStatus(status, url) {
     ["r", url]
   ];
   //tags.push(["expiration", `${expiration}`]);
-  console.log(`Publishing status to nostr: ${status}, with url ${url}`);
+  if (window.DEBUG) console.log(`Publishing status to nostr: ${status}, with url ${url}`);
   let event = {
     id: null,
     pubkey: null,

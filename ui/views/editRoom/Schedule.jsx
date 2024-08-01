@@ -25,7 +25,6 @@ export function Schedule({
     if(z != undefined) {
       for (let r of rawTimeZones) {
         if (r.name == z) {
-          //console.log(`Using ltzo ${r.abbreviation} with offset ${r.rawOffsetInMinutes}`);
           nz = r.rawOffsetInMinutes * 60;
         }
       }
@@ -35,15 +34,12 @@ export function Schedule({
     let ltzo = 0;
     for (let r of rawTimeZones) {
       if (r.name == ltz) {
-        //console.log(`Using ltzo ${r.abbreviation} with offset ${r.rawOffsetInMinutes}`);
         ltzo = r.rawOffsetInMinutes * 60;
       }
     }
-    //console.log(`making unix time from ${d} ${t} ${z} -> year: ${ny}, month: ${nm}, day: ${nd}, hour: ${nh}, minute: ${nn}, offset seconds: ${nz}, ltzo seconds: ${ltzo}`)
     let o = new Date(ny,nm,nd,nh,nn);
     let p = (o.getTime() / 1000);
     let u = (o.getTime() / 1000) + (ltzo - nz);
-    //console.log(`computed unix utc time: ${u} (local timestamp ${p} + (localoffset ${ltzo} - utc offset ${nz}))`);
     return u;
   }
 
