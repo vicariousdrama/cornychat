@@ -29,7 +29,7 @@ export default function RoomChat({
     let textchatShowNames = ((localStorage.getItem('textchat.showNames') ?? 'true') == 'true');
     let textchatShowAvatar = ((localStorage.getItem('textchat.showAvatars') ?? 'true') == 'true');
     let textchatShowDates = ((localStorage.getItem("textchat.showDates") ?? 'false') == 'true');
-    let textchatShowDatesDuration = Math.floor(localStorage.getItem("textchat.showDates.duration") ?? '0');
+    let textchatShowDatesDuration = Math.floor(localStorage.getItem("textchat.showDates.duration") ?? '3600');
     let textchatShowTimestamps = ((localStorage.getItem("textchat.showTimestamps") ?? 'false') == 'true');
     const colorTheme = room?.color ?? 'default';
     const roomColor = colors(colorTheme, room.customColor);
@@ -210,7 +210,9 @@ export default function RoomChat({
     
     let previoususerid = '';
     let previoustext = '';
+    let groupTimeString = '';
     let previousTimeString = '';
+    let timestampString = '';
     let dateOptions = {month: 'long', day: 'numeric'};
     let timeOptions = { timeStyle: 'short'};
     return (
@@ -239,18 +241,31 @@ export default function RoomChat({
             let isdm = ((textentry != undefined && textentry.length > 2) ? textentry[2] : false);
             let todm = ((textentry != undefined && textentry.length > 3) ? textentry[3] : '');
             let texttime = ((textentry != undefined && textentry.length > 4) ? textentry[4] : 0);
+            if (window.DEBUG) console.log('texttime:', texttime);
             if (texttime == undefined) texttime = 0;
             if (String(texttime).length > 10) texttime = Math.floor(texttime / 1000);
             if (window.DEBUG) console.log('texttime:',texttime);
-            let textdate = new Date((Math.floor(texttime/textchatShowDatesDuration)*textchatShowDatesDuration) * 1000);
-            let humanDate = new Intl.DateTimeFormat('en-us',dateOptions).format(textdate);
-            let humanTime = new Intl.DateTimeFormat('en-us',timeOptions).format(textdate);
-            let textdate2 = new Date((Math.floor((texttime+textchatShowDatesDuration)/textchatShowDatesDuration)*textchatShowDatesDuration) * 1000);
-            let humanTime2 = new Intl.DateTimeFormat('en-us',timeOptions).format(textdate2);
-            let groupTimeString = texttime > 0 ? `${humanDate} ${humanTime} - ${humanTime2}` : 'Older Messages';
-            let timestampString1 = texttime > 0 ? makeLocalDate(texttime) : 'Older Message';
-            let timestampString2 = texttime > 0 ? (new Intl.DateTimeFormat('en-us',{timeStyle:'short'}).format(new Date(texttime * 1000)).split(' ')[0]) : 'Older';
-            let timestampString = timestampString2;
+            try {
+                let textdate = new Date((Math.floor(texttime/textchatShowDatesDuration)*textchatShowDatesDuration) * 1000);
+                if (window.DEBUG) console.log('textdate', textdate);
+                let humanDate = new Intl.DateTimeFormat('en-us',dateOptions).format(textdate);
+                let humanTime = new Intl.DateTimeFormat('en-us',timeOptions).format(textdate);
+                let textdate2 = new Date((Math.floor((texttime+textchatShowDatesDuration)/textchatShowDatesDuration)*textchatShowDatesDuration) * 1000);
+                if (window.DEBUG) console.log('textdate2', textdate2);
+                let humanTime2 = new Intl.DateTimeFormat('en-us',timeOptions).format(textdate2);
+                groupTimeString = texttime > 0 ? `${humanDate} ${humanTime} - ${humanTime2}` : 'Older Messages';
+            } catch (edate) {
+                if (window.DEBUG) console.log(edate);
+            }
+            try {
+                let timestampString1 = texttime > 0 ? makeLocalDate(texttime) : 'Older Message';
+                if (window.DEBUG) console.log('timestampString1', timestampString1);
+                let timestampString2 = texttime > 0 ? (new Intl.DateTimeFormat('en-us',{timeStyle:'short'}).format(new Date(texttime * 1000)).split(' ')[0]) : 'Older';
+                timestampString = timestampString2;
+                if (window.DEBUG) console.log('timestampString', timestampString);
+            } catch (etimestamp) {
+                if (window.DEBUG) console.log(etimestamp);
+            }
             // Get who the message was sent to when DMing
             let tousername = '';
             if (todm) {
@@ -263,6 +278,7 @@ export default function RoomChat({
             }
             // set date header based on group strings
             let dateHeader = (textchatShowDates && groupTimeString != previousTimeString) ? groupTimeString : "";
+            if (window.DEBUG) console.log('dateHeader', dateHeader);
             // skip duplicates
             if (previoususerid == userid && previoustext == thetext) {
                 return (<span key={chatkey}></span>);
