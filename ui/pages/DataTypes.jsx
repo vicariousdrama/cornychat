@@ -306,7 +306,7 @@ export default function DataTypes() {
       <tr><td style={{width:'50px'}}></td><td>["start_tzid", "Europe/London"],</td></tr>
       <tr><td style={{width:'50px'}}></td><td>["end_tzid", "Europe/London"],</td></tr>
       <tr><td style={{width:'50px'}}></td><td>["location", "https://cornychat.com/roomid"],</td></tr>
-      <tr><td style={{width:'50px'}}></td><td>["about", "the description of the event"],                  // Undocumented Flockstr tag</td></tr>
+      <tr><td style={{width:'50px'}}></td><td>["summary", "the description of the event"],                // replaces deprecated Flockstr tag: about</td></tr>
       <tr><td style={{width:'50px'}}></td><td>["image", "the rooms URI"],                                 // Undocumented Flockstr tag</td></tr>
       <tr><td style={{width:'50px'}}></td><td>["L", "com.cornychat"],</td></tr>
       <tr><td style={{width:'50px'}}></td><td>["l", "cornychat.com", "com.cornychat"],</td></tr>

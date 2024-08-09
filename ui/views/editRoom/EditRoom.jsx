@@ -57,6 +57,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
   let [stageOnly, setStageOnly] = useState(room.stageOnly || false);
   let [customEmojis, setCustomEmojis] = useState(room.customEmojis);
   let [roomSlides, setRoomSlides] = useState(room.roomSlides || []);
+  let [zapGoal, setZapGoal] = useState(room.zapGoal || {});
   let [colorPickerBg, setColorPickerBg] = useState(false);
   let [colorPickerAvatar, setColorPickerAvatar] = useState(false);
   let [colorPickerButton, setColorPickerButton] = useState(false);
@@ -191,6 +192,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
       schedule,
       lud16,
       passphraseHash,
+      zapGoal,
     });
     if (!ok) {
       alert('An error occurred. Your changes were not saved. If another owner or moderator was making changes you will need to close and reopen the setttings to make your changes.');
@@ -246,6 +248,8 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
           setStageOnly={setStageOnly}
           lud16={lud16}
           setLud16={setLud16}
+          zapGoal={zapGoal}
+          setZapGoal={setZapGoal}
           textColor={textColor}
           roomColor={roomColor}
         />

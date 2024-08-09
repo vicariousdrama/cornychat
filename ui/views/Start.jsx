@@ -7,6 +7,7 @@ import { wordlist } from '@scure/bip39/wordlists/english';
 import StartRoomSimple from './StartRoomSimple';
 import StartScheduledEvent from './StartScheduledEvent';
 import StartMyRoomSimple from './StartMyRoomSimple';
+import ZapGoalBar from './ZapGoalBar';
 
 export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
   const [loadingRooms, setLoadingRooms] = useState(false);
@@ -15,12 +16,25 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
   const [eventList, setEventList] = useState([]);
   const [loadingMyRooms, setLoadingMyRooms] = useState(false);
   const [myRoomList, setMyRoomList] = useState([]);
-  const [{room}, {enterRoom, setProps, createRoom, listRooms, listScheduledEvents, listMyRooms}] = useJam();
+  const [loadingZapGoal, setLoadingZapGoal] = useState(false);
+  const [zapGoal, setZapGoal] = useState({});
+  const [{room}, {enterRoom, setProps, createRoom, listRooms, listScheduledEvents, listMyRooms, getZapGoal}] = useJam();
   const [viewMode, setViewMode] = useState('liverooms');
   let {stageOnly = false, videoEnabled = false} = newRoom;
   const mainroomonly = [{"roomId":"mainchat","name":"Main Chat","description":"","logoURI":"","userCount":"0","userInfo":[]}];
   let myId = useJamState('myId');
   useEffect(() => {
+    const loadZapGoal = async () => {
+      setLoadingZapGoal(true);
+      let zg = await(getZapGoal("🌽"));
+      zg = zg[0];
+      if (zg.created_at > 0) {
+        setZapGoal(zg);
+      }
+      setLoadingZapGoal(false);
+      if (window.DEBUG) console.log(zapGoal);
+    }
+    loadZapGoal();
     const loadRooms = async () => {
       setLoadingRooms(true);
       let roomlist = await(listRooms());
@@ -76,7 +90,8 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
     roomId = mn[0] + mn[1] + roomNum;
 
     (async () => {
-      let roomPosted = {stageOnly, videoEnabled, currentSlide: 1, updateTime: Date.now(), roomSlides : [
+      let theTime = Date.now();
+      let roomPosted = {stageOnly, videoEnabled, currentSlide: 1, updateTime: theTime, createdTime: theTime, roomSlides : [
         ["/img/tutorial/tutorial-01.png","Tutorial Start"],
         ["/img/tutorial/tutorial-02.png","Room Settings"],
         ["/img/tutorial/tutorial-03.png","Basic Room Info"],
@@ -131,31 +146,32 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
           <p style={{color: textColor, backgroundColor: roomColors.background}} className="room-header">
             Corny Chat is your place for chatting with friends!
           </p>
-          <div style={{color: textColor}} className="jam">
-            <p style={{color: textColor, backgroundColor: roomColors.background}} className="room-header">
-            For technical support, contact <a href="https://njump.me/npub1yx6pjypd4r7qh2gysjhvjd9l2km6hnm4amdnjyjw3467fy05rf0qfp7kza" style={{textDecoration: 'underline'}}>Vic on Nostr</a>
-            </p>
-            <p style={{color: textColor, backgroundColor: roomColors.background}} className="room-header">
-            <a href="/about" style={{textDecoration: 'underline'}}>About Corny Chat</a>
-            </p>
-          </div>
-          <a className={'hidden'} href="me">identity</a>
         </div>
 
+        {zapGoal.hasOwnProperty("content") && (
+          <center>
+          <div style={{width: '300px'}}>
+            <center>
+            <ZapGoalBar zapgoal={zapGoal} />
+            </center>
+          </div>
+          </center>
+        )}
+
         <div className="flex flex-wrap justify-center">
-          <div className="cursor-pointer text-white mt-2 mb-2" style={{border:'1px solid rgb(1,111,210)', width: '100px', backgroundColor: (viewMode == 'liverooms' ? 'rgb(1,111,210)' : roomColors.background)}}
+          <div className="cursor-pointer text-white mt-2 mb-2 rounded-md" style={{border:'1px solid rgb(1,111,210)', width: '100px', backgroundColor: (viewMode == 'liverooms' ? 'rgb(1,111,210)' : roomColors.background)}}
             onClick={async (e) => {
               e.stopPropagation();
               setViewMode('liverooms');
             }}          
           >Live Rooms</div>
-          <div className="cursor-pointer text-white m-2" style={{border:'1px solid rgb(110,47,210)', width: '100px', backgroundColor: (viewMode == 'myrooms' ? 'rgb(110,47,218)' : roomColors.background)}}
+          <div className="cursor-pointer text-white m-2 rounded-md" style={{border:'1px solid rgb(110,47,210)', width: '100px', backgroundColor: (viewMode == 'myrooms' ? 'rgb(110,47,218)' : roomColors.background)}}
             onClick={async (e) => {
               e.stopPropagation();
               setViewMode('myrooms');
             }}
           >My Rooms</div>
-          <div className="cursor-pointer text-white mt-2 mb-2" style={{border:'1px solid rgb(7,74,40)', width: '100px', backgroundColor: (viewMode == 'scheduled' ? 'rgb(7,74,40)' : roomColors.background)}}
+          <div className="cursor-pointer text-white mt-2 mb-2 rounded-md" style={{border:'1px solid rgb(7,74,40)', width: '100px', backgroundColor: (viewMode == 'scheduled' ? 'rgb(7,74,40)' : roomColors.background)}}
             onClick={async (e) => {
               e.stopPropagation();
               setViewMode('scheduled');
@@ -225,6 +241,17 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
           Start a new room
         </button>
 
+        <div style={{color: textColor}} className="jam">
+          <div style={{color: textColor}} className="jam">
+            <p style={{color: textColor, backgroundColor: roomColors.background}} className="room-header">
+            For technical support, contact <a href="https://njump.me/npub1yx6pjypd4r7qh2gysjhvjd9l2km6hnm4amdnjyjw3467fy05rf0qfp7kza" style={{textDecoration: 'underline'}}>Vic on Nostr</a>
+            </p>
+            <p style={{color: textColor, backgroundColor: roomColors.background}} className="room-header">
+            <a href="/about" style={{textDecoration: 'underline'}}>About Corny Chat</a>
+            </p>
+          </div>
+          <a className={'hidden'} href="me">identity</a>
+        </div>
       </div>
     </div>
   );

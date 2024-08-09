@@ -32,6 +32,7 @@ const userRoomRouter = require('./routes/userRoomsRouter');
 const oldRoomsRouter = require('./routes/oldRoomsRouter');
 const oldIdentitiesRouter = require('./routes/oldIdentitiesRouter');
 const nip53Router = require('./routes/nip53Router');
+const zapGoalRouter = require('./routes/zapGoalRouter');
 
 const app = express();
 
@@ -78,5 +79,6 @@ app.use('/api/v1/adr/:year/:month', adReportRouter);
 app.use('/api/v1/userrooms/', userRoomRouter);
 app.use('/api/v1/oldrooms/', oldRoomsRouter);
 app.use('/api/v1/oldidentities/', oldIdentitiesRouter);
+app.use('/api/v1/zapgoal/:id', zapGoalRouter);
 
 module.exports = app;

@@ -14,6 +14,7 @@ const recordFileRetentionDays = process.env.RECORD_FILE_RETENTION_DAYS
 const adEnabled = !!process.env.ADS ?? true;
 const squareAdFileLocationPath = process.env.SQUARE_AD_FILE_LOCATION_PATH || '/pantry/adimages'; // square ads for enter room page
 const chatAdFileLocationPath = process.env.CHAT_AD_FILE_LOCATION_PATH || '/pantry/adimages2'; // mobile ads: 320x50 for text chat
+const relaysZapGoals = process.env.RELAYS_ZAPGOALS || 'relay.damus.io,nos.lol,nostr-pub.wellorder.net,nostr.mutinywallet.com,relay.snort.social';
 
 module.exports = {
   serverAdminId,
@@ -27,4 +28,5 @@ module.exports = {
   adEnabled,
   squareAdFileLocationPath,
   chatAdFileLocationPath,
+  relaysZapGoals,
 };
