@@ -342,7 +342,48 @@ export async function getUserMetadata(pubkey, id) {
   });
 }
 
-export async function sendZaps(npubToZap, comment, amount, state) {
+export async function getZapReceipts(eventId) {
+  return new Promise((res, rej) => {
+    if (eventId == undefined) {
+      res([]);
+      return;
+    }
+    //const pool = new RelayPool();
+    try {
+      const userRelays = []; //getCachedOutboxRelaysByPubkey(pubkey);
+      const defaultRelays = getDefaultOutboxRelays();
+      const relaysToUse = unique([...userRelays, ...defaultRelays]);
+      const filter = [{kinds: [9735], "#e": [eventId]}];
+      let userEvents = [];
+      setTimeout(() => {
+        //pool.close();
+        res(userEvents);
+      }, 2700);
+      let options = {unsubscribeOnEose: true, allowDuplicateEvents: false};
+      
+      pool.subscribe(
+        filter,
+        relaysToUse,
+        (event, afterEose, url) => {
+          userEvents.push(event)
+        },
+        undefined,
+        undefined,
+        options
+      );
+    } catch (error) {
+      console.log('There was an error when getting zap receipts for event: ', error);
+      //pool.close();
+      rej(undefined);
+    }
+  });  
+}
+
+export async function sendZaps(npubToZap, comment, amount) {
+  return zapEvent(npubToZap, undefined, comment, amount);
+}
+
+export async function zapEvent(npubToZap, event, comment, amount) {
   if(window.DEBUG) console.log("in sendZaps");
   try {
     // Validate and set sats
@@ -350,7 +391,7 @@ export async function sendZaps(npubToZap, comment, amount, state) {
     if (!(satsAmount > 0)) {
       throw new Error('Sats amount must be higher than 0');
     }
-    satsAmount = satsAmount * 1000;
+    let msatsAmount = satsAmount * 1000;
 
     const pubkeyToZap = npubToZap.startsWith("fakenpub") ? undefined : nip19.decode(npubToZap).data;
     const id = null;
@@ -384,8 +425,8 @@ export async function sendZaps(npubToZap, comment, amount, state) {
       const signedEvent = await getZapEvent(
         comment,
         pubkeyToZap,
-        satsAmount,
-        state
+        event,
+        msatsAmount
       );
       // happens if they cancel signing the zap request
       if (!signedEvent[0]) {
@@ -394,7 +435,7 @@ export async function sendZaps(npubToZap, comment, amount, state) {
           null,
           lightningAddress,
           LnService,
-          satsAmount,
+          msatsAmount,
           comment
         );
         if (window.DEBUG) console.log('ui/nostr/nostr.js', lnInvoice);
@@ -406,7 +447,7 @@ export async function sendZaps(npubToZap, comment, amount, state) {
         signedEvent[1],
         lightningAddress,
         LnService,
-        satsAmount,
+        msatsAmount,
         comment
       );
       return [true, lnInvoice.pr];
@@ -417,7 +458,7 @@ export async function sendZaps(npubToZap, comment, amount, state) {
         null,
         lightningAddress,
         LnService,
-        satsAmount,
+        msatsAmount,
         comment
       );
       return [true, lnInvoice.pr];
@@ -691,10 +732,8 @@ export function normalizeLightningAddress(address) {
 
 export async function getLNService(address) {
   if(window.DEBUG) console.log("in getLNService for address", address);
-
   let address2 = normalizeLightningAddress(address);
   if (address2 == undefined) return address2;
-
   let username = address2.split("@")[0];
   let domain = address2.split("@")[1];
   let url = `https://${domain}/.well-known/lnurlp/${username}`;
@@ -702,19 +741,17 @@ export async function getLNService(address) {
   return data;
 }
 
-async function getLNInvoice(zapEvent, lightningAddress, LNService, amount, comment) {
+export async function getLNInvoice(zapEvent, lightningAddress, LNService, msatsAmount, comment) {
   if(window.DEBUG) console.log("in getLNInvoice");
   let hasPubkey = LNService.nostrPubkey;
   const dataBytes = Buffer.from(lightningAddress, 'utf-8');
   const lnurlEncoded = bech32.encode('lnurl', bech32.toWords(dataBytes));
-  let baseUrl = `${LNService.callback}?amount=${amount}`;
+  let baseUrl = `${LNService.callback}?amount=${msatsAmount}`;
   async function fetchInvoice(baseUrl) {
     const response = await fetch(baseUrl);
     const invoice = await response.json();
-
     return invoice;
   }
-
   if (hasPubkey) {
     baseUrl += `&nostr=${zapEvent}&lnurl=${lnurlEncoded}`;
     const data = await fetchInvoice(baseUrl);
@@ -726,15 +763,15 @@ async function getLNInvoice(zapEvent, lightningAddress, LNService, amount, comme
   }
 }
 
-async function getZapEvent(content, receiver, amount, state) {
+export async function getZapEvent(content, receiver, event, msatsAmount) {
   if(window.DEBUG) console.log("in getZapEvent");
-  let event = {
+  // TODO: relays for zap event should be those from the event
+  let zapevent = {
     id: null,
     pubkey: null,
     created_at: Math.floor(Date.now() / 1000),
     kind: 9734,
     tags: [
-      ['p', `${receiver}`],
       [
         'relays',
         'wss://relay.damus.io',
@@ -742,14 +779,20 @@ async function getZapEvent(content, receiver, amount, state) {
         //'wss://nostr-pub-wellorder.net/',
         'wss://nostr.pleb.network',
       ],
-      ['amount', `${amount}`],
+      ['amount', `${msatsAmount}`],
     ],
     content: content,
     sig: null,
   };
+  if (receiver != undefined) {
+    zapevent.tags.push(['p',`${receiver}`]);
+  }
+  if (event?.id != undefined) {
+    zapevent.tags.push(['e',`${event.id}`]);
+  }
 
   if (window.nostr) {
-    const EventSigned = await window.nostr.signEvent(event);
+    const EventSigned = await window.nostr.signEvent(zapevent);
     if (!EventSigned)
       return [null, 'There was an error with your nostr extension'];
     const eventSignedEncoded = encodeURI(JSON.stringify(EventSigned));
@@ -1475,5 +1518,50 @@ export async function sendLiveChat(roomATag, textchat) {
     const sleeping = await sleep(100);
     //pool.close();
     return [true, ''];
+  }  
+}
+
+export async function publishZapGoal(description, amount) {
+  const defaultRelays = getDefaultOutboxRelays();
+  const myPubkey = await window.nostr.getPublicKey();
+  const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
+  let myOutboxRelays = [];
+  if (userRelays?.length == 0) {
+    const myNpub = nip19.npubEncode(myPubkey);
+    myOutboxRelays = await getOutboxRelays(myPubkey); // (async() => {await getOutboxRelays(myPubkey)})();
+    updateCacheOutboxRelays(myOutboxRelays, myNpub);
+  }
+  const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
+  let relays = defaultRelays;
+  let kind = 9041;
+  let amountTag = ["amount", String(amount * 1000)];
+  let relayTag = ["relays"];
+  for (let relay of relays) {
+      if (relay.startsWith("wss://")) {
+          relayTag.push(relay);
+      } else {
+          relayTag.push(`wss://${relay}`);
+      }
+  }
+  let tags = [amountTag, relayTag];
+  let event = {
+    id: null,
+    pubkey: null,
+    created_at: Math.floor(Date.now() / 1000),
+    kind: kind,
+    tags: tags,
+    content: description,
+    sig: null,
+  };
+  const eventSigned = await window.nostr.signEvent(event);
+  if (!eventSigned) {
+    return [false, 'There was an error with your nostr extension'];
+  } else {
+    // push to relays
+    //const pool = new RelayPool();
+    pool.publish(eventSigned, relaysToUse);
+    const sleeping = await sleep(100);
+    //pool.close();
+    return [true, eventSigned];
   }  
 }

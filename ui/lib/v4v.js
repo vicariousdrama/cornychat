@@ -1,5 +1,6 @@
 import { webln } from "@getalby/sdk";
-import {getLNService, loadNWCUrl} from '../nostr/nostr';
+import {getLNService, loadNWCUrl, getZapEvent, getLNInvoice} from '../nostr/nostr';
+const {nip19} = require('nostr-tools');
 
 function getMyName() {
     return JSON.parse(localStorage.getItem('identities'))._default.info?.name || 'anonymous user';
@@ -49,12 +50,24 @@ export async function tipRoom(roomId, lightningAddress, satAmount, fnSuccess, te
     return await sendSats(lightningAddress, satAmount, comment, fnSuccess, textForSuccess, `roomtip-${roomId}.timepaid`);
 }
 
+export async function zapRoomGoal(zapGoal, roomId, lightningAddress, satAmount, fnSuccess, textForSuccess) {
+    if ((localStorage.getItem(`v4vtiproom.enabled`) ?? 'false') != 'true') return false;
+    const comment = `Raisin Corn!`;
+    const eventId = zapGoal.id;
+    const pubkey = nip19.decode(zapGoal.npub).data;
+    return await zapSats(lightningAddress, satAmount, pubkey, eventId, comment, fnSuccess, textForSuccess, `roomtip-${roomId}.timepaid`);
+}
+
 async function sendSats(lightningAddress, satAmount, comment, fnSuccess, textForSuccess, keyForSuccess) {
+    return zapSats(lightningAddress, satAmount, null, null, comment, fnSuccess, textForSuccess, keyForSuccess);
+}
+
+async function zapSats(lightningAddress, satAmount, pubkey, eventId, comment, fnSuccess, textForSuccess, keyForSuccess) {
     if (lightningAddress == undefined) return false;
     if (lightningAddress.length == 0) return false;
     if (satAmount == undefined) return false;
     if (satAmount < 1) return false;
-    const msatAmount = satAmount * 1000; 
+    const msatsAmount = satAmount * 1000; 
     const currentTimestamp = Math.floor(Date.now() / 1000);
 
     try {
@@ -63,9 +76,20 @@ async function sendSats(lightningAddress, satAmount, comment, fnSuccess, textFor
         if (nwcUrl == undefined) return false;
         let x = (async () => {
             const lnService = await getLNService(lightningAddress);
-            const lnurl = `${lnService.callback}?amount=${msatAmount}&comment=${comment}`;
-            const invoiceResponse = await fetch(lnurl);
-            const invoice = await invoiceResponse.json();
+            let invoice = {};
+            if (pubkey) {
+                const signedZapRequest = await getZapEvent(comment, pubkey, {id: eventId}, msatsAmount);
+                if (signedZapRequest[0]) {
+                    const lnInvoice = await getLNInvoice(signedZapRequest[1], lightningAddress, lnService, msatsAmount, comment);
+                    if (lnInvoice?.pr) invoice = lnInvoice;
+                }
+            }
+            if (!invoice?.pr) {
+                const lnurl = `${lnService.callback}?amount=${msatsAmount}&comment=${comment}`;
+                const invoiceResponse = await fetch(lnurl);
+                invoice = await invoiceResponse.json();
+            }
+            if (!invoice?.pr) return false;
             const paymentRequest = invoice.pr;
             const nwc = new webln.NostrWebLNProvider({nostrWalletConnectUrl: nwcUrl});
             await nwc.enable();

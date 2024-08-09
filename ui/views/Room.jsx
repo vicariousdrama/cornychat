@@ -1,7 +1,7 @@
 import React, {useState, useMemo} from 'react';
 import {use} from 'use-minimal-state';
 import EnterRoom from './EnterRoom';
-import RoomHeader from './RoomHeader';
+import RoomHeader2 from './RoomHeader2';
 import useWakeLock from '../lib/use-wake-lock';
 import Navigation from './Navigation';
 import {userAgent} from '../lib/user-agent';
@@ -269,7 +269,7 @@ export default function Room({room, roomId, uxConfig}) {
       <audio id="doorbellsound" src="/mp3/call-to-attention-123107.mp3" volume=".5" />
 
       <div style={{zIndex: '10', position:'absolute', top: '0px'}} className="w-screen flex flex-col justify-between">
-        <RoomHeader
+        <RoomHeader2
           colors={roomColor}
           {...{
             name,

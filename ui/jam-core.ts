@@ -42,6 +42,10 @@ import {
   getMyRoomList,
   getRoomATag,
 } from './jam-core/backend';
+import {
+  getZapGoal,
+  ZapGoal
+} from './nostr/zapgoal';
 import {addAdmin, removeAdmin} from './jam-core/admin';
 import AppState from './jam-core/AppState';
 
@@ -101,6 +105,8 @@ function createApi<T extends StateType>(
       (getRoomATag(roomId) as unknown) as Promise<String | undefined>,
     getDisplayName: (info: IdentityInfo, room: RoomType) =>
       displayName(info, room) as string,
+    getZapGoal: (roomId: string) =>
+      (getZapGoal(roomId) as unknown) as Promise<ZapGoal | undefined>,
 
     addAdmin: (peerId: string) =>
       addAdmin(state, peerId) as Promise<boolean>,

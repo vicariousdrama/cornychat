@@ -5,6 +5,8 @@ import gfm from 'remark-gfm';
 import {avatarUrl, displayName} from '../../lib/avatar';
 import {getNpubFromInfo} from '../../nostr/nostr';
 import {dosha256hexrounds} from '../../lib/sha256rounds.js';
+import {openModal} from '../Modal';
+import {CreateZapGoalModal} from './CreateZapGoal.jsx';
 
 export function BasicRoomInfo({
   iOwn,
@@ -36,6 +38,8 @@ export function BasicRoomInfo({
   setIsLiveActivityAnnounced,
   lud16,
   setLud16,
+  zapGoal,
+  setZapGoal,
   textColor,
   roomColor,
 }) {
@@ -123,6 +127,51 @@ export function BasicRoomInfo({
           }}
         ></input>
         )}
+        {(!zapGoal || !zapGoal?.id) && (
+          <p className="text-gray-300 text-sm">
+          <span className="font-medium text-gray-300">Zap Goal:</span> No zap goal is set for this room.
+          {iOwn && window.nostr && (
+            <button
+              className="px-2 text-sm rounded-md"
+              style={{
+                color: textColor,
+                backgroundColor: roomColor.buttons.primary,
+              }}
+              onClick={(e) => {
+                e.preventDefault();
+                openModal(CreateZapGoalModal, {textColor: textColor, roomColor: roomColor, zapGoal: zapGoal, setZapGoal: setZapGoal});
+                return;
+              }}
+            >
+              Create Zap Goal
+            </button>
+          )}
+          {iOwn && !window.nostr && (
+            <>Setup a nostr extension to create a zap goal.</>
+          )}
+          </p>
+        )}
+        {((zapGoal?.id || '') != '') && (
+          <p className="text-gray-300 text-sm">
+          <span className="font-medium text-gray-300">Zap Goal:</span> {zapGoal.content} (target: {zapGoal.amount} sats).
+          {iOwn && (
+            <button
+              className="px-2 text-sm rounded-md"
+              style={{
+                color: textColor,
+                backgroundColor: roomColor.buttons.primary,
+              }}
+              onClick={(e) => {
+                e.preventDefault();
+                setZapGoal({});
+                return;
+              }}
+            >
+            Clear
+            </button>
+          )}
+          </p>
+        )}        
       </div>
 
       <div className="mt-2">

@@ -7,7 +7,7 @@ import gfm from 'remark-gfm';
 import {useMqParser, useWidth} from '../lib/tailwind-mqp';
 import {useJam} from '../jam-core-react';
 import {colors, isDark} from '../lib/theme.js';
-import {makeLocalDate, signInExtension, getDMPubkey} from '../nostr/nostr';
+import {makeLocalDate, signInExtension, getDMPubkey, getNpubFromInfo} from '../nostr/nostr';
 import {time4Ad, value4valueAdSkip} from '../lib/v4v';
 import EditPersonalSettings from './editPersonalSettings/EditPersonalSettings.jsx';
 import {update} from 'minimal-state';
@@ -88,6 +88,7 @@ export default function EnterRoom({
   let [loginEnabled, setLoginEnabled] = useState(!kicked && !isProtected && (!showAd || !jamConfig.handbill) && (supportsWebRTC));
   let [adImageEnabled, setAdImageEnabled] = useState((showAd && jamConfig.handbill));
   let adimg = `${jamConfig.urls.pantry}/api/v1/aimg/${roomId}`;
+  let hasNostrInfo = getNpubFromInfo(myIdentity.info) != undefined;
 
   useEffect(() => {
     // Setup a timeout to hide the image
@@ -293,6 +294,7 @@ export default function EnterRoom({
 
         {loginEnabled && (
           <>
+        {(!window.nostr || hasNostrInfo) && (
         <button
           onClick={async() => {
             myIdentity.info.dmPubkey = await getDMPubkey();
@@ -313,7 +315,8 @@ export default function EnterRoom({
         >
           Join Room
         </button>
-        {window.nostr && (
+        )}
+        {window.nostr && !hasNostrInfo && (
         <button
           onClick={() => {
             setReturnToHomepage(false);

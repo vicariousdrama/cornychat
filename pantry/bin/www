@@ -12,6 +12,7 @@ const {serverProfileInitializer} = require('../services/serverProfileInitializer
 const {scheduleUpdater} = require('../services/scheduleUpdater');
 const {nip05Initializer} = require('../services/nip05Initializer');
 const {liveeventUpdater} = require('../services/liveeventUpdater');
+const {zapGoalUpdater} = require('../services/zapGoalUpdater');
 
 /**
  * Get port from environment and store in Express.
@@ -37,6 +38,7 @@ serverProfileInitializer().then(() => 'Server Profile Initialized.');
 scheduleUpdater().then(() => 'Schedule Updater started.');
 nip05Initializer().then(() => 'NIP05 Initialized.');
 liveeventUpdater().then(() => 'Live Event Updater started.');
+zapGoalUpdater().then(() => 'Zap Goal Updater started.');
 
 /**
  * Normalize a port into a number, string, or false.

@@ -273,12 +273,12 @@ const getScheduledEvents = async () => {
                             if (das.d == dTag) isDeleted = true;
                         }
                         if (isDeleted) {
-                            console.log(`skipping activity ${dTag} that was deleted`);
+                            //console.log(`skipping activity ${dTag} that was deleted`);
                             continue;
                         }
                         // Must have service tag
                         if (service == undefined) {
-                            console.log(`skipping activity ${dTag} that has no service`);
+                            //console.log(`skipping activity ${dTag} that has no service`);
                             continue;
                         }
                         // SPECIAL FIX FOR NOSTRNESTS: Set location if service is nostrnests
@@ -306,32 +306,32 @@ const getScheduledEvents = async () => {
                         }
                         // Reject based on erroneous time
                         if (startTime == undefined) {
-                            console.log(`skipping event ${dTag} that has no start time`);
+                            //console.log(`skipping event ${dTag} that has no start time`);
                             continue;               // must have a time
                         }
                         if (endTime == undefined) {
-                            console.log(`skipping event ${dTag} that has no end time`);
+                            //console.log(`skipping event ${dTag} that has no end time`);
                             continue;                 // must have a time
                         }
                         if (startTime > endTime) {
-                            console.log(`skipping event ${dTag} that starts after it ends`);
+                            //console.log(`skipping event ${dTag} that starts after it ends`);
                             continue;                  // must begin before ending
                         }
                         if (endTime - startTime > daySeconds) {
-                            console.log(`skipping event ${dTag} that lasts more than 1 day`);
+                            //console.log(`skipping event ${dTag} that lasts more than 1 day`);
                             continue;     // exclude events lasting more than 1 day
                         }
                         if ((startTime < timestamp) && (endTime + hourSeconds < timestamp)) {
-                            console.log(`skipping event ${dTag} that has ended more than an hour ago`);
+                            //console.log(`skipping event ${dTag} that has ended more than an hour ago`);
                             continue;
                         }
                         if (startTime > maxTime) {
-                            console.log(`skipping event ${dTag} that starts more than a week from now`);
+                            //console.log(`skipping event ${dTag} that starts more than a week from now`);
                             continue;                  // must start within 1 week
                         }
                         // check for required fields
                         if (!(title && location && startTime && endTime)) {
-                            console.log(`skipping event ${dTag} that is missing one of title, location, startTime, endTime`);
+                            //console.log(`skipping event ${dTag} that is missing one of title, location, startTime, endTime`);
                             continue;
                         }
                         console.log(`adding a matched event: ${title} (${location} starting ${startTime})`);
@@ -401,7 +401,8 @@ const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => 
         ["start_tzid", timezone],
         ["end_tzid", timezone],
         ["location", roomUrl],
-        ["about", content],                      // Undocumented Flockstr tag
+        ["about", content],                      // Undocumented Flockstr tag (remove once Flockstr is updated)
+        ["summary", content],                    // short description of event, replaces deprecated/undocumented Flockstr tag about
         ["image", logoURI],                      // Undocumented Flockstr tag
         ["L", labelNamespace],                   // Need to document all these tags for sanity
         ["l", jamHost, labelNamespace],
@@ -724,6 +725,55 @@ const publishRoomActive = async (roomId, dtt, roomInfo, userInfo, isnew) => {
     }
 }
 
+const getZapGoals = async (pubkey) => {
+    return new Promise(async (res, rej) => {
+        const localpool = new RelayPool();
+        try {
+            goalFilter = [{kinds:[9041], authors: [pubkey], limit: 50}];
+            let waitForEvents = 3000; // 2 seconds
+            let matchedEvents = [];
+            let options = {unsubscribeOnEose: true, allowDuplicateEvents: false, allowOlderEvents: false};
+            setTimeout(() => {
+                localpool.close();
+                res(matchedEvents);
+            }, waitForEvents);
+            localpool.subscribe(goalFilter, relaysToUse, (event, onEose, url) => {matchedEvents.push(event)}, undefined, undefined, options);
+        } catch (error) {
+            localpool.close();
+            rej(undefined);
+            console.log('There was an error while fetching zap goals: ', error);
+        }
+    });
+}
+
+const publishZapGoal = async (sk, content, amount, relays) => {
+    return new Promise(async (res, rej) => {
+        let pk = getPublicKey(sk);
+        const kind = 9041;
+        let amountTag = ["amount", String(amount * 1000)];
+        let relayTag = ["relays"];
+        for (let relay of relays) {
+            if (relay.startsWith("wss://")) {
+                relayTag.push(relay);
+            } else {
+                relayTag.push(`wss://${relay}`);
+            }
+        }
+        let tags = [amountTag, relayTag];
+        const event = finalizeEvent({
+            created_at: Math.floor(Date.now() / 1000),
+            kind: kind,
+            tags: tags,
+            content: content,
+        }, sk);
+        if(pmd) console.log('Event to be published', JSON.stringify(event));
+        writepool.publish(event, relaysToUse);
+        await sleep(250);
+        res(event);
+    });
+}
+
+
 module.exports = {
     deleteNostrSchedule,
     getRoomNSEC,
@@ -734,4 +784,6 @@ module.exports = {
     deleteLiveActivity,
     publishLiveActivity,
     publishRoomActive,
+    getZapGoals,
+    publishZapGoal,
 };
