@@ -81,7 +81,7 @@ export default function RoomHeader2({
 
                         if(room?.zapGoal?.id) {
                             // Send periodic tip to the zap goal set
-                            let chatText = `*zapped ⚡${roomtipamount} sats${textDeduplicaterToggle ? " to the room goal!":"."}*`;
+                            let chatText = `*zapped ⚡${roomtipamount} sats to the room goal${textDeduplicaterToggle ? "!":"."}*`;
                             (async () => {
                                 let zapped = await zapRoomGoal(room.zapGoal, roomId, room.lud16, roomtipamount, sendTextChat, chatText);
                                 if (!zapped) {
@@ -258,17 +258,12 @@ export default function RoomHeader2({
                     {room.isRecordingAllowed ? 'Recordings Allowed - when a recording is in progress, an indicator will be displayed' : 'Recordings Disabled - recordings are not supported for this room'}<br />
                     {room.isLiveActivityAnnounced ? 'Live Activity - an event will be published to nostr and updated periodically with room information.' : ''}
                 </div>
-                <hr />
             </div>
 
-            {!description || description.length === 0 ? (
-            <p className="text-xs" style={{color: textColor}}>
-                This room has not set up a description yet.
-            </p>
-            ) : (
-            <p className="flex justify-center" style={{color: textColor}}>ROOM DESCRIPTION</p>
-            )}
             {description && (description.length > 0) && (
+            <>
+            <hr />
+            <p className="flex justify-center" style={{color: textColor}}>ROOM DESCRIPTION</p>
             <ReactMarkdown
             className="text-sm opacity-70 h-full mt-3"
             plugins={[gfm]}
@@ -276,6 +271,7 @@ export default function RoomHeader2({
             >
             {description}
             </ReactMarkdown>
+            </>
             )}
         </div>
         );
@@ -292,10 +288,19 @@ export default function RoomHeader2({
                 }}
             >
                 <div
-                className="flex flex-wrap px-1 py-1"
+                className="flex flex-wrap px-0 py-0"
                 style={{backgroundColor: colors.avatarBg, overflow: 'hidden', maxHeight: '116px'}}
                 >
-                <p className="text-md mr-2" style={{color: textColor, maxHeight: '22px'}}>
+                <p className="text-md mr-2" style={{color: textColor, maxHeight: '32px', whiteSpace: 'nowrap'}}>
+                    {logoURI && (
+                    <img
+                        alt={'room icon'}
+                        align={'left'}
+                        src={logoURI}
+                        style={{objectFit: 'cover', display: 'none', width: '32px', height: '32px'}}
+                        onLoad={e => (e.target.style.display = '')}
+                    />
+                    )}                      
                     {name || roomId}
                 </p>
                 </div>
@@ -306,7 +311,7 @@ export default function RoomHeader2({
         <div className="flex justify-between m-0 w-full">
             <div className="flex w-full">
                 {room?.zapGoal?.id && (
-                <ZapGoalBar zapgoal={room.zapGoal} />
+                <ZapGoalBar zapgoal={room.zapGoal} key={`zapgoalbar_${room.zapGoal.id}`} />
                 )}
                 {!room?.zapGoal?.id && (
                 <>
@@ -314,13 +319,13 @@ export default function RoomHeader2({
                 <div className="flex-grow cursor-pointer"
                     style={{textAlign:'center',backgroundColor:'rgba(21,21,21,1)',color:'rgba(21,221,21,.8'}}              
                     onClick={() => {toggleTipRoom(false)}}
-                >Autotipping {autoTipAmount} sats every {autoTipFrequency} minutes</div>
+                >Autotip {autoTipAmount} sats every {autoTipFrequency} minutes (tap to toggle)</div>
                 )}
                 {((localStorage.getItem(`v4vtiproom.enabled`) ?? 'false') == 'true') && !autoTipRoom && (
                 <div className="flex-grow cursor-pointer"
                     style={{textAlign:'center',backgroundColor:'rgba(21,21,21,1)',color:'rgba(221,21,21,.8'}}              
                     onClick={() => {toggleTipRoom(true)}}
-                >Autotipping is off. Click to enable.</div>
+                >Autotipping is off (tap to toggle)</div>
                 )}
                 </>
                 )}

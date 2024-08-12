@@ -7,6 +7,7 @@ import {getNpubFromInfo} from '../../nostr/nostr';
 import {dosha256hexrounds} from '../../lib/sha256rounds.js';
 import {openModal} from '../Modal';
 import {CreateZapGoalModal} from './CreateZapGoal.jsx';
+import { ImportZapGoalModal} from './ImportZapGoal.jsx';
 
 export function BasicRoomInfo({
   iOwn,
@@ -131,6 +132,7 @@ export function BasicRoomInfo({
           <p className="text-gray-300 text-sm">
           <span className="font-medium text-gray-300">Zap Goal:</span> No zap goal is set for this room.
           {iOwn && window.nostr && (
+            <>
             <button
               className="px-2 text-sm rounded-md"
               style={{
@@ -145,6 +147,21 @@ export function BasicRoomInfo({
             >
               Create Zap Goal
             </button>
+            <button
+              className="px-2 text-sm rounded-md"
+              style={{
+                color: textColor,
+                backgroundColor: roomColor.buttons.primary,
+              }}
+              onClick={(e) => {
+                e.preventDefault();
+                openModal(ImportZapGoalModal, {textColor: textColor, roomColor: roomColor, setZapGoal: setZapGoal});
+                return;
+              }}
+            >
+              Attach Zap Goal
+            </button>            
+            </>
           )}
           {iOwn && !window.nostr && (
             <>Setup a nostr extension to create a zap goal.</>

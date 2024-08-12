@@ -76,12 +76,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
   async function handleFollowBtn(userNpub, state) {
     const myFollowList = sessionStorage.getItem('myFollowList');
     const parsedFollowingList = JSON.parse(myFollowList);
-    const updateBtn = await followUser(
-      userNpub,
-      parsedFollowingList,
-      state,
-      state.roomId
-    );
+    const updateBtn = await followUser(userNpub,parsedFollowingList);
     const ok = updateBtn[0];
     if (!ok) {
       const errorMsg = updateBtn[1];
@@ -95,12 +90,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
   async function handleUnfollowBtn(userNpub, state) {
     const myFollowList = sessionStorage.getItem('myFollowList');
     const parsedFollowingList = JSON.parse(myFollowList);
-    const updateBtn = await unFollowUser(
-      userNpub,
-      parsedFollowingList,
-      state,
-      state.roomId
-    );
+    const updateBtn = await unFollowUser(userNpub,parsedFollowingList);
     const ok = updateBtn[0];
     if (!ok) {
       const errorMsg = updateBtn[1];
@@ -286,7 +276,6 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
         // refetch and set the outbox relays as well
         let outboxRelays = await getOutboxRelays(actorPubkey);
         updateCacheOutboxRelays(outboxRelays, userNpub);
-
         obj.iFollow = iFollow;
         iFollowUser(iFollow);
         setLoadingFollows(false);
@@ -301,7 +290,6 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
             setLnAddress(normalizeLightningAddress(userMetadata.lud16));
             return userMetadata.lud16;
           }
-
           if (userMetadata.lud06) {
             setLnAddress(normalizeLightningAddress(userMetadata.lud06));
             return userMetadata.lud06;
@@ -334,9 +322,6 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
         const userMetadataCache = JSON.stringify(obj);
         sessionStorage.setItem(userNpub, userMetadataCache);
       }
-
-
-
     }
     setLoadingProfile(false);
 
