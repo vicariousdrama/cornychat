@@ -45,6 +45,7 @@ export function CustomEmojis({
           Add your custom emoji reactions:
         </p>
         <EmojiPicker
+          lazyLoadEmojis={true}
           width={'width:max-content'}
           onEmojiClick={emoji => addEmoji(emoji.emoji)}
           previewConfig={{showPreview: false}}

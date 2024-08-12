@@ -1,5 +1,5 @@
 import { webln } from "@getalby/sdk";
-import {getLNService, loadNWCUrl, getZapEvent, getLNInvoice} from '../nostr/nostr';
+import {getLNService, loadNWCUrl, makeZapRequest, getLNInvoice} from '../nostr/nostr';
 const {nip19} = require('nostr-tools');
 
 function getMyName() {
@@ -52,7 +52,7 @@ export async function tipRoom(roomId, lightningAddress, satAmount, fnSuccess, te
 
 export async function zapRoomGoal(zapGoal, roomId, lightningAddress, satAmount, fnSuccess, textForSuccess) {
     if ((localStorage.getItem(`v4vtiproom.enabled`) ?? 'false') != 'true') return false;
-    const comment = `Raisin Corn!`;
+    const comment = `Supporting via Corny Chat!`;
     const eventId = zapGoal.id;
     const pubkey = nip19.decode(zapGoal.npub).data;
     return await zapSats(lightningAddress, satAmount, pubkey, eventId, comment, fnSuccess, textForSuccess, `roomtip-${roomId}.timepaid`);
@@ -78,7 +78,7 @@ async function zapSats(lightningAddress, satAmount, pubkey, eventId, comment, fn
             const lnService = await getLNService(lightningAddress);
             let invoice = {};
             if (pubkey) {
-                const signedZapRequest = await getZapEvent(comment, pubkey, {id: eventId}, msatsAmount);
+                const signedZapRequest = await makeZapRequest(comment, pubkey, {id: eventId}, msatsAmount);
                 if (signedZapRequest[0]) {
                     const lnInvoice = await getLNInvoice(signedZapRequest[1], lightningAddress, lnService, msatsAmount, comment);
                     if (lnInvoice?.pr) invoice = lnInvoice;

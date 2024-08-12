@@ -57,7 +57,7 @@ export const ImportLinksModal = ({
     let newLinkLists = [];
     for (let linkList of linkLists) {
       if (linkList.id != selectedListID) {
-        newLinkLists.push(linkList)
+        newLinkLists.push(linkList);
       } else {
         requestDeletionById(linkList.id);
       }

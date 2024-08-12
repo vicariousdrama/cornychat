@@ -5,7 +5,8 @@ import crypto from 'crypto-js';
 import {bech32} from 'bech32';
 import {Buffer} from 'buffer';
 
-const pool = new RelayPool();
+//const pool = new RelayPool();
+const writepool = new RelayPool();
 function unique(arr) {
   return [...new Set(arr)];
 }
@@ -45,7 +46,7 @@ export async function getOutboxRelays(pubkey) {
       res([]);
       return;
     }
-    //const pool = new RelayPool();
+    const localpool = new RelayPool();
     try {
       const userRelays = getCachedOutboxRelaysByPubkey(pubkey);
       const defaultRelays = getDefaultOutboxRelays();
@@ -53,7 +54,7 @@ export async function getOutboxRelays(pubkey) {
       const filter = [{kinds: [10002], authors: [pubkey]}];
       let events = [];
       setTimeout(() => {
-        //pool.close();
+        localpool.close();
         // Find newest
         let fd = 0;
         let fi = -1;
@@ -81,7 +82,7 @@ export async function getOutboxRelays(pubkey) {
         res(outboxRelays);
       }, 2700);
 
-      pool.subscribe(
+      localpool.subscribe(
         filter,
         relaysToUse,
         (event, onEose, url) => {
@@ -97,7 +98,7 @@ export async function getOutboxRelays(pubkey) {
       );
     } catch (error) {
       console.log('There was an error while fetching outbox relay list: ', error);
-      //pool.close();
+      localpool.close();
       rej(undefined);
     }
   });  
@@ -186,7 +187,7 @@ export async function getUserEventsByKind(pubkey, kind, timeSince) {
       res([]);
       return;
     }
-    //const pool = new RelayPool();
+    const localpool = new RelayPool();
     try {
       const userRelays = getCachedOutboxRelaysByPubkey(pubkey);
       const defaultRelays = getDefaultOutboxRelays();
@@ -195,7 +196,7 @@ export async function getUserEventsByKind(pubkey, kind, timeSince) {
       const filter = [{kinds: [kind], authors: [pubkey], since: since, limit: 50}];
       let userEvents = [];
       setTimeout(() => {
-        //pool.close();
+        localpool.close();
         let retids = [];
         for (let userEvent of userEvents) {
           retids.push(userEvent.id);
@@ -215,7 +216,7 @@ export async function getUserEventsByKind(pubkey, kind, timeSince) {
       }, 2700);
       let options = {unsubscribeOnEose: true, allowDuplicateEvents: false};
       
-      pool.subscribe(
+      localpool.subscribe(
         filter,
         relaysToUse,
         (event, afterEose, url) => {
@@ -227,7 +228,7 @@ export async function getUserEventsByKind(pubkey, kind, timeSince) {
       );
     } catch (error) {
       console.log('There was an error when getting user events by kind: ', error);
-      //pool.close();
+      localpool.close();
       rej(undefined);
     }
   });
@@ -236,7 +237,7 @@ export async function getUserEventsByKind(pubkey, kind, timeSince) {
 export async function getUserEventById(pubkey, id) {
   if(window.DEBUG) console.log("in getUserEventById for pubkey ", pubkey, ", id", id);
   return new Promise((res, rej) => {
-    //const pool = new RelayPool();
+    const localpool = new RelayPool();
     try {
       const userRelays = getCachedOutboxRelaysByPubkey(pubkey);
       const defaultRelays = getDefaultOutboxRelays();
@@ -245,19 +246,19 @@ export async function getUserEventById(pubkey, id) {
       let userEvents = [];
       const timeoutRelays = setTimeout(() => {
         if (userEvents.length === 0) {
-          //pool.close();
+          localpool.close();
           res(undefined);
           if (window.DEBUG) console.log('Nostr relays did not return any events');
         }
       }, 2700);
 
-      pool.subscribe(
+      localpool.subscribe(
         filter,
         relaysToUse,
         (event, afterEose, url) => {
           clearTimeout(timeoutRelays);
           userEvents.push(event);
-          //pool.close();
+          localpool.close();
           res(event);
         },
         undefined,
@@ -266,7 +267,7 @@ export async function getUserEventById(pubkey, id) {
       );
     } catch (error) {
       console.log('There was an error when getting user events by id: ', error);
-      //pool.close();
+      localpool.close();
       rej(undefined);
     }
   });
@@ -275,7 +276,7 @@ export async function getUserEventById(pubkey, id) {
 export async function getUserMetadata(pubkey, id) {
   if(window.DEBUG) console.log("in getUserMetadata for pubkey", pubkey, ", id", id);
   return new Promise((res, rej) => {
-    //const pool = new RelayPool();
+    const localpool = new RelayPool();
     try {
       const userRelays = getCachedOutboxRelaysByPubkey(pubkey);
       const defaultRelays = getDefaultOutboxRelays();
@@ -286,12 +287,12 @@ export async function getUserMetadata(pubkey, id) {
       const timeoutRelays = setTimeout(() => {
         if (userMetadata.length === 0) {
           if(window.DEBUG) console.log('Nostr relays did not return any events');
-          //pool.close();
+          localpool.close();
           res(undefined);
         }
       }, 3000);
       const npub = nip19.npubEncode(pubkey);
-      pool.subscribe(
+      localpool.subscribe(
         filter,
         relaysToUse,
         (event, afterEose, url) => {
@@ -327,7 +328,7 @@ export async function getUserMetadata(pubkey, id) {
           })();
           if(!!false) console.log(savingToSession);
 
-          //pool.close();
+          localpool.close();
           res(userInfo);
         },
         undefined,
@@ -336,19 +337,20 @@ export async function getUserMetadata(pubkey, id) {
       );
     } catch (error) {
       console.log('There was an error when getting user metadata: ', error);
-      //pool.close();
+      localpool.close();
       rej(undefined);
     }
   });
 }
 
+let eventZapReceipts = {}
 export async function getZapReceipts(eventId) {
   return new Promise((res, rej) => {
     if (eventId == undefined) {
       res([]);
       return;
     }
-    //const pool = new RelayPool();
+    const localpool = new RelayPool();
     try {
       const userRelays = []; //getCachedOutboxRelaysByPubkey(pubkey);
       const defaultRelays = getDefaultOutboxRelays();
@@ -356,12 +358,20 @@ export async function getZapReceipts(eventId) {
       const filter = [{kinds: [9735], "#e": [eventId]}];
       let userEvents = [];
       setTimeout(() => {
-        //pool.close();
-        res(userEvents);
+        if (eventZapReceipts.hasOwnProperty(eventId)) {
+          for (let ue of userEvents) {
+            if (!eventZapReceipts.eventId.includes(ue))
+              eventZapReceipts.eventId.push(ue);
+          }
+        } else {
+          eventZapReceipts.eventId = userEvents;
+        }
+        localpool.close();
+        res(eventZapReceipts.eventId);
       }, 2700);
       let options = {unsubscribeOnEose: true, allowDuplicateEvents: false};
       
-      pool.subscribe(
+      localpool.subscribe(
         filter,
         relaysToUse,
         (event, afterEose, url) => {
@@ -373,7 +383,7 @@ export async function getZapReceipts(eventId) {
       );
     } catch (error) {
       console.log('There was an error when getting zap receipts for event: ', error);
-      //pool.close();
+      localpool.close();
       rej(undefined);
     }
   });  
@@ -421,8 +431,8 @@ export async function zapEvent(npubToZap, event, comment, amount) {
       throw new Error(LnService.reason);
     }
     if (pubkeyToZap) {
-      if(window.DEBUG) console.log("about to call getZapEvent");
-      const signedEvent = await getZapEvent(
+      if(window.DEBUG) console.log("about to call makeZapRequest");
+      const signedEvent = await makeZapRequest(
         comment,
         pubkeyToZap,
         event,
@@ -506,7 +516,7 @@ async function saveFollowList(myFollowList) {
   }
   const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
   //const pool = new RelayPool();
-  pool.publish(EventSigned, relaysToUse);
+  writepool.publish(EventSigned, relaysToUse);
   const sleeping = await sleep(100);
   //pool.close();
   return true;
@@ -515,7 +525,7 @@ async function saveFollowList(myFollowList) {
 export async function loadFollowList() {
   if(window.DEBUG) console.log("in loadFollowList");
   return new Promise(async (res, rej) => {
-    //const pool = new RelayPool();
+    const localpool = new RelayPool();
     try {
       const defaultRelays = getDefaultOutboxRelays();
       const myPubkey = await window.nostr.getPublicKey();
@@ -531,7 +541,7 @@ export async function loadFollowList() {
       let events = [];
 
       setTimeout(() => {
-        //pool.close();
+        localpool.close();
         // Find newest
         let fd = 0;
         let fi = -1;
@@ -551,7 +561,7 @@ export async function loadFollowList() {
         res(followList);
       }, 2700);
 
-      pool.subscribe(
+      localpool.subscribe(
         filter,
         relaysToUse,
         (event, onEose, url) => {
@@ -567,18 +577,13 @@ export async function loadFollowList() {
       );
     } catch (error) {
       console.log('There was an error while fetching follow list: ', error);
-      //pool.close();
+      localpool.close();
       rej(undefined);
     }
   });
 }
 
-export async function unFollowUser(
-  npubToUnfollow,
-  myFollowList,
-  state,
-  roomId,
-) {
+export async function unFollowUser(npubToUnfollow,myFollowList) {
   if(window.DEBUG) console.log('in unFollowUser for ' + npubToUnfollow);
   if (!window.nostr) {
     return [null, 'A nostr extension is required to unfollow a user'];
@@ -599,7 +604,7 @@ export async function unFollowUser(
   return [true];
 }
 
-export async function followUser(npubToFollow, myFollowList, state, roomId) {
+export async function followUser(npubToFollow, myFollowList) {
   if(window.DEBUG) console.log('in followUser for ' + npubToFollow);
   if (!window.nostr) {
     return [null, 'A nostr extension is required to follow a user'];
@@ -763,8 +768,8 @@ export async function getLNInvoice(zapEvent, lightningAddress, LNService, msatsA
   }
 }
 
-export async function getZapEvent(content, receiver, event, msatsAmount) {
-  if(window.DEBUG) console.log("in getZapEvent");
+export async function makeZapRequest(content, receiver, event, msatsAmount) {
+  if(window.DEBUG) console.log("in makeZapRequest");
   // TODO: relays for zap event should be those from the event
   let zapevent = {
     id: null,
@@ -934,7 +939,7 @@ export async function saveList(dTagValue, name, about, image, kind, theList) {
     if (window.DEBUG) console.log(relaysToUse);
     //const pool = new RelayPool();
     if (window.DEBUG) console.log("992-publishing");
-    pool.publish(eventSigned, relaysToUse);
+    writepool.publish(eventSigned, relaysToUse);
     if (window.DEBUG) console.log("994-published");
     const sleeping = await sleep(100);
     //pool.close();
@@ -945,7 +950,7 @@ export async function saveList(dTagValue, name, about, image, kind, theList) {
 export async function loadList(kind, pubkey) {
   if(window.DEBUG) console.log("in loadList for kind ", kind);
   return new Promise(async(res, rej) => {
-    //const pool = new RelayPool();
+    const localpool = new RelayPool();
     try {
       let events = [];
       const defaultRelays = getDefaultOutboxRelays();
@@ -999,10 +1004,10 @@ export async function loadList(kind, pubkey) {
           // if we got here, the event is valid
           validEvents.push(event);
         }
-        //pool.close();
+        localpool.close();
         res(validEvents);
       }, 3000);
-      pool.subscribe(
+      localpool.subscribe(
         filters,
         relaysToUse,
         (event, onEose, url) => { events.push(event); },
@@ -1012,7 +1017,7 @@ export async function loadList(kind, pubkey) {
       );
     } catch (error) {
       console.log('There was an error when loading lists: ', error);
-      //pool.close();
+      localpool.close();
       rej(undefined);
     }
   });
@@ -1042,7 +1047,7 @@ export async function requestDeletionById(id) {
   }
   const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
   //const pool = new RelayPool();
-  pool.publish(EventSigned, relaysToUse);
+  writepool.publish(EventSigned, relaysToUse);
   const sleeping = await sleep(100);
   //pool.close();
   return true;  
@@ -1077,7 +1082,7 @@ export async function loadPetnames() {
   if(window.DEBUG) console.log('in loadPetnames');
   return new Promise(async(res, rej) => {
     if (!window.nostr) return(undefined);
-    //const pool = new RelayPool();
+    const localpool = new RelayPool();
     try {
       let events = [];
       if(Window.DEBUG) console.log('loadPetnames: getDefaultOutboxRelays');
@@ -1154,10 +1159,10 @@ export async function loadPetnames() {
           let targetNpub = nip19.npubEncode(targetPubkey);
           localStorage.setItem(`${targetNpub}.petname`, targetPetname);
         }
-        //pool.close();
+        localpool.close();
         res(true);
       }, 3000);
-      pool.subscribe(
+      localpool.subscribe(
         filters,
         relaysToUse,
         (event, onEose, url) => { events.push(event); },
@@ -1167,7 +1172,7 @@ export async function loadPetnames() {
       );
     } catch (error) {
       console.log('There was an error when loading petnames: ', error);
-      //pool.close();
+      localpool.close();
       rej(undefined);
     }
   });
@@ -1192,7 +1197,7 @@ export function getRelationshipPetname(userNpub, userDisplayName) {
 export async function getRelationshipForNpub(userNpub) {
   if(window.DEBUG) console.log('in getPetnameForNpub');
   return new Promise(async(res, rej) => {
-    //const pool = new RelayPool();
+    const localpool = new RelayPool();
     try {
       let events = [];
       const defaultRelays = getDefaultOutboxRelays();
@@ -1235,10 +1240,10 @@ export async function getRelationshipForNpub(userNpub) {
           if (targetPubkey == undefined) continue;
           res(event);
         }
-        //pool.close();
+        localpool.close();
         res(false);
       }, 3000);
-      pool.subscribe(
+      localpool.subscribe(
         filters,
         relaysToUse,
         (event, onEose, url) => { events.push(event); },
@@ -1248,7 +1253,7 @@ export async function getRelationshipForNpub(userNpub) {
       );
     } catch (error) {
       console.log('There was an error when loading petnames: ', error);
-      //pool.close();
+      localpool.close();
       rej(undefined);
     }
   });  
@@ -1336,7 +1341,7 @@ export async function updatePetname(userNpub, petname) {
   }
   const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
   //const pool = new RelayPool();
-  pool.publish(EventSigned, relaysToUse);
+  writepool.publish(EventSigned, relaysToUse);
   const sleeping = await sleep(100);
 }
 
@@ -1398,7 +1403,7 @@ export async function publishStatus(status, url) {
     }
     const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
     //const pool = new RelayPool();
-    pool.publish(eventSigned, relaysToUse);
+    writepool.publish(eventSigned, relaysToUse);
     const sleeping = await sleep(100);
     //pool.close();
     return [true, ''];
@@ -1408,7 +1413,7 @@ export async function publishStatus(status, url) {
 export async function getCBadgeConfigsForPubkey(pubkey) {
   if(window.DEBUG) console.log("in getCBadgeIdsForPubkey for pubkey ", pubkey);
   return new Promise(async(res, rej) => {
-    //const pool = new RelayPool();
+    const localpool = new RelayPool();
     try {
       let events = [];
       const defaultRelays = getDefaultOutboxRelays();
@@ -1464,10 +1469,10 @@ export async function getCBadgeConfigsForPubkey(pubkey) {
             foundBadgeConfigs.push(badgeconfig);
           }
         }
-        //pool.close();
+        localpool.close();
         res(foundBadgeConfigs);
       }, 3000);
-      pool.subscribe(
+      localpool.subscribe(
         filters,
         relaysToUse,
         (event, onEose, url) => { events.push(event); },
@@ -1477,7 +1482,7 @@ export async function getCBadgeConfigsForPubkey(pubkey) {
       );
     } catch (error) {
       console.log('There was an error when getting badges: ', error);
-      //pool.close();
+      localpool.close();
       rej(undefined);
     }
   });
@@ -1514,7 +1519,7 @@ export async function sendLiveChat(roomATag, textchat) {
     }
     const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
     //const pool = new RelayPool();
-    pool.publish(eventSigned, relaysToUse);
+    writepool.publish(eventSigned, relaysToUse);
     const sleeping = await sleep(100);
     //pool.close();
     return [true, ''];
@@ -1559,9 +1564,61 @@ export async function publishZapGoal(description, amount) {
   } else {
     // push to relays
     //const pool = new RelayPool();
-    pool.publish(eventSigned, relaysToUse);
+    writepool.publish(eventSigned, relaysToUse);
     const sleeping = await sleep(100);
     //pool.close();
     return [true, eventSigned];
   }  
+}
+
+export async function loadZapGoals() {
+  return new Promise(async(res, rej) => {
+    if (!window.nostr) return(undefined);
+    const localpool = new RelayPool();
+    try {
+      let events = [];
+      const defaultRelays = getDefaultOutboxRelays();
+      const myPubkey = await window.nostr.getPublicKey();
+      const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
+      let myOutboxRelays = [];
+      if (userRelays?.length == 0) {
+        const myNpub = nip19.npubEncode(myPubkey);
+        myOutboxRelays = await getOutboxRelays(myPubkey);
+        updateCacheOutboxRelays(myOutboxRelays, myNpub);
+      }
+      const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
+      const timestamp = Math.floor(Date.now() / 1000);
+      const filter = {kinds:[9041],authors: [myPubkey]}
+      const filters = [filter];
+      setTimeout(() => {
+        let retEvents = [];
+        for (let event of events) {
+          let a = 0;
+          for (let tag of event.tags) {
+            if (tag.length < 2) continue;
+            if (tag[0] == 'amount') {
+              let a1 = Math.floor(String(Math.floor(tag[1])).replace("NaN",0));
+              //if (a1 > 0) a = a1;
+              a = a1;
+            }
+          }
+          if (a > 0) retEvents.push(event);
+        }
+        localpool.close();
+        res(retEvents);
+      }, 3000);
+      localpool.subscribe(
+        filters,
+        relaysToUse,
+        (event, onEose, url) => { events.push(event); },
+        undefined,
+        undefined,
+        { unsubscribeOnEose: true, allowDuplicateEvents: false, allowOlderEvents: false }
+      );
+    } catch (error) {
+      console.log('There was an error when loading zap goals: ', error);
+      localpool.close();
+      rej(undefined);
+    }
+  });
 }

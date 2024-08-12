@@ -119,7 +119,7 @@ export const CreateZapGoalModal = ({
                 fontSize: '15px',
             }}
             onChange={e => {
-                setZGamount(e.target.value);
+                setZGamount(Math.floor(e.target.value.replace(/[^0-9]/g,'')));
             }}
         ></input>
 

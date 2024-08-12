@@ -55,7 +55,7 @@ export const ImportSlidesModal = ({
     let newSlideLists = [];
     for (let slideList of slideLists) {
       if (slideList.id != selectedListID) {
-        newSlideLists.push(slideList)
+        newSlideLists.push(slideList);
       } else {
         requestDeletionById(slideList.id);
       }
