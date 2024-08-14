@@ -7,9 +7,11 @@ router.get('', async function (req, res) {
     res.type('application/json');
 
     // time constraint
-    let oldtime30 = 30 * 24 * 60 * 60 * 1000; // 30 days ago
-    let oldtime60 = 60 * 24 * 60 * 60 * 1000; // 30 days ago
-    let oldtime90 = 90 * 24 * 60 * 60 * 1000; // 30 days ago
+    let now = Date.now();
+    let d30 = (30 * 24 * 60 * 60 * 1000);
+    let oldtime30 = now - (d30); // 30 days ago
+    let oldtime60 = now - (d30 * 2); // 60 days ago
+    let oldtime90 = now - (d30 * 3); // 90 days ago
 
     // get all rooms
     const kprefix = `rooms/*`;
@@ -28,16 +30,16 @@ router.get('', async function (req, res) {
                 neveraccessed.push(id);
                 continue;
             }
-            if (lastAccessed < oldtime30) {
-                oldids30.push(id);
+            if (lastAccessed < oldtime90) {
+                oldids90.push(id);
                 continue;
             }
             if (lastAccessed < oldtime60) {
                 oldids60.push(id);
                 continue;
             }
-            if (lastAccessed < oldtime90) {
-                oldids90.push(id);
+            if (lastAccessed < oldtime30) {
+                oldids30.push(id);
                 continue;
             }
             currentids.push({id:id,lastAccessed:lastAccessed});
