@@ -23,7 +23,9 @@ export default function DataTypes() {
       <li><a href="#kind5eventdeletion">Kind 5 - Event Deletions</a></li>
       <li><a href="#kind8badgeawards">Kind 8 - Badge Awards</a></li>
       <li><a href="#kind1311livetext">Kind 1311 - Live Text</a></li>
+      <li><a href="#kind9041zapgoal">Kind 9041 - Zap Goal</a></li>
       <li><a href="#kind9734zaprequest">Kind 9734 - Zap Request</a></li>
+      <li><a href="#kind9735zapreceipt">Kind 9735 - Zap Receipt</a></li>
       <li><a href="#kind10002relaylist">Kind 10002 - Relay List Metadata</a></li>
       <li><a href="#kind23194nip47request">Kind 23194 - Nostr Wallet Connect Request</a></li>
       <li><a href="#kind23195nip47response">Kind 23195 - Nostr Wallet Connect Response</a></li>
@@ -150,6 +152,15 @@ export default function DataTypes() {
         in their personal settings.
       </p>
 
+      <a name="kind9041zapgoal"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 9041 - Zap Goal</h2>
+      <p>
+        Zap goals can be created by room owners as a form of public fund raiser within the room.  Within room settings,
+        owners can create a new zap goal, or attach an existing one they have created previously.  Zap goals are based
+        on the specification outlined in <a href="https://github.com/nostr-protocol/nips/blob/master/75.md">NIP-75</a>.
+        Zap goals are also automatically created by the server for each month as a way to solicit help funding general
+        infrastructure costs for service operation.
+      </p>
+
       <a name="kind9734zaprequest"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 9734 - Zap Request</h2>
       <p>
         Within the application, users can zap or initiate lightning payments by clicking on another room participant's
@@ -163,6 +174,16 @@ export default function DataTypes() {
          <a href="https://github.com/lnurl/luds/blob/luds/16.md"> 16</a>).  In the case of a creation of a zap, the
         protocol flow builds a kind 9734 zap request, signs it, and passes it to the custodial lightning callback 
         endpoint for the payee.
+      </p>
+
+      <a name="kind9735zapreceipt"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 9735 - Zap Receipt</h2>
+      <p>
+        Zap receipts are monitored in rooms whenever a zap goal has been configured.  They are expected to conform to
+        the structure outlined in <a href="https://github.com/nostr-protocol/nips/blob/master/57.md">NIP-57</a>.
+        Specifically, they reference an event id (e.g. the zap goal), and have a tag for `description` that is
+        stringified JSON. The JSON object should contain fields for the amount that was zapped, along with additional
+        parameters.  Periodically, these zap receipts are requested from relays, parsed, and the total zapped towards
+        the goal is then reflected in the progress bar.
       </p>
 
       <a name="kind10002relaylist"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 10002 - Relay List Metadata</h2>

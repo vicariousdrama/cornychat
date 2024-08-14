@@ -6,10 +6,13 @@ import fs from 'fs';
 import ical from 'ical-generator';
 import ejs from 'ejs';
 import escape_html from 'escape-html';
+import dns from 'dns';
 
 export {app as default};
 
 const app = express();
+
+dns.setDefaultResultOrder('ipv4first');
 
 app.use(express.static(process.env.JAM_CONFIG_DIR + '/public'));
 app.use(express.static(process.env.STATIC_FILES_DIR || 'public'));
@@ -33,7 +36,7 @@ const jamServerLogo = process.env.SERVER_LOGO || `${urls.jam}/img/cornychat-app-
 const jamServerImage = process.env.SERVER_IMAGE || jamServerLogo;
 const jamServerFavicon = process.env.SERVER_FAVICON || jamServerLogo;
 const jamServerOperator = process.env.SERVER_OPERATOR || 'a Friendly Nostrich';
-const serverLightningAddress = process.env.SERVER_PROFILE_LUD16 || 'wearydoor58@walletofsatoshi.com';
+const serverLightningAddress = process.env.SERVER_PROFILE_LUD16 || 'cornychatdev@satsilo.com';
 console.log(`jamServerName: ${jamServerName}`);
 console.log(`jamServerLogo: ${jamServerLogo}`);
 console.log(`jamServerOperator: ${jamServerOperator}`);
@@ -41,15 +44,6 @@ console.log(`jamServerOperator: ${jamServerOperator}`);
 const preloadScript = getPreloadScript();
 
 let jamConfigFromFile = {};
-// try {
-//   jamConfigFromFile = JSON.parse(
-//     fs
-//       .readFileSync(process.env.JAM_CONFIG_DIR + '/jam-config.json')
-//       .toString('utf-8')
-//   );
-// } catch (e) {
-//   console.log('No config file found, starting with empty config');
-// }
 
 const jamConfig = {
   ...jamConfigFromFile,
@@ -69,11 +63,6 @@ app.use('/config.json', (_, res) => {
 app.use(async (req, res) => {
   let route = parsePath(req.path);
   //console.log(req.path, route);
-  //console.log(route, (typeof route));
-  // if (route == undefined || route == 'undefined') {
-  //   return res.sendStatus(400);
-  // }
-
   if (route === 'new') {
     return res.redirect(
       302,
@@ -236,87 +225,38 @@ const reservedRoutes = ['me', null];
 
 async function getRoomMetaInfo(route) {
   if (reservedRoutes.includes(route)) return {metaInfo: defaultMetaInfo};
+  let roomUrl = `not yet set`;
+  let pmdl = 231;
   try {
     // remove .ics or other suffixes
     const [roomIdCaseSensitive] = route.split('.');
     const roomId = roomIdCaseSensitive.toLowerCase();
-    const roomInfo = await (await fetch(`${pantryApiPrefix}/${roomId}`)).json();
+    //roomUrl = `${pantryApiPrefix}/${roomId}`;
+    roomUrl = `http://pantry:3001/api/v1/rooms/${roomId}`;  // This is a hack calling pantry directly as a workaround for localhost in dev
+    pmdl = 236;
+    const response = await fetch(roomUrl, {method: "GET", headers: {"Accept":"application/json"}} ); 
+    pmdl = 238;
+    const roomInfo = await response.json();
+    pmdl = 240;
+    const t = Math.floor(new Date().getTime()/1000);    
     return {
       metaInfo: {
         ...defaultMetaInfo,
         ogTitle: roomInfo.name,
         ogDescription: roomInfo.description,
         ogUrl: `${urls.jam}/${roomId}`,
-        ogImage: roomInfo.logoURI || jamServerImage,
+        ogImage: `${(roomInfo.logoURI || jamServerImage)}?t=${t}` ,
         color: roomInfo.color || '',
         id: roomId || '',
-        favIcon: roomInfo.logoURI || jamServerFavicon,
+        favIcon: `${(roomInfo.logoURI || jamServerFavicon)}?t=${t}`,
         schedule: roomInfo.schedule,
       },
       roomInfo,
       roomId,
     };
   } catch (e) {
-    console.log(`Unable to retrieve info for ${route} : ${e.toString()}`);
-    return {metaInfo: defaultMetaInfo};
-  }
-}
-
-async function getRoomMetaInfoNew(route) {
-  if (reservedRoutes.includes(route)) return {metaInfo: defaultMetaInfo};
-  try {
-    // remove .ics or other suffixes
-    const [roomIdCS] = route.split('.');
-    let roomId = roomIdCS;
-    let roomInfo = {}
-    let success = false;
-    try {
-      let roomInfoCS = await (await fetch(`${pantryApiPrefix}/${roomId}`)).json();
-      roomInfo = roomInfoCS;
-      success = true;
-    } catch (eCS) {
-      console.log(`Unable to retrieve room metadata using case sensitive value ${roomId}.`);
-      //console.log(`getRoomMetaInfo Error 1 getting info for ${route} : ${eCS.toString()}`);
-      roomId = roomIdCS.toLowerCase();
-      if (roomId != roomIdCS) {
-        if (window.DEBUG) console.log(`Attempting as lowercase ${roomId}`);
-        try {
-          let roomInfoLower = await (await fetch(`${pantryApiPrefix}/${roomId}`)).json();
-          roomInfo = roomInfoLower;
-          success = true;
-        } catch (eLower) {
-          console.log(`Error getting room metadata for ${route} : ${eLower.toString()}`);
-          return {
-            metaInfo: defaultMetaInfo,
-            roomInfo,
-            roomId,
-          };    
-        }
-      }
-    }
-    if (success) {
-      if (window.DEBUG) console.log('Preparing response to getRoomMetaInfo');
-      return {
-        metaInfo: {
-          ...defaultMetaInfo,
-          ogTitle: roomInfo.name,
-          ogDescription: roomInfo.description,
-          ogUrl: `${urls.jam}/${roomId}`,
-          ogImage: roomInfo.logoURI || jamServerImage,
-          color: roomInfo.color || '',
-          id: roomId || '',
-          favIcon: roomInfo.logoURI || jamServerFavicon,
-          schedule: roomInfo.schedule,
-        },
-        roomInfo,
-        roomId,
-      };
-    } else {
-      console.log(`Using default meta info for ${route}`);
-      return {metaInfo: defaultMetaInfo}
-    }
-  } catch (e) {
-    console.log(`getRoomMetaInfo Error 3 getting info for ${route} : ${e.toString()}`);
+    console.log(JSON.stringify(e));
+    console.log(`Unable to retrieve info for ${route} [pmdl=${pmdl}, roomUrl=${roomUrl}] : ${e.toString()}`);
     return {metaInfo: defaultMetaInfo};
   }
 }

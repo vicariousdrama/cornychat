@@ -773,6 +773,40 @@ const publishZapGoal = async (sk, content, amount, relays) => {
     });
 }
 
+const deleteOldZapGoals = async (sk) => {
+    if(pmd) console.log("in deleteOldZapGoals");
+    let pk = getPublicKey(sk);
+    const timestamp = Math.floor(Date.now() / 1000);
+    const event = {
+        created_at: timestamp,
+        kind: 5,
+        tags: [],
+        content: 'these posts were published by accident',
+    }
+    let zapgoals = await getZapGoals(pk);
+    let newestGoal = {created_at: 0}
+    for (let zapgoal of zapgoals) {
+        if (zapgoal.created_at > newestGoal.created_at) {
+            newestGoal = zapgoal;
+        }
+    }
+    for (let zapgoal of zapgoals) {
+        if (zapgoal.id != newestGoal.id) {
+            event.tags.push(["e", zapgoal.id]);
+        }
+    }
+    let el = event.tags.length;
+    if (el > 0) {
+        if(pmd) console.log(`Requesting deletion of ${el} zap goal events`);
+        event.tags.push(["k", "9041"]);
+        const deleteEvent = finalizeEvent(event, sk);
+        if(pmd) console.log('Event to be published', JSON.stringify(deleteEvent));
+        writepool.publish(deleteEvent, relaysToUse);
+        await sleep(250);
+    } else {
+        if(pmd) console.log(`No zap goal events need to be deleted`);
+    }
+}
 
 module.exports = {
     deleteNostrSchedule,
@@ -786,4 +820,5 @@ module.exports = {
     publishRoomActive,
     getZapGoals,
     publishZapGoal,
+    deleteOldZapGoals,
 };

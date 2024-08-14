@@ -135,7 +135,9 @@ services:
       - ../data/hls:/pantry-sfu/hls
   pantry:
     networks:
-      - jam
+      jam:
+        aliases:
+          - pantry      
     #build: ../pantry
     image: cornychat/pantry:${CHANNEL}
     restart: always
