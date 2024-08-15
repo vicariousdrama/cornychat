@@ -2,15 +2,20 @@ import React, {useEffect} from 'react';
 import {Modal, openModal} from './Modal';
 import {InvoiceEventModal} from './InvoiceEvent';
 import {getZapReceipts} from '../nostr/nostr';
+import {nip19} from 'nostr-tools';
 
 export default function ZapGoalBar({
     zapgoal,
+    lud16,
 }) {
     let width = 300;
     let goalAmount = 0;
     let goalDescription = zapgoal.content;
     for (let t of zapgoal.tags) {
         if (t.length > 1 && t[0] == "amount") goalAmount = Math.floor(Math.floor(t[1])/1000);
+    }
+    if (!zapgoal.hasOwnProperty("npub") && zapgoal.hasOwnProperty("pubkey")) {
+        zapgoal.npub = nip19.npubEncode(zapgoal.pubkey);
     }
     let totalSats = 0; // default for testing display, and sampling progress
     let fillWidth = Math.floor((totalSats/goalAmount) * width);
@@ -88,7 +93,7 @@ export default function ZapGoalBar({
         <center key={`zapgoal_${zapgoal.id}`}>
         <div id="zapgoal" className="mx-0 text-xs rounded-md cursor-pointer w-full"
             onClick={() => {
-                openModal(InvoiceEventModal, {event: zapgoal});
+                openModal(InvoiceEventModal, {event: zapgoal, lud16: lud16});
               }}
         >
             <div className="px-0 text-xs rounded-md text-white">

@@ -311,7 +311,7 @@ export default function RoomHeader2({
         <div className="flex justify-between m-0 w-full">
             <div className="flex w-full">
                 {room?.zapGoal?.id && (
-                <ZapGoalBar zapgoal={room.zapGoal} key={`zapgoalbar_${room.zapGoal.id}`} />
+                <ZapGoalBar key={`zapgoalbar_${room.zapGoal.id}`} zapgoal={room.zapGoal} lud16={lud16} />
                 )}
                 {!room?.zapGoal?.id && (
                 <>
