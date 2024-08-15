@@ -42,7 +42,7 @@ const DisplayInvoice = ({invoice, shortInvoice, room}) => {
   );
 };
 
-export const InvoiceEventModal = ({event, close}) => {
+export const InvoiceEventModal = ({event, lud16, close}) => {
   const [comment, setComment] = useState(localStorage.getItem('zaps.defaultComment') ?? 'Zapping from Corny Chat!');
   const [amount, setAmount] = useState(localStorage.getItem('zaps.defaultAmount') ?? (localStorage.getItem('defaultZap') ?? ''));
   const [state, {sendTextChat}] = useJam();
@@ -51,7 +51,7 @@ export const InvoiceEventModal = ({event, close}) => {
   const [displayError, setDisplayError] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const npub = event.npub; // nip19.npubEncode(event.pubkey);          // target of the zap is the pubkey that authored the event
+  const npub = (!event.npub && event.pubkey ? nip19.npubEncode(event.pubkey) : event.npub); // target of the zap is the pubkey that authored the event
   const shortLnInvoice = invoice.substring(0, 17);
   const nwcEnabled = (localStorage.getItem("nwc.enabled") ?? 'false') == 'true';
 
@@ -63,7 +63,7 @@ export const InvoiceEventModal = ({event, close}) => {
     })();
   }
   const userMetadata = JSON.parse(sessionStorage.getItem(npub));
-  const lightningAddress = userMetadata?.lightningAddress;
+  const lightningAddress = (lud16 ? lud16 : userMetadata?.lightningAddress);  // use override lud16 if provided, else fallback to the address for the npub
 
   let room = {color: 'default', customColor: defaultState.room.customColor}
 

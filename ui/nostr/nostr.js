@@ -396,6 +396,8 @@ export async function sendZaps(npubToZap, comment, amount) {
 export async function zapEvent(npubToZap, event, comment, amount) {
   if(window.DEBUG) console.log("in sendZaps");
   try {
+    if (npubToZap == undefined) return [undefined, "logic error: npubToZap is not set"];
+
     // Validate and set sats
     let satsAmount = parseInt(amount);
     if (!(satsAmount > 0)) {
