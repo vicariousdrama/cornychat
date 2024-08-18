@@ -26,7 +26,7 @@ export const CreateZapGoalModal = ({
         setZapGoal({content:zgContent,amount:zgAmount,id:event.id,npub:myNpub});
         close();
     } else {
-        alert('An error occurred while creating and publishing the zap goal.');
+        alert(`An error occurred while creating and publishing the zap goal.\n${event}`);
     }
   };
 

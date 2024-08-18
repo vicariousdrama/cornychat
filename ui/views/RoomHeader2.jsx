@@ -7,7 +7,7 @@ import {useJam} from '../jam-core-react';
 import {MicOnSvg, Links, Audience} from './Svg';
 import {openModal} from './Modal';
 import {InvoiceModal} from './Invoice';
-import {tipRoom, time4Ad, time4Tip, value4valueAdSkip, zapRoomGoal} from '../lib/v4v';
+import {tipRoom, time4Ad, time4Tip, value4valueAdSkip, zapRoomGoal, zapServerGoal} from '../lib/v4v';
 import {publishStatus} from '../nostr/nostr';
 import ZapGoalBar from './ZapGoalBar';
 
@@ -34,7 +34,8 @@ export default function RoomHeader2({
     const iconColor = isDark(colors.avatarBg) ? colors.icons.light : colors.icons.dark;  
     const [displayDescription, setDisplayDescription] = useState(false);
     const [autoTipRoom, setAutoTipRoom] = useState((localStorage.getItem(`roomtip-${roomId}.enabled`) ?? 'false') == 'true');
-    const [state, {sendTextChat, sendCSAR, getRoomATag}] = useJam();
+    const [state, {sendTextChat, sendCSAR, getRoomATag, getZapGoal}] = useJam();
+
     let textchats = JSON.parse(localStorage.getItem(`${roomId}.textchat`) || '[]');
     let {npub} = room || {};
     if (npub == undefined || npub == "") npub = `fakenpub-${roomId}`;
@@ -55,7 +56,34 @@ export default function RoomHeader2({
         sessionStorage.setItem(npub, JSON.stringify({lightningAddress: room.lud16}));
     }
 
+    let adidx = Math.floor(Date.now() / 1000);
+    function sendAdToChat() {
+        let bufferSize = localStorage.getItem(`textchat.bufferSize`) || 50;
+        adidx += 1;
+        let textTime = Math.floor(Date.now() / 1000);
+        let adPeerId = `ad-${adidx}`;
+        let textchat = `/chatad:${adidx}:${textTime}`;
+        if (!textchats) textchats = [];
+        let lastline = textchats.slice(-1);
+        if ((lastline.length == 0) || (lastline[0].length != 2) || (lastline[0][0] != adPeerId) || (lastline[0][1] != textchat)) {
+            textchats.push([adPeerId, textchat, false, null, textTime]);
+            textchats = textchats.slice(-1 * bufferSize);
+            localStorage.setItem(`${roomId}.textchat`, JSON.stringify(textchats));
+        }
+    }
+
     useEffect(() => {
+
+        // Get the site zap goal
+        const loadDevZapGoal = async () => {
+            let zg = await(getZapGoal("🌽"));
+            zg = zg[0];
+            if (zg.created_at > 0) {
+                sessionStorage.setItem('devZapGoal',JSON.stringify(zg));
+            }
+        }
+        loadDevZapGoal();
+
         let textDeduplicaterToggle = true;
         // Indicate that we entered the chat
         let timeoutEntered = undefined;
@@ -78,64 +106,44 @@ export default function RoomHeader2({
                     if (time4Tip(roomId)) {
                         const roomtipamount = Math.floor(localStorage.getItem(`v4vtiproom.amount`) ?? '0');
                         textDeduplicaterToggle = !textDeduplicaterToggle;
-
-                        if(room?.zapGoal?.id) {
-                            // Send periodic tip to the zap goal set
-                            let chatText = `*zapped ⚡${roomtipamount} sats to the room goal${textDeduplicaterToggle ? "!":"."}*`;
-                            (async () => {
-                                let zapped = await zapRoomGoal(room.zapGoal, roomId, room.lud16, roomtipamount, sendTextChat, chatText);
-                                if (!zapped) {
-                                    console.log("zapping room goal failed");
-                                }
-                            })();
-                        } else {
-                            // Tip goes straight to room owner's lightning address set
-                            // TODO: convert to zap?
-                            let chatText = `*tipped the room owner ⚡${roomtipamount} sats${textDeduplicaterToggle ? "!":"."}*`;
-                            (async () => {
-                            let tipped = await tipRoom(roomId, room.lud16, roomtipamount, sendTextChat, chatText);
-                            if (!tipped) {
-                                console.log("room tip failed");
-                            }                        
-                            })();
-                        }
+                        (async () => {
+                            let ok = false;
+                            if(room?.zapGoal?.id) {
+                                let chatText = `/me zapped ⚡${roomtipamount} sats to the room goal${textDeduplicaterToggle ? "!":"."}`;
+                                ok = await zapRoomGoal(room.zapGoal, roomId, room.lud16, roomtipamount, sendTextChat, chatText);
+                                if (!ok) console.log("zapping room goal failed");
+                            } else {
+                                let chatText = `/me tipped the room owner ⚡${roomtipamount} sats${textDeduplicaterToggle ? "!":"."}`;
+                                ok = await tipRoom(roomId, room.lud16, roomtipamount, sendTextChat, chatText);
+                                if (!ok) console.log("room tip failed");
+                            }
+                        })();
                     }
                 }
             }, roomtipinterval);
         }, roomtiptimeout);
         // Dev Tipping
-        let adidx = Math.floor(Date.now() / 1000);
         const chatadinterval = 1*60*1000; // once a minute
         let intervalAdSkip = setInterval(() => {
             let textchatAds = (localStorage.getItem(`textchat.adsenabled`) ?? true);
-            let bufferSize = localStorage.getItem(`textchat.bufferSize`) || 50;
             if(textchatAds) {
                 if(time4Ad()) {
                     const adskipamount = Math.floor(localStorage.getItem('v4v2skipad.amount') ?? '0');
                     textDeduplicaterToggle = !textDeduplicaterToggle;
-                    let chatText = `*tipped the corny chat dev ⚡${adskipamount} sats${textDeduplicaterToggle ? "!":"."}*`;
                     (async () => {
-                        let v4vadskip = await value4valueAdSkip('RoomChat', sendTextChat, chatText);
-                        if (!v4vadskip) {
-                            if (jamConfig.handbill) {
-                                adidx += 1;
-                                let adreqdt = Math.floor(Date.now() / 1000);
-                                let adPeerId = `ad-${adidx}`;
-                                let textchat = `/chatad:${adidx}:${adreqdt}`;
-                                if (!textchats) textchats = [];
-                                let lastline = textchats.slice(-1);
-                                let textTime = Math.floor(Date.now() / 1000);
-                                if ((lastline.length == 0) || (lastline[0].length != 2) || (lastline[0][0] != adPeerId) || (lastline[0][1] != textchat)) {
-                                textchats.push([adPeerId, textchat, false, null, textTime]);
-                                textchats = textchats.slice(-1 * bufferSize);
-                                localStorage.setItem(`${roomId}.textchat`, JSON.stringify(textchats));
-                                //let n = Math.floor(sessionStorage.getItem(`${roomId}.textchat.unread`) ?? 0) + 1;
-                                //sessionStorage.setItem(`${roomId}.textchat.unread`, n);
-                                }
-                            }
+                        let ok = false;
+                        let chatText = `/me zapped ⚡${adskipamount} sats to the dev toward the server goal${textDeduplicaterToggle ? "!":"."}`;
+                        let devZapGoal = sessionStorage.getItem('devZapGoal');
+                        devZapGoal = devZapGoal ? JSON.parse(devZapGoal) : {ready:false};
+                        if(devZapGoal?.id) {
+                            ok = await zapServerGoal(devZapGoal, adskipamount, sendTextChat, chatText);
+                            if (!ok) console.log("dev zap failed");
                         } else {
-                            console.log("dev tip failed");
+                            chatText = `/me tipped the Corny Chat dev ⚡${adskipamount} sats${textDeduplicaterToggle ? "!":"."}`;
+                            ok = await value4valueAdSkip('RoomChat', sendTextChat, chatText);
+                            if (!ok) console.log("dev tip failed");
                         }
+                        if (!ok && jamConfig.handbill) sendAdToChat();
                     })();
                 }
             }

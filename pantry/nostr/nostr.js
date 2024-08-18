@@ -730,7 +730,7 @@ const getZapGoals = async (pubkey) => {
         const localpool = new RelayPool();
         try {
             goalFilter = [{kinds:[9041], authors: [pubkey], limit: 50}];
-            let waitForEvents = 3000; // 2 seconds
+            let waitForEvents = 3000; // 3 seconds
             let matchedEvents = [];
             let options = {unsubscribeOnEose: true, allowDuplicateEvents: false, allowOlderEvents: false};
             setTimeout(() => {

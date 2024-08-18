@@ -857,7 +857,6 @@ export const isValidNostr = (info) => {
         let s = j[k].loginSig || '';
         let p = nip19.decode(n).data;
         let tags = (j[k].verificationInfo ? [] : [[]]);
-//        console.log('n',n, 'c',c, 'i',i, 's', s, 'p', p, 'jamid', jamid);
         let e = {
           id: i,
           pubkey: p,
@@ -870,7 +869,6 @@ export const isValidNostr = (info) => {
         let u = validateEvent(e);
         let v = verifySignature(e);
         r = (u && v);
-//        console.log(u, v, r, e);
       }
     }
   }
@@ -934,7 +932,7 @@ export async function saveList(dTagValue, name, about, image, kind, theList) {
     let myOutboxRelays = [];
     if (userRelays?.length == 0) {
       const myNpub = nip19.npubEncode(myPubkey);
-      myOutboxRelays = await getOutboxRelays(myPubkey); // (async() => {await getOutboxRelays(myPubkey)})();
+      myOutboxRelays = await getOutboxRelays(myPubkey);
       updateCacheOutboxRelays(myOutboxRelays, myNpub);
     }
     const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
@@ -961,7 +959,7 @@ export async function loadList(kind, pubkey) {
       let myOutboxRelays = [];
       if (userRelays?.length == 0) {
         const myNpub = nip19.npubEncode(myPubkey);
-        myOutboxRelays = await getOutboxRelays(myPubkey); // (async() => {await getOutboxRelays(myPubkey)})();
+        myOutboxRelays = await getOutboxRelays(myPubkey);
         if(window.DEBUG) console.log('myOutboxRelays from await call', myOutboxRelays);
         updateCacheOutboxRelays(myOutboxRelays, myNpub);
       }
@@ -1364,7 +1362,6 @@ export function loadNWCUrl() {
   if ((localStorage.getItem('nwc.secret') ?? '').length > 0) {
     nwcSecret = crypto.AES.decrypt((localStorage.getItem('nwc.secret') ?? ''), myEncryptionKey ).toString(crypto.enc.Utf8);
   } 
-  //let nwcSecret = localStorage.getItem('nwc.secret');
   if (!nwcWSPubkey || !nwcRelay || !nwcSecret) {
     return undefined;
   }
@@ -1529,48 +1526,53 @@ export async function sendLiveChat(roomATag, textchat) {
 }
 
 export async function publishZapGoal(description, amount) {
-  const defaultRelays = getDefaultOutboxRelays();
-  const myPubkey = await window.nostr.getPublicKey();
-  const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
-  let myOutboxRelays = [];
-  if (userRelays?.length == 0) {
-    const myNpub = nip19.npubEncode(myPubkey);
-    myOutboxRelays = await getOutboxRelays(myPubkey); // (async() => {await getOutboxRelays(myPubkey)})();
-    updateCacheOutboxRelays(myOutboxRelays, myNpub);
+  if (window.DEBUG) console.log("in publishZapGoal");
+  try {
+    const defaultRelays = getDefaultOutboxRelays();
+    const myPubkey = await window.nostr.getPublicKey();
+    const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
+    let myOutboxRelays = [];
+    if (userRelays?.length == 0) {
+      const myNpub = nip19.npubEncode(myPubkey);
+      myOutboxRelays = await getOutboxRelays(myPubkey); // (async() => {await getOutboxRelays(myPubkey)})();
+      updateCacheOutboxRelays(myOutboxRelays, myNpub);
+    }
+    const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
+    let relays = defaultRelays;
+    let kind = 9041;
+    let amountTag = ["amount", String(amount * 1000)];
+    let relayTag = ["relays"];
+    for (let relay of relays) {
+        if (relay.startsWith("wss://")) {
+            relayTag.push(relay);
+        } else {
+            relayTag.push(`wss://${relay}`);
+        }
+    }
+    let tags = [amountTag, relayTag];
+    let event = {
+      id: null,
+      pubkey: null,
+      created_at: Math.floor(Date.now() / 1000),
+      kind: kind,
+      tags: tags,
+      content: description,
+      sig: null,
+    };
+    const eventSigned = await window.nostr.signEvent(event);
+    if (!eventSigned) {
+      return [false, 'There was an error with your nostr extension'];
+    } else {
+      // push to relays
+      //const pool = new RelayPool();
+      writepool.publish(eventSigned, relaysToUse);
+      const sleeping = await sleep(100);
+      //pool.close();
+      return [true, eventSigned];
+    }
+  } catch (err) {
+    return [false, `Error in publishZapGoal: ${err}`];
   }
-  const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
-  let relays = defaultRelays;
-  let kind = 9041;
-  let amountTag = ["amount", String(amount * 1000)];
-  let relayTag = ["relays"];
-  for (let relay of relays) {
-      if (relay.startsWith("wss://")) {
-          relayTag.push(relay);
-      } else {
-          relayTag.push(`wss://${relay}`);
-      }
-  }
-  let tags = [amountTag, relayTag];
-  let event = {
-    id: null,
-    pubkey: null,
-    created_at: Math.floor(Date.now() / 1000),
-    kind: kind,
-    tags: tags,
-    content: description,
-    sig: null,
-  };
-  const eventSigned = await window.nostr.signEvent(event);
-  if (!eventSigned) {
-    return [false, 'There was an error with your nostr extension'];
-  } else {
-    // push to relays
-    //const pool = new RelayPool();
-    writepool.publish(eventSigned, relaysToUse);
-    const sleeping = await sleep(100);
-    //pool.close();
-    return [true, eventSigned];
-  }  
 }
 
 export async function loadZapGoals() {
