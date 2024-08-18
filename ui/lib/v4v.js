@@ -19,7 +19,7 @@ function isTime(key, periodLength) {
 
 export function time4Ad() {
     const key = `v4v2skipad.timechecked`;
-    const frequency = Math.floor(localStorage.getItem(`v4v2skipad.frequency`) ?? '15');
+    const frequency = Math.floor(localStorage.getItem(`v4v2skipad.frequency`) ?? '15'); // in minutes
     const periodLength = frequency*60*1000;
     return isTime(key, periodLength);
 }
@@ -27,9 +27,7 @@ export function time4Ad() {
 export async function value4valueAdSkip (sourceNote, fnSuccess, textForSuccess) {
     if ((localStorage.getItem('v4v2skipad.enabled') ?? 'false') != 'true') return false;
     const myName = getMyName();
-    const currentTimestamp = Math.floor(Date.now() / 1000);
-    const jamID = JSON.parse(localStorage.getItem('identities'))._default.publicKey;
-    const comment = `🌽💬🎑 from ${myName} (${jamID}) @ ${currentTimestamp} ${sourceNote}`;
+    const comment = `🌽💬 dev tip from ${myName}`; // (${jamID}) @ ${currentTimestamp} ${sourceNote}`;
     const lightningAddress = window.jamConfig.v4vLN;
     const satAmount = Math.floor(localStorage.getItem('v4v2skipad.amount') ?? '0');
     if (satAmount < 1) return false;
@@ -50,6 +48,15 @@ export async function tipRoom(roomId, lightningAddress, satAmount, fnSuccess, te
     return await sendSats(lightningAddress, satAmount, comment, fnSuccess, textForSuccess, `roomtip-${roomId}.timepaid`);
 }
 
+export async function zapServerGoal(zapGoal, satAmount, fnSuccess, textForSuccess) {
+    if ((localStorage.getItem('v4v2skipad.enabled') ?? 'false') != 'true') return false;
+    const comment = `Supporting via Corny Chat!`;
+    const eventId = zapGoal.id;
+    const pubkey = zapGoal.npub ? nip19.decode(zapGoal.npub).data : zapGoal.pubkey;
+    const lightningAddress = window.jamConfig.v4vLN;
+    return await zapSats(lightningAddress, satAmount, pubkey, eventId, comment, fnSuccess, textForSuccess, 'v4v2skipad.timepaid');
+}
+
 export async function zapRoomGoal(zapGoal, roomId, lightningAddress, satAmount, fnSuccess, textForSuccess) {
     if ((localStorage.getItem(`v4vtiproom.enabled`) ?? 'false') != 'true') return false;
     const comment = `Supporting via Corny Chat!`;
@@ -67,43 +74,60 @@ async function zapSats(lightningAddress, satAmount, pubkey, eventId, comment, fn
     if (lightningAddress.length == 0) return false;
     if (satAmount == undefined) return false;
     if (satAmount < 1) return false;
-    const msatsAmount = satAmount * 1000; 
-    const currentTimestamp = Math.floor(Date.now() / 1000);
-
+    const msatsAmount = satAmount * 1000;
     try {
         if (localStorage.getItem('nwc.enabled') != 'true') return false;
         let nwcUrl = loadNWCUrl();  // cannot be const, as the webln.NostrWebLNProvider wants to modify values
         if (nwcUrl == undefined) return false;
         let x = (async () => {
-            const lnService = await getLNService(lightningAddress);
             let invoice = {};
-            if (pubkey) {
-                const signedZapRequest = await makeZapRequest(comment, pubkey, {id: eventId}, msatsAmount);
-                if (signedZapRequest[0]) {
-                    const lnInvoice = await getLNInvoice(signedZapRequest[1], lightningAddress, lnService, msatsAmount, comment);
-                    if (lnInvoice?.pr) invoice = lnInvoice;
+            try {
+                const lnService = await getLNService(lightningAddress);
+                if (pubkey) {
+                    if (window.DEBUG) console.log("Preparing zap request to get invoice");
+                    const signedZapRequest = await makeZapRequest(comment, pubkey, {id: eventId}, msatsAmount);
+                    if (signedZapRequest[0]) {
+                        const lnInvoice = await getLNInvoice(signedZapRequest[1], lightningAddress, lnService, msatsAmount, comment);
+                        if (lnInvoice?.pr) invoice = lnInvoice;
+                    }
                 }
-            }
-            if (!invoice?.pr) {
-                const lnurl = `${lnService.callback}?amount=${msatsAmount}&comment=${comment}`;
-                const invoiceResponse = await fetch(lnurl);
-                invoice = await invoiceResponse.json();
-            }
-            if (!invoice?.pr) return false;
-            const paymentRequest = invoice.pr;
-            const nwc = new webln.NostrWebLNProvider({nostrWalletConnectUrl: nwcUrl});
-            await nwc.enable();
-            const nwcResponse = await nwc.sendPayment(paymentRequest);
-            if (nwcResponse?.preimage) {
-                console.log(`Value 4 Value payment of ${satAmount} sats completed (${comment}). Preimage: ${nwcResponse.preimage}`);
-                if (fnSuccess && textForSuccess) {
-                    (async () => {await fnSuccess(textForSuccess);})();
+                if (!invoice?.pr) {
+                    if (window.DEBUG) console.log("Getting invoice for direct payment");
+                    const lnurl = `${lnService.callback}?amount=${msatsAmount}&comment=${comment}`;
+                    const invoiceResponse = await fetch(lnurl);
+                    invoice = await invoiceResponse.json();
                 }
-                localStorage.setItem(keyForSuccess, Date.now());
-                //res(true);
-                return true;
+                if (!invoice?.pr) {
+                    if (window.DEBUG) console.log("No payment request found in invoice. Returning");
+                    return false;
+                }
+            } catch (e) {
+                let n = `Error preparing lightning invoice: ${e}`;
+                if (fnSuccess) {
+                    (async () => {await fnSuccess(n, getMyId());})();
+                }
+                console.log(n);
+            }                
+            try {
+                const paymentRequest = invoice.pr;
+                const nwc = new webln.NostrWebLNProvider({nostrWalletConnectUrl: nwcUrl});
+                await nwc.enable();
+                const nwcResponse = await nwc.sendPayment(paymentRequest);
+                if (nwcResponse?.preimage) {
+                    if (window.DEBUG) console.log(`Value 4 Value payment of ${satAmount} sats completed (${comment}). Preimage: ${nwcResponse.preimage}`);
+                    if (fnSuccess && textForSuccess) {
+                        (async () => {await fnSuccess(textForSuccess);})();
+                    }
+                    localStorage.setItem(keyForSuccess, Date.now());
+                    return true;
+                }
+            } catch (e) {
+                let n = `${e} (To correct, review and update Nostr Wallet Connect settings)`;
+                if (fnSuccess) {
+                    (async () => {await fnSuccess(n, getMyId());})();
+                }
+                console.log(n);
             }
-            //rej('Unable to send sats. Nostr Wallet Connect payment did not return a preimage');
             return false;
         });
         let y = x();

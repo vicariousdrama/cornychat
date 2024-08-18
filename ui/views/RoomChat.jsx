@@ -287,8 +287,8 @@ export default function RoomChat({
             previoustext = thetext;
             let emoting = thetext.startsWith("/me") || thetext.includes("has entered the chat");
             let sentv4v = (thetext.includes("zapped") || thetext.includes("tipped")) && thetext.includes("⚡");
-            let iserror = (thetext.startsWith("ERROR"));
-            let chatLineTextColor = iserror ? 'rgb(192,0,0)' : (emoting ? 'rgb(59,130,246)' : (sentv4v ? 'rgb(255,155,55)' : 'rgb(255,255,255)'));
+            let iserror = (thetext.toUpperCase().includes("ERROR"));
+            let chatLineTextColor = iserror ? 'rgb(192,192,0)' : (sentv4v ? 'rgb(255,155,55)' : (emoting ? 'rgb(59,130,246)' : 'rgb(255,255,255)'));
             let chatBackgroundColor = isdm ? (myId == userid ? 'rgb(24,64,24)' : 'rgb(24,24,64)') : 'rgb(55,65,81)';
             if(thetext.startsWith("cashu") && thetext.length > 200) {
                 let cashuamount = '?';

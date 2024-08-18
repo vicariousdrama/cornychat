@@ -148,11 +148,19 @@ async function handleMessage(connection, roomId, msg) {
             if (data.data.t == 'text-chat') {
               if (data.data.d != undefined && data.data.d.t != undefined) {
                 let t = data.data.d.t;
-                if (t.indexOf('*tipped the room owner ⚡') > -1) {
+                if (t.indexOf('tipped the room owner ⚡') > -1) {
                   saveCSAR(senderId, roomId, 'tiproom');
                 }
-                if (t.indexOf('*tipped the corny chat dev ⚡') > -1) {
+                if (t.indexOf('tipped the corny chat dev ⚡') > -1) {
                   saveCSAR(senderId, roomId, 'tipdev');
+                }
+                if (t.indexOf('zapped ⚡') > -1) {
+                  if (t.indexOf("to the room goal") > -1) {
+                    saveCSAR(senderId, roomId, 'zaproomgoal');
+                  }
+                  if (t.indexOf("to the dev") > -1) {
+                    saveCSAR(senderId, roomId, 'zapservergoal');
+                  }
                 }
                 if (t.indexOf('cashu') == 0) {
                   saveCSAR(senderId, roomId, 'sendcashu');

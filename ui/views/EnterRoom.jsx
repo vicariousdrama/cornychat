@@ -8,7 +8,7 @@ import {useMqParser, useWidth} from '../lib/tailwind-mqp';
 import {useJam} from '../jam-core-react';
 import {colors, isDark} from '../lib/theme.js';
 import {makeLocalDate, signInExtension, getDMPubkey, getNpubFromInfo} from '../nostr/nostr';
-import {time4Ad, value4valueAdSkip} from '../lib/v4v';
+//import {time4Ad, value4valueAdSkip} from '../lib/v4v';
 import EditPersonalSettings from './editPersonalSettings/EditPersonalSettings.jsx';
 import {update} from 'minimal-state';
 import {dosha256hexrounds} from '../lib/sha256rounds.js';
@@ -67,11 +67,11 @@ export default function EnterRoom({
   let isProtected = (room.isProtected && ((room.passphraseHash ?? '').length > 0));
   let [roomPassphrase, setRoomPassphrase] = useState(localStorage.getItem(`${roomId}.passphrase`) ?? (sessionStorage.getItem(`${roomId}.passphrase`) ?? ''));
   let [wrongPassphrase, setWrongPassphrase] = useState(false);
-  let showAd = time4Ad();
+  let showAd = false; // time4Ad();
   let supportsWebRTC = canWebRTC();
   if (!supportsWebRTC) showAd = false;
-  let enterRoomChatText = `*tipped the corny chat dev ⚡*`;
-  if (showAd) showAd = !(value4valueAdSkip('EnterRoom', sendTextChat, enterRoomChatText));
+  //let enterRoomChatText = `*tipped the corny chat dev ⚡*`;
+  //if (showAd) showAd = !(value4valueAdSkip('EnterRoom', sendTextChat, enterRoomChatText));  // 20240817 commenting out because this needs refactored to use await in the useEffect
   let kicked = false;
   let kickedUntilTime = '';
   if (room.kicked) {
