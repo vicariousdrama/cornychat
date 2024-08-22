@@ -73,7 +73,7 @@ function TextChat({swarm}) {
       if (!textchat.startsWith('📩')) return textchat;
       let plaintext = '';
       let decoder = new TextDecoder();
-      let jwkobj = JSON.parse(window.atob(sessionStorage.getItem('dmPrivkey')));
+      let jwkobj = JSON.parse(window.atob(localStorage.getItem('dmPrivkey')));
       let privkey = await window.crypto.subtle.importKey("jwk", jwkobj, {name: "RSA-OAEP", modulusLength: 2048, publicExponent: new Uint8Array([0x01, 0x00, 0x01]), hash: "SHA-256"}, true, ["decrypt"]);
       let encryptedParts = [];
       let t = textchat.replaceAll('📩','');
