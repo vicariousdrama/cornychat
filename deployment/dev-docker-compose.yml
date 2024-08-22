@@ -91,7 +91,9 @@ services:
       - "../jam-config:/jam-config"
   pantryredis:
     networks:
-      - jam
+      jam:
+        aliases:
+          - pantryredis
     image: library/redis
     volumes:
       - "../data/pantryredis:/data"
