@@ -119,20 +119,20 @@ async function createDMKeys() {
   const exportedPubkeyString = window.btoa(JSON.stringify(exportedPubkey));
   const exportedPrivkey = await window.crypto.subtle.exportKey("jwk", privateKey);
   const exportedPrivkeyString = window.btoa(JSON.stringify(exportedPrivkey));
-  sessionStorage.setItem('dmPubkey', exportedPubkeyString);
-  sessionStorage.setItem('dmPrivkey', exportedPrivkeyString);
+  localStorage.setItem('dmPubkey', exportedPubkeyString);
+  localStorage.setItem('dmPrivkey', exportedPrivkeyString);
 }
 export async function getDMPrivkey() {
-  if ((sessionStorage.getItem("dmPrivkey") || '') == '' || (sessionStorage.getItem("dmPubkey") || '') == '') {
+  if ((localStorage.getItem("dmPrivkey") || '') == '' || (localStorage.getItem("dmPubkey") || '') == '') {
     await createDMKeys();
   }
-  return sessionStorage.getItem("dmPrivkey");
+  return localStorage.getItem("dmPrivkey");
 }
 export async function getDMPubkey() {
-  if ((sessionStorage.getItem("dmPubkey") || '') == '' || (sessionStorage.getItem("dmPrivkey") || '') == '') {
+  if ((localStorage.getItem("dmPubkey") || '') == '' || (localStorage.getItem("dmPrivkey") || '') == '') {
     await createDMKeys();
   }
-  return sessionStorage.getItem("dmPubkey");
+  return localStorage.getItem("dmPubkey");
 }
 
 export async function signInExtension(
