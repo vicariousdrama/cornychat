@@ -194,7 +194,6 @@ export default function Room({room, roomId, uxConfig}) {
       />
     );
   }
-
   let myPeerId = myInfo.id;
   let stagePeers = stageOnly ? peers : [];
   if (!stageOnly) {

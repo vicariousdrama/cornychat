@@ -349,8 +349,9 @@ const identityAuthenticator = {
       try {
         // NOTE: This currently only verifies anon users that give a nevent or note id
         // TODO: Modify ../nostr/nostr.js:verify to support a new verificationInfo type for validating the signature given
-        await verifyIdentities(req.body.identities, req.params.id);
+        let isok = await verifyIdentities(req.body.identities, req.params.id);
       } catch (error) {
+        console.log("error calling verifyIdentities: ", error.message);
         res.status(400).json({
           success: false,
           error: {
