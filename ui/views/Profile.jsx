@@ -424,11 +424,11 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
                 </p>
               </div>
               )}
-              <div
-                className={lnAddress !== '' ? 'flex justify-center' : 'hidden'}
-              >
+              {lnAddress && lnAddress != '' && (
+              <div className={'flex justify-center'}>
                 <p className="text-sm text-gray-400">{'⚡ ' + lnAddress}</p>
               </div>
+              )}
               <div className="flex justify-center">
                 <span
                   className={
@@ -599,7 +599,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
               </div>
             )}
 
-            {(hasNostrIdentity && lnAddress != '') ? (
+            {(hasNostrIdentity && lnAddress != undefined && lnAddress != '') ? (
               <button
                 className="rounded-lg bg-yellow-200 px-3 py-2 mx-1 my-1 text-xs"
                 onClick={() => {
@@ -671,7 +671,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
         </div>
         </>
         )}
-        { loadingPosts ? (<h4 className="text-sm text-gray-400">Loading Recent Posts...</h4>) : userPosts && (
+        { loadingPosts ? (<h4 className="text-sm text-gray-400">Loading Recent Posts...</h4>) : userPosts && userPosts.length > 0 && (
         <div style={{maxWidth: '568px', display: 'inline-block'}}>
           <p className={userPosts && (maxPostsToDisplay > 0) ? 'text-xl mr-1 font-semibold text-gray-200' : 'hidden'}>
             Recent Text Notes:

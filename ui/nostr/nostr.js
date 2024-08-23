@@ -724,6 +724,7 @@ export async function verifyNip05(nip05, userNpub) {
 }
 
 export function normalizeLightningAddress(address) {
+  if (!address) return undefined;
   let isDecodedAddress = (address && address.includes('@'));
   if (isDecodedAddress) return address;
   let isLNUrl = address.toLowerCase().startsWith('lnurl');

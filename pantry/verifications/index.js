@@ -9,7 +9,7 @@ const verifyIdentities = async (identities, publicKey) => {
         throw new Error(`No verifier for identity type ${identity.type}`);
       }
       if (identity.verificationInfo || identity.loginTime) {
-        await verifiers[identity.type](identity, publicKey);
+        let isok = await verifiers[identity.type](identity, publicKey);
       }
     }
   } else {

@@ -2,6 +2,7 @@ const {RelayPool} = require('nostr-relaypool');
 const {nip19, validateEvent, verifyEvent } = require('nostr-tools');
 
 function decodeNote(noteId) {
+  console.log("decoding note with id ", noteId);
   const note = nip19.decode(noteId);
   const type = note.type;
 
@@ -32,15 +33,15 @@ const verify = (identity, publicKey) => {
           rej(new Error(error_msg));
         }
         let p = nip19.decode(identity.id).data;
-        let tags = [[]];       
+        let tags = [];
         let e = {
-          id: identity.loginId,
-          pubkey: p,
-          created_at: identity.loginTime,
-          kind: 1,
-          tags: tags,
           content: publicKey,
+          created_at: identity.loginTime,
+          id: identity.loginId,
+          kind: 1,
+          pubkey: p,
           sig: identity.loginSig,
+          tags: tags,
         };
         let u = validateEvent(e);
         let v = verifyEvent(e);
@@ -48,6 +49,11 @@ const verify = (identity, publicKey) => {
         if (!u) {
           const error_msg = `Invalid nostr identity. Event invalid`;
           rej(new Error(error_msg));
+        }
+        if (!v) {
+          e.tags = [[]];
+          u = validateEvent(e);
+          v = verifyEvent(e);
         }
         if (!v) {
           const error_msg = `Invalid nostr identity. Signature did not match expected value`;
