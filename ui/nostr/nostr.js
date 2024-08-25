@@ -151,7 +151,7 @@ export async function signInExtension(
     let pubkey = await window.nostr.getPublicKey();
     let created_at = Math.floor(Date.now()/1000);
     let kind = 1;
-    let tags = [[]];
+    let tags = [];
     let myId = state.myId;
     let loginEvent = {created_at: created_at, pubkey: pubkey, kind: kind, tags: tags, content: myId};
     let signedLogin = await window.nostr.signEvent(loginEvent);
@@ -857,7 +857,7 @@ export const isValidNostr = (info) => {
         let i = j[k].loginId || '';
         let s = j[k].loginSig || '';
         let p = nip19.decode(n).data;
-        let tags = (j[k].verificationInfo ? [] : [[]]);
+        let tags = [];
         let e = {
           id: i,
           pubkey: p,
@@ -870,6 +870,12 @@ export const isValidNostr = (info) => {
         let u = validateEvent(e);
         let v = verifySignature(e);
         r = (u && v);
+        if (!r) {
+          e.tags = [[]];
+          u = validateEvent(e);
+          v = verifySignature(e);
+          r = (u && v);
+        }
       }
     }
   }

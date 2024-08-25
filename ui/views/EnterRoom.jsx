@@ -88,7 +88,7 @@ export default function EnterRoom({
   let [loginEnabled, setLoginEnabled] = useState(!kicked && !isProtected && (!showAd || !jamConfig.handbill) && (supportsWebRTC));
   let [adImageEnabled, setAdImageEnabled] = useState((showAd && jamConfig.handbill));
   let adimg = `${jamConfig.urls.pantry}/api/v1/aimg/${roomId}`;
-  let hasNostrInfo = getNpubFromInfo(myIdentity.info) != undefined;
+  let hasNostrInfo = false; //getNpubFromInfo(myIdentity.info) != undefined;
 
   useEffect(() => {
     // Setup a timeout to hide the image
@@ -218,12 +218,12 @@ export default function EnterRoom({
            />
           </div>
           {usersDisplayName}
-          <div className="text-sm text-gray-300">
+          <div className="text-sm text-gray-300 hidden">
             Click your avatar to make changes.
           </div>
           {!closed && (
           <div className="text-sm text-gray-300">
-            Use a VPN like Mullvad for better privacy.
+            For improved privacy, consider using a VPN like Mullvad.
           </div>
           )}
         </div>
