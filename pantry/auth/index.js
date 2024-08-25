@@ -39,7 +39,7 @@ const asNpubs = async identityKeys => {
         let i = ident.loginId || '';
         let s = ident.loginSig || '';
         let p = nip19.decode(n).data;
-        let tags = (ident.verificationInfo ? [] : [[]]);
+        let tags = [];
         let e = {
           id: i,
           pubkey: p,
@@ -52,6 +52,12 @@ const asNpubs = async identityKeys => {
         let u = validateEvent(e);
         let v = verifyEvent(e);
         r = (u && v);
+        if (!r) {
+          e.tags = [[]];
+          u = validateEvent(e);
+          v = verifyEvent(e);
+          r = (u && v);
+          }
         if (r) npubs.push(n);
       }
     } catch (error) {
