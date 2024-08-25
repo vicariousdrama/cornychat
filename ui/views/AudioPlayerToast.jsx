@@ -39,12 +39,12 @@ function AudioPlayerToast({close}) {
       volslide.setAttribute("class", "slider w-full h-8 mb-2");
       volslide.setAttribute("id", "volslide");
       //volslide.setAttribute("orient", "vertical");
-      volslide.setAttribute("oninput", "audio.volume = (this.value / 100); vollabel.innerText = 'Volume: ' + this.value + '%'; localStorage.setItem('audio.volume', String(audio.volume));");
+      volslide.setAttribute("oninput", "audio.volume = (this.value / 100); vollabel.innerText = 'Volume: ' + String(Math.floor(this.value)) + '%'; localStorage.setItem('audio.volume', String(audio.volume));");
       let vollabel = document.createElement('span');
       vollabel.setAttribute("id", "vollabel");
       vollabel.setAttribute("class", "text-xs");
       vollabel.setAttribute("style", "position:absolute; bottom:10px; right:15px");
-      vollabel.innerText = "Volume: 50 %";
+      vollabel.innerText = "Volume: " + String(Math.floor(Number(localStorage.getItem('audio.volume') || '.5') * 100)) + "%";
       let seekslide = document.createElement('input');
       seekslide.setAttribute("type", "range");
       seekslide.setAttribute("min", "0");
@@ -59,6 +59,7 @@ function AudioPlayerToast({close}) {
       seeklabel.setAttribute("style", "position:absolute; bottom:10px; left:15px");
       seeklabel.innerText = "0:00";
       let audiotable = document.createElement('table');
+      audiotable.setAttribute("class", "w-full");
       let audiotablerow1 = document.createElement('tr');
       let audiotablecellA1 = document.createElement('td');
       let audiotablecellB1 = document.createElement('td');
