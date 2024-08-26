@@ -35,8 +35,13 @@ router.get('', async function (req, res) {
         let userCount = peerIds.length;
         let userInfo = [];
         if(userCount > 0) {
-           let uis = await Promise.all(peerIds.map(id => get(`identities/${id}`)));
-           for (let ui of uis) userInfo.push({id:ui.id,name:ui.name,avatar:ui.avatar,npub:ui?.identities?.find(i => i.type === 'nostr')?.id});
+            let uis = await Promise.all(peerIds.map(id => get(`identities/${id}`)));
+            for (let ui of uis) {
+                if (!ui) continue;
+                if (ui?.id == undefined || ui?.id == null || ui?.id == "") continue;
+                let uisimple = {id:ui.id,name:ui?.name,avatar:ui?.avatar,npub:ui?.identities?.find(i => i.type === 'nostr')?.id}
+                userInfo.push(uisimple);
+            }
         }
         if(userCount > 0) {
             let roomKey = "rooms/" + roomId;

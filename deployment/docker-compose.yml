@@ -226,7 +226,7 @@ services:
       - ../data/lnbits:/app/data
       - ./lnbits/.env:/app/.env
       - ./lnbits/tls.crt:/app/tls.crt
-      - ./lnbits/lnbits-invoiceonly.macaroon:/app/lnbits.macaroon
+      - ./lnbits/lnbits.macaroon:/app/lnbits.macaroon
     ports:
       - "5000:5000"
     restart: always
