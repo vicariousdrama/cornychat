@@ -292,7 +292,7 @@ xxd -ps -u -c 1000 lnbits-invoiceonly.macaroon
 This will produce a long string of hexadecimal characters that you can copy and paste into the terminal where you are configuring lnbits.
 
 ```sh
-echo "long-string-of-hexadecimal-characters" | xxd -p -r - > ~/cornychat/deployment/lnbits/lnbits-invoiceonly.macaroon
+echo "long-string-of-hexadecimal-characters" | xxd -p -r - > ~/cornychat/deployment/lnbits/lnbits.macaroon
 ```
 
 After docker compose is started for the first time below, you'll need to login to the LNbits instance, setting up the super user, and finishing configuration.
