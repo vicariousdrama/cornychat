@@ -100,11 +100,11 @@ export default function RoomHeader2({
         let intervalRoomTip = undefined;
         timeoutRoomTip = setTimeout(() => {
             intervalRoomTip = setInterval(() => {
+                const roomtipamount = Math.floor(localStorage.getItem(`v4vtiproom.amount`) ?? '0');
                 const v4vtiproomEnabled = ((localStorage.getItem(`v4vtiproom.enabled`) ?? 'false') == 'true');
                 const thisroomTipEnabled = ((localStorage.getItem(`roomtip-${roomId}.enabled`) ?? 'false') == 'true');
-                if (v4vtiproomEnabled && thisroomTipEnabled && room.lud16) {
+                if (v4vtiproomEnabled && thisroomTipEnabled && room.lud16 && roomtipamount > 0) {
                     if (time4Tip(roomId)) {
-                        const roomtipamount = Math.floor(localStorage.getItem(`v4vtiproom.amount`) ?? '0');
                         textDeduplicaterToggle = !textDeduplicaterToggle;
                         (async () => {
                             let ok = false;
@@ -129,19 +129,22 @@ export default function RoomHeader2({
             if(textchatAds) {
                 if(time4Ad()) {
                     const adskipamount = Math.floor(localStorage.getItem('v4v2skipad.amount') ?? '0');
+                    const v4v2skipadEnabled = ((localStorage.getItem('v4v2skipad.enabled') ?? 'false') == 'true');
                     textDeduplicaterToggle = !textDeduplicaterToggle;
                     (async () => {
                         let ok = false;
-                        let chatText = `/me zapped ⚡${adskipamount} sats to the dev toward the server goal${textDeduplicaterToggle ? "!":"."}`;
-                        let devZapGoal = sessionStorage.getItem('devZapGoal');
-                        devZapGoal = devZapGoal ? JSON.parse(devZapGoal) : {ready:false};
-                        if(devZapGoal?.id) {
-                            ok = await zapServerGoal(devZapGoal, adskipamount, sendTextChat, chatText);
-                            if (!ok) console.log("dev zap failed");
-                        } else {
-                            chatText = `/me tipped the Corny Chat dev ⚡${adskipamount} sats${textDeduplicaterToggle ? "!":"."}`;
-                            ok = await value4valueAdSkip('RoomChat', sendTextChat, chatText);
-                            if (!ok) console.log("dev tip failed");
+                        if (v4v2skipadEnabled && adskipamount > 0) {
+                            let chatText = `/me zapped ⚡${adskipamount} sats to the dev toward the server goal${textDeduplicaterToggle ? "!":"."}`;
+                            let devZapGoal = sessionStorage.getItem('devZapGoal');
+                            devZapGoal = devZapGoal ? JSON.parse(devZapGoal) : {ready:false};
+                            if(devZapGoal?.id) {
+                                ok = await zapServerGoal(devZapGoal, adskipamount, sendTextChat, chatText);   
+                                if (!ok) console.log("zapping server goal failed");
+                            } else {
+                                chatText = `/me tipped the Corny Chat dev ⚡${adskipamount} sats${textDeduplicaterToggle ? "!":"."}`;
+                                ok = await value4valueAdSkip('RoomChat', sendTextChat, chatText);
+                                if (!ok) console.log("tipping corny chat dev failed");
+                            }
                         }
                         if (!ok && jamConfig.handbill) sendAdToChat();
                     })();
