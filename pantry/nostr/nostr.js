@@ -9,10 +9,11 @@ const pmd = true;
 const writepool = new RelayPool();
 
 const relaysToUse = [
-    'wss://nos.lol',
+    'wss://thebarn.nostrfreaks.com',
     'wss://relay.damus.io',
+    'wss://nos.lol',
     'wss://nostr-pub.wellorder.net',
-    'wss://nostr.mutinywallet.com',
+    'wss://relay.mutinywallet.com',
     'wss://relay.snort.social',
 ];
 

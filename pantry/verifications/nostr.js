@@ -85,10 +85,11 @@ const verify = (identity, publicKey) => {
         const filter = [{ids: [decodedNote], authors: [nostrPubkey]}];
 
         const defaultRelays = [
-          'wss://nos.lol',
+          'wss://thebarn.nostrfreaks.com',
           'wss://relay.damus.io',
+          'wss://nos.lol',
           'wss://nostr-pub.wellorder.net',
-          'wss://nostr.mutinywallet.com',
+          'wss://relay.mutinywallet.com',
           'wss://relay.snort.social',
         ];
 
