@@ -16,9 +16,11 @@ function sleep(ms) {
 
 function getDefaultOutboxRelays() {
   return [
-    'wss://nos.lol',
+    'wss://thebarn.nostrfreaks.com',
     'wss://relay.damus.io',
-    'wss://nostr.mutinywallet.com',
+    'wss://nos.lol',
+    'wss://nostr-pub.wellorder.net',
+    'wss://relay.mutinywallet.com',
     'wss://relay.snort.social',
   ];
 }
@@ -784,8 +786,9 @@ export async function makeZapRequest(content, receiver, event, msatsAmount) {
         'relays',
         'wss://relay.damus.io',
         'wss://nos.lol',
-        //'wss://nostr-pub-wellorder.net/',
-        'wss://nostr.pleb.network',
+        'wss://nostr-pub.wellorder.net',
+        'wss://relay.mutinywallet.com',
+        'wss://relay.snort.social', 
       ],
       ['amount', `${msatsAmount}`],
     ],

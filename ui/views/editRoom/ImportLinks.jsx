@@ -108,6 +108,7 @@ export const ImportLinksModal = ({
                   >
                     <div className="flex">
                       <img src={image} style={{width: '64px', height: '64px', objectFit: 'cover'}} />
+                      {name}
                     </div>
                     <div className="flex">id: {dTag}</div>
                     {about.length > 0 && (
