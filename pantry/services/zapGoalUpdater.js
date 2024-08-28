@@ -10,6 +10,7 @@ function sleep(ms) {
 
 const checkGoal = async (currentGoal, sk) => {
     let pk = getPublicKey(sk);
+    let theTime = Date.now();
 
     // get our goals from nostr, and set as latest
     let zapgoals = await getZapGoals(pk);
@@ -19,10 +20,20 @@ const checkGoal = async (currentGoal, sk) => {
         }
     }
     let relays = relaysZapGoals.split(',');
-    let amount = 100000;
-
     let monthname = (new Intl.DateTimeFormat('en', { month: 'long' })).format(new Date());
     let goalDescription = `Infrastructure Costs for ${monthname}`;
+    let amount = 100000;
+    let amounts = [
+        [0,100000,`Infrastructure Costs for ${monthname}`],              // Since implemented
+        [1725148800000,50000,`Server management for ${monthname}`],      // September 1, 2024
+    ];
+    for (let a of amounts) {
+        if (a[0] < theTime) {
+            amount = a[1];
+            goalDescription = a[2];
+        }
+    }
+
     let update = false;
     if (currentGoal.created_at == 0) {
         console.log(`There is no current zapgoal for the server. One will be created`);
