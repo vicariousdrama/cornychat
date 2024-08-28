@@ -157,8 +157,9 @@ function Avatar({
   return (
     (
       <div
-        className="py-0 w-24 mr-2 mb-2 rounded-lg"
+        className="py-0 w-24 mr-2 mb-2 rounded-lg cursor-pointer"
         style={{backgroundColor: avatarCardBG, color: avatarCardFG}}
+        onClick={onClick}
       >
         <div className="relative flex flex-col items-center">
 
@@ -208,7 +209,6 @@ function Avatar({
                 alt={userDisplayName}
                 src={avatarUrl(info, room)}
                 style={{opacity: inRoom ? 1 : .15}}
-                onClick={onClick}
               />
             </div>
 
