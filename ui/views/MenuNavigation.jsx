@@ -6,7 +6,7 @@ import StreamingModal from './StreamingModal';
 import {isDark} from '../lib/theme';
 import {useJam} from '../jam-core-react';
 import {EditRoomModal} from './editRoom/EditRoom';
-import {Edit, Settings, Stop, Stream, Mic, Share} from './Svg';
+import {Edit, Settings, Stop, Stream, Mic, Share, Slideshow, Refresh, Up, Down, Follow} from './Svg';
 import {followAllNpubsFromIds} from '../nostr/nostr';
 
 export function MyNavMenu({close, roomColor, iAmAdmin}) {
@@ -59,7 +59,7 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
 
   return (
     <div
-      className="max-w-lg max-h-128 mx-auto flex flex-wrap justify-center rounded-lg"
+      className="max-w-lg max-h-128 mx-auto"
       style={{backgroundColor: roomColor.avatarBg, color: textColor}}
     >
       {(iModerate || iOwn || iAmAdmin) && (
@@ -78,7 +78,7 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
       {!stageOnly && (iModerate || iOwn || iAmAdmin) && !iSpeak && (
         <div
           onClick={() => addSpeaker(roomId, myId).then(close(false))}
-          className="p-2"
+          className="p-2 flex items-center"
         >
           <p className="text-md cursor-pointer">↑ Move to stage</p>
         </div>
@@ -93,7 +93,7 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
           className="p-2 flex items-center"
         >
           <Stream color={iconColor} />
-          <p className="text-md ml-1 cursor-pointer">Stream audio</p>
+          <p className="text-md ml-1 cursor-pointer">Play audio file</p>
         </div>
       )}
 
@@ -112,7 +112,7 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
         >
           {isRecording ? <Stop color={iconColor} /> : <Mic color={iconColor} />}
           <p className="text-md ml-1 cursor-pointer items-center">
-            {isRecording ? 'Stop Recording' : 'Start Recording'}
+            {isRecording ? 'Stop recording' : 'Start recording'}
           </p>
         </div>
       )}
@@ -123,16 +123,16 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
       >
         <Share color={iconColor} />
         <p className="text-md ml-1 cursor-pointer" style={{color: textColor}}>
-          Share
+          Copy room link
         </p>
       </div>
 
       {!stageOnly && (iOwn || iModerate || iAmAdmin) && iSpeak && (
         <div
           onClick={() => removeSpeaker(roomId, myId).then(close(false))}
-          className="p-2"
+          className="p-2 flex items-center"
         >
-          <p className="text-md cursor-pointer">Leave Stage</p>
+          <p className="text-md cursor-pointer">↓ Leave stage</p>
         </div>
       )}
       {!stageOnly && !(iOwn || iModerate || iAmAdmin) && iSpeak && (
@@ -141,9 +141,9 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
             leaveStage();
             close(false);
           }}
-          className="p-2"
+          className="p-2 flex items-center"
         >
-          <p className="text-md cursor-pointer">Leave stage</p>
+          <p className="text-md cursor-pointer">↓ Leave stage</p>
         </div>
       )}
 
@@ -159,8 +159,9 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
         // old ways 2
         //history.pushState(null, null, window.location.href);
       }} className="p-2 flex items-center">
+        <Refresh color={iconColor} />
         <p className="text-md ml-1 cursor-pointer" style={{color: textColor}}>
-          Refresh Page
+          Refresh page
         </p>
       </div>
 
@@ -180,10 +181,12 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
             }
             close(false);
           }}
-          className="p-2"
+          className="p-2 flex items-center"
         >
+          
+          {room.currentSlide < 1 ? <Slideshow color={iconColor} /> : <Stop color={iconColor} />}
           <p className="text-md ml-1 cursor-pointer">
-            {room.currentSlide > 0 ? 'Hide Slides' : 'Start Slides'}
+            {room.currentSlide > 0 ? 'Hide slides' : 'Start slides'}
           </p>
         </div>
       )}
@@ -193,8 +196,9 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
         followAllNpubsFromIds(inRoomPeerIds);
         close(false);
       }} className="p-2 flex items-center">
+        <Follow color={iconColor} />
         <p className="text-md ml-1 cursor-pointer" style={{color: textColor}}>
-          Follow Everyone
+          Follow everyone
         </p>
       </div>  
 

@@ -21,6 +21,7 @@ export default function StreamingModal({close}) {
   return (
     <Modal close={close}>
       <h1 className="text-gray-200">Stream audio</h1>
+      <p class="text-gray-200">While streaming audio your voice will not be sent. Stopping the audio will let you speak again.</p>
       <br />
       <form onSubmit={submit} className="text-gray-500">
         {/* <p>You can have several options to add an audio source</p>

@@ -374,7 +374,7 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
 
   return (
     <div id="navbar" style={{zIndex: '5',position:'absolute',bottom:'72px',width:'100%',backgroundColor:roomColor.avatarBg}}>
-      <div className="flex justify-center align-center mx-2">
+      <div className="flex justify-center mx-2">
         {showStickies && (
           <div
             className="text-4xl items-center max-w-md max-h-28 flex flex-wrap overflow-y-none no-scrollbar text-black text-center rounded-lg left-0 bottom-14"
@@ -392,7 +392,7 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
           </div>
         )}
         {showMyNavMenu && (
-          <div className="items-center">
+          <div>
             <MyNavMenu 
               close={setShowMyNavMenu} 
               roomColor={roomColor} 
