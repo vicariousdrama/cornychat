@@ -101,6 +101,8 @@ function JamUI({style, className, route = null, dynamicConfig = {}, ...props}) {
   let customColor = state.room.customColor;
   let roomColors = colors(colorTheme, customColor);
   let backgroundImg = state.room?.backgroundURI;
+  let backgroundRepeat = state.room?.backgroundRepeat || 'repeat';
+  let backgroundSize = state.room?.backgroundSize || '100% auto';
   let [width, , setContainer, mqp] = useProvideWidth();
 
   let backgroundRoom = useMemo(() => {
@@ -109,8 +111,8 @@ function JamUI({style, className, route = null, dynamicConfig = {}, ...props}) {
         position: 'relative',
         minHeight: '-webkit-fill-available',
         backgroundImage: `url(${backgroundImg})`,
-        backgroundRepeat: 'repeat',
-        backgroundSize: '100% auto',
+        backgroundRepeat: backgroundRepeat,
+        backgroundSize: backgroundSize,
         ...(style || null),
       };
     }
