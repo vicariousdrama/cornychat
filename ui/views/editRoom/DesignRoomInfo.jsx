@@ -6,6 +6,10 @@ export function DesignRoomInfo({
   iOwn,
   backgroundURI,
   setBackgroundURI,
+  backgroundRepeat,     // repeat, no-repeat
+  setBackgroundRepeat,
+  backgroundSize,       // auto, contain, cover, 100% auto
+  setBackgroundSize,
   paletteColors,
   color,
   setColor,
@@ -124,6 +128,42 @@ export function DesignRoomInfo({
           setBackgroundURI(e.target.value);
         }}
       ></input>
+      )}
+
+      <p className="text-sm font-medium text-gray-300">
+        Repeat Background: {!iOwn && (backgroundRepeat == 'repeat' ? 'Yes' : 'No')}
+      </p>
+      {iOwn && (
+      <select
+        name="backgroundRepeat"
+        defaultValue={(backgroundRepeat)}
+        onChange={e => {
+          setBackgroundRepeat(e.target.value);
+        }}
+        className={'border mt-3 ml-2 p-2 text-black rounded'}
+      >
+        <option key="backgroundRepeatYes" value="repeat">Yes</option>
+        <option key="backgroundRepeatNo" value="no-repeat">No</option>
+      </select> 
+      )}
+
+      <p className="text-sm font-medium text-gray-300">
+        Background Size Style: {!iOwn && (backgroundSize)}
+      </p>
+      {iOwn && (
+      <select
+        name="backgroundSize"
+        defaultValue={backgroundSize}
+        onChange={e => {
+          setBackgroundSize(e.target.value);
+        }}
+        className={'border mt-3 ml-2 p-2 text-black rounded'}
+      >
+        <option key="backgroundSizeAuto" value="auto">auto</option>
+        <option key="backgroundSizeContain" value="cover">contain</option>
+        <option key="backgroundSizeCover" value="cover">cover</option>
+        <option key="backgroundSizeAuto100" value="100% auto">100% auto</option>
+      </select> 
       )}
 
       {iOwn ? (

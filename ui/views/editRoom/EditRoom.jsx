@@ -38,6 +38,8 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
   let [logoURI, setLogoURI] = useState(room.logoURI || '');
   let [lud16, setLud16] = useState(room.lud16 || '');
   let [backgroundURI, setBackgroundURI] = useState(room.backgroundURI || '');
+  let [backgroundRepeat, setBackgroundRepeat] = useState(room.backgroundStyle || 'repeat');
+  let [backgroundSize, setBackgroundSize] = useState(room.backgroundSize || '100%');
   let [roomLinks, setRoomLinks] = useState(room.roomLinks || []);
   let [owners, setOwners] = useState(room.owners || []);
   let [ownersDeleting, setOwnersDeleting] = useState([]);
@@ -175,6 +177,8 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
       customColor,
       logoURI,
       backgroundURI,
+      backgroundRepeat,
+      backgroundSize,
       roomLinks,
       customEmojis,
       closed,
@@ -260,6 +264,10 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
           iOwn={iOwn}
           backgroundURI={backgroundURI}
           setBackgroundURI={setBackgroundURI}
+          backgroundRepeat={backgroundRepeat}
+          setBackgroundRepeat={setBackgroundRepeat}
+          backgroundSize={backgroundSize}
+          setBackgroundSize={setBackgroundSize}
           paletteColors={paletteColors}
           color={color}
           setColor={setColor}
