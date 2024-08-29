@@ -18,6 +18,7 @@ function AudioPlayerToast({close}) {
   let {name} = use(state, 'audioFile') ?? {};
   let audio = use(state, 'audioFileElement');
   let [element, setElement] = useState();
+  let [loopAudio, setLoopAudio] = useState(false);
   useEffect(() => {
     if (element && audio) {
 
@@ -134,9 +135,27 @@ function AudioPlayerToast({close}) {
         <div className="text-md flex">
           <div className="flex" onClick={end} style={{cursor: 'pointer',border:'1px solid white'}}><CloseSvg color="white" /></div>
           <div className="flex-grow"> Streaming to the room</div>
-          <div className="flex">
-            <button className="h-6 rounded-full flex items-center justify-center transition-all text-sm hover:opacity-80 outline"
-              style={{position:'absolute',right:'25px',cursor:'pointer',paddingLeft:'5px',paddingRight:'5px',border:'1px solid white'}}
+          <div className="flex justify-center">
+            <div className="flex text-gray-200 bold mr-4">
+            <input
+              className="rounded placeholder-black bg-gray-400 text-black w-6"
+              type="checkbox"
+              checked={loopAudio == 'true' ? true : false}
+              onChange={e => {
+                let l = (e.target.checked ? 'true' : 'false');
+                setLoopAudio(l);
+                let ca = document.getElementById('audio');
+                if (e.target.checked) {
+                  ca.setAttribute('loop',l);
+                } else {
+                  ca.removeAttribute('loop');
+                }
+              }}
+            />
+              Loop
+            </div>
+            <button className="h-8 w-20 rounded-full flex items-center justify-center transition-all text-sm hover:opacity-80 outline"
+              style={{cursor:'pointer',paddingLeft:'5px',paddingRight:'5px',border:'1px solid white'}}
               id="audioplaypause"
               onClick={async (e) => {
                 e.stopPropagation();

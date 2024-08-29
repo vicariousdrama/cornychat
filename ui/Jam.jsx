@@ -110,6 +110,7 @@ function JamUI({style, className, route = null, dynamicConfig = {}, ...props}) {
       return {
         position: 'relative',
         minHeight: '-webkit-fill-available',
+        backgroundColor: roomColors.background,
         backgroundImage: `url(${backgroundImg})`,
         backgroundRepeat: backgroundRepeat,
         backgroundSize: backgroundSize,
@@ -122,7 +123,7 @@ function JamUI({style, className, route = null, dynamicConfig = {}, ...props}) {
     return {
       position: 'relative',
       minHeight: '-webkit-fill-available',
-      background: roomColors.background,
+      backgroundColor: roomColors.background,
     };
   }, [colorTheme, backgroundImg, customColor]);
 
