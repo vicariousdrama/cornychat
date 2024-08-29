@@ -89,6 +89,7 @@ export default function EnterRoom({
   let [adImageEnabled, setAdImageEnabled] = useState((showAd && jamConfig.handbill));
   let adimg = `${jamConfig.urls.pantry}/api/v1/aimg/${roomId}`;
   let hasNostrInfo = false; //getNpubFromInfo(myIdentity.info) != undefined;
+  let joinRoomButtonAlwaysEnabled = true;
 
   useEffect(() => {
     // Setup a timeout to hide the image
@@ -294,7 +295,7 @@ export default function EnterRoom({
 
         {loginEnabled && (
           <>
-        {(!window.nostr || hasNostrInfo) && (
+        {(!window.nostr || hasNostrInfo || joinRoomButtonAlwaysEnabled) && (
         <button
           onClick={async() => {
             myIdentity.info.dmPubkey = await getDMPubkey();
