@@ -285,35 +285,37 @@ export async function getUserMetadata(pubkey, id) {
       const relaysToUse = unique([...userRelays, ...defaultRelays]);
       const filter = [{kinds: [0], authors: [pubkey]}];
       //check if i can use a variable set to true or false
-      let userMetadata = [];
+      let userEvents = [];
       const timeoutRelays = setTimeout(() => {
-        if (userMetadata.length === 0) {
+        if (userEvents.length === 0) {
           if(window.DEBUG) console.log('Nostr relays did not return any events');
           localpool.close();
           res(undefined);
-        }
-      }, 3000);
-      const npub = nip19.npubEncode(pubkey);
-      localpool.subscribe(
-        filter,
-        relaysToUse,
-        (event, afterEose, url) => {
-          clearTimeout(timeoutRelays);
-          userMetadata.push(JSON.parse(event.content));
-          let username = userMetadata[0]?.display_name || '';
-          if (username.length == 0) username = userMetadata[0]?.name || '';
+        } else {
+          let userMetadata = {}
+          let userDate = 0;
+          for (let ue of userEvents) {
+            try {
+              if (ue.created_at > userDate) {
+                userMetadata = JSON.parse(ue.content);
+                userDate = ue.created_at;
+              }
+            } catch (err) {
+              //ignore
+            }
+          }
+          let username = userMetadata?.display_name || userMetadata?.name ||  '';
           const userInfo = {
             name: username,
             id: id,
-            picture: userMetadata[0]?.picture,
+            picture: userMetadata?.picture,
             npub: npub,
-            about: userMetadata[0]?.about,
-            nip05: userMetadata[0]?.nip05,
-            lud16: userMetadata[0]?.lud16,
-            lud06: userMetadata[0]?.lud06,
-            banner: userMetadata[0]?.banner,
-          };
-
+            about: userMetadata?.about,
+            nip05: userMetadata?.nip05,
+            lud16: userMetadata?.lud16,
+            lud06: userMetadata?.lud06,
+            banner: userMetadata?.banner,
+          }
           let savingToSession = (async () => {
             let obj = {}
             obj.iFollow = false;
@@ -332,6 +334,14 @@ export async function getUserMetadata(pubkey, id) {
 
           localpool.close();
           res(userInfo);
+        }
+      }, 3000);
+      const npub = nip19.npubEncode(pubkey);
+      localpool.subscribe(
+        filter,
+        relaysToUse,
+        (event, afterEose, url) => {
+          userEvents.push(event);
         },
         undefined,
         undefined,
@@ -347,29 +357,37 @@ export async function getUserMetadata(pubkey, id) {
 
 let eventZapReceipts = {}
 export async function getZapReceipts(eventId) {
-  return new Promise((res, rej) => {
+  return new Promise(async (res, rej) => {
     if (eventId == undefined) {
       res([]);
       return;
     }
     const localpool = new RelayPool();
     try {
-      const userRelays = []; //getCachedOutboxRelaysByPubkey(pubkey);
+      const myPubkey = await window.nostr.getPublicKey();
+      const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
       const defaultRelays = getDefaultOutboxRelays();
       const relaysToUse = unique([...userRelays, ...defaultRelays]);
       const filter = [{kinds: [9735], "#e": [eventId]}];
       let userEvents = [];
       setTimeout(() => {
         if (eventZapReceipts.hasOwnProperty(eventId)) {
+          let zrs = [];
           for (let ue of userEvents) {
-            if (!eventZapReceipts.eventId.includes(ue))
-              eventZapReceipts.eventId.push(ue);
+            zrs = eventZapReceipts[eventId];
+            let f = false;
+            for (let zr of zrs) {
+              if (zr.id == ue.id) f = true;
+            }
+            if (!f) {
+              eventZapReceipts[eventId].push(ue);
+            }
           }
         } else {
-          eventZapReceipts.eventId = userEvents;
+          eventZapReceipts[eventId] = userEvents;
         }
         localpool.close();
-        res(eventZapReceipts.eventId);
+        res(eventZapReceipts[eventId]);
       }, 2700);
       let options = {unsubscribeOnEose: true, allowDuplicateEvents: false};
       
@@ -392,10 +410,10 @@ export async function getZapReceipts(eventId) {
 }
 
 export async function sendZaps(npubToZap, comment, amount) {
-  return zapEvent(npubToZap, undefined, comment, amount);
+  return zapEvent(npubToZap, undefined, comment, amount, undefined);
 }
 
-export async function zapEvent(npubToZap, event, comment, amount) {
+export async function zapEvent(npubToZap, event, comment, amount, lud16override) {
   if(window.DEBUG) console.log("in sendZaps");
   try {
     if (npubToZap == undefined) return [undefined, "logic error: npubToZap is not set"];
@@ -411,22 +429,24 @@ export async function zapEvent(npubToZap, event, comment, amount) {
     const id = null;
 
     // Determine lightning address to use
-    let lightningAddress = null;
-    const cachedUserMetadata = JSON.parse(sessionStorage.getItem(npubToZap));
-    if (cachedUserMetadata?.lightningAddress) {
-      lightningAddress = cachedUserMetadata.lightningAddress;
-    } else {
-      // Get metadata to lookup lightning address for users npub
-      const metadata = await getUserMetadata(pubkeyToZap, id);
-      if (!metadata) {
-        throw new Error('Unable to get metadata from relays for this user to identify lightning address.');
+    let lightningAddress = lud16override;
+    if (!lightningAddress) {
+      const cachedUserMetadata = JSON.parse(sessionStorage.getItem(npubToZap));
+      if (cachedUserMetadata?.lightningAddress) {
+        lightningAddress = cachedUserMetadata.lightningAddress;
+      } else {
+        // Get metadata to lookup lightning address for users npub
+        const metadata = await getUserMetadata(pubkeyToZap, id);
+        if (!metadata) {
+          throw new Error('Unable to get metadata from relays for this user to identify lightning address.');
+        }
+        if (metadata.lud06 !== '') lightningAddress = metadata.lud06;
+        if (metadata.lud16 !== '') lightningAddress = metadata.lud16;  
       }
-      if (metadata.lud06 !== '') lightningAddress = metadata.lud06;
-      if (metadata.lud16 !== '') lightningAddress = metadata.lud16;  
     }
 
     if (!lightningAddress) {
-      throw new Error('Lightning address not found for this npub.');
+      throw new Error('Lightning address not found for this npub or provided to zapEvent call.');
     }
 
     const LnService = await getLNService(lightningAddress);

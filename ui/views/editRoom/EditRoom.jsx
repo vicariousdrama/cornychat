@@ -86,7 +86,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
   let [schedule, setSchedule] = useState(room.schedule);
 
   function decodeHTMLEncoded(v) {
-    let o = v;
+    let o = v || '';
     let goagain = false;
     while (o.indexOf("&amp;") > -1) {
       o = o.replaceAll("&amp;", "&");

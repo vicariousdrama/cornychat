@@ -20,7 +20,6 @@ export const CreateZapGoalModal = ({
     const myPubkey = await window.nostr.getPublicKey();
     const myNpub = nip19.npubEncode(myPubkey);
     setZGcontent(decodeHTMLEncoded(zgContent));
-    setZGamount(decodeHTMLEncoded(zgAmount));
     let [ok, event] = await publishZapGoal(zgContent, zgAmount);
     if (ok) {
         setZapGoal({content:zgContent,amount:zgAmount,id:event.id,npub:myNpub});
@@ -31,7 +30,7 @@ export const CreateZapGoalModal = ({
   };
 
   function decodeHTMLEncoded(v) {
-    let o = v;
+    let o = v || '';
     let goagain = false;
     while (o.indexOf("&amp;") > -1) {
       o = o.replaceAll("&amp;", "&");
