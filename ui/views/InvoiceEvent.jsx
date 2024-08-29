@@ -257,7 +257,8 @@ export const InvoiceEventModal = ({event, lud16, close}) => {
                 npub,
                 event,
                 comment,
-                amount
+                amount,
+                lud16
               );
               await handleResult(result);
             }}
