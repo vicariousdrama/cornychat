@@ -24,7 +24,7 @@ export default function StartRoomSimple({
     };
 
     return (
-        <div className="px-0 text-lg rounded-lg mr-2 mb-2"
+        <div className="px-0 text-md rounded-lg m-2"
              style={coloringStyle}
              key={`room_${index}`}
         >
@@ -39,9 +39,9 @@ export default function StartRoomSimple({
                 <img src={roomLogo}
                      style={{width: '128px', height: '128px', objectFit: 'cover'}} />
               </td>
-              <td className="text-xl" style={{width: '160px'}}>
+              <td className="text-xl" style={{width: '160px'}} title={`${roomDescription}`}>
                 <div style={{width: '160px', height: '96px', overflowY: 'clip'}} >
-                  {roomName}
+                  {roomName || roomId}
                 </div>
               </td>
             </tr>
@@ -49,12 +49,6 @@ export default function StartRoomSimple({
               <td className="text-md">{userCount > 0 ? (`${userCount} users`) : `Nobody Present`}</td>
             </tr>
           </tbody></table>
-          <ReactMarkdown
-            className="text-xs h-full mt-3 hidden"
-            plugins={[gfm]}
-          >
-           {roomDescription}
-          </ReactMarkdown>
         </a>
         </div>
     );
