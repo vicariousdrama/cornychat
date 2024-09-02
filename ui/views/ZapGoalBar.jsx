@@ -7,6 +7,13 @@ import {nip19} from 'nostr-tools';
 export default function ZapGoalBar({
     zapgoal,
     lud16,
+    backgroundColorTitle,
+    backgroundColorFilled,
+    backgroundColorUnfilled,
+    borderColorUnfilled,
+    textColorTitle,
+    textColorFilled,
+    textColorUnfilled,
 }) {
     let width = 300;
     let goalAmount = 0;
@@ -20,27 +27,34 @@ export default function ZapGoalBar({
     }
     let totalSats = 0; // default for testing display, and sampling progress
     let fillWidth = goalAmount > 0 ? Math.floor((totalSats/goalAmount) * width) : width;
-    if (fillWidth > (width - 2)) fillWidth = width - 2;
+    if (fillWidth > width) fillWidth = width;
     if (fillWidth < 1) fillWidth = 1;
-    let unfilledWidth = (width - 2) - fillWidth;
-    let fillbarStyle = {backgroundColor: 'rgb(24,128,24)',  height: '18px', width: String(fillWidth) + 'px'}
-    let unfilledBarStyle = {backgroundColor: 'rgb(64,32,0)', height: '18px', width: String(unfilledWidth) + 'px'}
-    let textStyle = {marginTop: '0px', marginLeft: '2px', marginRight: '2px', position: 'relative', color: 'rgb(212,212,212)'}
+    let unfilledWidth = width - fillWidth;
+    let barStyleFilled = {backgroundColor: backgroundColorFilled,  height: '18px', width: String(fillWidth) + 'px'}
+    let barStyleUnfilled = {backgroundColor: backgroundColorUnfilled, height: '18px', width: String(unfilledWidth) + 'px'}
+    let textStyleFilled = {marginTop: '0px', marginLeft: '2px', marginRight: '2px', position: 'relative', color: textColorFilled}
+    let textStyleUnfilled = {marginTop: '0px', marginLeft: '2px', marginRight: '2px', position: 'relative', color: textColorUnfilled}
 
     function setWidths(totalSats) {
         let width = document.getElementById('zapgoal').parentElement.parentElement.clientWidth;
         fillWidth = goalAmount > 0 ? Math.floor((totalSats/goalAmount) * width) : width;
-        if (fillWidth > (width - 2)) fillWidth = width - 2;
-        let unfilledWidth = (width - 2) - fillWidth;
+        if (fillWidth > width) fillWidth = width;
+        let unfilledWidth = width - fillWidth;
         let leftok = (fillWidth > (width/4));
         let rightok = (unfilledWidth > (width/4));
-        document.getElementById("zapgoal_filled_text").innerText = leftok ? (rightok ? totalSats : totalSats + " / " + goalAmount) : "";
-        document.getElementById("zapgoal_filled_text").style.textAlign = leftok ? (rightok ? 'right' : 'center') : 'center';
-        document.getElementById("zapgoal_unfilled_text").innerText = rightok ? (leftok ? (remainAmount > 0 ? String(remainAmount) + " to go" : goalAmount): totalSats + " / " + goalAmount) : "";
-        document.getElementById("zapgoal_unfilled_text").style.textAlign = rightok ? (leftok ? 'left' : 'center') : 'center';
-        document.getElementById("zapgoal_filled").style.width = String(fillWidth) + "px";
-        document.getElementById("zapgoal_unfilled").style.width = String(unfilledWidth) + "px";
-        document.getElementById("zapgoal_unfilled").style.border = `${unfilledWidth <= 0 ? 0 : 1}px solid rgb(255,128,0)`;
+        let zu = document.getElementById("zapgoal_unfilled");
+        let zut = document.getElementById("zapgoal_unfilled_text");
+        let zf = document.getElementById("zapgoal_filled");
+        let zft = document.getElementById("zapgoal_filled_text");
+        zft.innerText = leftok ? (rightok ? totalSats : totalSats + " / " + goalAmount) : "";
+        zft.style.textAlign = leftok ? (rightok ? 'right' : 'center') : 'center';
+        zut.innerText = rightok ? (leftok ? (remainAmount > 0 ? String(remainAmount) + " to go" : goalAmount): totalSats + " / " + goalAmount) : "";
+        zut.style.textAlign = rightok ? (leftok ? 'left' : 'center') : 'center';
+        zf.style.display = fillWidth > 0 ? 'inline' : 'none';
+        zf.style.width = String(fillWidth) + "px";
+        zu.style.display = unfilledWidth > 0 ? 'inline' : 'none';
+        zu.style.width = String(unfilledWidth) + "px";
+        zu.style.border = `${unfilledWidth <= 0 ? 0 : 1}px solid ${borderColorUnfilled}`;
         document.getElementById("zapgoal").setAttribute("title", String(totalSats) + " sats towards goal of " + goalAmount);
     }
 
@@ -76,7 +90,7 @@ export default function ZapGoalBar({
     useEffect(() => {
         let timeoutWidth = setTimeout(() => {
             setWidths(totalSats);
-        },1234);
+        },388);
 
         // Initial check in 3 seconds
         let timeoutInitialReceipts = setTimeout(() => {
@@ -105,12 +119,13 @@ export default function ZapGoalBar({
                 openModal(InvoiceEventModal, {event: zapgoal, lud16: lud16});
               }}
         >
-            <div className="px-0 text-xs text-white bg-gray-500">
+            <div className="px-0 text-xs"
+                style={{backgroundColor: backgroundColorTitle, color: textColorTitle}}>
                 Click to Zap Goal: {goalDescription}
             </div>
             <div className="flex flex-wrap text-md">
-                <div id="zapgoal_filled" className="px-0" style={fillbarStyle}><div id="zapgoal_filled_text" style={textStyle}></div></div>
-                <div id="zapgoal_unfilled" className="px-0" style={unfilledBarStyle}><div id="zapgoal_unfilled_text" style={textStyle}></div></div>
+                <div id="zapgoal_filled" className="px-0" style={barStyleFilled}><div id="zapgoal_filled_text" style={textStyleFilled}></div></div>
+                <div id="zapgoal_unfilled" className="px-0" style={barStyleUnfilled}><div id="zapgoal_unfilled_text" style={textStyleUnfilled}></div></div>
             </div>
         </div>
         </center>

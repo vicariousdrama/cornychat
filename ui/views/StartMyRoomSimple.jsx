@@ -24,8 +24,8 @@ export default function StartMyRoomSimple({
     var coloringStyle = {
         backgroundColor: 'rgb(210,111,210)',
         backgroundImage: 'linear-gradient(rgb(110, 47, 218), rgb(0, 0, 0))',
+        cursor: 'pointer',
         color: 'rgb(255,255,255)',
-        display: 'inline-block',
     };
 
     if (roomInfo.hidden) {
@@ -35,12 +35,12 @@ export default function StartMyRoomSimple({
     }
 
     return (
-        <div className="text-lg rounded-lg mr-2 w-full"
+        <div className="text-md rounded-lg p-2 m-2"
             key={`myroom_${index}`}
              style={coloringStyle}
              id={`myrooms-${roomId}`}
         >
-            <table cellPadding="0" cellSpacing="0" width="100%"><tbody>
+            <table cellPadding="0" cellSpacing="0" width="300px"><tbody>
                 <tr>
                     <td>
                         <a href={`./${roomId}`}>
@@ -60,15 +60,15 @@ export default function StartMyRoomSimple({
                             )}
                         </a>
                     </td>
-                    <td style={{width: '105px'}} >
+                    <td width="80" style={{width: '80px'}} className="text-sm">
                         {isOwner && ('👑')}
                         {isModerator && ('🛡️')}
                         {isSpeaker && ('🎤')}
                         {isPrivate && ('🕵️')}
                         {isProtected && ('🔤')}
                     </td>
-                    <td style={{width: '50px'}} >
-                        <button className="px-5 h-6 text-sm rounded-md"
+                    <td width="20" style={{width: '20px'}} >
+                        <button className="mr-2 h-6 text-sm rounded-md"
                         title="Remove yourself from this room"
                         onClick={async (e) => {
                             e.stopPropagation();

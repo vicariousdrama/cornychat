@@ -16,11 +16,11 @@ function sleep(ms) {
 
 function getDefaultOutboxRelays() {
   return [
+    'wss://thebarn.nostr1.com',
     'wss://thebarn.nostrfreaks.com',
     'wss://relay.damus.io',
     'wss://nos.lol',
     'wss://nostr-pub.wellorder.net',
-    'wss://relay.mutinywallet.com',
     'wss://relay.snort.social',
   ];
 }
@@ -364,8 +364,11 @@ export async function getZapReceipts(eventId) {
     }
     const localpool = new RelayPool();
     try {
-      const myPubkey = await window.nostr.getPublicKey();
-      const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
+      let userRelays = [];
+      if (window.nostr) {
+        const myPubkey = await window.nostr.getPublicKey();
+        userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
+      }
       const defaultRelays = getDefaultOutboxRelays();
       const relaysToUse = unique([...userRelays, ...defaultRelays]);
       const filter = [{kinds: [9735], "#e": [eventId]}];
@@ -517,6 +520,7 @@ export async function openLNExtension(LNInvoice) {
 
 async function saveFollowList(myFollowList) {
   if(window.DEBUG) console.log("in saveFollowList");
+  if (!window.nostr) return false;
   const event = {
     id: null,
     pubkey: null,
@@ -807,7 +811,6 @@ export async function makeZapRequest(content, receiver, event, msatsAmount) {
         'wss://relay.damus.io',
         'wss://nos.lol',
         'wss://nostr-pub.wellorder.net',
-        'wss://relay.mutinywallet.com',
         'wss://relay.snort.social', 
       ],
       ['amount', `${msatsAmount}`],

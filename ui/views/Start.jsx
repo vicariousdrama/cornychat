@@ -20,6 +20,11 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
   const [zapGoal, setZapGoal] = useState({});
   const [{room}, {enterRoom, setProps, createRoom, listRooms, listScheduledEvents, listMyRooms, getZapGoal}] = useJam();
   const [viewMode, setViewMode] = useState('liverooms');
+  const colorGroupLive = `rgba(1,111,210,1)`;
+  const colorGroupMyRooms = `rgba(110,47,210,1)`;
+  const colorGroupScheduled = `rgba(7,74,40,1)`;
+  const [borderActiveGroup, setBorderActiveGroup] = useState(colorGroupLive);
+  const [backgroundColorActive, setBackgroundColorActive] = useState(colorGroupLive.replace(')',',.25)'));
   let {stageOnly = false, videoEnabled = false} = newRoom;
   const mainroomonly = [{"roomId":"mainchat","name":"Main Chat","description":"","logoURI":"","userCount":"0","userInfo":[]}];
   let myId = useJamState('myId');
@@ -91,7 +96,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
 
     (async () => {
       let theTime = Date.now();
-      let roomPosted = {stageOnly, videoEnabled, currentSlide: 1, updateTime: theTime, createdTime: theTime, roomSlides : [
+      let roomPosted = {name: roomId, stageOnly, videoEnabled, currentSlide: 1, updateTime: theTime, createdTime: theTime, roomSlides : [
         ["/img/tutorial/tutorial-01.png","Tutorial Start"],
         ["/img/tutorial/tutorial-02.png","Room Settings"],
         ["/img/tutorial/tutorial-03.png","Basic Room Info"],
@@ -150,36 +155,45 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
 
         {zapGoal.hasOwnProperty("content") && (
           <center>
-          <div style={{width: '300px'}}>
+          <div style={{width: '320px'}}>
             <center>
-            <ZapGoalBar zapgoal={zapGoal} />
+            <ZapGoalBar zapgoal={zapGoal} 
+              textColorTitle={textColor} backgroundColorTitle={'rgb(1,111,210)'} 
+              textColorFilled={textColor} backgroundColorFilled={'rgb(24,128,24)'}
+              textColorUnfilled={textColor} backgroundColorUnfilled={'rgb(64,32,0)'} borderColorUnfilled={'rgb(255,128,0)'} />
             </center>
           </div>
           </center>
         )}
 
         <div className="flex flex-wrap justify-center">
-          <div className="cursor-pointer text-white mt-2 mb-2 rounded-md" style={{border:'1px solid rgb(1,111,210)', width: '100px', backgroundColor: (viewMode == 'liverooms' ? 'rgb(1,111,210)' : roomColors.background)}}
+          <div className="cursor-pointer text-white p-2 mt-2 mr-1 rounded-t-md" style={{border:`1px solid ${colorGroupLive}`, width: '100px', backgroundColor: (viewMode == 'liverooms' ? colorGroupLive : roomColors.background)}}
             onClick={async (e) => {
               e.stopPropagation();
               setViewMode('liverooms');
+              setBorderActiveGroup(colorGroupLive);
+              setBackgroundColorActive(colorGroupLive.replace(',1)',',.25)'));
             }}          
           >Live Rooms</div>
-          <div className="cursor-pointer text-white m-2 rounded-md" style={{border:'1px solid rgb(110,47,210)', width: '100px', backgroundColor: (viewMode == 'myrooms' ? 'rgb(110,47,218)' : roomColors.background)}}
+          <div className="cursor-pointer text-white p-2 mt-2 mr-1 ml-1 rounded-t-md" style={{border:`1px solid ${colorGroupMyRooms}`, width: '100px', backgroundColor: (viewMode == 'myrooms' ? colorGroupMyRooms : roomColors.background)}}
             onClick={async (e) => {
               e.stopPropagation();
               setViewMode('myrooms');
+              setBorderActiveGroup(colorGroupMyRooms);
+              setBackgroundColorActive(colorGroupMyRooms.replace(',1)',',.25)'));
             }}
           >My Rooms</div>
-          <div className="cursor-pointer text-white mt-2 mb-2 rounded-md" style={{border:'1px solid rgb(7,74,40)', width: '100px', backgroundColor: (viewMode == 'scheduled' ? 'rgb(7,74,40)' : roomColors.background)}}
+          <div className="cursor-pointer text-white p-2 mt-2 ml-1 rounded-t-md" style={{border:`1px solid ${colorGroupScheduled}`, width: '100px', backgroundColor: (viewMode == 'scheduled' ? colorGroupScheduled : roomColors.background)}}
             onClick={async (e) => {
               e.stopPropagation();
               setViewMode('scheduled');
+              setBorderActiveGroup(colorGroupScheduled);
+              setBackgroundColorActive(colorGroupScheduled.replace(',1)',',.25)'));
             }}          
           >Scheduled</div>
         </div>
         <div style={{align: 'center'}}>
-          <div style={{display:'block',color:`rgb(244,244,244)`}}>
+          <div className="rounded-md w-full" style={{display:'inline-block',color:`rgb(244,244,244)`,border: `3px solid ${borderActiveGroup}`,backgroundColor: backgroundColorActive,align: 'center'}}>
             { viewMode == 'liverooms' && (
               <>
               {roomList.length == 0 && (

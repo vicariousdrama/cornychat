@@ -155,11 +155,25 @@ export default function EnterRoom({
     }
   };
 
+  let leftColumnStyle = {backgroundColor: roomColor.background, opacity: '25%'}
+  let backgroundImg = room?.backgroundURI;
+  let backgroundRepeat = room?.backgroundRepeat || 'repeat';
+  let backgroundSize = room?.backgroundSize || '100% auto';
+  if (backgroundImg && backgroundImg !== '') {
+    leftColumnStyle = {
+      backgroundColor: roomColor.background,
+      backgroundImage: `url(${backgroundImg})`,
+      backgroundRepeat: backgroundRepeat,
+      backgroundSize: backgroundSize,
+      opacity: '25%',
+    }
+  }
+
   return (
-    <div className="flex h-screen text-200" >
+    <div className="flex text-200" style={{backgroundColor: '#031745'}}>
       <div
         className={leftColumn}
-        style={{backgroundColor: roomColor.background, opacity: '90%'}}
+        style={leftColumnStyle}
       ></div>
       <div className={rightColumn} style={{backgroundColor: '#031745'}}>
         {otherDevice && (
@@ -413,7 +427,7 @@ export default function EnterRoom({
         >
           🗓 Add to Calendar
         </a>
-        <div>
+        <div style={{backgroundColor: '#031745'}}>
           <div className={iOS ? 'mt-40 text-gray-300 text-center' : 'hidden'}>
             🎧 Use headphones or earbuds
             <br />

@@ -322,19 +322,22 @@ export default function RoomHeader2({
         <div className="flex justify-between m-0 w-full">
             <div className="flex w-full">
                 {room?.zapGoal?.id && (
-                <ZapGoalBar key={`zapgoalbar_${room.zapGoal.id}`} zapgoal={room.zapGoal} lud16={lud16} />
+                <ZapGoalBar key={`zapgoalbar_${room.zapGoal.id}`} zapgoal={room.zapGoal} lud16={lud16} 
+                    textColorTitle={textColor} backgroundColorTitle={colors.avatarBg} 
+                    textColorFilled={isDark(colors.buttons.primary) ? colors.icons.light : colors.icons.dark}  backgroundColorFilled={colors.buttons.primary}
+                    textColorUnfilled={isDark(colors.avatarBg) ? colors.text.light : colors.text.dark} backgroundColorUnfilled={colors.avatarBg} borderColorUnfilled={colors.avatarBg} />
                 )}
                 {!room?.zapGoal?.id && (
                 <>
                 {((localStorage.getItem(`v4vtiproom.enabled`) ?? 'false') == 'true') && autoTipRoom && (
                 <div className="flex-grow cursor-pointer"
-                    style={{textAlign:'center',backgroundColor:'rgba(21,21,21,1)',color:'rgba(21,221,21,.8'}}              
+                    style={{textAlign:'center',backgroundColor:'rgba(21,21,21,1)',color:'rgba(21,221,21,.8'}}
                     onClick={() => {toggleTipRoom(false)}}
                 >Autotip {autoTipAmount} sats every {autoTipFrequency} minutes (tap to toggle)</div>
                 )}
                 {((localStorage.getItem(`v4vtiproom.enabled`) ?? 'false') == 'true') && !autoTipRoom && (
                 <div className="flex-grow cursor-pointer"
-                    style={{textAlign:'center',backgroundColor:'rgba(21,21,21,1)',color:'rgba(221,21,21,.8'}}              
+                    style={{textAlign:'center',backgroundColor:'rgba(21,21,21,1)',color:'rgba(221,21,21,.8'}}
                     onClick={() => {toggleTipRoom(true)}}
                 >Autotipping is off (tap to toggle)</div>
                 )}
@@ -423,6 +426,17 @@ export default function RoomHeader2({
                     title={`Live activity info is periodically published to nostr`}
                 >
                     LIVE!
+                </div>
+                )}
+
+                {room.isPrivate && (
+                <div className="flex items-center justify-center w-16 h-6 text-xs mx-0 text-blue-500"
+                    style={{
+                        backgroundColor: 'rgb(0,0,0)'
+                    }}
+                    title={`The room is private. It is not announced or listed on the front page for discovery`}
+                >
+                    Private
                 </div>
                 )}
             </div>
