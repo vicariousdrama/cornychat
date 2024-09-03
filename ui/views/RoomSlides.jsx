@@ -127,13 +127,11 @@ export default function RoomSlides({
 
   if (rsl > 0 && (parseInt(currentSlide, 10) > 0)) {
     return (
-      <div className="justify-center">
+      <div key={currentSlide} className="justify-center">
         <RoomSlide />
       </div>
     );
   } else {
-    return (
-      <div className="hidden"></div>
-    );
+    return (<></>);
   }
 }

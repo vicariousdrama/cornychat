@@ -99,12 +99,25 @@ router.delete('/:userId/:roomId', async function (req, res) {
 
 router.get('/:userId', async function (req, res) {
     res.type('application/json');
-
     const userid = req.params.userId ?? '';
     if (userid.length == 0) {
         res.sendStatus(404);
         return;
     }
+    let userroomskey = `userrooms/${userid}`;
+    // check if cached
+    let userroomscache = await get(userroomskey);
+    if (userroomscache != undefined) {
+        // check if valid cache -- only rebuild once every 5 minutes 
+        let five_minutes_ago = 5 * 60 * 1000;
+        if (userroomscache.t > (new Date()).getTime() - five_minutes_ago) {
+            if (userroomscache.r) {
+                res.send(userroomscache.r);
+                return;
+            }
+        }
+    }
+    console.log(`userRoomsRouter start building cache: ${(new Date()).getTime()}`);
     let userrooms = [];
     let userinfo = await get(`identities/${userid}`);
     let usernpub = '';
@@ -180,11 +193,12 @@ router.get('/:userId', async function (req, res) {
             }
             rrcount += 1;
             if ((rrcount % 50) == 0) {
-                console.log(`reviewed ${rrcount} rooms, found ${frcount} so far for user ${userid} (npub: ${usernpub})`);
+                console.log(`reviewed ${rrcount} rooms, found ${frcount} so far for user ${userid} (npub: ${usernpub}) ${(new Date()).getTime()}`);
             }
         }
     }
-    // todo: save to a key ? identities/:userid/rooms
+    // Save results to a key
+    await set(userroomskey, {t: (new Date()).getTime(), r: userrooms});
 
     res.send(userrooms);
 });
