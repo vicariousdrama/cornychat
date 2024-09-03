@@ -2,7 +2,7 @@ import {encode} from './identity-utils';
 import {clear, emit, is, on, until} from 'minimal-state';
 import {doorbell} from './doorbell';
 
-const PING_INTERVAL = 5000;
+const PING_INTERVAL = 5000; // allowed 25000 on backend
 
 export default async function signalws({
   url,
@@ -47,7 +47,13 @@ export default async function signalws({
       payload.connId = connId;
     }
     doorbell(d, myPeerId, roomId);
-    if (topic === 'response') {
+    if (topic === 'error') {
+      setTimeout(async () => {
+        window.location.href = window.location.href.substring(0,window.location.href.lastIndexOf('/'));
+      },3000);
+      alert(d);
+      return;
+    } else if (topic === 'response') {
       requestAccepted(requestId, payload);
       return;
     } else if (topic === 'server') {

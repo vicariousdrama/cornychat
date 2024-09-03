@@ -13,10 +13,9 @@ const adminRouter = require('./routes/admin');
 
 const {roomAuthenticator, identityAuthenticator} = require('./auth');
 const {controller} = require('./routes/controller');
-const roomKeyRouter = require('./routes/roomKey');
+//const roomKeyRouter = require('./routes/roomKey');
 const liveRoomRouter = require('./routes/liveRoom');
 const recordingsRouter = require('./routes/recordings');
-//const jamConfigRouter = require('./routes/jamConfig');
 const {adEnabled, hlsFileLocationPath} = require('./config');
 
 const roomListRouter = require('./routes/roomListRouter');
@@ -44,7 +43,6 @@ app.use(ssr);
 app.use('/', indexRouter);
 app.use('/metrics', metricsRouter);
 app.use('/activity', activityRouter);
-//app.use('/jam-config', jamConfigRouter);
 
 app.use('/stream/hls', express.static(hlsFileLocationPath));
 
@@ -53,7 +51,7 @@ app.use('/api/v1/', controller('rooms', roomAuthenticator,
     () => 'room-info'
   )
 );
-app.use('/api/v1/rooms/:id/roomKey', roomKeyRouter);
+//app.use('/api/v1/rooms/:id/roomKey', roomKeyRouter);
 app.use('/api/v1/rooms/:id/live', liveRoomRouter);
 app.use('/api/v1/rooms/:id/recordings.zip', recordingsRouter);
 app.use('/api/v1/rooms/:id/moderators', roomModeratorsRouter);

@@ -2,7 +2,7 @@ const {set, get, list} = require('./redis');
 const {deleteLiveActivity, publishLiveActivity, publishRoomActive} = require('../nostr/nostr');
 const {activeUsersInRoom} = require('./ws');
 const UPDATE_INTERVAL = 1 * 60 * 1000; // We check new rooms and live event end every minute
-const pmd = true;
+const pmd = false;
 
 const liveeventUpdater = async () => {
 
@@ -27,7 +27,7 @@ const liveeventUpdater = async () => {
 
     // start a background process
     setInterval(async () => {
-        console.log(`Checking for live rooms`);
+        if (pmd) console.log(`Checking for live rooms`);
 
         // Increment this count number
         runCounter = runCounter + 1;

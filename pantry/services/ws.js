@@ -215,12 +215,16 @@ function handleConnection(ws, req) {
   // the door. They will however immediately attempt to reconnect.
   if (VERIFY_BUILDDATE_ONENTRY) {
     if (!bd) {
+      let errmsg = "client version not set. disconnecting";
       console.log(`killing ws as no build date provided`, roomId, peerId);
+      ws.send(JSON.stringify({"t":"error","d":errmsg}));
       ws.close();
       return;
     }
     if(bd != 'BUILD_DATE'.split('.')[0]) {
+      let errmsg = "client version contains unexpected value. disconnecting";
       console.log(`killing ws as ping build date was invalid`, roomId, peerId, bd);
+      ws.send(JSON.stringify({"t":"error","d":errmsg}));
       ws.close();
       return;
     }
@@ -230,9 +234,12 @@ function handleConnection(ws, req) {
   let lastPing = Date.now();
   let pingCount = 0;
   let interval = setInterval(() => {
-    let timeSincePing = Date.now() - lastPing;
-    if (timeSincePing > PING_MAX_INTERVAL) {
-      console.log(`killing ws after ${timeSincePing}ms`, roomId, peerId);
+    let timeSinceClientPing = Date.now() - lastPing;
+    console.log(`timeSinceClientPing: ${timeSinceClientPing} from peer: ${peerId}`);
+    if (timeSinceClientPing > PING_MAX_INTERVAL) {
+      let errmsg = `client response time exceeds max time allowed (${timeSinceClientPing}ms > ${PING_MAX_INTERVAL} ms). disconnecting`;
+      console.log(`killing ws after ${timeSinceClientPing}ms`, roomId, peerId);
+      ws.send(JSON.stringify({"t":"error","d":errmsg}));
       ws.close();
       closeWs();
     }
@@ -311,13 +318,17 @@ function handleConnection(ws, req) {
           // older clients wont do this and we want to drop those connections
           let b = msg.b;
           if (!b) {
+            let errmsg = "client version not set. disconnecting";
             console.log(`killing ws as no build date provided`, roomId, peerId);
+            ws.send(JSON.stringify({"t":"error","d":errmsg}));
             ws.close();
             closeWs();
             return;
           } else {
             if(b.split('.')[0] != 'BUILD_DATE'.split('.')[0]) {
+              let errmsg = "client version contains unexpected value. disconnecting";
               console.log(`killing ws as ping build date was invalid`, roomId, peerId, b);
+              ws.send(JSON.stringify({"t":"error","d":errmsg}));
               ws.close();
               closeWs();
               return;
@@ -343,7 +354,7 @@ function handleConnection(ws, req) {
     console.log('ws closed', roomId, peerId);
     removePeer(roomId, connection);
     unsubscribeAll(connection);
-    removeKeys(roomId, peerId);
+    //removeKeys(roomId, peerId);
 
     publish(roomId, 'remove-peer', {t: 'remove-peer', d: peerId});
     publishToServers({t: 'remove-peer', d: peerId, ro: roomId});
@@ -462,28 +473,28 @@ function removePeer(roomId, connection) {
   //console.log('all peers:', getPeers(roomId));
 }
 
-async function removeKeys(roomId, userId) {
-  const newRoomId = roomId + 'Keys';
-  const newUserId = userId.split('.')[0];
-  const roomPeers = getPeers(roomId);
-  let roomsKeys = await get(newRoomId);
+// async function removeKeys(roomId, userId) {
+//   const newRoomId = roomId + 'Keys';
+//   const newUserId = userId.split('.')[0];
+//   const roomPeers = getPeers(roomId);
+//   let roomsKeys = await get(newRoomId);
 
-  if (!roomsKeys) {
-    return;
-  }
-  const hasPrivateKeys = roomsKeys.hasOwnProperty(newUserId);
+//   if (!roomsKeys) {
+//     return;
+//   }
+//   const hasPrivateKeys = roomsKeys.hasOwnProperty(newUserId);
 
-  if (hasPrivateKeys) {
-    delete roomsKeys[`${newUserId}`];
+//   if (hasPrivateKeys) {
+//     delete roomsKeys[`${newUserId}`];
 
-    if (roomPeers.length === 0) {
-      del(newRoomId);
-      return;
-    }
+//     if (roomPeers.length === 0) {
+//       del(newRoomId);
+//       return;
+//     }
 
-    set(newRoomId, roomsKeys);
-  }
-}
+//     set(newRoomId, roomsKeys);
+//   }
+// }
 
 function getConnections(roomId) {
   let connections = roomConnections.get(roomId);
