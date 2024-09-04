@@ -2,17 +2,14 @@ const {RelayPool} = require('nostr-relaypool');
 const {nip19, validateEvent, verifyEvent } = require('nostr-tools');
 
 function decodeNote(noteId) {
-  console.log("decoding note with id ", noteId);
+  //console.log("decoding note with id ", noteId);
   const note = nip19.decode(noteId);
   const type = note.type;
-
-  console.log(note);
-  console.log(type);
-
+  //console.log(note);
+  //console.log(type);
   if (type === 'nevent') {
     return note.data.id;
   }
-
   if (type === 'note') {
     return note.data;
   }
@@ -33,31 +30,17 @@ const verify = (identity, publicKey) => {
           rej(new Error(error_msg));
         }
         let p = nip19.decode(identity.id).data;
-        let tags = [];
-        let e = {
-          content: publicKey,
-          created_at: identity.loginTime,
-          id: identity.loginId,
-          kind: 1,
-          pubkey: p,
-          sig: identity.loginSig,
-          tags: tags,
-        };
-        let u = validateEvent(e);
-        let v = verifyEvent(e);
-        r = (u && v);
-        if (!u) {
+        let e = {content:publicKey,created_at:identity.loginTime,id:identity.loginId,kind:1,pubkey:p,sig:identity.loginSig,tags:[]};
+        if(!validateEvent(e)) {
           const error_msg = `Invalid nostr identity. Event invalid`;
           rej(new Error(error_msg));
-        }
-        if (!v) {
-          e.tags = [[]];
-          u = validateEvent(e);
-          v = verifyEvent(e);
-        }
-        if (!v) {
-          const error_msg = `Invalid nostr identity. Signature did not match expected value`;
-          rej(new Error(error_msg));
+        };
+        if (!verifyEvent(e)) {
+          let e = {content:publicKey,created_at:identity.loginTime,id:identity.loginId,kind:1,pubkey:p,sig:identity.loginSig,tags:[[]]};
+          if(!verifyEvent(e)) {
+            const error_msg = `Invalid nostr identity. Signature did not match expected value`;
+            rej(new Error(error_msg));  
+          }
         }
         res(true);
       } catch(error) {
