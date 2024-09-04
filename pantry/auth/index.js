@@ -175,7 +175,7 @@ const roomAuthenticator = {
       res.sendStatus(411);
       return;
     }
-    if (Math.floor(cl) > 2048) {  // current default room size near 1904
+    if (Math.floor(cl) > 2100) {  // current default room size near 2048 depending on roomid generated
       console.log(`Room ${roomId} being created exceeds maximum allowed data size`);
       res.sendStatus(413);
       return;

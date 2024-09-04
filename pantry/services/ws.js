@@ -235,7 +235,7 @@ function handleConnection(ws, req) {
   let pingCount = 0;
   let interval = setInterval(() => {
     let timeSinceClientPing = Date.now() - lastPing;
-    console.log(`timeSinceClientPing: ${timeSinceClientPing} from peer: ${peerId}`);
+    //console.log(`timeSinceClientPing: ${timeSinceClientPing} from peer: ${peerId}`);
     if (timeSinceClientPing > PING_MAX_INTERVAL) {
       let errmsg = `client response time exceeds max time allowed (${timeSinceClientPing}ms > ${PING_MAX_INTERVAL} ms). disconnecting`;
       console.log(`killing ws after ${timeSinceClientPing}ms`, roomId, peerId);
