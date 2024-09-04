@@ -5,8 +5,9 @@ import {sendLiveChat} from '../nostr/nostr';
 
 function TextChat({swarm}) {
   const state = useRootState();
+  const ACTION = 'text-chat';
 
-  useOn(swarm.peerEvent, 'text-chat', (peerId, payload) => {
+  useOn(swarm.peerEvent, ACTION, (peerId, payload) => {
     if(payload) {
       (async () => {
         await showTextChat(peerId, payload);
@@ -21,7 +22,7 @@ function TextChat({swarm}) {
 
   async function showTextChat(peerId, payload) {
     let {roomId} = state;
-    let textchat = payload.t;
+    let textchat = decodeURIComponent(payload.t);
     let isdm = payload.d;
     let todm = payload.p;
     if (isdm) {
@@ -126,6 +127,7 @@ function TextChat({swarm}) {
       let peerId = payload.peerId;
       if (!textchat) textchat = payload;
       if (textchat.length == 0) return;
+      textchat = encodeURIComponent(textchat);
       let myId = JSON.parse(localStorage.getItem('identities'))._default.publicKey;
       if (peerId && peerId != '0') {
         // peer to peer can optionally (by default) be encrypted so only the recipient and sender can read
@@ -155,16 +157,16 @@ function TextChat({swarm}) {
             toPeer = fulltext;
             toMe = fulltext;
           }
-          sendEventToOnePeer(swarm, peerId, 'text-chat', {d:true,t:toPeer,p:peerId});
-          sendEventToOnePeer(swarm, myId, 'text-chat', {d:true,t:toMe,p:peerId});
+          sendEventToOnePeer(swarm, peerId, ACTION, {d:true,t:toPeer,p:peerId});
+          sendEventToOnePeer(swarm, myId, ACTION, {d:true,t:toMe,p:peerId});
         })();
       } else {
-        sendPeerEvent(swarm, 'text-chat', {d:false,t:textchat});
+        sendPeerEvent(swarm, ACTION, {d:false,t:textchat});
         if (window.nostr && (localStorage.getItem('textchat.tonostr') || 'false') == 'true') {
           let atagkey = `${roomId}.atag`;
           let roomATag = sessionStorage.getItem(atagkey) || '';
           if (roomATag.length > 0) {
-            sendLiveChat(roomATag, textchat);
+            sendLiveChat(roomATag, decodeURIComponent(textchat));
           }
         }
       }
