@@ -117,7 +117,8 @@ router.get('/:userId', async function (req, res) {
             }
         }
     }
-    console.log(`userRoomsRouter start building cache: ${(new Date()).getTime()}`);
+    let st = (new Date()).getTime()
+    console.log(`- start building cache of rooms for user (${userid}): ${st}`);
     let userrooms = [];
     let userinfo = await get(`identities/${userid}`);
     let usernpub = '';
@@ -199,6 +200,8 @@ router.get('/:userId', async function (req, res) {
     }
     // Save results to a key
     await set(userroomskey, {t: (new Date()).getTime(), r: userrooms});
+    let et = (new Date()).getTime()
+    console.log(`- ended building cache of rooms for user (${userid}): ${et} (${et - st} ms)`);
 
     res.send(userrooms);
 });

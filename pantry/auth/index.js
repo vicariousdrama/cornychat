@@ -2,8 +2,8 @@ const {get, set} = require('../services/redis');
 const {permitAllAuthenticator} = require('../routes/controller');
 const verifyIdentities = require('../verifications');
 const {restrictRoomCreation} = require('../config');
-const {getRoomNSEC, publishNostrSchedule, deleteNostrSchedule, updateNostrProfile} = require('../nostr/nostr');
-const {nip19, validateEvent, verifyEvent, getPublicKey } = require('nostr-tools');
+const {getRoomNSEC, publishNostrSchedule, deleteNostrSchedule, updateNostrProfile, isValidLoginSignature} = require('../nostr/nostr');
+const {nip19, getPublicKey } = require('nostr-tools');
 const { saveCSAR } = require('../nostr/csar');
 
 const isAnyInList = (tokens, publicKeys) => {
@@ -39,25 +39,7 @@ const asNpubs = async identityKeys => {
         let i = ident.loginId || '';
         let s = ident.loginSig || '';
         let p = nip19.decode(n).data;
-        let tags = [];
-        let e = {
-          id: i,
-          pubkey: p,
-          created_at: c,
-          kind: 1,
-          tags: tags,
-          content: identityKey,
-          sig: s,
-        };
-        let u = validateEvent(e);
-        let v = verifyEvent(e);
-        r = (u && v);
-        if (!r) {
-          e.tags = [[]];
-          u = validateEvent(e);
-          v = verifyEvent(e);
-          r = (u && v);
-          }
+        let r = isValidLoginSignature(i,p,c,identityKey,s);
         if (r) npubs.push(n);
       }
     } catch (error) {

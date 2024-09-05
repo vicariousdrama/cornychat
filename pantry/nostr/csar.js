@@ -1,5 +1,6 @@
 const {get, set} = require('../services/redis');
-const {nip19, validateEvent, verifyEvent } = require('nostr-tools');
+const {nip19} = require('nostr-tools');
+const {isValidLoginSignature} = require('./nostr');
 
 module.exports = {
     saveCSAR,
@@ -64,19 +65,7 @@ async function saveCSAR(senderId, roomId, data) {
           let i = ident.loginId || '';
           let s = ident.loginSig || '';
           let p = nip19.decode(n).data;
-          let tags = (ident.verificationInfo ? [] : [[]]);
-          let e = {
-            id: i,
-            pubkey: p,
-            created_at: c,
-            kind: 1,
-            tags: tags,
-            content: identityKey,
-            sig: s,
-          };
-          let u = validateEvent(e);
-          let v = verifyEvent(e);
-          r = (u && v);
+          let r = isValidLoginSignature(i,p,c,identityKey,s);
           if (r) npubs.push(n);
         }
       } catch (error) {

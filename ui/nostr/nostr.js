@@ -872,36 +872,30 @@ export function updateCacheOutboxRelays(outboxRelays, npub) {
 export const isValidNostr = (info) => {
   if(window.DEBUG) console.log("in isValidNostr");
   let r = false;
+  if (!info) return r;
   try {
-    let jamid = info.id;
-    let j = info?.identities || [];
-    for (let k = 0; k < j.length; k ++) {
-      let t = j[k].type || '';
-      if (t == 'nostr') {
-        let n = j[k].id || '';
-        let c = j[k].loginTime || 0;
-        let i = j[k].loginId || '';
-        let s = j[k].loginSig || '';
-        let p = nip19.decode(n).data;
-        let tags = [];
-        let e = {
-          id: i,
-          pubkey: p,
-          created_at: c,
-          kind: 1,
-          tags: tags,
-          content: jamid,
-          sig: s,
-        };
-        let u = validateEvent(e);
-        let v = verifySignature(e);
-        r = (u && v);
-        if (!r) {
-          e.tags = [[]];
-          u = validateEvent(e);
-          v = verifySignature(e);
-          r = (u && v);
-        }
+    let identityKey = info?.id;
+    if (!info.identities) return r;
+    for (let ident of info.identities) {
+      if (!ident.type) continue;
+      if (!ident.id) continue;
+      if (!ident.loginTime) continue;
+      if (!ident.loginId) continue;
+      if (!ident.loginSig) continue;
+      if (ident.type != 'nostr') continue;
+      let n = ident.id || '';
+      let c = ident.loginTime || 0;
+      let i = ident.loginId || '';
+      let s = ident.loginSig || '';
+      let p = nip19.decode(n).data;
+      let e = {id:i,pubkey:p,created_at:c,kind:1,tags:[],content:identityKey,sig:s};
+      let u = validateEvent(e);
+      if (!validateEvent(e)) return false;
+      r = (u && verifySignature(e));
+      if (!r) {
+        e = {id:i,pubkey:p,created_at:c,kind:1,tags:[[]],content:identityKey,sig:s};
+        u = validateEvent(e);
+        r = (u && verifySignature(e));
       }
     }
   }
