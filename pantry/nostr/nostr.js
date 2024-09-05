@@ -1,6 +1,6 @@
 const {jamHost, serverNsec} = require('../config');
 const {get, set} = require('../services/redis');
-const {nip19, getPublicKey, finalizeEvent, generateSecretKey} = require('nostr-tools');
+const {nip19, getPublicKey, finalizeEvent, generateSecretKey, validateEvent, verifyEvent} = require('nostr-tools');
 const {SimplePool} = require('nostr-tools/pool');
 const {RelayPool} = require('nostr-relaypool');
 const {rawTimeZones} = require('@vvo/tzdb');
@@ -809,6 +809,20 @@ const deleteOldZapGoals = async (sk) => {
     }
 }
 
+const isValidLoginSignature = function(id,pubkey,created_at,content,sig) {
+    let e = {id:id,pubkey:pubkey,created_at:created_at,kind:1,tags:[],content:content,sig:sig};
+    let u = validateEvent(e);
+    let v = verifyEvent(e);
+    r = (u && v);
+    if (!r) {
+        e = {id:id,pubkey:pubkey,created_at:created_at,kind:1,tags:[[]],content:content,sig:sig};
+        u = validateEvent(e);
+        v = verifyEvent(e);
+        r = (u && v);
+    }
+    return r;
+}
+
 module.exports = {
     deleteNostrSchedule,
     getRoomNSEC,
@@ -822,4 +836,5 @@ module.exports = {
     getZapGoals,
     publishZapGoal,
     deleteOldZapGoals,
+    isValidLoginSignature,
 };
