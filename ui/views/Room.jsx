@@ -34,7 +34,9 @@ const nameSymbols = [
   {"name":"puzzles","symbol":"🧩","title":"Retired Puzzle Maker"},
   {"npub":"npub12r0yjt8723ey2r035qtklhmdj90f0j6an7xnan8005jl7z5gw80qat9qrx","symbol":"🧩","title":"Retired Puzzle Maker"},
   {"npub":"npub1xd5apfmrpzfpr7w9l7uezm2fn8ztrdhvrtj3tlrmvvv8l6czqatshccdx5","symbol":"🐝","title":"Sweet Honeybee"},
-];    
+  {"npub":"npub1l8zv3fhdntxq00u3nmrxvmrwpenpgway8y67z663t92x6hd98w3qkfkw83","symbol":"📚","title":"Well Read"},
+  {"npub":"npub1xswmtflr4yclfyy4mq4y4nynnnu2vu5nk8jp0875khq9gnz0cthsc0p4xw","symbol":"🦩","title":"Flightless Bird Leader"},
+];
 
 export default function Room({room, roomId, uxConfig}) {
   // room = {name, description, moderators: [peerId], speakers: [peerId], access}

@@ -27,6 +27,7 @@ function TextChat({swarm}) {
     let todm = payload.p;
     if (isdm) {
       textchat = await decryptFromPeerId(peerId, textchat);
+      textchat = decodeURIComponent(textchat);
     }
     let bufferSize = localStorage.getItem(`textchat.bufferSize`) || 50;
     let textchats = JSON.parse(localStorage.getItem(`${roomId}.textchat`) || '[]');
@@ -71,7 +72,7 @@ function TextChat({swarm}) {
 
   async function decryptFromPeerId(peerId, textchat) {
     try {
-      if (!textchat.startsWith('📩')) return textchat;
+      if (!textchat.startsWith('📩')) return decodeURIComponent(textchat);
       let plaintext = '';
       let decoder = new TextDecoder();
       let jwkobj = JSON.parse(window.atob(localStorage.getItem('dmPrivkey')));
@@ -92,7 +93,7 @@ function TextChat({swarm}) {
         let decoded = decoder.decode(decrypted);
         plaintext = plaintext + decoded;
       }
-      return `🔓${plaintext}`;
+      return `🔓${decodeURIComponent(plaintext)}`;
     } catch(error) {
       console.log(`error in decryptFromPeerId: ${error}`)
       return `⚠️${textchat}`;
@@ -127,7 +128,6 @@ function TextChat({swarm}) {
       let peerId = payload.peerId;
       if (!textchat) textchat = payload;
       if (textchat.length == 0) return;
-      textchat = encodeURIComponent(textchat);
       let myId = JSON.parse(localStorage.getItem('identities'))._default.publicKey;
       if (peerId && peerId != '0') {
         // peer to peer can optionally (by default) be encrypted so only the recipient and sender can read
@@ -161,12 +161,12 @@ function TextChat({swarm}) {
           sendEventToOnePeer(swarm, myId, ACTION, {d:true,t:toMe,p:peerId});
         })();
       } else {
-        sendPeerEvent(swarm, ACTION, {d:false,t:textchat});
+        sendPeerEvent(swarm, ACTION, {d:false,t:encodeURIComponent(textchat)});
         if (window.nostr && (localStorage.getItem('textchat.tonostr') || 'false') == 'true') {
           let atagkey = `${roomId}.atag`;
           let roomATag = sessionStorage.getItem(atagkey) || '';
           if (roomATag.length > 0) {
-            sendLiveChat(roomATag, decodeURIComponent(textchat));
+            sendLiveChat(roomATag, textchat);
           }
         }
       }

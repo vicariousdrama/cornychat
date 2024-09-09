@@ -5,25 +5,36 @@ const {SimplePool} = require('nostr-tools/pool');
 const {RelayPool} = require('nostr-relaypool');
 const {rawTimeZones} = require('@vvo/tzdb');
 
-const pmd = true;
+const pmd = false;
 const writepool = new RelayPool();
+const newpoolPerWrite = false;
 
 const relaysToUse = [
-    'wss://thebarn.nostr1.com',
-    'wss://thebarn.nostrfreaks.com',
-    'wss://relay.damus.io',
-    'wss://nos.lol',
-    'wss://nostr-pub.wellorder.net',
-    'wss://relay.snort.social',
+    'wss://thebarn.nostr1.com',             // todo: work in api keys
+    'wss://thebarn.nostrfreaks.com',        // has notes based on acl set
+    'wss://nos.lol',                        // misses some
+    'wss://nostr-pub.wellorder.net',        // seems ok
+    'wss://relay.snort.social',             // poor
 ];
 
 function sleep(ms) {
     return new Promise(res => setTimeout(res, ms));
 }
-  
+
+function getRelayPool() {
+    return (newpoolPerWrite ? new RelayPool() : writepool);
+}
+function doneRelayPool(p) {
+    if (newpoolPerWrite) p.close();
+}
+const publishEvent = async (pool,event,relays) => {
+    await pool.publish(event, relays);
+}
+
 const deleteNostrSchedule = async (roomId) => {
     if (serverNsec.length == 0) return;
     if(pmd) console.log("in deleteNostrSchedule");
+    const localwritepool = getRelayPool();
     const eventUUID = `${jamHost}-${roomId}`;
     const sk = nip19.decode(serverNsec).data;
     const pk = getPublicKey(sk);
@@ -45,7 +56,7 @@ const deleteNostrSchedule = async (roomId) => {
         ],
         content: 'This event is no longer scheduled',
     }, sk);
-    writepool.publish(cleanseEvent, relaysToUse);
+    await publishEvent(localwritepool, cleanseEvent, relaysToUse);
     await sleep(100);
 
     console.log(`deleting event ${eventUUID}`)
@@ -55,7 +66,7 @@ const deleteNostrSchedule = async (roomId) => {
         tags: [["a", aTagValue]],
         content: 'This event is no longer scheduled',
     }, sk);
-    writepool.publish(deleteEvent, relaysToUse);
+    await publishEvent(localwritepool, deleteEvent, relaysToUse);
     await sleep(100);
 
     const kind1content = `The previously scheduled event for this audiospace room has been deleted.`;
@@ -65,8 +76,9 @@ const deleteNostrSchedule = async (roomId) => {
         tags: [],
         content: kind1content,
     }, sk);
-    writepool.publish(kind1event, relaysToUse);
+    await publishEvent(localwritepool, kind1event, relaysToUse);
     await sleep(100);
+    doneRelayPool(localwritepool);
 }
 
 const getScheduledEvents = async () => {
@@ -225,7 +237,7 @@ const getScheduledEvents = async () => {
                     let plannedActivities = [];
                     for (let event of liveActivitiesEvents) {
                         if (event.kind != 30311) continue;
-                        const eventTags = event.tags;                    
+                        const eventTags = event.tags;
                         let isDeleted = false;
                         let endTime = undefined;
                         let image = undefined;
@@ -234,6 +246,7 @@ const getScheduledEvents = async () => {
                         let title = undefined;
                         let dTag = undefined;
                         let service = undefined;
+                        let status = undefined;
                         for (let eventTag of eventTags) {
                             if (eventTag.length < 2) continue;
                             if (eventTag[0] == 'service' && eventTag[1].length > 0) {
@@ -264,6 +277,7 @@ const getScheduledEvents = async () => {
                             if (eventTag[0] == 'image' && eventTag[1].length > 0)     { image = eventTag[1]; }
                             if (eventTag[0] == 'deleted' && eventTag[1].length > 0)   { isDeleted = true; }
                             if (eventTag[0] == 'd' && eventTag[1].length > 0)         { dTag = eventTag[1]; }
+                            if (eventTag[0] == 'status' && eventTag[1].length > 0)    { status = eventTag[1]; }
                         }
                         // Check for deleted
                         if (!dTag) continue;
@@ -275,6 +289,10 @@ const getScheduledEvents = async () => {
                         }
                         if (isDeleted) {
                             //console.log(`skipping activity ${dTag} that was deleted`);
+                            continue;
+                        }
+                        // Check for ended
+                        if (status && status == 'ended') {
                             continue;
                         }
                         // Must have service tag
@@ -386,6 +404,7 @@ const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => 
     if (schedule.setByNpub == '') return;
 
     console.log("Preparing schedule to publish for room", roomId);
+    const localwritepool = getRelayPool();
     const scheduledByPubkey = nip19.decode(schedule.setByNpub).data;
     const eventUUID = `${jamHost}-${roomId}`;
     const roomUrl = `https://${jamHost}/${roomId}`;
@@ -436,7 +455,7 @@ const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => 
             content: content,
         }, sk);
         if(pmd) console.log('Event to be published', JSON.stringify(event));
-        writepool.publish(event, relaysToUse);
+        await publishEvent(localwritepool, event, relaysToUse);
         await sleep(100);
     }
 
@@ -472,8 +491,9 @@ const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => 
         content: kind1content,
     }, roomSk);
     if(pmd) console.log('Event to be published', JSON.stringify(kind1event));
-    writepool.publish(kind1event, relaysToUse);
+    await publishEvent(localwritepool, kind1event, relaysToUse);
     await sleep(100);
+    doneRelayPool(localwritepool);
 }
 
 const getRoomNSEC = async(roomId) => {
@@ -490,6 +510,7 @@ const getRoomNSEC = async(roomId) => {
 
 const updateNostrProfile = async (roomId, name, description, logoURI, backgroundURI, lud16) => {
     if(pmd) console.log("in updateNostrProfile");
+    const localwritepool = getRelayPool();
     let roomNsec = await getRoomNSEC(roomId);
     let roomSk = nip19.decode(roomNsec).data;
     let profileObj = {nip05: `${roomId}-room@${jamHost}`}
@@ -506,13 +527,15 @@ const updateNostrProfile = async (roomId, name, description, logoURI, background
         content: content,
     }, roomSk);
     if(pmd) console.log('Event to be published', JSON.stringify(event));
-    writepool.publish(event, relaysToUse);
+    await publishEvent(localwritepool, event, relaysToUse);
     await sleep(100);
+    doneRelayPool(localwritepool);
 }
 
 const updateNostrProfileForServer = async (name, description, logoURI, backgroundURI, lud16, nip05) => {
     if (serverNsec.length == 0) return;
     if(pmd) console.log("in updateNostrProfileForServer");
+    const localwritepool = getRelayPool();
     const sk = nip19.decode(serverNsec).data;
     let profileObj = {nip05: nip05}
     if ((name ?? '').length > 0) profileObj.name = name;
@@ -528,12 +551,14 @@ const updateNostrProfileForServer = async (name, description, logoURI, backgroun
         content: content,
     }, sk);
     if(pmd) console.log('Event to be published', JSON.stringify(event));
-    writepool.publish(event, relaysToUse);
-    await sleep(100);    
+    await publishEvent(localwritepool, event, relaysToUse);
+    await sleep(100);
+    doneRelayPool(localwritepool);
 }
 
 const deleteLiveActivity = async (roomId, dtt) => {
     if(pmd) console.log("in deleteLiveActivity for ", roomId);
+    const localwritepool = getRelayPool();
     let roomNsec = await getRoomNSEC(roomId);
     let roomSk = nip19.decode(roomNsec).data;
     const kind = 30311;
@@ -549,12 +574,14 @@ const deleteLiveActivity = async (roomId, dtt) => {
         content: 'This event is no longer active',
     }, roomSk);
     if(pmd) console.log('Event to be published', JSON.stringify(deleteEvent));
-    writepool.publish(deleteEvent, relaysToUse);
+    await publishEvent(localwritepool, deleteEvent, relaysToUse);
     await sleep(250);
+    doneRelayPool(localwritepool);
 }
 
 const publishLiveActivity = async (roomId, dtt, roomInfo, userInfo, status) => {
     if(pmd) console.log("in publishLiveActivity for ", roomId);
+    const localwritepool = getRelayPool();
     let roomNsec = await getRoomNSEC(roomId);
     let roomSk = nip19.decode(roomNsec).data;
     let dt = new Date();
@@ -582,7 +609,7 @@ const publishLiveActivity = async (roomId, dtt, roomInfo, userInfo, status) => {
     if (imageURI.length == 0) imageURI = defaultImage;
     if (!imageURI.startsWith('https://')) imageURI = defaultImage;
     const labelNamespace = "com.cornychat";                 // Other instances SHOULD NOT change this
-    const tags = [
+    let tags = [
         ["d", `${eventUUID}`],
         ["title", `${title}`],
         ["summary", `${summary}`],
@@ -623,20 +650,29 @@ const publishLiveActivity = async (roomId, dtt, roomInfo, userInfo, status) => {
             }
         }
     }
-    const event = finalizeEvent({
+    let event = finalizeEvent({
         created_at: Math.floor(Date.now() / 1000),
         kind: kind,
         tags: tags,
         content: "",
     }, roomSk);
     if(pmd) console.log('Event to be published', JSON.stringify(event));
-    writepool.publish(event, relaysToUse);
+    let u = validateEvent(event);
+    if (!u) console.log("- warning: validateEvent failed for the live activity event");
+    let v = verifyEvent(event);
+    if (!v) console.log("- warning: verifyEvent failed for the live activity event");
+    await publishEvent(localwritepool, event, relaysToUse);
+    let naddr = nip19.naddrEncode({identifier:aTagValue,pubkey:event.pubkey,kind:event.kind,relays:relaysToUse});
+    console.log(`- naddr for live activity for ${roomId}: ${naddr}`);
+
     await sleep(250);
+    doneRelayPool(localwritepool);
 }
 
 const publishRoomActive = async (roomId, dtt, roomInfo, userInfo, isnew) => {
     if (serverNsec.length == 0) return;
     if(pmd) console.log("in publishRoomActive for ", roomId);
+    const localwritepool = getRelayPool();
     const kind = 1;
     const roomUrl = `https://${jamHost}/${roomId}`;
     const leadingText = `TALK TO LIVE NOSTRICHES NOW! \n 🚨Check out the open chat rooms on Cornychat.com 🚨\n https://${jamHost}/img/cornychat-letschat.png`;
@@ -701,14 +737,17 @@ const publishRoomActive = async (roomId, dtt, roomInfo, userInfo, isnew) => {
         content: output,
     }, sk);
     if(pmd) console.log('Event to be published', JSON.stringify(event));
-    writepool.publish(event, relaysToUse);
+    await publishEvent(localwritepool, event, relaysToUse);
     await sleep(250);
 
-    // have the room announce a live text message if its new
+    // have the server announce a live text message associated to the room's live activity if its new
     if (isnew) {
+        let roomNsec = await getRoomNSEC(roomId);
+        let roomSk = nip19.decode(roomNsec).data;
+        const roomPk = getPublicKey(roomSk);
         output = `🌽 Audio Space started! 🌽\n\nJoin the audio feed at ${roomUrl}\n\nIndividual participants can choose whether their text chat is sent to this live feed.`;
         const liveTextKind = 1311;
-        const liveTextATag = `30311:${pk}:${dtt}`;
+        const liveTextATag = `30311:${roomPk}:${dtt}`;
         const liveTextTags = [
             ["a", liveTextATag],
             ["L", labelNamespace],                              // Need to document all these tags for sanity
@@ -721,9 +760,10 @@ const publishRoomActive = async (roomId, dtt, roomInfo, userInfo, isnew) => {
             content: output,
         }, sk);
         if(pmd) console.log('Event to be published', JSON.stringify(liveTextEvent));
-        writepool.publish(liveTextEvent, relaysToUse);
+        await publishEvent(localwritepool, liveTextEvent, relaysToUse);
         await sleep(250);
     }
+    doneRelayPool(localwritepool);
 }
 
 const getZapGoals = async (pubkey) => {
@@ -749,6 +789,7 @@ const getZapGoals = async (pubkey) => {
 
 const publishZapGoal = async (sk, content, amount, relays) => {
     return new Promise(async (res, rej) => {
+        const localwritepool = getRelayPool();
         let pk = getPublicKey(sk);
         const kind = 9041;
         let amountTag = ["amount", String(amount * 1000)];
@@ -768,14 +809,16 @@ const publishZapGoal = async (sk, content, amount, relays) => {
             content: content,
         }, sk);
         if(pmd) console.log('Event to be published', JSON.stringify(event));
-        writepool.publish(event, relaysToUse);
+        await publishEvent(localwritepool, event, relaysToUse);
         await sleep(250);
+        doneRelayPool(localwritepool);
         res(event);
     });
 }
 
 const deleteOldZapGoals = async (sk) => {
     if(pmd) console.log("in deleteOldZapGoals");
+    const localwritepool = getRelayPool();
     let pk = getPublicKey(sk);
     const timestamp = Math.floor(Date.now() / 1000);
     const event = {
@@ -802,11 +845,12 @@ const deleteOldZapGoals = async (sk) => {
         event.tags.push(["k", "9041"]);
         const deleteEvent = finalizeEvent(event, sk);
         if(pmd) console.log('Event to be published', JSON.stringify(deleteEvent));
-        writepool.publish(deleteEvent, relaysToUse);
+        await publishEvent(localwritepool, deleteEvent, relaysToUse);
         await sleep(250);
     } else {
         if(pmd) console.log(`No zap goal events need to be deleted`);
     }
+    doneRelayPool(localwritepool);
 }
 
 const isValidLoginSignature = function(id,pubkey,created_at,content,sig) {
@@ -823,6 +867,35 @@ const isValidLoginSignature = function(id,pubkey,created_at,content,sig) {
     return r;
 }
 
+async function getNpubs(identityKeys) {
+    let npubs = [];
+    for (let identityKey of identityKeys) {
+        try {
+            const identityInfo = await get('identities/' + identityKey);
+            if (!identityInfo) continue;
+            if (!identityInfo.identities) continue;
+            for (let ident of identityInfo.identities) {
+                if (!ident.type) continue;
+                if (!ident.id) continue;
+                if (!ident.loginTime) continue;
+                if (!ident.loginId) continue;
+                if (!ident.loginSig) continue;
+                if (ident.type != 'nostr') continue;
+                let n = ident.id || '';
+                let c = ident.loginTime || 0;
+                let i = ident.loginId || '';
+                let s = ident.loginSig || '';
+                let p = nip19.decode(n).data;
+                let r = isValidLoginSignature(i,p,c,identityKey,s);
+                if (r) npubs.push(n);
+            }
+        } catch (error) {
+        console.log('error in getNpubs conversion for identity: ', identityKey, error);
+        }
+    }
+    return npubs;
+}
+
 module.exports = {
     deleteNostrSchedule,
     getRoomNSEC,
@@ -837,4 +910,5 @@ module.exports = {
     publishZapGoal,
     deleteOldZapGoals,
     isValidLoginSignature,
+    getNpubs,
 };

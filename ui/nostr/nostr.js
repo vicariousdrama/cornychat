@@ -18,7 +18,6 @@ function getDefaultOutboxRelays() {
   return [
     'wss://thebarn.nostr1.com',
     'wss://thebarn.nostrfreaks.com',
-    'wss://relay.damus.io',
     'wss://nos.lol',
     'wss://nostr-pub.wellorder.net',
     'wss://relay.snort.social',
@@ -808,7 +807,6 @@ export async function makeZapRequest(content, receiver, event, msatsAmount) {
     tags: [
       [
         'relays',
-        'wss://relay.damus.io',
         'wss://nos.lol',
         'wss://nostr-pub.wellorder.net',
         'wss://relay.snort.social', 

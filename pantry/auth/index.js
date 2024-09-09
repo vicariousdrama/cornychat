@@ -1,10 +1,11 @@
+const {nip19, getPublicKey } = require('nostr-tools');
 const {get, set} = require('../services/redis');
 const {permitAllAuthenticator} = require('../routes/controller');
 const verifyIdentities = require('../verifications');
-const {restrictRoomCreation} = require('../config');
-const {getRoomNSEC, publishNostrSchedule, deleteNostrSchedule, updateNostrProfile, isValidLoginSignature} = require('../nostr/nostr');
-const {nip19, getPublicKey } = require('nostr-tools');
+const {restrictRoomCreation, jamHost} = require('../config');
+const {getRoomNSEC, publishNostrSchedule, deleteNostrSchedule, updateNostrProfile, isValidLoginSignature, getNpubs} = require('../nostr/nostr');
 const { saveCSAR } = require('../nostr/csar');
+const {grantPubkeyToRelays, revokePubkeyFromRelays} = require('../relayacl/relayACL');
 
 const isAnyInList = (tokens, publicKeys) => {
   return tokens.some(token => publicKeys.includes(token));
@@ -290,6 +291,12 @@ const roomAuthenticator = {
     }
     // set the new update time
     req.body.updateTime = Date.now();
+    // grant access to relays
+    let roomNsec = await getRoomNSEC(roomId);
+    const sk = nip19.decode(roomNsec).data;
+    const pk = getPublicKey(sk);
+    const grantReason = `${jamHost} room: ${roomId}`;
+    let g = await grantPubkeyToRelays(false, pk, grantReason);
     // nostr scheduling
     if (hasSchedule && scheduleChanged) {
       let n = await publishNostrSchedule(roomId, roomInfo.schedule, roomInfo.moderators, roomInfo.logoURI);
@@ -300,10 +307,7 @@ const roomAuthenticator = {
     // admin or owner and room is not private
     if ((a||o) && !(roomInfo.isPrivate ?? true)) {
       // set room npub from nsec (is this really necessary?)
-      let roomNsec = await getRoomNSEC(roomId);
-      const sk = nip19.decode(roomNsec).data;
-      const pk = getPublicKey(sk);
-      req.body.npub = nip19.npubEncode(pk);  
+      req.body.npub = nip19.npubEncode(pk);
       // update profile if changed
       if (profileChanged) {
         let n = await updateNostrProfile(roomId, roomInfo.name, roomInfo.description, roomInfo.logoURI, roomInfo.backgroundURI, roomInfo.lud16);
@@ -352,6 +356,67 @@ const identityAuthenticator = {
     }
 
     await initializeServerAdminIfNecessary(req);
+
+    // Check if the user changed their nostr identity and update revocations and grants accordingly
+    try {
+      let publicKey = req.params.id;
+      // old npubs are in the redis store
+      let oldNpubs = await getNpubs(publicKey);
+      // new ones are being passed in the body
+      let newNpubs = [];
+      if (req.body.identities) {
+        for (let ident of req.body.identities) {
+          if (!ident.type) continue;
+          if (!ident.id) continue;
+          if (!ident.loginTime) continue;
+          if (!ident.loginId) continue;
+          if (!ident.loginSig) continue;
+          if (ident.type != 'nostr') continue;
+          let n = ident.id || '';
+          let c = ident.loginTime || 0;
+          let i = ident.loginId || '';
+          let s = ident.loginSig || '';
+          let p = nip19.decode(n).data;
+          let r = isValidLoginSignature(i,p,c,publicKey,s);
+          if (r) newNpubs.push(n);
+        }
+      }
+      let removePubkeys = [];
+      for (let oldNpub of oldNpubs) {
+        let f = false;
+        for (let newNpub of newNpubs) {
+          if (oldNpub == newNpub) {
+            f = true;
+            break;
+          }
+        }
+        if (!f) {
+          removePubkeys.push(nip19.decode(oldNpub).data);
+        }
+      }
+      let grantPubkeys = [];
+      for (let newNpub of newNpubs) {
+        let f = false;
+        for (let oldNpub of oldNpubs) {
+          if (oldNpub == newNpub) {
+            f = true;
+            break;
+          }
+        }
+        if (!f) {
+          grantPubkeys.push(nip19.decode(newNpub).data);
+        }
+      }
+      for (let removePubkey of removePubkeys) {
+        await revokePubkeyFromRelays(true, removePubkey);
+      }
+      for (let grantPubkey of grantPubkeys) {
+        const grantReason = `${jamHost} npub: ${nip19.npubEncode(grantPubkey)}`;
+        await grantPubkeyToRelays(true, grantPubkey, grantReason);
+      }
+    } catch(err) {
+      console.log(`Error granting pubkey access to relays when updating identity: ${err}`);
+    }
 
     // - force set updateTime
     let theTime = Date.now();

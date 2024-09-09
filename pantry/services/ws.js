@@ -3,10 +3,13 @@ const querystring = require('querystring');
 const {get, set, del} = require('../services/redis');
 const {ssrVerifyToken} = require('../ssr');
 const {saveCSAR} = require('../nostr/csar');
+const {getNpubs} = require('../nostr/nostr');
+const {grantPubkeyToRelays} = require('../relayacl/relayACL');
 
 module.exports = {
   addWebsocket,
   activeUserCount,
+  activeUsers,
   activeUsersInRoom,
   broadcast,
   sendRequest,
@@ -395,6 +398,19 @@ function activeUsersInRoom(roomId) {
   // make list unique
   return [...new Set(peersInRoom)];
 }
+function activeUsers() {
+  let activeUsersList = [...roomConnections.keys()]
+  .map(roomId => activeUsersInRoom(roomId))
+  .reduce((peerList, currentRoomPeers) => {
+    for (let crp of currentRoomPeers) {
+      if(!peerList.includes(crp)) {
+        peerList.push(crp);
+      }
+    }
+    return peerList;
+  }, []);
+  return activeUsersList;
+}
 
 // ws server, handles upgrade requests for http server
 
@@ -440,6 +456,18 @@ function addWebsocket(server) {
     req.roomId = roomId;
     req.subs = subs?.split(',').filter(t => t) ?? []; // custom encoding, don't use "," in topic names
     req.bd = bd?.split('.')[0] ?? '';
+
+    // Grant the user access to the relay
+    try {
+      let peerNpubs = await getNpubs(publicKey);
+      for(let peerNpub of peerNpubs) {
+        let peerPubkey = nip19.decode(peerNpub).data;
+        const grantReason = `${jamHost} npub: ${peerNpub}`;
+        await grantPubkeyToRelays(true, peerPubkey, grantReason);
+      }
+    } catch(err) {
+      console.log(`Error granting pubkey access to relays when starting socket: ${err}`);
+    }
 
     wss.handleUpgrade(req, socket, head, ws => {
       wss.emit('connection', ws, req);

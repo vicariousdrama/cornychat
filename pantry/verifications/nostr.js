@@ -64,7 +64,6 @@ const verify = (identity, publicKey) => {
         const defaultRelays = [
           'wss://thebarn.nostr1.com',
           'wss://thebarn.nostrfreaks.com',
-          'wss://relay.damus.io',
           'wss://nos.lol',
           'wss://nostr-pub.wellorder.net',
           'wss://relay.snort.social',
