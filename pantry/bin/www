@@ -11,8 +11,10 @@ const {setupCleaner} = require('../services/fileCleaner');
 const {serverProfileInitializer} = require('../services/serverProfileInitializer');
 const {scheduleUpdater} = require('../services/scheduleUpdater');
 const {nip05Initializer} = require('../services/nip05Initializer');
-const {liveeventUpdater} = require('../services/liveeventUpdater');
+const {liveEventUpdater} = require('../services/liveEventUpdater');
 const {zapGoalUpdater} = require('../services/zapGoalUpdater');
+const {revokeAllUserPubkeys} = require('../relayacl/relayACL');
+const {revokeDisconnectedUsers} = require('../relayacl/relayACLCleanup');
 
 /**
  * Get port from environment and store in Express.
@@ -37,8 +39,10 @@ setupCleaner().then(() => 'Cleaner started.');
 serverProfileInitializer().then(() => 'Server Profile Initialized.');
 scheduleUpdater().then(() => 'Schedule Updater started.');
 nip05Initializer().then(() => 'NIP05 Initialized.');
-liveeventUpdater().then(() => 'Live Event Updater started.');
+liveEventUpdater().then(() => 'Live Event Updater started.');
 zapGoalUpdater().then(() => 'Zap Goal Updater started.');
+revokeAllUserPubkeys().then(() => 'Initiated removal of user pubkeys from relay acl.');
+revokeDisconnectedUsers().then(() => 'Background removal of user pubkeys from relay acl started.')
 
 /**
  * Normalize a port into a number, string, or false.

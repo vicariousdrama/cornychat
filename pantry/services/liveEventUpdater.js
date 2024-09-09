@@ -4,7 +4,7 @@ const {activeUsersInRoom} = require('./ws');
 const UPDATE_INTERVAL = 1 * 60 * 1000; // We check new rooms and live event end every minute
 const pmd = false;
 
-const liveeventUpdater = async () => {
+const liveEventUpdater = async () => {
 
     let runCounter = 0;
 
@@ -17,8 +17,14 @@ const liveeventUpdater = async () => {
     let activeRoomsToRemove = [];
     Object.keys(activeRoomTimes).forEach(key => {
         console.log(`Deleting prior live activity for room ${key}`);
-        let dtt = activeRoomTimes[key];
-        (async() => {let dla = await deleteLiveActivity(key, dtt);});
+        (async() => {
+            let dtt = activeRoomTimes[key];           
+            let userInfo = [];
+            let roomKey = `rooms/${key}`;
+            let roomInfo = await get(roomKey);
+            let pla = await publishLiveActivity(key, dtt, roomInfo, userInfo, 'ended');
+            let dla = await deleteLiveActivity(key, dtt);
+        });
         activeRoomsToRemove.push(key);
     })
     for (let k of activeRoomsToRemove) {
@@ -104,7 +110,7 @@ const liveeventUpdater = async () => {
                     activeRoomTimes[roomId] = dtt;
                 }
                 // Publish as live only once per twenty minutes
-                if (runCounter % 20 == 1) {
+                if ((runCounter % 20 == 1) || (isnew)) {
                     let pla = await publishLiveActivity(roomId, dttr, roomInfo, userInfo, 'live');
                 }
             }
@@ -148,4 +154,4 @@ const liveeventUpdater = async () => {
     }, UPDATE_INTERVAL);
 };
 
-module.exports = {liveeventUpdater};
+module.exports = {liveEventUpdater};
