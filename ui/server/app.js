@@ -218,7 +218,7 @@ const defaultMetaInfo = {
   ogTitle: jamServerName,
   ogDescription: 'Join this audio room',
   ogUrl: urls.jam,
-  ogImage: `${jamServerImage}?t=${t}`,
+  ogImage: `${jamServerImage}?t=${Math.floor(new Date().getTime()/1000)}`,
   favIcon: jamServerFavicon,
 };
 const reservedRoutes = ['me', null];
