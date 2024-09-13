@@ -71,9 +71,17 @@ const grantPubkeyToRelays = async(isUser, pubkey, reason) => {
     let rediskey = isUser ? key_relayusers : key_relaynonusers
     let relayPubkeyEntries = await get(rediskey);
     if (!relayPubkeyEntries) relayPubkeyEntries = [];
+    let relayGrants = {} // to avoid duplicates, we list current pubkeys for the relay
     if (alwaysGrant || !relayPubkeyEntries.includes(pubkey)) {
         for (let relayConfig of relayConfigs) {
-            await grantPubkeyToRelay(pubkey, relayConfig, reason);
+            if(!relayGrants.hasOwnProperty(relayConfig.relay)) {
+                relayGrants[relayConfig.relay] = await listAllowedPubkeys(relayConfig);
+            }
+            if(!relayGrants.hasOwnProperty(relayConfig.relay) || !relayGrants[relayConfig.relay].includes(pubkey)) {
+                await grantPubkeyToRelay(pubkey, relayConfig, reason);
+                if(!relayGrants.hasOwnProperty(relayConfig.relay)) relayGrants[relayConfig.relay] = [];
+                relayGrants[relayConfig.relay].push(pubkey);
+            }
         }
         relayPubkeyEntries.push(pubkey);
         await set(rediskey, relayPubkeyEntries);
@@ -87,16 +95,21 @@ const grantPubkeyToRelay = async(pubkey, relayConfig, reason) => {
     let fetchWithCookies = await getFetchWithCookieForRelay(relayConfig);
     if (fetchWithCookies) {
         // Setup and perform request
-        let url = `${baseUrl}/api/relay/${relayConfig.id}/allowlistpubkey`;
-        let data = JSON.stringify({pubkey:pubkey,reason:reason});
-        let res = await fetchWithCookies(url, {
-            method:'POST',
-            credentials: 'include',
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: data
-        });
+        try {
+            let url = `${baseUrl}/api/relay/${relayConfig.id}/allowlistpubkey`;
+            let data = JSON.stringify({pubkey:pubkey,reason:reason});
+            let res = await fetchWithCookies(url, {
+                method:'POST',
+                credentials: 'include',
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: data
+            });
+        } catch(error) {
+            console.log(`Unable to grant pubkey to relay ${relayConfig.id}`);
+            console.log(error);
+        }
     }
 }
 
@@ -121,14 +134,19 @@ const listAllowedPubkeys = async(relayConfig) => {
     let baseUrl = `https://${relayConfig.endpoint}`;
     if (pmd) console.log(`- listing pubkeys allowed for ${baseUrl}`);
     // Setup and perform request
-    let url = `${baseUrl}/api/sconfig/relays/${relayConfig.id}`;
-    let res = await fetch(url, {
-        method:'GET',
-        credentials: 'include',
-        headers: {
-            "Content-Type": "application/json"
-        }
-    });
+    try {
+        let url = `${baseUrl}/api/sconfig/relays/${relayConfig.id}`;
+        let res = await fetch(url, {
+            method:'GET',
+            credentials: 'include',
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+    } catch(error) {
+        console.log(`Unable to list allowed pubkeys for ${relayConfig.id}`);
+        console.log(error);
+    }
     return allowedPubkeys;
 }
 
@@ -175,14 +193,19 @@ const revokePubkeyFromRelay = async(pubkey, relayConfig) => {
     let fetchWithCookies = await getFetchWithCookieForRelay(relayConfig);
     if (fetchWithCookies) {
         // Setup and perform request
-        let url = `${baseUrl}/api/relay/${relayConfig.id}/allowlistpubkey?pubkey=${pubkey}`;
-        let res = await fetchWithCookies(url, {
-            method:'DELETE',
-            credentials: 'include',
-            headers: {
-                "Content-Type": "application/json"
-            }
-        });
+        try {
+            let url = `${baseUrl}/api/relay/${relayConfig.id}/allowlistpubkey?pubkey=${pubkey}`;
+            let res = await fetchWithCookies(url, {
+                method:'DELETE',
+                credentials: 'include',
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+        } catch(error) {
+            console.log(`Unable to revoke pubkey from relay ${relayConfig.id}`);
+            console.log(error);
+        }
     }
 }
 

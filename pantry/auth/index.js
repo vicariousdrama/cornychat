@@ -292,7 +292,7 @@ const roomAuthenticator = {
     // set the new update time
     req.body.updateTime = Date.now();
     // grant access to relays
-    let roomNsec = await getRoomNSEC(roomId);
+    let roomNsec = await getRoomNSEC(roomId, true);
     const sk = nip19.decode(roomNsec).data;
     const pk = getPublicKey(sk);
     const grantReason = `${jamHost} room: ${roomId}`;

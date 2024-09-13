@@ -1,6 +1,7 @@
 const {set, get, list} = require('./redis');
-const {deleteLiveActivity, publishLiveActivity, publishRoomActive} = require('../nostr/nostr');
+const {deleteLiveActivity, getLiveActivities, publishLiveActivity, publishRoomActive, getScheduledEvents} = require('../nostr/nostr');
 const {activeUsersInRoom} = require('./ws');
+//const {getPublicKey} = require('nostr-tools');
 const UPDATE_INTERVAL = 1 * 60 * 1000; // We check new rooms and live event end every minute
 const pmd = false;
 
@@ -13,22 +14,48 @@ const liveEventUpdater = async () => {
     let activeRoomTimesAnnounced = {};
 
     // delete any prior activities on startup
-    console.log(`Checking cache of prior live rooms on startup`);
-    let activeRoomsToRemove = [];
-    Object.keys(activeRoomTimes).forEach(key => {
-        console.log(`Deleting prior live activity for room ${key}`);
-        (async() => {
-            let dtt = activeRoomTimes[key];           
-            let userInfo = [];
-            let roomKey = `rooms/${key}`;
-            let roomInfo = await get(roomKey);
-            let pla = await publishLiveActivity(key, dtt, roomInfo, userInfo, 'ended');
-            let dla = await deleteLiveActivity(key, dtt);
-        });
-        activeRoomsToRemove.push(key);
-    })
-    for (let k of activeRoomsToRemove) {
-        delete activeRoomTimes[k];
+    console.log(`Checking cache of prior live rooms on startup, and ending older events`);
+    let liveActivities = await getLiveActivities() 
+    if (liveActivities) {
+        for (let oldLiveActivity of liveActivities) {
+            let status = 'live';
+            let dTag = undefined;
+            let rTag = undefined;
+            if (!oldLiveActivity.tags) continue;
+            for (let tag of oldLiveActivity.tags) {
+                if (tag == undefined || tag.length < 2) continue;
+                if (tag[0] == 'status') activityStatus = tag[1];
+                if (tag[0] == 'd') dTag = tag[1];
+                if (tag[0] == 'r') rTag = tag[1];
+            }
+            if (!dTag) {
+                if (pmd) console.log(`Unable to end or delete live activity without d tag: ${JSON.stringify(oldLiveActivity)}`);
+                continue;
+            }
+            if (!rTag) {
+                if (pmd) console.log(`Unable to end or delete live activity without r tag to identity room id: ${JSON.stringify(oldLiveActivity)}`);
+                continue;
+            }
+            let dtt = `${dTag}`;
+            let key = rTag.split('/').slice(-1)[0];
+            if (status == 'ended') {
+                // remove it
+                //let dla = await deleteLiveActivity(key, dtt);
+            } else {
+                // reload into local tracking
+                if (!activeRoomTimes.hasOwnProperty(key)) {
+                    activeRoomTimes[key] = Math.floor(dtt);
+                    activeRoomTimesAnnounced[key] = Math.floor(dtt);
+                } else {
+                    // mark older as ended
+                    dtt = dtt > activeRoomTimes[key] ? activeRoomTimes[key] : dtt;
+                    let roomKey = `rooms/${key}`;
+                    let roomInfo = await get(roomKey);
+                    let userInfo = [];
+                    let pla = await publishLiveActivity(key, dtt, roomInfo, userInfo, 'ended');
+                }
+            }
+        }
     }
 
     // start a background process
@@ -91,7 +118,7 @@ const liveEventUpdater = async () => {
                     let dttr = activeRoomTimes[roomId];
                     if (isPrivate) {
                         let pla = await publishLiveActivity(roomId, dttr, roomInfo, userInfo, 'ended');
-                        let dla = await deleteLiveActivity(roomId, dttr);
+                        //let dla = await deleteLiveActivity(roomId, dttr);
                     } else if (isClosed) {
                         let pla = await publishLiveActivity(roomId, dttr, roomInfo, userInfo, 'ended');
                     }
@@ -140,7 +167,7 @@ const liveEventUpdater = async () => {
                     let roomKey = `rooms/${key}`;
                     let roomInfo = await get(roomKey);
                     let pla = await publishLiveActivity(key, dtt, roomInfo, userInfo, 'ended');
-                    let dla = await deleteLiveActivity(key, dtt);
+                    //let dla = await deleteLiveActivity(key, dtt);
                 })();
             }
         })

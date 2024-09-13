@@ -1,7 +1,6 @@
 const {jamHost, serverNsec} = require('../config');
 const {get, set} = require('../services/redis');
 const {nip19, getPublicKey, finalizeEvent, generateSecretKey, validateEvent, verifyEvent} = require('nostr-tools');
-const {SimplePool} = require('nostr-tools/pool');
 const {RelayPool} = require('nostr-relaypool');
 const {rawTimeZones} = require('@vvo/tzdb');
 
@@ -10,11 +9,12 @@ const writepool = new RelayPool();
 const newpoolPerWrite = false;
 
 const relaysToUse = [
-    'wss://thebarn.nostr1.com',             // todo: work in api keys
-    'wss://thebarn.nostrfreaks.com',        // has notes based on acl set
+    'wss://relay.damus.io',                 // poor due to throttling
     'wss://nos.lol',                        // misses some
     'wss://nostr-pub.wellorder.net',        // seems ok
     'wss://relay.snort.social',             // poor
+    'wss://thebarn.nostr1.com',             // access to write is driven by ACL and API calls
+    'wss://thebarn.nostrfreaks.com',        // access to write is driven by ACL and API calls
 ];
 
 function sleep(ms) {
@@ -22,13 +22,14 @@ function sleep(ms) {
 }
 
 function getRelayPool() {
-    return (newpoolPerWrite ? new RelayPool() : writepool);
+    return (newpoolPerWrite ? new RelayPool({autoReconnect: true}) : writepool);
 }
 function doneRelayPool(p) {
     if (newpoolPerWrite) p.close();
 }
 const publishEvent = async (pool,event,relays) => {
-    await pool.publish(event, relays);
+    let publishEventResults = await pool.publish(event, relays);
+    if(pool.errorsAndNotices && pool.errorsAndNotices.length > 0) console.log(`pool errors and notices: ${JSON.stringify(pool.errorsAndNotices)}`);
 }
 
 const deleteNostrSchedule = async (roomId) => {
@@ -460,7 +461,7 @@ const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => 
     }
 
     if(pmd) console.log("Preparing kind 1 to publish event from room");
-    let roomNsec = await getRoomNSEC(roomId);
+    let roomNsec = await getRoomNSEC(roomId, true);
     let roomSk = nip19.decode(roomNsec).data;
     let timeZoneName = "Europe/London"; // Intl.DateTimeFormat().resolvedOptions().timeZone; // Europe/London
     let timeZoneOffset = 0;
@@ -496,11 +497,11 @@ const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => 
     doneRelayPool(localwritepool);
 }
 
-const getRoomNSEC = async(roomId) => {
+const getRoomNSEC = async(roomId, create=false) => {
     if(pmd) console.log("in getRoomNSEC");
     let nostrroomkey = 'nostrroomkey/' + roomId;
     let roomNsec = await get(nostrroomkey);
-    if (roomNsec == undefined || roomNsec == null) {
+    if (create && (roomNsec == undefined || roomNsec == null)) {
         let roomSk = generateSecretKey();
         roomNsec = nip19.nsecEncode(roomSk);
         await set(nostrroomkey, roomNsec);
@@ -511,7 +512,7 @@ const getRoomNSEC = async(roomId) => {
 const updateNostrProfile = async (roomId, name, description, logoURI, backgroundURI, lud16) => {
     if(pmd) console.log("in updateNostrProfile");
     const localwritepool = getRelayPool();
-    let roomNsec = await getRoomNSEC(roomId);
+    let roomNsec = await getRoomNSEC(roomId, true);
     let roomSk = nip19.decode(roomNsec).data;
     let profileObj = {nip05: `${roomId}-room@${jamHost}`}
     if ((name ?? '').length > 0) profileObj.name = name;
@@ -559,7 +560,7 @@ const updateNostrProfileForServer = async (name, description, logoURI, backgroun
 const deleteLiveActivity = async (roomId, dtt) => {
     if(pmd) console.log("in deleteLiveActivity for ", roomId);
     const localwritepool = getRelayPool();
-    let roomNsec = await getRoomNSEC(roomId);
+    let roomNsec = await getRoomNSEC(roomId, true);
     let roomSk = nip19.decode(roomNsec).data;
     const kind = 30311;
     const eventUUID = `${dtt}`;
@@ -579,10 +580,34 @@ const deleteLiveActivity = async (roomId, dtt) => {
     doneRelayPool(localwritepool);
 }
 
+const getLiveActivities = async() => {
+    if (pmd) console.log("in getLiveActivities for specified pubkeys");
+    return new Promise(async (res, rej) => {
+        const localpool = new RelayPool();
+        try {
+            let goalFilter = [{kinds:[30311], limit: 500}];
+            goalFilter[0]["#L"] = ["com.cornychat"]
+            goalFilter[0]["#l"] = [jamHost]
+            let waitForEvents = 3000; // 3 seconds
+            let matchedEvents = [];
+            let options = {unsubscribeOnEose: true, allowDuplicateEvents: false, allowOlderEvents: false};
+            setTimeout(() => {
+                localpool.close();
+                res(matchedEvents);
+            }, waitForEvents);
+            localpool.subscribe(goalFilter, relaysToUse, (event, onEose, url) => {matchedEvents.push(event)}, undefined, undefined, options);
+        } catch (error) {
+            localpool.close();
+            rej(undefined);
+            console.log('There was an error while fetching live activities: ', error);
+        }
+    });
+}
+
 const publishLiveActivity = async (roomId, dtt, roomInfo, userInfo, status) => {
     if(pmd) console.log("in publishLiveActivity for ", roomId);
     const localwritepool = getRelayPool();
-    let roomNsec = await getRoomNSEC(roomId);
+    let roomNsec = await getRoomNSEC(roomId, true);
     let roomSk = nip19.decode(roomNsec).data;
     let dt = new Date();
     let et = dt.getTime();
@@ -662,8 +687,10 @@ const publishLiveActivity = async (roomId, dtt, roomInfo, userInfo, status) => {
     let v = verifyEvent(event);
     if (!v) console.log("- warning: verifyEvent failed for the live activity event");
     await publishEvent(localwritepool, event, relaysToUse);
-    let naddr = nip19.naddrEncode({identifier:aTagValue,pubkey:event.pubkey,kind:event.kind,relays:relaysToUse});
-    console.log(`- naddr for live activity for ${roomId}: ${naddr}`);
+    let addressPointer = {identifier:aTagValue,pubkey:event.pubkey,kind:event.kind,relays:relaysToUse}
+    if (pmd) console.log(`- addressPointer definition: ${JSON.stringify(addressPointer)}`);
+    let naddr = nip19.naddrEncode(addressPointer);
+    if (pmd) console.log(`- naddr for live activity for ${roomId}: ${naddr}`);
 
     await sleep(250);
     doneRelayPool(localwritepool);
@@ -742,7 +769,7 @@ const publishRoomActive = async (roomId, dtt, roomInfo, userInfo, isnew) => {
 
     // have the server announce a live text message associated to the room's live activity if its new
     if (isnew) {
-        let roomNsec = await getRoomNSEC(roomId);
+        let roomNsec = await getRoomNSEC(roomId, true);
         let roomSk = nip19.decode(roomNsec).data;
         const roomPk = getPublicKey(roomSk);
         output = `🌽 Audio Space started! 🌽\n\nJoin the audio feed at ${roomUrl}\n\nIndividual participants can choose whether their text chat is sent to this live feed.`;
@@ -770,7 +797,7 @@ const getZapGoals = async (pubkey) => {
     return new Promise(async (res, rej) => {
         const localpool = new RelayPool();
         try {
-            goalFilter = [{kinds:[9041], authors: [pubkey], limit: 50}];
+            let goalFilter = [{kinds:[9041], authors: [pubkey], limit: 50}];
             let waitForEvents = 3000; // 3 seconds
             let matchedEvents = [];
             let options = {unsubscribeOnEose: true, allowDuplicateEvents: false, allowOlderEvents: false};
@@ -904,6 +931,7 @@ module.exports = {
     updateNostrProfile,
     updateNostrProfileForServer,
     deleteLiveActivity,
+    getLiveActivities,
     publishLiveActivity,
     publishRoomActive,
     getZapGoals,

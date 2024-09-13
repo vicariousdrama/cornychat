@@ -7,7 +7,7 @@ const router = express.Router({mergeParams: true});
 router.get('', async function (req, res) {
     let roomId = req.params.id;
     // lookup public key for room
-    let roomNsec = await getRoomNSEC(roomId);
+    let roomNsec = await getRoomNSEC(roomId, true);
     let roomSk = nip19.decode(roomNsec).data;
     const pk = getPublicKey(roomSk);
     // lookup current d identifier for room

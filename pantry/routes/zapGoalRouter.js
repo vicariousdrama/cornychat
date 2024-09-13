@@ -13,7 +13,7 @@ router.get('', async function (req, res) {
         const roomInfo = await get('rooms/' + roomId);
         if (roomInfo) {
             // if room exists, then get the pubkey associated with its nsec
-            let roomNsec = await getRoomNSEC(roomId);
+            let roomNsec = await getRoomNSEC(roomId, true);
             let roomSk = nip19.decode(roomNsec).data;
             pk = getPublicKey(roomSk);    
         }
