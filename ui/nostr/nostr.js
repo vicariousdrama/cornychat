@@ -16,11 +16,12 @@ function sleep(ms) {
 
 function getDefaultOutboxRelays() {
   return [
-    'wss://thebarn.nostr1.com',
-    'wss://thebarn.nostrfreaks.com',
-    'wss://nos.lol',
-    'wss://nostr-pub.wellorder.net',
-    'wss://relay.snort.social',
+    'wss://relay.damus.io',                 // poor due to throttling
+    'wss://nos.lol',                        // misses some
+    'wss://nostr-pub.wellorder.net',        // seems ok
+    'wss://relay.snort.social',             // poor
+    'wss://thebarn.nostr1.com',             // access to write is driven by ACL and API calls
+    'wss://thebarn.nostrfreaks.com',        // access to write is driven by ACL and API calls
   ];
 }
 
@@ -807,9 +808,10 @@ export async function makeZapRequest(content, receiver, event, msatsAmount) {
     tags: [
       [
         'relays',
-        'wss://nos.lol',
-        'wss://nostr-pub.wellorder.net',
-        'wss://relay.snort.social', 
+        'wss://relay.damus.io',                 // poor due to throttling
+        'wss://nos.lol',                        // misses some
+        'wss://nostr-pub.wellorder.net',        // seems ok
+        'wss://relay.snort.social',             // poor
       ],
       ['amount', `${msatsAmount}`],
     ],
