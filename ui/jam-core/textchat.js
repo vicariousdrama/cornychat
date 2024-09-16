@@ -25,6 +25,7 @@ function TextChat({swarm}) {
     let textchat = decodeURIComponent(payload.t);
     let isdm = payload.d;
     let todm = payload.p;
+    let nostrEventId = payload.n;
     if (isdm) {
       textchat = await decryptFromPeerId(peerId, textchat);
       textchat = decodeURIComponent(textchat);
@@ -48,7 +49,7 @@ function TextChat({swarm}) {
     }
 
     if (okToAdd) {
-      textchats.push([peerId, textchat, isdm, todm, textTime]);
+      textchats.push([peerId, textchat, isdm, todm, textTime, nostrEventId]);
       textchats = textchats.slice(-1 * bufferSize);
       localStorage.setItem(`${roomId}.textchat`, JSON.stringify(textchats));
       let okToIncrement = true;
@@ -161,14 +162,19 @@ function TextChat({swarm}) {
           sendEventToOnePeer(swarm, myId, ACTION, {d:true,t:toMe,p:peerId});
         })();
       } else {
-        sendPeerEvent(swarm, ACTION, {d:false,t:encodeURIComponent(textchat)});
-        if (window.nostr && (localStorage.getItem('textchat.tonostr') || 'false') == 'true') {
-          let atagkey = `${roomId}.atag`;
-          let roomATag = sessionStorage.getItem(atagkey) || '';
-          if (roomATag.length > 0) {
-            sendLiveChat(roomATag, textchat);
+        (async () => {
+          let isok = false;
+          let nostrEventId = undefined;
+          if (window.nostr && (localStorage.getItem('textchat.tonostr') || 'false') == 'true') {
+            let atagkey = `${roomId}.atag`;
+            let roomATag = sessionStorage.getItem(atagkey) || '';
+            if (roomATag.length > 0) {
+              [isok, nostrEventId] = await sendLiveChat(roomATag, textchat);
+              if (!isok) nostrEventId = undefined;
+            }
           }
-        }
+          sendPeerEvent(swarm, ACTION, {d:false,t:encodeURIComponent(textchat),n:nostrEventId});
+        })();
       }
     }
   };

@@ -1,28 +1,23 @@
-const {jamHost, serverNsec} = require('../config');
+const {jamHost, serverNsec, relaysGeneral, relaysZapGoals} = require('../config');
 const {get, set} = require('../services/redis');
 const {nip19, getPublicKey, finalizeEvent, generateSecretKey, validateEvent, verifyEvent} = require('nostr-tools');
 const {RelayPool} = require('nostr-relaypool');
 const {rawTimeZones} = require('@vvo/tzdb');
+const {grantPubkeyToRelays} = require('../relayacl/relayACL');
 
 const pmd = false;
-const writepool = new RelayPool();
+const poolOptions = {autoReconnect:true}
+const writepool = new RelayPool(undefined,poolOptions);
 const newpoolPerWrite = false;
 
-const relaysToUse = [
-    'wss://relay.damus.io',                 // poor due to throttling
-    'wss://nos.lol',                        // misses some
-    'wss://nostr-pub.wellorder.net',        // seems ok
-    'wss://relay.snort.social',             // poor
-    'wss://thebarn.nostr1.com',             // access to write is driven by ACL and API calls
-    'wss://thebarn.nostrfreaks.com',        // access to write is driven by ACL and API calls
-];
+const relaysToUse = relaysGeneral.split(',');
 
 function sleep(ms) {
     return new Promise(res => setTimeout(res, ms));
 }
 
 function getRelayPool() {
-    return (newpoolPerWrite ? new RelayPool({autoReconnect: true}) : writepool);
+    return (newpoolPerWrite ? new RelayPool(undefined,poolOptions) : writepool);
 }
 function doneRelayPool(p) {
     if (newpoolPerWrite) p.close();
@@ -565,6 +560,8 @@ const deleteLiveActivity = async (roomId, dtt) => {
     const kind = 30311;
     const eventUUID = `${dtt}`;
     const pk = getPublicKey(roomSk);
+    const grantReason = `${jamHost} room: ${roomId}`;
+    let g = await grantPubkeyToRelays(false, pk, grantReason);
     const aTagValue = `${kind}:${pk}:${eventUUID}`;
     const timestamp = Math.floor(Date.now() / 1000);
     console.log(`deleting event ${eventUUID}`)
@@ -589,13 +586,18 @@ const getLiveActivities = async() => {
             goalFilter[0]["#L"] = ["com.cornychat"]
             goalFilter[0]["#l"] = [jamHost]
             let waitForEvents = 3000; // 3 seconds
-            let matchedEvents = [];
+            let matchedRelayEvents = {};
             let options = {unsubscribeOnEose: true, allowDuplicateEvents: false, allowOlderEvents: false};
             setTimeout(() => {
                 localpool.close();
-                res(matchedEvents);
+                res(matchedRelayEvents);
             }, waitForEvents);
-            localpool.subscribe(goalFilter, relaysToUse, (event, onEose, url) => {matchedEvents.push(event)}, undefined, undefined, options);
+            localpool.subscribe(goalFilter, relaysToUse, (event, onEose, url) => {
+                if (!matchedRelayEvents.hasOwnProperty(url)) {
+                    matchedRelayEvents[url] = [];
+                }
+                matchedRelayEvents[url].push(event);
+            }, undefined, undefined, options);
         } catch (error) {
             localpool.close();
             rej(undefined);
@@ -604,7 +606,7 @@ const getLiveActivities = async() => {
     });
 }
 
-const publishLiveActivity = async (roomId, dtt, roomInfo, userInfo, status) => {
+const publishLiveActivity = async (roomId, dtt, roomInfo, userInfo, status, limitToRelays) => {
     if(pmd) console.log("in publishLiveActivity for ", roomId);
     const localwritepool = getRelayPool();
     let roomNsec = await getRoomNSEC(roomId, true);
@@ -615,6 +617,8 @@ const publishLiveActivity = async (roomId, dtt, roomInfo, userInfo, status) => {
     const kind = 30311;
     const eventUUID = `${dtt}`;
     const pk = getPublicKey(roomSk);
+    const grantReason = `${jamHost} room: ${roomId}`;
+    let g = await grantPubkeyToRelays(false, pk, grantReason);
     const aTagValue = `${kind}:${pk}:${dtt}`;
     const roomUrl = `https://${jamHost}/${roomId}`;
     const title = roomInfo?.name ?? `Corny Chat: ${roomId}`;
@@ -651,6 +655,7 @@ const publishLiveActivity = async (roomId, dtt, roomInfo, userInfo, status) => {
         ["l", jamHost, labelNamespace],
         ["l", "audiospace", labelNamespace],
         ["r", roomUrl],
+        ["relays", ...relaysToUse],
     ];
     // This doesnt add tags for anonymous users since they don't have npubs
     const includedPubkeys = [];
@@ -686,7 +691,7 @@ const publishLiveActivity = async (roomId, dtt, roomInfo, userInfo, status) => {
     if (!u) console.log("- warning: validateEvent failed for the live activity event");
     let v = verifyEvent(event);
     if (!v) console.log("- warning: verifyEvent failed for the live activity event");
-    await publishEvent(localwritepool, event, relaysToUse);
+    await publishEvent(localwritepool, event, ((limitToRelays != undefined) ? limitToRelays : relaysToUse));
     let addressPointer = {identifier:aTagValue,pubkey:event.pubkey,kind:event.kind,relays:relaysToUse}
     if (pmd) console.log(`- addressPointer definition: ${JSON.stringify(addressPointer)}`);
     let naddr = nip19.naddrEncode(addressPointer);
@@ -820,14 +825,7 @@ const publishZapGoal = async (sk, content, amount, relays) => {
         let pk = getPublicKey(sk);
         const kind = 9041;
         let amountTag = ["amount", String(amount * 1000)];
-        let relayTag = ["relays"];
-        for (let relay of relays) {
-            if (relay.startsWith("wss://")) {
-                relayTag.push(relay);
-            } else {
-                relayTag.push(`wss://${relay}`);
-            }
-        }
+        let relayTag = ["relays", ...relays];
         let tags = [amountTag, relayTag];
         const event = finalizeEvent({
             created_at: Math.floor(Date.now() / 1000),

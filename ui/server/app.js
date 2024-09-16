@@ -19,6 +19,8 @@ app.use(express.static(process.env.STATIC_FILES_DIR || 'public'));
 
 const jamHost = process.env.JAM_HOST || 'beta.jam.systems';
 const jamSchema = process.env.JAM_SCHEMA || 'https://';
+const relaysGeneral = process.env.RELAYS_GENERAL || 'wss://relay.damus.io,wss://nos.lol,wss://nostr-pub.wellorder.net,wss://relay.snort.social';
+const relaysZapGoals = process.env.RELAYS_ZAPGOALS || 'wss://relay.damus.io,wss://nos.lol,wss://nostr-pub.wellorder.net,wss://relay.snort.social';
 
 const urls = {
   jam: process.env.JAM_URL || `${jamSchema}${jamHost}`,
@@ -53,6 +55,8 @@ const jamConfig = {
   broadcast: ['true', '1'].includes(process.env.JAM_BROADCAST),
   hideJamInfo: ['true', '1'].includes(process.env.JAM_HIDE_JAM_INFO),
   handbill: ['true', '1'].includes(process.env.ADS),
+  relaysGeneral: relaysGeneral.split(','),
+  relaysZapGoals: relaysZapGoals.split(','),
   v4vLN: serverLightningAddress,
 };
 console.log(jamConfig);

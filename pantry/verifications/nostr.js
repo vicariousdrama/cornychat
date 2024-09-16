@@ -1,19 +1,14 @@
+const {relaysGeneral} = require('../config');
 const {RelayPool} = require('nostr-relaypool');
 const {nip19} = require('nostr-tools');
 const {isValidLoginSignature} = require('../nostr/nostr');
 
 function decodeNote(noteId) {
-  //console.log("decoding note with id ", noteId);
   const note = nip19.decode(noteId);
   const type = note.type;
-  //console.log(note);
-  //console.log(type);
-  if (type === 'nevent') {
-    return note.data.id;
-  }
-  if (type === 'note') {
-    return note.data;
-  }
+  if (type === 'nevent') return note.data.id;
+  if (type === 'note') return note.data;
+  return undefined;
 }
 
 const verify = (identity, publicKey) => {
@@ -61,14 +56,7 @@ const verify = (identity, publicKey) => {
 
         const filter = [{ids: [decodedNote], authors: [nostrPubkey]}];
 
-        const defaultRelays = [
-          'wss://relay.damus.io',                 // poor due to throttling
-          'wss://nos.lol',                        // misses some
-          'wss://nostr-pub.wellorder.net',        // seems ok
-          'wss://relay.snort.social',             // poor
-          'wss://thebarn.nostr1.com',             // access to write is driven by ACL and API calls
-          'wss://thebarn.nostrfreaks.com',        // access to write is driven by ACL and API calls      
-        ];
+        const defaultRelays = relaysGeneral.split(',');
 
         const checkEventReturned = setTimeout(() => {
           pool.close();

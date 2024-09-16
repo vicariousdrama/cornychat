@@ -241,6 +241,8 @@ export default function RoomChat({
             let isdm = ((textentry != undefined && textentry.length > 2) ? textentry[2] : false);
             let todm = ((textentry != undefined && textentry.length > 3) ? textentry[3] : '');
             let texttime = ((textentry != undefined && textentry.length > 4) ? textentry[4] : 0);
+            let nostrId = ((textentry != undefined && textentry.length > 5) ? textentry[5] : undefined);
+            let isNostrEvent = (nostrId != undefined);
             if (window.DEBUG) console.log('texttime:', texttime);
             if (texttime == undefined) texttime = 0;
             if (String(texttime).length > 10) texttime = Math.floor(texttime / 1000);
@@ -418,6 +420,12 @@ export default function RoomChat({
                              style={{color: chatLineTextColor}}
                              dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext) }} />
                         {isdm && (<span className="rounded" style={{backgroundColor: 'rgb(32,128,32)',color:'rgb(255,255,255)'}}>{myId==userid ? '>>' + (textchatShowNames ? tousername : "") : '<<'}</span>)}
+                        {isNostrEvent && (
+                            <img
+                                style={{width:'24px',height:'auto'}}
+                                title={'Published to nostr'}
+                                src={'/img/symbols/nostr-icon-purple-256x256.png'}
+                            />)}
                     </div>
                     </span>
                 );
@@ -436,6 +444,12 @@ export default function RoomChat({
                              style={{color: chatLineTextColor}}
                              dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext) }} />
                         {isdm && (<span className="rounded" style={{backgroundColor: 'rgb(32,128,32)',color:'rgb(255,255,255)'}}>{myId==userid ? '>>' + (textchatShowNames ? tousername : "") : '<<'}</span>)}
+                        {isNostrEvent && (
+                            <img
+                                style={{width:'24px',height:'auto'}}
+                                title={'Published to nostr'}
+                                src={'/img/symbols/nostr-icon-purple-256x256.png'}
+                            />)}
                         {textchatShowAvatar && (
                         <img className="flex w-6 h-6 human-radius" src={useravatar} 
                         onClick={() =>

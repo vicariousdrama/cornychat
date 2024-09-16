@@ -1,9 +1,11 @@
+const {jamHost} = require('../config');
 const {set, get, list} = require('./redis');
 const {deleteLiveActivity, getLiveActivities, publishLiveActivity, publishRoomActive, getScheduledEvents} = require('../nostr/nostr');
 const {activeUsersInRoom} = require('./ws');
 //const {getPublicKey} = require('nostr-tools');
 const UPDATE_INTERVAL = 1 * 60 * 1000; // We check new rooms and live event end every minute
-const pmd = false;
+const LIVE_ACTIVITY_UPDATE_MINUTES = 10; // Once published, only update this often
+const pmd = true;
 
 const liveEventUpdater = async () => {
 
@@ -17,42 +19,71 @@ const liveEventUpdater = async () => {
     console.log(`Checking cache of prior live rooms on startup, and ending older events`);
     let liveActivities = await getLiveActivities() 
     if (liveActivities) {
-        for (let oldLiveActivity of liveActivities) {
-            let status = 'live';
-            let dTag = undefined;
-            let rTag = undefined;
-            if (!oldLiveActivity.tags) continue;
-            for (let tag of oldLiveActivity.tags) {
-                if (tag == undefined || tag.length < 2) continue;
-                if (tag[0] == 'status') activityStatus = tag[1];
-                if (tag[0] == 'd') dTag = tag[1];
-                if (tag[0] == 'r') rTag = tag[1];
-            }
-            if (!dTag) {
-                if (pmd) console.log(`Unable to end or delete live activity without d tag: ${JSON.stringify(oldLiveActivity)}`);
-                continue;
-            }
-            if (!rTag) {
-                if (pmd) console.log(`Unable to end or delete live activity without r tag to identity room id: ${JSON.stringify(oldLiveActivity)}`);
-                continue;
-            }
-            let dtt = `${dTag}`;
-            let key = rTag.split('/').slice(-1)[0];
-            if (status == 'ended') {
-                // remove it
-                //let dla = await deleteLiveActivity(key, dtt);
-            } else {
-                // reload into local tracking
-                if (!activeRoomTimes.hasOwnProperty(key)) {
-                    activeRoomTimes[key] = Math.floor(dtt);
-                    activeRoomTimesAnnounced[key] = Math.floor(dtt);
-                } else {
-                    // mark older as ended
-                    dtt = dtt > activeRoomTimes[key] ? activeRoomTimes[key] : dtt;
+        for(let relayUrl of Object.keys(liveActivities)) {
+            let relayActivities = liveActivities[relayUrl];
+            if (pmd) console.log(`..> processing ${relayActivities.length} events on relay ${relayUrl}`);
+            for (let oldLiveActivity of relayActivities) {
+                let status = 'live';
+                let dTag = undefined;
+                let rTag = undefined;
+                let lTag = undefined;
+                let endTime = undefined;
+                if (!oldLiveActivity.tags) continue;
+                for (let tag of oldLiveActivity.tags) {
+                    if (tag == undefined || tag.length < 2) continue;
+                    if (tag[0] == 'status') status = tag[1];
+                    if (tag[0] == 'd') dTag = tag[1];
+                    if (tag[0] == 'r') rTag = tag[1];
+                    if (tag[0] == 'l' && tag[1] == jamHost) lTag = tag[1];
+                    if (tag[0] == 'ends') endTime = tag[1];
+                }
+                if (!dTag) {
+                    if (pmd) console.log(`..unable to end or delete live activity without d tag: ${JSON.stringify(oldLiveActivity)}`);
+                    continue;
+                }
+                if (!rTag) {
+                    if (pmd) console.log(`..unable to end or delete live activity without r tag to identity room id: ${JSON.stringify(oldLiveActivity)}`);
+                    continue;
+                }
+                if (!lTag) {
+                    if (pmd) console.log(`..skipping live activity that is not from this host: ${JSON.stringify(oldLiveActivity)}`);
+                    continue;                    
+                }
+                let dtt = `${dTag}`;
+                let key = rTag.split('/').slice(-1)[0];
+                if (status == 'ended') {
+                    if (pmd) console.log(`..event is already ended`);
+                    // remove it if older then 1 days
+                    if (endTime) {
+                        if (Math.floor(endTime) < (Math.floor(Date.now() / 1000) - (1 * 24 * 60 * 60))) {
+                            if (pmd) console.log(`..deleting event that is older than 1 day`);
+                            let dla = await deleteLiveActivity(key, dtt);
+                        } else {
+                            if (pmd) console.log(`..skipping delete. time is ${Math.floor(Date.now() / 1000)}, and ends is ${Math.floor(endTime)}`);
+                        }
+                    } else {
+                        if (pmd) console.log(`..skipping delete. it's ended, but no ends time is set`);
+                    }
+                } else if (status == 'live') {
                     let roomKey = `rooms/${key}`;
                     let roomInfo = await get(roomKey);
-                    let userInfo = [];
-                    let pla = await publishLiveActivity(key, dtt, roomInfo, userInfo, 'ended');
+                    if (!roomInfo || roomInfo == undefined) {
+                        if (pmd) console.log(`..ignoring event for room ${key} as it doesnt exist here`);
+                        continue;
+                    } 
+
+                    // reload into local tracking
+                    if (!activeRoomTimes.hasOwnProperty(key)) {
+                        if (pmd) console.log(`..tracking as active room ${key} with dTag: ${dTag}`);
+                        activeRoomTimes[key] = Math.floor(dtt);
+                        activeRoomTimesAnnounced[key] = Math.floor(dtt);
+                    } else {
+                        // mark older as ended
+                        dtt = dtt > activeRoomTimes[key] ? activeRoomTimes[key] : dtt;
+                        if (pmd) console.log(`..ending older event for room ${key} and dtt ${dtt} on ${relayUrl}`);
+                        let userInfo = [];
+                        let pla = await publishLiveActivity(key, dtt, roomInfo, userInfo, 'ended', [relayUrl]);
+                    }
                 }
             }
         }
@@ -114,13 +145,14 @@ const liveEventUpdater = async () => {
             let isPrivate = roomInfo?.isPrivate ?? false;
             let isLiveActivityAnnounced = roomInfo?.isLiveActivityAnnounced ?? false;
             if ((!isLiveActivityAnnounced) || isPrivate || isClosed) {
+                if (pmd) console.log(`..room is no longer live activity, or is private or closed`);
                 if (activeRoomTimes.hasOwnProperty(roomId)) {
                     let dttr = activeRoomTimes[roomId];
                     if (isPrivate) {
-                        let pla = await publishLiveActivity(roomId, dttr, roomInfo, userInfo, 'ended');
+                        let pla = await publishLiveActivity(roomId, dttr, roomInfo, userInfo, 'ended', undefined);
                         //let dla = await deleteLiveActivity(roomId, dttr);
                     } else if (isClosed) {
-                        let pla = await publishLiveActivity(roomId, dttr, roomInfo, userInfo, 'ended');
+                        let pla = await publishLiveActivity(roomId, dttr, roomInfo, userInfo, 'ended', undefined);
                     }
                     // Done. lets close it out
                     delete activeRoomTimes[roomId];
@@ -136,9 +168,10 @@ const liveEventUpdater = async () => {
                     // Creating new live activity, assign the time
                     activeRoomTimes[roomId] = dtt;
                 }
-                // Publish as live only once per twenty minutes
-                if ((runCounter % 20 == 1) || (isnew)) {
-                    let pla = await publishLiveActivity(roomId, dttr, roomInfo, userInfo, 'live');
+                // Publish as live only on specific frequency
+                if ((runCounter % LIVE_ACTIVITY_UPDATE_MINUTES == 1) || (isnew)) {
+                    if (pmd) console.log(`...about to ${(isnew ? 'create new' : 'update')} live activity for ${roomId}`);
+                    let pla = await publishLiveActivity(roomId, dttr, roomInfo, userInfo, 'live', undefined);
                 }
             }
 
@@ -151,7 +184,7 @@ const liveEventUpdater = async () => {
                     if (pmd) console.log(`..publishing ${roomId} as active in kind 1 note`);
                     let pk1 = await publishRoomActive(roomId, dttr, roomInfo, userInfo, isnew);
                 } else {
-                    if (pmd) console.log(`..skipping, was previously published at ${activeRoomTimesAnnounced[roomId]}`);
+                    if (pmd) console.log(`..skipping announcement for ${roomId}, was previously published at ${activeRoomTimesAnnounced[roomId]}`);
                 }
             }
         };
@@ -166,7 +199,8 @@ const liveEventUpdater = async () => {
                     let userInfo = [];
                     let roomKey = `rooms/${key}`;
                     let roomInfo = await get(roomKey);
-                    let pla = await publishLiveActivity(key, dtt, roomInfo, userInfo, 'ended');
+                    if (pmd) console.log(`..ending live activity for ${key}`);
+                    let pla = await publishLiveActivity(key, dtt, roomInfo, userInfo, 'ended', undefined);
                     //let dla = await deleteLiveActivity(key, dtt);
                 })();
             }

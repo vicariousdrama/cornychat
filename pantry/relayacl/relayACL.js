@@ -2,7 +2,7 @@ const fetch = require('node-fetch');
 const fetchCookie = require('fetch-cookie');
 const {CookieJar} = require('tough-cookie'); // depends on punycode
 const {nip19, getPublicKey, finalizeEvent} = require('nostr-tools');
-const {serverNsec} = require('../config');
+const {relaysACL, serverNsec} = require('../config');
 const {set, get} = require('../services/redis');
 
 const pmd = false;
@@ -41,23 +41,17 @@ let relayCookies = [];
 const getRelayConfigs = function() {
     if (!relaysToUse) {
         relaysToUse = [];
-        Object.keys(process.env).forEach(env => {
-            if (env.startsWith('RELAYS_ACL')) {
-                if (env.length == 'RELAYS_ACL_N'.length) {
-                    let endpoint = process.env[`${env}_ENDPOINT`];
-                    let id = process.env[`${env}_ID`];
-                    let relay = process.env[env];
-                    if (pmd) console.log(`registering relay acl configuration: {relay: ${relay}, endpoint: ${endpoint}, relayId: ${id}}`);
-                    if (endpoint && endpoint != '' && id && id != '' && relay && relay != '') {
-                        relaysToUse.push({
-                            relay: relay,
-                            id: id,
-                            endpoint: endpoint
-                        });
-                    }
-                }
-            }
-        });
+        let relayACLConfigs = relaysACL.split(',');
+        for (let relayACLConfig of relayACLConfigs) {
+            let relayACLParts = relayACLConfig.split('|');
+            if(relayACLParts.length < 3) continue;
+            let relay = relayACLParts[0];
+            let endpoint = relayACLParts[1];
+            let id = relayACLParts[2];
+            if (!endpoint || endpoint == '' || !id || id == '' || !relay || relay == '') continue;
+            if (pmd) console.log(`registering relay acl configuration: {relay: ${relay}, endpoint: ${endpoint}, relayId: ${id}}`);
+            relaysToUse.push({relay: relay, id: id, endpoint: endpoint});
+        }
     }
     return relaysToUse;
 }
