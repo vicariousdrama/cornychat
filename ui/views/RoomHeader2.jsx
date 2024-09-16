@@ -174,7 +174,7 @@ export default function RoomHeader2({
         let timeoutATagUpdate = setTimeout(() => {
             if (
                 (localStorage.getItem('textchat.tonostr') || 'false') == 'true' && 
-                (room.isLiveActivityAnnounced || 'false') == 'true'
+                (room.isLiveActivityAnnounced)
             ) {
                 let atagkey = `${roomId}.atag`;
                 let roomATag = sessionStorage.getItem(atagkey) || '';

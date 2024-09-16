@@ -900,7 +900,7 @@ export default function EditPersonalSettings({close}) {
                   setPublishStatus(e.target.checked ? 'true' : 'false');
                 }}
               />
-              Periodically Publish Status Update to Nostr
+              Periodically publish status update to nostr. You may be prompted to sign kind 30315 events.
             </div>
           </div>
         </div>
@@ -1046,7 +1046,7 @@ export default function EditPersonalSettings({close}) {
                   setTextchatToNostr(e.target.checked ? 'true' : 'false');
                 }}
               />
-              Publish my public text chat to nostr when live activities are enabled for the room
+              Publish my text chat to nostr when the room is a live activity. You may be prompted to sign kind 1311 events.
             </div>
           </div>
         </div>

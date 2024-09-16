@@ -190,7 +190,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
               setBorderActiveGroup(colorGroupScheduled);
               setBackgroundColorActive(colorGroupScheduled.replace(',1)',',.25)'));
             }}          
-          >Scheduled</div>
+          >Discovery</div>
         </div>
         <div style={{align: 'center'}}>
           <div className="rounded-md w-full" style={{display:'inline-block',color:`rgb(244,244,244)`,border: `3px solid ${borderActiveGroup}`,backgroundColor: backgroundColorActive,align: 'center'}}>

@@ -15,14 +15,7 @@ function sleep(ms) {
 }
 
 function getDefaultOutboxRelays() {
-  return [
-    'wss://relay.damus.io',                 // poor due to throttling
-    'wss://nos.lol',                        // misses some
-    'wss://nostr-pub.wellorder.net',        // seems ok
-    'wss://relay.snort.social',             // poor
-    'wss://thebarn.nostr1.com',             // access to write is driven by ACL and API calls
-    'wss://thebarn.nostrfreaks.com',        // access to write is driven by ACL and API calls
-  ];
+  return window.jamConfig.relaysGeneral;
 }
 
 function getCachedOutboxRelaysByPubkey(pubkey) {
@@ -806,13 +799,7 @@ export async function makeZapRequest(content, receiver, event, msatsAmount) {
     created_at: Math.floor(Date.now() / 1000),
     kind: 9734,
     tags: [
-      [
-        'relays',
-        'wss://relay.damus.io',                 // poor due to throttling
-        'wss://nos.lol',                        // misses some
-        'wss://nostr-pub.wellorder.net',        // seems ok
-        'wss://relay.snort.social',             // poor
-      ],
+      ['relays', ...jamConfig.relaysZapGoals],
       ['amount', `${msatsAmount}`],
     ],
     content: content,
@@ -1515,7 +1502,7 @@ export async function getCBadgeConfigsForPubkey(pubkey) {
 }
 
 export async function sendLiveChat(roomATag, textchat) {
-  if (!window.nostr) return;
+  if (!window.nostr) return [false, 'A nostr extension is required to send live chat'];
   let kind = 1311;
   let tags = [
     ["a", roomATag]
@@ -1548,7 +1535,7 @@ export async function sendLiveChat(roomATag, textchat) {
     writepool.publish(eventSigned, relaysToUse);
     const sleeping = await sleep(100);
     //pool.close();
-    return [true, ''];
+    return [true, eventSigned.id];
   }  
 }
 
@@ -1568,14 +1555,7 @@ export async function publishZapGoal(description, amount) {
     let relays = defaultRelays;
     let kind = 9041;
     let amountTag = ["amount", String(amount * 1000)];
-    let relayTag = ["relays"];
-    for (let relay of relays) {
-        if (relay.startsWith("wss://")) {
-            relayTag.push(relay);
-        } else {
-            relayTag.push(`wss://${relay}`);
-        }
-    }
+    let relayTag = ["relays", ...relays];
     let tags = [amountTag, relayTag];
     let event = {
       id: null,

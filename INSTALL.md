@@ -215,6 +215,8 @@ hostname -I
 nano .env
 ```
 
+**Required**
+
 1. Set the `JAM_HOST` value to the domain name
 
 2. Set the `COMPOSE_PROFILES` value to `web,coturn,metrics,sfu`
@@ -227,9 +229,15 @@ nano .env
 
 6. If you want an announcement bot to announce live public rooms to nostr, uncomment and fill in an nsec for the `SERVER_NSEC` properties.  Don't use your personal NSEC. It's better to create a completely new one if you want to leverage this feature.
 
-7. If you want to use LNbits, set the `LNBITS_HOST` value to the domain name you intend to use for lnbits. This will currently need to be different from the chat server domain due to the way some internal paths are handled.  You'll also need to add `,lnbits` to the end of the `COMPOSE_PROFILES` value. Be sure to follow the section _Configuring LNbits_ below
+7. Configure relays to be used for general read and write traffic in the `RELAYS_GENERAL` value.  This is a comma delimited list and each relay should be in the format of `wss://{fully.qualified.domain.name}`.  You can also configure relays for the zap goals and receipts in `RELAYS_ZAPGOALS`.
 
-8. If you want to have backups (probably a good idea), you can add `,backup` to the end of the `COMPOSE_PROFILES` value. Be sure to follow the section _Configuring Backups_ below
+**Optional**
+
+8. Access Control Lists for Relay Tools compliant relays may have key information defined in `RELAYS_ACL`.  Any relay configured in this will automatically grant a connected nostr user access by pubkey, and revoke their access after they have disconnected for awhile.  The pubkey associated with the SERVER_NSEC value must be added as a moderator of each relay configured.  The value is a comma delimited list of relay acl configs and each config is then delimited by pipe symbols with the relay url, domain endpoint, and relay identifier specified.  For example `wss://therelay.com|relay.tools|cm023jasdf32323,wss://anotherrelay.com|nostrfreaks.com|cm02s87dsdf32323`
+
+9. If you want to use LNbits, set the `LNBITS_HOST` value to the domain name you intend to use for lnbits. This will currently need to be different from the chat server domain due to the way some internal paths are handled.  You'll also need to add `,lnbits` to the end of the `COMPOSE_PROFILES` value. Be sure to follow the section _Configuring LNbits_ below
+
+10. If you want to have backups (probably a good idea), you can add `,backup` to the end of the `COMPOSE_PROFILES` value. Be sure to follow the section _Configuring Backups_ below
 
 Press CTRL+O, CTRL+X to save and exit
 
