@@ -106,6 +106,10 @@ export default function DataTypes() {
         line returns are not performed. For example, inline image or link urls are not rendered, nor are there any
         treatments of tags.
       </p>
+      <p>
+        The ability to post a note is also supported by choosing 'Note to Nostr' from the menu.  The input interface
+        will parse out and prepare tags from included hashtags, npub, nevent, and note references.
+      </p>
 
       <a name="kind1scheduledevent"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 1 - Scheduled Event</h2>
       <p>

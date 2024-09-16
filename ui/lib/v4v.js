@@ -122,7 +122,12 @@ async function zapSats(lightningAddress, satAmount, pubkey, eventId, comment, fn
                     return true;
                 }
             } catch (e) {
-                let n = `${e} (To correct, review and update Nostr Wallet Connect settings)`;
+                let n = '';
+                if (e.indexOf('Failed to connect to wss://relay.getalby.com/v1') > -1) {
+                    n = `${e} (your zap may not have completed as the Alby relay for nostr wallet connect was inaccessible)`
+                } else {
+                    n = `${e} (To correct, review and update Nostr Wallet Connect settings)`;
+                }
                 if (fnSuccess) {
                     (async () => {await fnSuccess(n, getMyId());})();
                 }

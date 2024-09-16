@@ -1101,7 +1101,7 @@ export default function EditPersonalSettings({close}) {
               Nostr Wallet Connect Settings
             </div>
             <div className="p-2 text-gray-200 italic">
-              **BETA** These are optional settings to facilitate integrated zapping
+              These are optional settings to facilitate integrated zapping
             </div>
             <div className="p-2 text-gray-200 bold">
             <input

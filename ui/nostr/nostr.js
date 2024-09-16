@@ -5,8 +5,8 @@ import crypto from 'crypto-js';
 import {bech32} from 'bech32';
 import {Buffer} from 'buffer';
 
-//const pool = new RelayPool();
-const writepool = new RelayPool();
+const poolOptions = {autoReconnect:true}
+const writepool = new RelayPool(undefined, poolOptions);
 function unique(arr) {
   return [...new Set(arr)];
 }
@@ -41,7 +41,7 @@ export async function getOutboxRelays(pubkey) {
       res([]);
       return;
     }
-    const localpool = new RelayPool();
+    const localpool = new RelayPool(undefined,poolOptions);
     try {
       const userRelays = getCachedOutboxRelaysByPubkey(pubkey);
       const defaultRelays = getDefaultOutboxRelays();
@@ -182,7 +182,7 @@ export async function getUserEventsByKind(pubkey, kind, timeSince) {
       res([]);
       return;
     }
-    const localpool = new RelayPool();
+    const localpool = new RelayPool(undefined,poolOptions);
     try {
       const userRelays = getCachedOutboxRelaysByPubkey(pubkey);
       const defaultRelays = getDefaultOutboxRelays();
@@ -232,7 +232,7 @@ export async function getUserEventsByKind(pubkey, kind, timeSince) {
 export async function getUserEventById(pubkey, id) {
   if(window.DEBUG) console.log("in getUserEventById for pubkey ", pubkey, ", id", id);
   return new Promise((res, rej) => {
-    const localpool = new RelayPool();
+    const localpool = new RelayPool(undefined,poolOptions);
     try {
       const userRelays = getCachedOutboxRelaysByPubkey(pubkey);
       const defaultRelays = getDefaultOutboxRelays();
@@ -271,7 +271,7 @@ export async function getUserEventById(pubkey, id) {
 export async function getUserMetadata(pubkey, id) {
   if(window.DEBUG) console.log("in getUserMetadata for pubkey", pubkey, ", id", id);
   return new Promise((res, rej) => {
-    const localpool = new RelayPool();
+    const localpool = new RelayPool(undefined,poolOptions);
     try {
       const userRelays = getCachedOutboxRelaysByPubkey(pubkey);
       const defaultRelays = getDefaultOutboxRelays();
@@ -355,7 +355,7 @@ export async function getZapReceipts(eventId) {
       res([]);
       return;
     }
-    const localpool = new RelayPool();
+    const localpool = new RelayPool(undefined,poolOptions);
     try {
       let userRelays = [];
       if (window.nostr) {
@@ -536,17 +536,15 @@ async function saveFollowList(myFollowList) {
     updateCacheOutboxRelays(myOutboxRelays, myNpub);
   }
   const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
-  //const pool = new RelayPool();
   writepool.publish(EventSigned, relaysToUse);
   const sleeping = await sleep(100);
-  //pool.close();
   return true;
 }
 
 export async function loadFollowList() {
   if(window.DEBUG) console.log("in loadFollowList");
   return new Promise(async (res, rej) => {
-    const localpool = new RelayPool();
+    const localpool = new RelayPool(undefined,poolOptions);
     try {
       const defaultRelays = getDefaultOutboxRelays();
       const myPubkey = await window.nostr.getPublicKey();
@@ -951,12 +949,8 @@ export async function saveList(dTagValue, name, about, image, kind, theList) {
     }
     const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
     if (window.DEBUG) console.log(relaysToUse);
-    //const pool = new RelayPool();
-    if (window.DEBUG) console.log("992-publishing");
     writepool.publish(eventSigned, relaysToUse);
-    if (window.DEBUG) console.log("994-published");
     const sleeping = await sleep(100);
-    //pool.close();
     return [true, ''];
   }
 }
@@ -964,7 +958,7 @@ export async function saveList(dTagValue, name, about, image, kind, theList) {
 export async function loadList(kind, pubkey) {
   if(window.DEBUG) console.log("in loadList for kind ", kind);
   return new Promise(async(res, rej) => {
-    const localpool = new RelayPool();
+    const localpool = new RelayPool(undefined,poolOptions);
     try {
       let events = [];
       const defaultRelays = getDefaultOutboxRelays();
@@ -1060,10 +1054,8 @@ export async function requestDeletionById(id) {
     updateCacheOutboxRelays(myOutboxRelays, myNpub);
   }
   const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
-  //const pool = new RelayPool();
   writepool.publish(EventSigned, relaysToUse);
   const sleeping = await sleep(100);
-  //pool.close();
   return true;  
 }
 
@@ -1096,7 +1088,7 @@ export async function loadPetnames() {
   if(window.DEBUG) console.log('in loadPetnames');
   return new Promise(async(res, rej) => {
     if (!window.nostr) return(undefined);
-    const localpool = new RelayPool();
+    const localpool = new RelayPool(undefined,poolOptions);
     try {
       let events = [];
       if(Window.DEBUG) console.log('loadPetnames: getDefaultOutboxRelays');
@@ -1211,7 +1203,7 @@ export function getRelationshipPetname(userNpub, userDisplayName) {
 export async function getRelationshipForNpub(userNpub) {
   if(window.DEBUG) console.log('in getPetnameForNpub');
   return new Promise(async(res, rej) => {
-    const localpool = new RelayPool();
+    const localpool = new RelayPool(undefined,poolOptions);
     try {
       let events = [];
       const defaultRelays = getDefaultOutboxRelays();
@@ -1354,7 +1346,6 @@ export async function updatePetname(userNpub, petname) {
     updateCacheOutboxRelays(myOutboxRelays, myNpub);
   }
   const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
-  //const pool = new RelayPool();
   writepool.publish(EventSigned, relaysToUse);
   const sleeping = await sleep(100);
 }
@@ -1415,10 +1406,8 @@ export async function publishStatus(status, url) {
       updateCacheOutboxRelays(myOutboxRelays, myNpub);
     }
     const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
-    //const pool = new RelayPool();
     writepool.publish(eventSigned, relaysToUse);
     const sleeping = await sleep(100);
-    //pool.close();
     return [true, ''];
   }  
 }
@@ -1426,7 +1415,7 @@ export async function publishStatus(status, url) {
 export async function getCBadgeConfigsForPubkey(pubkey) {
   if(window.DEBUG) console.log("in getCBadgeIdsForPubkey for pubkey ", pubkey);
   return new Promise(async(res, rej) => {
-    const localpool = new RelayPool();
+    const localpool = new RelayPool(undefined,poolOptions);
     try {
       let events = [];
       const defaultRelays = getDefaultOutboxRelays();
@@ -1531,10 +1520,8 @@ export async function sendLiveChat(roomATag, textchat) {
       updateCacheOutboxRelays(myOutboxRelays, myNpub);
     }
     const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
-    //const pool = new RelayPool();
     writepool.publish(eventSigned, relaysToUse);
     const sleeping = await sleep(100);
-    //pool.close();
     return [true, eventSigned.id];
   }  
 }
@@ -1571,10 +1558,8 @@ export async function publishZapGoal(description, amount) {
       return [false, 'There was an error with your nostr extension'];
     } else {
       // push to relays
-      //const pool = new RelayPool();
       writepool.publish(eventSigned, relaysToUse);
       const sleeping = await sleep(100);
-      //pool.close();
       return [true, eventSigned];
     }
   } catch (err) {
@@ -1585,7 +1570,7 @@ export async function publishZapGoal(description, amount) {
 export async function loadZapGoals() {
   return new Promise(async(res, rej) => {
     if (!window.nostr) return(undefined);
-    const localpool = new RelayPool();
+    const localpool = new RelayPool(undefined,poolOptions);
     try {
       let events = [];
       const defaultRelays = getDefaultOutboxRelays();
@@ -1632,4 +1617,34 @@ export async function loadZapGoals() {
       rej(undefined);
     }
   });
+}
+
+export async function signAndSendEvent(event) {
+  if (!window.nostr) return [false, 'A nostr extension is required to sign events'];
+  if (!event.hasOwnProperty("created_at")) event["created_at"] = Math.floor(Date.now() / 1000);
+  if (!event.hasOwnProperty("content")) event["content"] = "";
+  if (!event.hasOwnProperty("id")) event["id"] = null;
+  if (!event.hasOwnProperty("kind")) event["kind"] = 1;
+  if (!event.hasOwnProperty("pubkey")) event["pubkey"] = null;
+  if (!event.hasOwnProperty("sig")) event["sig"] = null;
+  if (!event.hasOwnProperty("tags")) event["tags"] = [];
+  const eventSigned = await window.nostr.signEvent(event);
+  if (!eventSigned) {
+    return [false, 'There was an error with your nostr extension'];
+  } else {
+    // push to relays
+    const defaultRelays = getDefaultOutboxRelays();
+    const myPubkey = await window.nostr.getPublicKey();
+    const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
+    let myOutboxRelays = [];
+    if (userRelays?.length == 0) {
+      const myNpub = nip19.npubEncode(myPubkey);
+      myOutboxRelays = await getOutboxRelays(myPubkey); // (async() => {await getOutboxRelays(myPubkey)})();
+      updateCacheOutboxRelays(myOutboxRelays, myNpub);
+    }
+    const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
+    writepool.publish(eventSigned, relaysToUse);
+    const sleeping = await sleep(100);
+    return [true, eventSigned.id];
+  }  
 }
