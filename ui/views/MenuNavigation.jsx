@@ -2,11 +2,12 @@ import React, {useState} from 'react';
 import {use} from 'use-minimal-state';
 import {openModal} from './Modal';
 import EditPersonalSettings from './editPersonalSettings/EditPersonalSettings';
+import { PostNoteModal } from './PostNoteModal';
 import StreamingModal from './StreamingModal';
 import {isDark} from '../lib/theme';
 import {useJam} from '../jam-core-react';
 import {EditRoomModal} from './editRoom/EditRoom';
-import {Edit, Settings, Stop, Stream, Mic, Share, Slideshow, Refresh, Up, Down, Follow} from './Svg';
+import {Edit, Settings, Stop, Stream, Mic, Share, Slideshow, Refresh, Up, Down, Follow, WriteNote} from './Svg';
 import {followAllNpubsFromIds} from '../nostr/nostr';
 
 export function MyNavMenu({close, roomColor, iAmAdmin}) {
@@ -62,6 +63,19 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
       className="max-w-lg max-h-128 mx-auto"
       style={{backgroundColor: roomColor.avatarBg, color: textColor}}
     >
+      <table><tr><td valign="top">
+
+      <div
+        onClick={() => {
+          openModal(EditPersonalSettings);
+          close(false);
+        }}
+        className="p-2 flex items-center"
+      >
+        <Settings color={iconColor} />
+        <p className="text-md ml-1 cursor-pointer">Personal Settings</p>
+      </div>
+
       {(iModerate || iOwn || iAmAdmin) && (
         <div
           onClick={() => {
@@ -75,13 +89,17 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
         </div>
       )}
 
-      {!stageOnly && (iModerate || iOwn || iAmAdmin) && !iSpeak && (
-        <div
-          onClick={() => addSpeaker(roomId, myId).then(close(false))}
-          className="p-2 flex items-center"
-        >
-          <p className="text-md cursor-pointer">↑ Move to stage</p>
-        </div>
+      {window.nostr && (
+      <div
+        onClick={() => {
+          openModal(PostNoteModal, {roomColor});
+          close(false);
+        }}
+        className="p-2 flex items-center"
+      >
+        <WriteNote color={iconColor} />
+        <p className="text-md ml-1 cursor-pointer">Note to Nostr</p>
+      </div>
       )}
 
       {iSpeak && (
@@ -117,6 +135,8 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
         </div>
       )}
 
+      </td><td valign="top">
+
       <div
         onClick={async () => copyToClipboard()}
         className="p-2 flex items-center"
@@ -127,6 +147,14 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
         </p>
       </div>
 
+      {!stageOnly && (iModerate || iOwn || iAmAdmin) && !iSpeak && (
+        <div
+          onClick={() => addSpeaker(roomId, myId).then(close(false))}
+          className="p-2 flex items-center"
+        >
+          <p className="text-md cursor-pointer">↑ Move to stage</p>
+        </div>
+      )}
       {!stageOnly && (iOwn || iModerate || iAmAdmin) && iSpeak && (
         <div
           onClick={() => removeSpeaker(roomId, myId).then(close(false))}
@@ -183,7 +211,6 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
           }}
           className="p-2 flex items-center"
         >
-          
           {room.currentSlide < 1 ? <Slideshow color={iconColor} /> : <Stop color={iconColor} />}
           <p className="text-md ml-1 cursor-pointer">
             {room.currentSlide > 0 ? 'Hide slides' : 'Start slides'}
@@ -191,6 +218,7 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
         </div>
       )}
 
+      {window.nostr && (
       <div onClick={async () => {
         let inRoomPeerIds = sessionStorage.getItem(roomId + '.peerIds');
         followAllNpubsFromIds(inRoomPeerIds);
@@ -200,7 +228,10 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
         <p className="text-md ml-1 cursor-pointer" style={{color: textColor}}>
           Follow everyone
         </p>
-      </div>  
+      </div>
+      )}
+
+      </td></tr></table>
 
     </div>
   );

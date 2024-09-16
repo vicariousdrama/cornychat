@@ -3,6 +3,7 @@ const {RelayPool} = require('nostr-relaypool');
 const {nip19} = require('nostr-tools');
 const {isValidLoginSignature} = require('../nostr/nostr');
 
+const poolOptions = {autoReconnect:true}
 function decodeNote(noteId) {
   const note = nip19.decode(noteId);
   const type = note.type;
@@ -40,7 +41,7 @@ const verify = (identity, publicKey) => {
 
     // anonymous user providing nostr note id
     if (identity.verificationInfo) {
-      const pool = new RelayPool();
+      const pool = new RelayPool(undefined,poolOptions);
 
       try {
         const noteId = identity.verificationInfo;

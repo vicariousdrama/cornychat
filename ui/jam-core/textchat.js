@@ -169,7 +169,9 @@ function TextChat({swarm}) {
             let atagkey = `${roomId}.atag`;
             let roomATag = sessionStorage.getItem(atagkey) || '';
             if (roomATag.length > 0) {
-              [isok, nostrEventId] = await sendLiveChat(roomATag, textchat);
+              let kind1311text = textchat;
+              if (kind1311text.startsWith("/me ")) kind1311text.replaceAll("/me ","");
+              [isok, nostrEventId] = await sendLiveChat(roomATag, kind1311text);
               if (!isok) nostrEventId = undefined;
             }
           }

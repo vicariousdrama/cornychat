@@ -80,7 +80,7 @@ const deleteNostrSchedule = async (roomId) => {
 const getScheduledEvents = async () => {
     if(pmd) console.log("in getScheduledEvents");
     return new Promise(async (res, rej) => {
-        const localpool = new RelayPool();
+        const localpool = new RelayPool(undefined,poolOptions);
         try {
             // Look for any calendar time event with the tag 'audiospace' to be implementation agnostic
             // This allows other services like Nostr Nests to publish scheduled events if they want to
@@ -580,7 +580,7 @@ const deleteLiveActivity = async (roomId, dtt) => {
 const getLiveActivities = async() => {
     if (pmd) console.log("in getLiveActivities for specified pubkeys");
     return new Promise(async (res, rej) => {
-        const localpool = new RelayPool();
+        const localpool = new RelayPool(undefined,poolOptions);
         try {
             let goalFilter = [{kinds:[30311], limit: 500}];
             goalFilter[0]["#L"] = ["com.cornychat"]
@@ -800,7 +800,7 @@ const publishRoomActive = async (roomId, dtt, roomInfo, userInfo, isnew) => {
 
 const getZapGoals = async (pubkey) => {
     return new Promise(async (res, rej) => {
-        const localpool = new RelayPool();
+        const localpool = new RelayPool(undefined,poolOptions);
         try {
             let goalFilter = [{kinds:[9041], authors: [pubkey], limit: 50}];
             let waitForEvents = 3000; // 3 seconds
