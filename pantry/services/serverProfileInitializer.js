@@ -10,7 +10,11 @@ const serverProfileInitializer = async () => {
         let backgroundURI = process.env.SERVER_PROFILE_BANNER || `https://${jamHost}/img/cornychat-banner.png`;
         let lud16 = process.env.SERVER_PROFILE_LUD16 || 'cornychatdev@satsilo.com';
         let nip05 = process.env.SERVER_PROFILE_NIP05 || `announcebot@${jamHost}`;
-        let result = await updateNostrProfileForServer(name, description, logoURI, backgroundURI, lud16, nip05);
+        try {
+            let result = await updateNostrProfileForServer(name, description, logoURI, backgroundURI, lud16, nip05);
+        } catch(error) {
+            console.log(`[serverProfileInitializer] error: ${error}`);
+        }
     }
 };
 

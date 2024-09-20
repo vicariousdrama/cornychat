@@ -85,7 +85,7 @@ export const ExportSlidesModal = ({
         </div>
         <input
           type="text"
-          className="w-full p-2 border border-gray-300 mb-4 bg-gray-400 text-black placeholder-black"
+          className="w-full p-2 border border-gray-300 mb-4 placeholder-gray-500 bg-gray-300 text-black"
           placeholder="Unique ID (using the same of prior export will overwrite it)"
           value={dTagValue}
           onChange={e => {
@@ -97,7 +97,7 @@ export const ExportSlidesModal = ({
         </p>
         <input
           type="text"
-          className="w-full p-2 border border-gray-300 mb-4 bg-gray-400 text-black placeholder-black"
+          className="w-full p-2 border border-gray-300 mb-4 placeholder-gray-500 bg-gray-300 text-black"
           placeholder="Name"
           value={name}
           onChange={e => {
@@ -109,7 +109,7 @@ export const ExportSlidesModal = ({
         </p>
         <input
           type="text"
-          className="w-full p-2 border border-gray-300 mb-4 bg-gray-400 text-black placeholder-black"
+          className="w-full p-2 border border-gray-300 mb-4 placeholder-gray-500 bg-gray-300 text-black"
           placeholder="About (optional)"
           value={about}
           onChange={e => {

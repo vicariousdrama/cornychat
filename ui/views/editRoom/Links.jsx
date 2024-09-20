@@ -151,25 +151,7 @@ export function Links({
         <div className="flex">
           <input
             className={mqp(
-              'rounded placeholder-black bg-gray-400 text-black w-full mx-1 md:w-full'
-            )}
-            type="text"
-            placeholder="Visit my website"
-            value={linkText}
-            autoComplete="off"
-            style={{
-              borderWidth: '0px',
-              fontSize: '15px',
-            }}
-            onChange={e => {
-              setLinkText(e.target.value);
-            }}
-          ></input>
-        </div>
-        <div className="flex">
-          <input
-            className={mqp(
-              'rounded placeholder-black bg-gray-400 text-black w-full mx-1 md:w-full'
+              'rounded placeholder-gray-500 bg-gray-300 text-black w-full mx-1 md:w-full'
             )}
             type="text"
             placeholder={jamConfig.urls.jam}
@@ -181,6 +163,24 @@ export function Links({
             }}
             onChange={e => {
               setLinkURI(e.target.value);
+            }}
+          ></input>
+        </div>
+        <div className="flex">
+          <input
+            className={mqp(
+              'rounded placeholder-gray-500 bg-gray-300 text-black w-full mx-1 md:w-full'
+            )}
+            type="text"
+            placeholder="Title/Description for the link"
+            value={linkText}
+            autoComplete="off"
+            style={{
+              borderWidth: '0px',
+              fontSize: '15px',
+            }}
+            onChange={e => {
+              setLinkText(e.target.value);
             }}
           ></input>
         </div>

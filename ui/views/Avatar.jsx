@@ -183,7 +183,7 @@ function Avatar({
             {isValidNostr(info) ? (
             <div title={'Verified Signature by Nostr Pubkey'} style={{marginTop:'-2px'}}>
               <img
-                style={{width:'24px',height:'auto',opacity:inRoom?1:.15}}
+                style={{width:'24px',height:'24px',opacity:inRoom?1:.15}}
                 alt={'Verified Signature by Nostr Pubkey'}
                 src={'/img/symbols/nostr-icon-purple-256x256.png'}
               />
@@ -191,7 +191,7 @@ function Avatar({
             ) : (
             <div title={'Anonymous'} style={{marginTop:'-2px'}}>
               <img
-                style={{width:'24px',height:'auto',opacity:inRoom?1:.15}}
+                style={{width:'24px',height:'24px',opacity:inRoom?1:.15}}
                 alt={'Anonymous'}
                 src={'/img/symbols/guyfawkes.png'}
               />

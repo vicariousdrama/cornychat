@@ -25,6 +25,31 @@ export function Slides({
   const videoTypes = [".mp4",".webm",".ogg"];
   const imageTypes = [".bmp",".gif","jpg","jpeg",".png",".svg",".webp"];
 
+  // Upload images 
+  async function uploadFile() { 
+    const files = fileUpload.files; 
+    if (!files.length) { return; } 
+    for (let file of files) { 
+      const formData = new FormData(); 
+      formData.append('file', file); 
+      try { 
+          const response = await fetch(
+            'https://nostr.build/api/v2/upload/files', 
+            { method: 'POST', body: formData, }
+          );
+          const result = await response.json(); 
+          if (result.status === 'success') { 
+            const imageUrl = result.data[0].url; 
+            setSlideURI(imageUrl);
+          } else { 
+            alert('Upload failed. Please try again.'); 
+          } 
+      } catch (error) { 
+          alert('An error occurred during the upload. Please try again.');
+      } 
+    } 
+  };
+
   function removeSlide(indexSlide) {
     let result = confirm('Are you sure you want to remove this slide?');
     if (result != true) {
@@ -150,28 +175,29 @@ export function Slides({
             <option key="sis_end" value="end">end</option>
           </select> of the list:
         </p>
-        <div className="flex">
-          <input
-            className={mqp(
-              'rounded placeholder-black bg-gray-400 text-black w-full mx-1 md:w-full'
-            )}
-            type="text"
-            placeholder="Caption for this image"
-            value={slideText}
-            autoComplete="off"
+        <div className="flex justify-between">
+          <input type="file" name="upload" id="fileUpload" accept="image/*" 
+            className="w-full"
             style={{
-              borderWidth: '0px',
-              fontSize: '15px',
+              fontSize: '10pt',
+              margin: '0px',
+              marginLeft: '4px',
+              padding: '2px'
+            }} 
+          />
+          <button 
+            className="px-5 text-xs rounded-md" 
+            style={{
+              color: textColor,
+              backgroundColor: roomColor.buttons.primary,
             }}
-            onChange={e => {
-              setSlideText(e.target.value);
-            }}
-          ></input>
+            onClick={async() => {uploadFile();}}
+          >Upload</button>
         </div>
         <div className="flex">
           <input
             className={mqp(
-              'rounded placeholder-black bg-gray-400 text-black w-full mx-1 md:w-full'
+              'rounded placeholder-gray-500 bg-gray-300 text-black w-full mx-1 md:w-full'
             )}
             type="text"
             placeholder="Image URI for this slide"
@@ -186,6 +212,24 @@ export function Slides({
             }}
           ></input>
         </div>
+        <div className="flex">
+          <input
+            className={mqp(
+              'rounded placeholder-gray-500 bg-gray-300 text-black w-full mx-1 md:w-full'
+            )}
+            type="text"
+            placeholder="Caption for this image"
+            value={slideText}
+            autoComplete="off"
+            style={{
+              borderWidth: '0px',
+              fontSize: '15px',
+            }}
+            onChange={e => {
+              setSlideText(e.target.value);
+            }}
+          ></input>
+        </div>        
         <div className="flex">
           <button
             className="px-5 text-sm rounded-md"

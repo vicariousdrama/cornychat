@@ -115,7 +115,7 @@ export function DesignRoomInfo({
       {iOwn && (
       <input
         className={mqp(
-          'rounded-lg placeholder-black bg-gray-400 text-black border-4 m-2 pb-2 rounded-lg w-full md:w-96'
+          'rounded-lg placeholder-gray-500 bg-gray-300 text-black border-4 m-2 pb-2 rounded-lg w-full md:w-96'
         )}
         type="text"
         placeholder="Background Image URI"
@@ -140,7 +140,7 @@ export function DesignRoomInfo({
         onChange={e => {
           setBackgroundRepeat(e.target.value);
         }}
-        className={'border mt-3 ml-2 p-2 text-black rounded'}
+        className={'border mt-3 ml-2 p-2 bg-gray-300 text-black rounded'}
       >
         <option key="backgroundRepeatYes" value="repeat">Yes</option>
         <option key="backgroundRepeatNo" value="no-repeat">No</option>
@@ -157,7 +157,7 @@ export function DesignRoomInfo({
         onChange={e => {
           setBackgroundSize(e.target.value);
         }}
-        className={'border mt-3 ml-2 p-2 text-black rounded'}
+        className={'border mt-3 ml-2 p-2 bg-gray-300 text-black rounded'}
       >
         <option key="backgroundSizeAuto" value="auto">auto</option>
         <option key="backgroundSizeContain" value="cover">contain</option>

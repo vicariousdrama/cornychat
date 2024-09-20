@@ -1,8 +1,8 @@
 const {getZapGoals, publishZapGoal, deleteOldZapGoals} = require('../nostr/nostr');
 const {nip19, getPublicKey} = require('nostr-tools');
-const {serverNsec, relaysZapGoals} = require('../config');
+const {serverNsec, relaysZapGoals, serverZapGoalUpdateInterval} = require('../config');
 const {get,set} = require('../services/redis');
-const UPDATE_INTERVAL = 60 * 60 * 1000; // 1 hour
+const CHECK_INTERVAL = serverZapGoalUpdateInterval * 60 * 60 * 1000;
 
 function sleep(ms) {
     return new Promise(res => setTimeout(res, ms));
@@ -13,7 +13,12 @@ const checkGoal = async (currentGoal, sk) => {
     let theTime = Date.now();
 
     // get our goals from nostr, and set as latest
-    let zapgoals = await getZapGoals(pk);
+    let zapgoals = [];
+    try {
+        await getZapGoals(pk);
+    } catch(e) {
+        console.log(`[zapGoalUpdater.checkGoal] error fetching zap goals: ${e}`);        
+    }
     for (let zapgoal of zapgoals) {
         if (zapgoal.created_at > currentGoal.created_at) {
             currentGoal = zapgoal;
@@ -36,14 +41,14 @@ const checkGoal = async (currentGoal, sk) => {
 
     let update = false;
     if (currentGoal.created_at == 0) {
-        console.log(`There is no current zapgoal for the server. One will be created`);
+        console.log(`[checkGoal] there is no current zapgoal for the server. One will be created`);
         update = true;
     } else if (currentGoal.content != goalDescription) {
-        console.log(`The zapgoal for the server will be updated because the content (${currentGoal.content}) != target (${goalDescription})`)
+        console.log(`[checkGoal] the zapgoal for the server will be updated because the content (${currentGoal.content}) != target (${goalDescription})`)
         update = true;
     }
     if (update) {
-        console.log(`Setting zap goal: ${goalDescription} [target=${amount} sats]`);
+        console.log(`[checkGoal] setting zap goal: ${goalDescription} [target=${amount} sats]`);
         currentGoal = await publishZapGoal(sk, goalDescription, amount, relays);
         if (currentGoal.created_at > 0) {
             let r = await set('server/zapgoal', currentGoal);
@@ -53,7 +58,7 @@ const checkGoal = async (currentGoal, sk) => {
         for (let t of currentGoal.tags) {
             if (t.length > 1 && t[0] == "amount") goalAmount = Math.floor(Math.floor(t[1])/1000);
         }
-        console.log(`Current zap goal: ${currentGoal.content} [target=${goalAmount} sats] created_at: ${currentGoal.created_at}`);
+        console.log(`[checkGoal] current zap goal: ${currentGoal.content} [target=${goalAmount} sats] created_at: ${currentGoal.created_at}`);
         if (currentGoal.created_at > 0) {
             let r = await set('server/zapgoal', currentGoal);
         }
@@ -62,13 +67,14 @@ const checkGoal = async (currentGoal, sk) => {
 }
 
 const zapGoalUpdater = async () => {
+    if (serverNsec.length == 0) return;
     await sleep(2500);
     const sk = nip19.decode(serverNsec).data;
 
     // cleanup old goals
     deleteOldZapGoals(sk);
 
-    console.log(`Looking up current zap goal`);
+    console.log(`[zapGoalUpdater] looking up current zap goal`);
     let currentGoal = await get('server/zapgoal');
     if (currentGoal == undefined || currentGoal == {}) currentGoal = {created_at:0}
 
@@ -78,7 +84,7 @@ const zapGoalUpdater = async () => {
     // periodic checks every hour
     setInterval(async () => {
         currentGoal = await checkGoal(currentGoal, sk);
-    }, UPDATE_INTERVAL);
+    }, CHECK_INTERVAL);
 };
 
 module.exports = {zapGoalUpdater};

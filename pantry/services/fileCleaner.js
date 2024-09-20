@@ -39,12 +39,16 @@ const cleanDirectory = async recordingPath => {
 const setupCleaner = async () => {
   setInterval(async () => {
     console.log(
-      `Starting cleanup of recordings older than ${recordFileRetentionDays} day${
+      `[setupCleaner] starting cleanup of recordings older than ${recordFileRetentionDays} day${
         recordFileRetentionDays > 1 ? 's' : ''
       } ...`
     );
-    await cleanDirectory(recordFileLocationPath);
-    console.log('Cleanup complete.');
+    try {
+      await cleanDirectory(recordFileLocationPath);
+    } catch(error) {
+      console.log(`[setupCleaner] error: ${error}`);
+    }
+    console.log('[setupCleaner] Cleanup complete.');
   }, CLEANING_INTERVAL);
 };
 

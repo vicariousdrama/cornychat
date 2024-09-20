@@ -422,7 +422,7 @@ export default function RoomChat({
                         {isdm && (<span className="rounded" style={{backgroundColor: 'rgb(32,128,32)',color:'rgb(255,255,255)'}}>{myId==userid ? '>>' + (textchatShowNames ? tousername : "") : '<<'}</span>)}
                         {isNostrEvent && (
                             <img
-                                style={{width:'24px',height:'auto'}}
+                                style={{width:'24px',height:'24px'}}
                                 title={'Published to nostr'}
                                 src={'/img/symbols/nostr-icon-purple-256x256.png'}
                             />)}
@@ -446,7 +446,7 @@ export default function RoomChat({
                         {isdm && (<span className="rounded" style={{backgroundColor: 'rgb(32,128,32)',color:'rgb(255,255,255)'}}>{myId==userid ? '>>' + (textchatShowNames ? tousername : "") : '<<'}</span>)}
                         {isNostrEvent && (
                             <img
-                                style={{width:'24px',height:'auto'}}
+                                style={{width:'24px',height:'24px'}}
                                 title={'Published to nostr'}
                                 src={'/img/symbols/nostr-icon-purple-256x256.png'}
                             />)}

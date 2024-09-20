@@ -18,29 +18,39 @@ export function Schedule({
     let nd = parseInt(d.split('-')[2]);
     let nh = (parseInt(t.split(':')[0]));
     let nn = (parseInt(t.split(':')[1]));
-    let nhs = (nh * 60 * 60); // hours in seconds
-    let nns = (nn * 60);      // minutes in seconds
-    let nts = (nhs + nns);
-    let nz = 0;
-    if(z != undefined) {
-      for (let r of rawTimeZones) {
-        if (r.name == z) {
-          nz = r.rawOffsetInMinutes * 60;
-        }
-      }
-    }
-    // Get local time zone offset
-    let ltz = Intl.DateTimeFormat().resolvedOptions().timeZone; // Europe/London
-    let ltzo = 0;
-    for (let r of rawTimeZones) {
-      if (r.name == ltz) {
-        ltzo = r.rawOffsetInMinutes * 60;
-      }
-    }
-    let o = new Date(ny,nm,nd,nh,nn);
-    let p = (o.getTime() / 1000);
-    let u = (o.getTime() / 1000) + (ltzo - nz);
-    return u;
+    let o = new Date(ny,nm,nd,nh,nn); // in local time zone ?
+    let mo = o.getTimezoneOffset();
+    let p = (o.getTime() / 1000) + (mo * 60);
+    let q = (o.getTime() / 1000) - (mo * 60);
+    return q;
+
+    // let nz = 0;
+    // if(z != undefined) {
+    //   for (let r of getTimeZones) {
+    //     if (r.name == z || (r.groups && r.groups.includes(z))) {
+    //       if (r.currentTimeOffsetInMinutes) {
+    //         nz = r.currentTimeOffsetInMinutes * 60;
+    //       } else {
+    //         nz = r.rawOffsetInMinutes * 60;
+    //       }
+    //     }
+    //   }
+    // }
+    // // Get local time zone offset
+    // let ltz = Intl.DateTimeFormat().resolvedOptions().timeZone; // Europe/London
+    // let ltzo = 0;
+    // for (let r of getTimeZones) {
+    //   if (r.name == ltz || (r.groups && r.groups.includes(ltz))) {
+    //     if (r.currentTimeOffsetInMinutes) {
+    //       ltzo = r.currentTimeOffsetInMinutes * 60;
+    //     } else {
+    //       ltzo = r.rawOffsetInMinutes * 60;
+    //     }
+    //   }
+    // }
+    
+    // let u = (o.getTime() / 1000) + (ltzo - nz);
+    // return u;
   }
 
   let iCanSchedule = (nostrNpub.length > 0); // iOwn
@@ -62,16 +72,51 @@ export function Schedule({
     enddate: ed,
     endtime: et,
     endUnixTime: eut,
+    repeat: schedule?.repeat ?? 'never',
   });
   let [expanded, setExpanded] = useState(false);
   let [editing, setEditing] = useState(false);
   let [showTimezoneSelect, setShowTimezoneSelect] = useState(false);
   let [showRepeatSelect, setShowRepeatSelect] = useState(false);
   let handleScheduleChange = e => {
-    setScheduleCandidate({
-      ...scheduleCandidate,
-      [e.target.name]: e.target.value,
-    });
+
+    let newScheduleCandidate = {
+      title: scheduleCandidate.title,
+      summary: scheduleCandidate.summary,
+      startdate: scheduleCandidate.startdate,
+      starttime: scheduleCandidate.starttime,
+      startUnixTime: scheduleCandidate.startUnixTime,
+      timezone: scheduleCandidate.timezone,
+      enddate: scheduleCandidate.enddate,
+      endtime: scheduleCandidate.endtime,
+      endUnixTime: scheduleCandidate.endUnixTime,
+      repeat: scheduleCandidate.repeat,
+    }
+
+    newScheduleCandidate[e.target.name] = e.target.value;
+
+    // Force end date to be after start date
+    if (e.target.name.startsWith("start") || e.target.name.startsWith("end") || e.target.name == "timezone") {
+      let sd = newScheduleCandidate.startdate ?? new Date().toISOString().split('T')[0];
+      let st = newScheduleCandidate.starttime ?? '00:00';
+      let sz = newScheduleCandidate.timezone ?? "Europe/London";
+      let startUnixTime = makeUnixTime(sd,st,sz);
+      let ed = newScheduleCandidate.enddate ?? new Date().toISOString().split('T')[0];
+      let et = newScheduleCandidate.endtime ?? '00:00';
+      let ez = newScheduleCandidate.timezone ?? "Europe/London";
+      let endUnixTime = makeUnixTime(ed,et,ez);
+      if (endUnixTime <= startUnixTime) {
+        endUnixTime = startUnixTime + (2 * 60 * 60); // 2 hour results in 1 hour (i dont understand why this bug happening)
+        let edate = new Date(endUnixTime * 1000);
+        let newEndDate = edate.toISOString().split('T')[0];
+        let newEndTime = edate.toISOString().split('T')[1].substring(0,5);
+        newScheduleCandidate.startUnixTime = startUnixTime;
+        newScheduleCandidate.endUnixTime = endUnixTime;
+        newScheduleCandidate.enddate = newEndDate;
+        newScheduleCandidate.endtime = newEndTime;
+      }
+    }
+    setScheduleCandidate(newScheduleCandidate);
   };
   let removeSchedule = e => {
     e.preventDefault();
@@ -80,7 +125,6 @@ export function Schedule({
   let submitSchedule = e => {
     e.preventDefault();
     if (scheduleCandidate) {
-      let schedule = scheduleCandidate;
       let sd = scheduleCandidate?.startdate ?? new Date().toISOString().split('T')[0];
       let st = scheduleCandidate?.starttime ?? '00:00';
       let sz = scheduleCandidate?.timezone ?? "Europe/London";
@@ -116,7 +160,7 @@ export function Schedule({
             <div className="flex">
                 <input
                     type="text"
-                    className="flex-grow p-2 border rounded bg-gray-400 text-black"
+                    className="flex-grow p-2 border rounded placeholder-gray-500 bg-gray-300 text-black"
                     name="title"
                     placeholder="Title for scheduled event"
                     value={scheduleCandidate?.title || `${name}`}
@@ -131,7 +175,7 @@ export function Schedule({
             <div className="flex">
                 <input
                     type="text"
-                    className="flex-grow p-2 border rounded bg-gray-400 text-black"
+                    className="flex-grow p-2 border rounded placeholder-gray-500 bg-gray-300 text-black"
                     name="summary"
                     placeholder="Summary for scheduled event"
                     value={scheduleCandidate?.summary || `${description}`}
@@ -146,7 +190,7 @@ export function Schedule({
             <div className="flex">
               <input
                 type="date"
-                className="flex-grow border rounded bg-gray-400 text-black"
+                className="flex-grow border rounded placeholder-gray-500 bg-gray-300 text-black"
                 name="startdate"
                 placeholder="yyyy-mm-dd"
                 min={`${
@@ -160,7 +204,7 @@ export function Schedule({
               />
               <input
                 type="time"
-                className="flex-none ml-3 border rounded bg-gray-400 text-black"
+                className="flex-none ml-3 border rounded placeholder-gray-500 bg-gray-300 text-black"
                 name="starttime"
                 placeholder="hh:mm"
                 value={scheduleCandidate?.starttime || '09:00'}
@@ -187,7 +231,7 @@ export function Schedule({
               defaultValue={scheduleCandidate.timezone}
               onChange={handleScheduleChange}
               className={
-                showTimezoneSelect ? 'w-full border mt-3 p-2 rounded bg-gray-400 text-black' : 'hidden'
+                showTimezoneSelect ? 'w-full border mt-3 p-2 rounded bg-gray-300 text-black' : 'hidden'
               }
             >
               {rawTimeZones.map(tz => {
@@ -206,7 +250,7 @@ export function Schedule({
             <div className="flex">
               <input
                 type="date"
-                className="flex-grow p-2 border rounded bg-gray-400 text-black"
+                className="flex-grow p-2 border rounded placeholder-gray-500 bg-gray-300 text-black"
                 name="enddate"
                 placeholder="yyyy-mm-dd"
                 min={`${
@@ -220,20 +264,19 @@ export function Schedule({
               />
               <input
                 type="time"
-                className="flex-none ml-3 p-2 border rounded bg-gray-400 text-black"
+                className="flex-none ml-3 p-2 border rounded placeholder-gray-500 bg-gray-300 text-black"
                 name="endtime"
                 placeholder="hh:mm"
                 value={scheduleCandidate?.endtime || '17:00'}
                 onChange={handleScheduleChange}
               />
             </div>
-            <span className="hidden">
             <div className={showRepeatSelect ? 'hidden' : 'p-2 text-gray-500'}>
               <span
                 className="underline"
                 onClick={() => setShowRepeatSelect(true)}
               >
-                repeat?
+                Recurring Event ?
               </span>
             </div>
             <select
@@ -241,10 +284,10 @@ export function Schedule({
               defaultValue="never"
               onChange={handleScheduleChange}
               className={
-                showRepeatSelect ? 'border mt-3 p-2 rounded' : 'hidden'
+                showRepeatSelect ? 'border mt-3 p-2 rounded bg-gray-300 text-black' : 'hidden'
               }
             >
-              {['never', 'weekly', 'monthly'].map(rep => {
+              {['never', 'daily', 'weekly', 'biweekly', 'monthly', 'yearly'].map(rep => {
                 return (
                   <option key={rep} value={rep}>
                     {rep}
@@ -252,16 +295,15 @@ export function Schedule({
                 );
               })}
             </select>
-            </span>
           </div>
             )}
           <div
             className={schedule || !editing ? 'rounded bg-gray-700 border mt-4 w-full' : 'hidden'}
           >
             <div className="text-gray-300 p-3 font-medium">
-              Starting {schedule?.startdate} at {schedule?.starttime}
+              Starting: {schedule?.startdate} at {schedule?.starttime}
               <br />
-              Ending {schedule?.enddate} at {schedule?.endtime}
+              Ending: {schedule?.enddate} at {schedule?.endtime}
               <br />
               Timezone: {schedule?.timezone}
               <br />
@@ -269,9 +311,7 @@ export function Schedule({
               <br />
               Summary: {schedule?.summary}
               <br />
-              {schedule?.repeat == 'weekly' || schedule?.repeat == 'monthly'
-                ? schedule?.repeat
-                : ''}
+              Recurs: {schedule?.repeat}
             </div>
             {iCanSchedule && (
             <div className={schedule && !editing ? 'p-3 text-gray-500' : 'hidden'}>

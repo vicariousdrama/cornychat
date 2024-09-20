@@ -2,6 +2,7 @@ const express = require('express');
 const {get,set,del,list} = require('../services/redis');
 const {activeUsersInRoom} = require('../services/ws');
 const router = express.Router({mergeParams: true});
+const pmd = true;
 
 function removeValues(o, v1, v2) {
     let b = false;
@@ -22,7 +23,7 @@ router.delete('/:userId/:roomId', async function (req, res) {
     const roomId = req.params.roomId;
     // check permission
     if (!req.ssrIdentities.includes(req.params.userId)) {
-        console.log("ERROR: Request to remove user ", userId, " from room ", roomId, ", but ssrIdentities didn't include userId");
+        if (pmd) console.log("ERROR: Request to remove user ", userId, " from room ", roomId, ", but ssrIdentities didn't include userId");
         res.sendStatus(403);
         return;
     }
@@ -85,12 +86,12 @@ router.delete('/:userId/:roomId', async function (req, res) {
         }
     }
     // delete or update
-    console.log(`Changed room: ${JSON.stringify(roominfo)}`);
+    if (pmd) console.log(`[userRoomsRouter.delete] changed room: ${JSON.stringify(roominfo)}`);
     if (deleteRoom) {
-        console.log(`Deleting room ${roomId} as there are no more owners or moderators after removing ${userId}`);
+        if (pmd) console.log(`[userRoomsRouter.delete] deleting room ${roomId} as there are no more owners or moderators after removing ${userId}`);
         await del(roomkey);
     } else if (updateRoom) {
-        console.log(`Updating room ${roomId} with ${userId} removed`);
+        if (pmd) console.log(`[userRoomsRouter.delete] updating room ${roomId} with ${userId} removed`);
         roominfo.updateTime = Date.now();
         await set(roomkey, roominfo);
     }
@@ -118,7 +119,7 @@ router.get('/:userId', async function (req, res) {
         }
     }
     let st = (new Date()).getTime()
-    console.log(`- start building cache of rooms for user (${userid}): ${st}`);
+    if (pmd) console.log(`[userRoomsRouter] start building cache of rooms for user (${userid}): ${st}`);
     let userrooms = [];
     let userinfo = await get(`identities/${userid}`);
     let usernpub = '';
@@ -152,7 +153,7 @@ router.get('/:userId', async function (req, res) {
                     }
                 }
             } catch (error) {
-                console.log(`Error reading speakers in room ${roomId}`);
+                if (pmd) console.log(`[userRoomsRouter] error reading speakers in room ${roomId}: ${error}`);
             }
             let isModerator = false;
             try {
@@ -163,7 +164,7 @@ router.get('/:userId', async function (req, res) {
                     }
                 }
             } catch (error) {
-                console.log(`Error reading moderators in room ${roomId}`);
+                if (pmd) console.log(`[userRoomsRouter] error reading moderators in room ${roomId}: ${error}`);
             }
             let isOwner = false;
             try {
@@ -174,7 +175,7 @@ router.get('/:userId', async function (req, res) {
                     }
                 }
             } catch (error) {
-                console.log(`Error reading owners in room ${roomId}`);
+                if (pmd) console.log(`[userRoomsRouter] error reading owners in room ${roomId}: ${error}`);
             }
             if (isSpeaker || isOwner || isModerator) {
                 let peerIds = await activeUsersInRoom(roomId);
@@ -194,14 +195,14 @@ router.get('/:userId', async function (req, res) {
             }
             rrcount += 1;
             if ((rrcount % 50) == 0) {
-                console.log(`reviewed ${rrcount} rooms, found ${frcount} so far for user ${userid} (npub: ${usernpub}) ${(new Date()).getTime()}`);
+                if (pmd) console.log(`[userRoomsRouter] reviewed ${rrcount} rooms, found ${frcount} so far for user ${userid} (npub: ${usernpub}) ${(new Date()).getTime()}`);
             }
         }
     }
     // Save results to a key
     await set(userroomskey, {t: (new Date()).getTime(), r: userrooms});
     let et = (new Date()).getTime()
-    console.log(`- ended building cache of rooms for user (${userid}): ${et} (${et - st} ms)`);
+    if (pmd) console.log(`[userRoomsRouter] ended building cache of rooms for user (${userid}): ${et} (${et - st} ms)`);
 
     res.send(userrooms);
 });

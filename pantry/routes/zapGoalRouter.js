@@ -1,6 +1,5 @@
 const express = require('express');
 const {getRoomNSEC, getZapGoals} = require('../nostr/nostr');
-const {serverNsec} = require('../config');
 const { nip19, getPublicKey } = require('nostr-tools');
 const {get} = require('../services/redis');
 const router = express.Router({mergeParams: true});
@@ -23,12 +22,16 @@ router.get('', async function (req, res) {
         let theZapgoal = await get('server/zapgoal');
         res.send(theZapgoal);
         return;
-        //pk = getPublicKey(nip19.decode(serverNsec).data);
     } else {
         // get goals
-        let zapgoals = await getZapGoals(pk);
-        // then get the latest one
         let theZapgoal = {created_at:0};
+        let zapgoals = [];
+        try {
+            zapgoals = await getZapGoals(pk);
+        } catch(e) {
+            console.log(`[zapGoalRouter.get] error fetching zap goals: ${e}`);        
+        }
+        // then get the latest one
         for (let zapgoal of zapgoals) {
             if (zapgoal.created_at > theZapgoal.created_at) {
                 theZapgoal = zapgoal;
