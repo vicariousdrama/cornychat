@@ -88,7 +88,7 @@ export const CreateZapGoalModal = ({
         </p>
         <input
             className={mqp(
-                'rounded-lg placeholder-black bg-gray-400 text-black border-4 pb-2 rounded-lg w-full md:w-96'
+                'rounded-lg placeholder-gray-500 bg-gray-300 text-black border-4 pb-2 rounded-lg w-full md:w-96'
             )}
             type="text"
             placeholder="Short Zap Goal"
@@ -107,7 +107,7 @@ export const CreateZapGoalModal = ({
         </p>
         <input
             className={mqp(
-                'rounded-lg placeholder-black bg-gray-400 text-black border-4 pb-2 rounded-lg w-full md:w-96'
+                'rounded-lg placeholder-gray-500 bg-gray-300 text-black border-4 pb-2 rounded-lg w-full md:w-96'
             )}
             type="text"
             placeholder="21000"

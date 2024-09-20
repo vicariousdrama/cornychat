@@ -4,7 +4,11 @@ const {addAdmin} = require('../auth');
 
 const initDb = async () => {
   if (serverAdminId && serverAdminId.length > 0) {
-    await addAdmin(serverAdminId);
+    try {
+      await addAdmin(serverAdminId);
+    } catch(error) {
+      console.log(`[initDb] error: ${error}`);
+    }
   }
 };
 

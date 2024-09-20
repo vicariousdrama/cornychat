@@ -23,62 +23,72 @@ function doneRelayPool(p) {
     if (newpoolPerWrite) p.close();
 }
 const publishEvent = async (pool,event,relays) => {
+    if (pmd) console.log(`[publishEvent] publishing to relays ${JSON.stringify(relays)}\n${JSON.stringify(event)}`);
     let publishEventResults = await pool.publish(event, relays);
-    if(pool.errorsAndNotices && pool.errorsAndNotices.length > 0) console.log(`pool errors and notices: ${JSON.stringify(pool.errorsAndNotices)}`);
+    if(pool.errorsAndNotices && pool.errorsAndNotices.length > 0) console.log(`[publishEvent] pool errors and notices: ${JSON.stringify(pool.errorsAndNotices)}`);
 }
 
-const deleteNostrSchedule = async (roomId) => {
-    if (serverNsec.length == 0) return;
-    if (pmd) console.log("in deleteNostrSchedule");
-    const localwritepool = getRelayPool();
-    const eventUUID = `${jamHost}-${roomId}`;
-    const sk = nip19.decode(serverNsec).data;
-    const pk = getPublicKey(sk);
-    const kind = 31923;
-    const aTagValue = `${kind}:${pk}:${eventUUID}`;
-    const timestamp = Math.floor(Date.now() / 1000);
-    console.log(`updating event ${aTagValue} of room ${roomId} as no longer scheduled`)
-    const cleanseEvent = finalizeEvent({
-        created_at: timestamp,
-        kind: kind,
-        tags: [
-            ["d", eventUUID],
-            ["L", "com.cornychat"],
-            ["l", "deleted"],
-            ["expiration", `${timestamp}`],
-            ["title", "Deleted Event"],
-            ["start", `0`],
-            ["end", `0`],
-        ],
-        content: 'This event is no longer scheduled',
-    }, sk);
-    await publishEvent(localwritepool, cleanseEvent, relaysToUse);
-    await sleep(100);
+const deleteNostrSchedule = async (roomId, oldScheduledStart) => {
+    try {
+        if (serverNsec.length == 0) return;
+        if (pmd) console.log("[deleteNostrSchedule] removing schedule for room ", roomId, ", old start: ", oldScheduledStart);
+        const localwritepool = getRelayPool();
+        let eventUUID = `${jamHost}-${roomId}`;
+        if (oldScheduledStart) {
+            eventUUID = `${eventUUID}-${oldScheduledStart}`;
+        }
+        const sk = nip19.decode(serverNsec).data;
+        const pk = getPublicKey(sk);
+        const kind = 31923;
+        const aTagValue = `${kind}:${pk}:${eventUUID}`;
+        const timestamp = Math.floor(Date.now() / 1000);
+        console.log(`[deleteNostrSchedule] updating event ${aTagValue} of room ${roomId} as no longer scheduled`)
+        const cleanseEvent = finalizeEvent({
+            created_at: timestamp,
+            kind: kind,
+            tags: [
+                ["d", eventUUID],
+                ["L", "com.cornychat"],
+                ["l", "deleted"],
+                ["expiration", `${timestamp}`],
+                ["title", "Deleted Event"],
+                ["start", `0`],
+                ["end", `0`],
+            ],
+            content: 'This event is no longer scheduled',
+        }, sk);
+        await publishEvent(localwritepool, cleanseEvent, relaysToUse);
+        await sleep(100);
 
-    console.log(`deleting event ${eventUUID}`)
-    const deleteEvent = finalizeEvent({
-        created_at: timestamp,
-        kind: 5,
-        tags: [["a", aTagValue]],
-        content: 'This event is no longer scheduled',
-    }, sk);
-    await publishEvent(localwritepool, deleteEvent, relaysToUse);
-    await sleep(100);
+        console.log(`[deleteNostrSchedule] deleting event ${eventUUID}`)
+        const deleteEvent = finalizeEvent({
+            created_at: timestamp,
+            kind: 5,
+            tags: [["a", aTagValue]],
+            content: 'This event is no longer scheduled',
+        }, sk);
+        await publishEvent(localwritepool, deleteEvent, relaysToUse);
+        await sleep(100);
 
-    const kind1content = `The previously scheduled event for this audiospace room has been deleted.`;
-    const kind1event = finalizeEvent({
-        created_at: timestamp,
-        kind: 1,
-        tags: [],
-        content: kind1content,
-    }, sk);
-    await publishEvent(localwritepool, kind1event, relaysToUse);
-    await sleep(100);
-    doneRelayPool(localwritepool);
+        // eject from server/scheduledEvents
+        let ejectedEntry = await ejectServerSchedule({startTime: oldScheduledStart, location: `https://${jamHost}/${roomId}`});
+
+        const kind1content = `The previously scheduled event for this audiospace room has been deleted.`;
+        const kind1event = finalizeEvent({
+            created_at: timestamp,
+            kind: 1,
+            tags: [],
+            content: kind1content,
+        }, sk);
+        await publishEvent(localwritepool, kind1event, relaysToUse);
+        await sleep(100);
+        doneRelayPool(localwritepool);
+    } catch(error) {
+        console.log(`[deleteNostrSchedule] error: ${error}`);
+    }
 }
 
 const getScheduledEvents = async () => {
-    if (pmd) console.log("in getScheduledEvents");
     return new Promise(async (res, rej) => {
         const localpool = new RelayPool(undefined,poolOptions);
         try {
@@ -92,6 +102,7 @@ const getScheduledEvents = async () => {
             let hourSeconds = 3600;
             let maxTime = timestamp + (30 * daySeconds);
             let daysago30 = timestamp - (daySeconds * 30);
+            let daysago1 = timestamp - (daySeconds * 1);
             let waitForEvents = 5000; // 5 seconds
             let matchedEvents = [];
             let deleteEvents = [];
@@ -100,7 +111,7 @@ const getScheduledEvents = async () => {
             let audioSpaceCount = 0;
             const calendarFilter = [{kinds: [31923], limit: 5000, since: daysago30}];
             const deleteFilter = [{kinds: [5], limit: 5000, since: daysago30}];
-            const liveactivitiesFilter = [{kinds: [30311], limit: 5000, since: daysago30}];
+            const liveactivitiesFilter = [{kinds: [30311], limit: 5000, since: daysago1}];
 
             setTimeout(() => {
                 let deletedAudiospaces = [];
@@ -122,7 +133,7 @@ const getScheduledEvents = async () => {
                     }
                 }
                 // Build events within range, that aren't deleted
-                console.log('number of audiospace calendar events: ', calendarEvents.length);
+                console.log('[getScheduledEvents] number of audiospace calendar events: ', calendarEvents.length);
                 for (let event of calendarEvents) {
                     if (event.kind != 31923) continue;
                     const eventTags = event.tags;                    
@@ -173,32 +184,32 @@ const getScheduledEvents = async () => {
                         if (das.d == dTag) isDeleted = true;
                     }
                     if (isDeleted) {
-                        //console.log('skipping event that was deleted');
+                        //console.log('[getScheduledEvents] skipping event that was deleted');
                         continue;
                     }
                     // Reject based on erroneous time
                     if (startTime == undefined) {
-                        if (pmd) console.log('skipping event that has no start time');
+                        if (pmd) console.log('[getScheduledEvents] skipping event that has no start time');
                         continue;               // must have a time
                     }
                     if (endTime == undefined) {
-                        if (pmd) console.log('skipping event that has no end time');
+                        if (pmd) console.log('[getScheduledEvents] skipping event that has no end time');
                         continue;                 // must have a time
                     }
                     if (startTime > endTime) {
-                        if (pmd) console.log('skipping event that starts after it ends');
+                        if (pmd) console.log('[getScheduledEvents] skipping event that starts after it ends');
                         continue;                  // must begin before ending
                     }
                     if (endTime - startTime > daySeconds) {
-                        if (pmd) console.log('skipping event that lasts more than 1 day')
+                        if (pmd) console.log('[getScheduledEvents] skipping event that lasts more than 1 day')
                         continue;     // exclude events lasting more than 1 day
                     }
                     if ((startTime < timestamp) && (endTime + hourSeconds < timestamp)) {
-                        //console.log('skipping event that has ended more than an hour ago');
+                        //console.log('[getScheduledEvents] skipping event that has ended more than an hour ago');
                         continue;
                     }
                     if (startTime > maxTime) {
-                        if (pmd) console.log('skipping event that starts more than a week from now');
+                        if (pmd) console.log('[getScheduledEvents] skipping event that starts more than a week from now');
                         continue;                  // must start within 1 week
                     }
                     // check for required fields
@@ -206,10 +217,10 @@ const getScheduledEvents = async () => {
                         continue;
                     }
                     if (!(title && location && startTime && endTime)) {
-                        if (pmd) console.log('skipping event that is missing one of title, location, startTime, endTime');
+                        if (pmd) console.log('[getScheduledEvents] skipping event that is missing one of title, location, startTime, endTime');
                         continue;
                     }
-                    console.log(`adding a matched event: ${title} (${location} starting ${startTime})`);
+                    console.log(`[getScheduledEvents] adding a scheduled event: ${title} (${location} starting ${startTime})`);
                     // all good to include
                     let matchedEvent = {
                         startTime,
@@ -229,7 +240,7 @@ const getScheduledEvents = async () => {
 
                 // if we have less than scheduledEventLimit events, bring in other types from live activities
                 if (matchedEvents.length < scheduledEventLimit) {
-                    console.log("checking live activities for planned events");
+                    console.log("[getScheduledEvents] checking live activities for planned events");
                     let plannedActivities = [];
                     for (let event of liveActivitiesEvents) {
                         if (event.kind != 30311) continue;
@@ -284,7 +295,7 @@ const getScheduledEvents = async () => {
                             if (das.d == dTag) isDeleted = true;
                         }
                         if (isDeleted) {
-                            //console.log(`skipping activity ${dTag} that was deleted`);
+                            //console.log(`[getScheduledEvents] skipping activity ${dTag} that was deleted`);
                             continue;
                         }
                         // Check for ended
@@ -293,7 +304,7 @@ const getScheduledEvents = async () => {
                         }
                         // Must have service tag
                         if (service == undefined) {
-                            //console.log(`skipping activity ${dTag} that has no service`);
+                            //console.log(`[getScheduledEvents] skipping activity ${dTag} that has no service`);
                             continue;
                         }
                         // SPECIAL FIX FOR NOSTRNESTS: Set location if service is nostrnests
@@ -321,19 +332,19 @@ const getScheduledEvents = async () => {
                         }
                         // Reject based on erroneous time
                         if (startTime == undefined) {
-                            //console.log(`skipping event ${dTag} that has no start time`);
+                            //console.log(`[getScheduledEvents] skipping event ${dTag} that has no start time`);
                             continue;               // must have a time
                         }
                         if (endTime == undefined) {
-                            //console.log(`skipping event ${dTag} that has no end time`);
+                            //console.log(`[getScheduledEvents] skipping event ${dTag} that has no end time`);
                             continue;                 // must have a time
                         }
                         if (startTime > endTime) {
-                            //console.log(`skipping event ${dTag} that starts after it ends`);
+                            //console.log(`[getScheduledEvents] skipping event ${dTag} that starts after it ends`);
                             continue;                  // must begin before ending
                         }
                         if (endTime - startTime > daySeconds) {
-                            //console.log(`skipping event ${dTag} that lasts more than 1 day`);
+                            //console.log(`[getScheduledEvents] skipping event ${dTag} that lasts more than 1 day`);
                             continue;     // exclude events lasting more than 1 day
                         }
                         if ((startTime < timestamp) && (endTime + hourSeconds < timestamp)) {
@@ -341,15 +352,15 @@ const getScheduledEvents = async () => {
                             continue;
                         }
                         if (startTime > maxTime) {
-                            //console.log(`skipping event ${dTag} that starts more than a week from now`);
+                            //console.log(`[getScheduledEvents] skipping event ${dTag} that starts more than a week from now`);
                             continue;                  // must start within 1 week
                         }
                         // check for required fields
                         if (!(title && location && startTime && endTime)) {
-                            //console.log(`skipping event ${dTag} that is missing one of title, location, startTime, endTime`);
+                            //console.log(`[getScheduledEvents] skipping event ${dTag} that is missing one of title, location, startTime, endTime`);
                             continue;
                         }
-                        console.log(`adding a matched event: ${title} (${location} starting ${startTime})`);
+                        console.log(`[getScheduledEvents] adding a live activity event: ${title} (${location} starting ${startTime})`);
                         // all good to include
                         let plannedActivity = {
                             startTime,
@@ -372,8 +383,12 @@ const getScheduledEvents = async () => {
                     matchedEvents.sort((a,b) => (a.startTime > b.startTime) ? 1 : ((b.startTime > a.startTime) ? -1 : 0));
                 }
                 localpool.close();
+
+                // remove multiple (subsequent) entries with same location
+                let filteredEvents = filterEventsByLocation(matchedEvents);
+
                 // return it
-                res(matchedEvents);
+                res(filteredEvents);
 
             }, waitForEvents);
 
@@ -384,25 +399,22 @@ const getScheduledEvents = async () => {
         } catch (error) {
             localpool.close();
             rej(undefined);
-            console.log('There was an error while fetching scheduled events: ', error);
+            console.log('[getScheduledEvents] There was an error while fetching scheduled events: ', error);
         }
     });
 }
 
 const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => {
-    if (pmd) console.log("in publishNostrSchedule");
     // Validate
-    console.log("Validating schedule to be posted");
     // - must have a schedule
     if (schedule == undefined) return;
     // - must have an npub
-    if (schedule.setByNpub == undefined) return;
-    if (schedule.setByNpub == '') return;
+    if (!schedule.setByNpub || schedule.setByNpub == '' || schedule.setByNpub.length != 63) return;
 
-    console.log("Preparing schedule to publish for room", roomId);
+    console.log("[publishNostrSchedule] Preparing schedule to publish for room", roomId);
     const localwritepool = getRelayPool();
     const scheduledByPubkey = nip19.decode(schedule.setByNpub).data;
-    const eventUUID = `${jamHost}-${roomId}`;
+    const eventUUID = `${jamHost}-${roomId}-${schedule?.startUnixTime}`;
     const roomUrl = `https://${jamHost}/${roomId}`;
     const title = schedule?.title ?? `Corny Chat: ${roomId}`;
     const content = (schedule?.summary ?? `This event is scheduled on Corny Chat in room: ${roomId}`) + `\n\n${roomUrl}`;
@@ -417,7 +429,7 @@ const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => 
         ["start_tzid", timezone],
         ["end_tzid", timezone],
         ["location", roomUrl],
-        ["about", content],                      // Undocumented Flockstr tag (remove once Flockstr is updated)
+//        ["about", content],                      // Undocumented Flockstr tag (remove once Flockstr is updated)
         ["summary", content],                    // short description of event, replaces deprecated/undocumented Flockstr tag about
         ["image", logoURI],                      // Undocumented Flockstr tag
         ["L", labelNamespace],                   // Need to document all these tags for sanity
@@ -432,12 +444,14 @@ const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => 
         if (info?.identities) {
             for (let ident of info.identities) {
                 if ('nostr' == (ident.type || '')) {
-                    let modNpub = ident.id || '';
-                    let modPubkey = nip19.decode(modNpub).data;
-                    if (!includedPubkeys.includes(modPubkey)) {
-                        includedPubkeys.push(modPubkey);
-                        tags.push(["p",modPubkey,"","moderator"]);
-                    }
+                    try {
+                        let modNpub = ident.id || '';
+                        let modPubkey = nip19.decode(modNpub).data;
+                        if (!includedPubkeys.includes(modPubkey)) {
+                            includedPubkeys.push(modPubkey);
+                            tags.push(["p",modPubkey,"","moderator"]);
+                        }
+                    } catch(err) { /*ignore*/ }
                 }
             }
         }
@@ -450,12 +464,16 @@ const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => 
             tags: tags,
             content: content,
         }, sk);
-        if (pmd) console.log('Event to be published', JSON.stringify(event));
         await publishEvent(localwritepool, event, relaysToUse);
         await sleep(100);
     }
 
-    console.log("Preparing kind 1 to publish event from room");
+    // capture the scheduling as active
+    let scheduledRoomSet = await set(`scheduledRoom/${roomId}`, {repeat: schedule.repeat, start: schedule?.startUnixTime, end: schedule?.endUnixTime});
+    // inject into server/scheduledEvents
+    let injectedSchedule = await injectServerSchedule({startTime: schedule?.startUnixTime, endTime: schedule?.endUnixTime, image: logoURI, location: roomUrl, title: title});
+
+    console.log("[publishNostrSchedule] Preparing kind 1 to publish event from room");
     let roomNsec = await getRoomNSEC(roomId, true);
     let roomSk = nip19.decode(roomNsec).data;
     let timeZoneName = "Europe/London"; // Intl.DateTimeFormat().resolvedOptions().timeZone; // Europe/London
@@ -486,14 +504,67 @@ const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => 
         ],
         content: kind1content,
     }, roomSk);
-    if (pmd) console.log('Event to be published', JSON.stringify(kind1event));
     await publishEvent(localwritepool, kind1event, relaysToUse);
     await sleep(100);
     doneRelayPool(localwritepool);
 }
 
+const injectServerSchedule = async(eventInfo) => {
+    // Injects an event into the server scheduled events immediately instead of waiting for the background rebuild process
+    try {
+        let key = 'server/scheduledEvents'
+        let serverEvents = await get(key);
+        serverEvents.push(eventInfo);
+        let newServerEvents = filterEventsByLocation(serverEvents);
+        await set(key, newServerEvents);
+        return true;
+    } catch(error) {
+        console.log(`[injectServerSchedule] error: ${error}`);
+        return false;
+    }
+}
+const ejectServerSchedule = async(eventInfo) => {
+    // Ejects an event from server scheduled events immediately instead of waiting for the background rebuild process
+    // - requires location and startTime
+    let removed = false;
+    try {
+        let key = 'server/scheduledEvents'
+        let serverEvents = await get(key);
+        let newServerEvents = [];
+        for (let serverEvent of serverEvents) {
+            if(serverEvent.location == eventInfo.location && serverEvent.startTime == eventInfo.startTime) {
+                removed = true;
+                continue;
+            }
+            newServerEvents.push(serverEvent);
+        }
+        newServerEvents = filterEventsByLocation(newServerEvents);
+        await set(key, newServerEvents);
+    } catch(error) {
+        console.log(`[ejectServerSchedule] error: ${error}`);
+    }
+    return removed;
+}
+
+const filterEventsByLocation = (events) => {
+    let seenLocations = [];
+    let filteredEvents = [];
+    events.sort((a,b) => (a.startTime > b.startTime) ? 1 : ((b.startTime > a.startTime) ? -1 : 0));
+    for (let event of events) {
+        let startDayNumber = Math.floor(event.startTime / 86400);
+        let seenLocation = `${event.location}-${startDayNumber}`;
+        if (seenLocations.includes(seenLocation)) {
+            console.log(`[filterEventsByLocation] filtering matched event with same location: ${event.title} (${event.location} starting ${event.startTime})`);
+            continue;
+        }
+        filteredEvents.push(event);
+        seenLocations.push(seenLocation);
+    }
+    filteredEvents.sort((a,b) => (a.startTime > b.startTime) ? 1 : ((b.startTime > a.startTime) ? -1 : 0));
+    return filteredEvents;
+}
+
 const getRoomNSEC = async(roomId, create=false) => {
-    if (pmd) console.log("in getRoomNSEC");
     let nostrroomkey = 'nostrroomkey/' + roomId;
     let roomNsec = await get(nostrroomkey);
     if (create && (roomNsec == undefined || roomNsec == null)) {
@@ -505,7 +576,7 @@ const getRoomNSEC = async(roomId, create=false) => {
 }
 
 const updateNostrProfile = async (roomId, name, description, logoURI, backgroundURI, lud16) => {
-    if (pmd) console.log("in updateNostrProfile");
+    if (pmd) console.log("[updateNostrProfile] Updating room profile");
     const localwritepool = getRelayPool();
     let roomNsec = await getRoomNSEC(roomId, true);
     let roomSk = nip19.decode(roomNsec).data;
@@ -522,7 +593,7 @@ const updateNostrProfile = async (roomId, name, description, logoURI, background
         tags: [],
         content: content,
     }, roomSk);
-    if (pmd) console.log('Event to be published', JSON.stringify(event));
+
     await publishEvent(localwritepool, event, relaysToUse);
     await sleep(100);
     doneRelayPool(localwritepool);
@@ -530,7 +601,7 @@ const updateNostrProfile = async (roomId, name, description, logoURI, background
 
 const updateNostrProfileForServer = async (name, description, logoURI, backgroundURI, lud16, nip05) => {
     if (serverNsec.length == 0) return;
-    if (pmd) console.log("in updateNostrProfileForServer");
+    if (pmd) console.log("[updateNostrProfileForServer] Updating server profile from env");
     const localwritepool = getRelayPool();
     const sk = nip19.decode(serverNsec).data;
     let profileObj = {nip05: nip05}
@@ -546,14 +617,13 @@ const updateNostrProfileForServer = async (name, description, logoURI, backgroun
         tags: [],
         content: content,
     }, sk);
-    if (pmd) console.log('Event to be published', JSON.stringify(event));
     await publishEvent(localwritepool, event, relaysToUse);
     await sleep(100);
     doneRelayPool(localwritepool);
 }
 
-const deleteLiveActivity = async (roomId, dtt) => {
-    if (pmd) console.log("in deleteLiveActivity for ", roomId);
+const deleteLiveActivity = async (roomId, dtt, eventId) => {
+    if (pmd) console.log("[deleteLiveActivity] deleting known activity for room ", roomId);
     const localwritepool = getRelayPool();
     let roomNsec = await getRoomNSEC(roomId, true);
     let roomSk = nip19.decode(roomNsec).data;
@@ -564,25 +634,23 @@ const deleteLiveActivity = async (roomId, dtt) => {
     let g = await grantPubkeyToRelays(false, pk, grantReason);
     const aTagValue = `${kind}:${pk}:${eventUUID}`;
     const timestamp = Math.floor(Date.now() / 1000);
-    console.log(`deleting event ${eventUUID}`)
     const deleteEvent = finalizeEvent({
         created_at: timestamp,
         kind: 5,
-        tags: [["a", aTagValue]],
+        tags: [["a", aTagValue],["e", eventId],["k",`${kind}`]],
         content: 'This event is no longer active',
     }, roomSk);
-    if (pmd) console.log('Event to be published', JSON.stringify(deleteEvent));
     await publishEvent(localwritepool, deleteEvent, relaysToUse);
     await sleep(250);
     doneRelayPool(localwritepool);
 }
 
 const getLiveActivities = async() => {
-    if (pmd) console.log("in getLiveActivities for specified pubkeys");
+    if (pmd) console.log("[getLiveActivities] retrieving live activities");
     return new Promise(async (res, rej) => {
         const localpool = new RelayPool(undefined,poolOptions);
         try {
-            let goalFilter = [{kinds:[30311], limit: 500}];
+            let goalFilter = [{kinds:[30311], limit: 5000}];
             goalFilter[0]["#L"] = ["com.cornychat"]
             goalFilter[0]["#l"] = [jamHost]
             let waitForEvents = 3000; // 3 seconds
@@ -601,13 +669,13 @@ const getLiveActivities = async() => {
         } catch (error) {
             localpool.close();
             rej(undefined);
-            console.log('There was an error while fetching live activities: ', error);
+            console.log('[getLiveActivities] error while fetching live activities: ', error);
         }
     });
 }
 
 const publishLiveActivity = async (roomId, dtt, roomInfo, userInfo, status, limitToRelays) => {
-    if (pmd) console.log("in publishLiveActivity for ", roomId);
+    //if (pmd) console.log("in publishLiveActivity for ", roomId);
     const localwritepool = getRelayPool();
     let roomNsec = await getRoomNSEC(roomId, true);
     let roomSk = nip19.decode(roomNsec).data;
@@ -686,24 +754,17 @@ const publishLiveActivity = async (roomId, dtt, roomInfo, userInfo, status, limi
         tags: tags,
         content: "",
     }, roomSk);
-    if (pmd) console.log('Event to be published', JSON.stringify(event));
-    let u = validateEvent(event);
-    if (!u) console.log("- warning: validateEvent failed for the live activity event");
-    let v = verifyEvent(event);
-    if (!v) console.log("- warning: verifyEvent failed for the live activity event");
-    await publishEvent(localwritepool, event, ((limitToRelays != undefined) ? limitToRelays : relaysToUse));
-    let addressPointer = {identifier:aTagValue,pubkey:event.pubkey,kind:event.kind,relays:relaysToUse}
-    if (pmd) console.log(`- addressPointer definition: ${JSON.stringify(addressPointer)}`);
-    let naddr = nip19.naddrEncode(addressPointer);
-    if (pmd) console.log(`- naddr for live activity for ${roomId}: ${naddr}`);
-
-    await sleep(250);
+    if (pmd) console.log('[publishLiveActivity] event to be published', JSON.stringify(event));
+    let publishToRelays = ((limitToRelays != undefined) ? limitToRelays : relaysToUse);
+    if (pmd) console.log('[publishLiveActivity] to relays', JSON.stringify(publishToRelays));
+    await publishEvent(localwritepool, event, publishToRelays);
+    await sleep(1250);
     doneRelayPool(localwritepool);
 }
 
 const publishRoomActive = async (roomId, dtt, roomInfo, userInfo, isnew) => {
     if (serverNsec.length == 0) return;
-    if (pmd) console.log("in publishRoomActive for ", roomId);
+    if (pmd) console.log("[publishRoomActive] publishing room with live activity for ", roomId);
     const localwritepool = getRelayPool();
     const kind = 1;
     const roomUrl = `https://${jamHost}/${roomId}`;
@@ -712,7 +773,7 @@ const publishRoomActive = async (roomId, dtt, roomInfo, userInfo, isnew) => {
     const sk = nip19.decode(serverNsec).data;
     const pk = getPublicKey(sk);
     const npub = nip19.npubEncode(pk);
-    if (pmd) console.log(`publishing with ${npub}`);
+    if (pmd) console.log(`[publishRoomActive] publishing with ${npub}`);
     const dt = new Date();
     const et = dt.getTime();
     const ct = Math.floor(dt/1000);
@@ -768,7 +829,6 @@ const publishRoomActive = async (roomId, dtt, roomInfo, userInfo, isnew) => {
         tags: tags,
         content: output,
     }, sk);
-    if (pmd) console.log('Event to be published', JSON.stringify(event));
     await publishEvent(localwritepool, event, relaysToUse);
     await sleep(250);
 
@@ -791,7 +851,6 @@ const publishRoomActive = async (roomId, dtt, roomInfo, userInfo, isnew) => {
             tags: liveTextTags,
             content: output,
         }, sk);
-        if (pmd) console.log('Event to be published', JSON.stringify(liveTextEvent));
         await publishEvent(localwritepool, liveTextEvent, relaysToUse);
         await sleep(250);
     }
@@ -799,6 +858,7 @@ const publishRoomActive = async (roomId, dtt, roomInfo, userInfo, isnew) => {
 }
 
 const getZapGoals = async (pubkey) => {
+    console.log('[getZapGoals] retrieving zap goals for pubkey: ', pubkey);
     return new Promise(async (res, rej) => {
         const localpool = new RelayPool(undefined,poolOptions);
         try {
@@ -814,12 +874,13 @@ const getZapGoals = async (pubkey) => {
         } catch (error) {
             localpool.close();
             rej(undefined);
-            console.log('There was an error while fetching zap goals: ', error);
+            console.log('[getZapGoals] error while fetching zap goals: ', error);
         }
     });
 }
 
 const publishZapGoal = async (sk, content, amount, relays) => {
+    console.log('[publishZapGoal] publishing new zap goal');
     return new Promise(async (res, rej) => {
         const localwritepool = getRelayPool();
         let pk = getPublicKey(sk);
@@ -833,7 +894,6 @@ const publishZapGoal = async (sk, content, amount, relays) => {
             tags: tags,
             content: content,
         }, sk);
-        if (pmd) console.log('Event to be published', JSON.stringify(event));
         await publishEvent(localwritepool, event, relaysToUse);
         await sleep(250);
         doneRelayPool(localwritepool);
@@ -842,7 +902,7 @@ const publishZapGoal = async (sk, content, amount, relays) => {
 }
 
 const deleteOldZapGoals = async (sk) => {
-    if (pmd) console.log("in deleteOldZapGoals");
+    if (pmd) console.log("[deleteOldZapGoals] removing older zap goals");
     const localwritepool = getRelayPool();
     let pk = getPublicKey(sk);
     const timestamp = Math.floor(Date.now() / 1000);
@@ -852,7 +912,12 @@ const deleteOldZapGoals = async (sk) => {
         tags: [],
         content: 'these posts were published by accident',
     }
-    let zapgoals = await getZapGoals(pk);
+    let zapgoals = [];
+    try {
+        zapgoals = await getZapGoals(pk);
+    } catch(e) {
+        console.log(`[deleteOldZapGoals] error fetching zap goals: ${e}`);        
+    }
     let newestGoal = {created_at: 0}
     for (let zapgoal of zapgoals) {
         if (zapgoal.created_at > newestGoal.created_at) {
@@ -866,14 +931,13 @@ const deleteOldZapGoals = async (sk) => {
     }
     let el = event.tags.length;
     if (el > 0) {
-        if (pmd) console.log(`Requesting deletion of ${el} zap goal events`);
+        if (pmd) console.log(`[deleteOldZapGoals] requesting deletion of ${el} zap goal events`);
         event.tags.push(["k", "9041"]);
         const deleteEvent = finalizeEvent(event, sk);
-        if (pmd) console.log('Event to be published', JSON.stringify(deleteEvent));
         await publishEvent(localwritepool, deleteEvent, relaysToUse);
         await sleep(250);
     } else {
-        if (pmd) console.log(`No zap goal events need to be deleted`);
+        if (pmd) console.log(`[deleteOldZapGoals] no zap goal events need to be deleted`);
     }
     doneRelayPool(localwritepool);
 }
@@ -915,7 +979,7 @@ async function getNpubs(identityKeys) {
                 if (r) npubs.push(n);
             }
         } catch (error) {
-        console.log('error in getNpubs conversion for identity: ', identityKey, error);
+        console.log('[getNpubs] error in getNpubs conversion for identity: ', identityKey, error);
         }
     }
     return npubs;

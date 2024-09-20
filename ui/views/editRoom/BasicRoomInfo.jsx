@@ -65,7 +65,7 @@ export function BasicRoomInfo({
         {iOwn && (
         <input
           className={mqp(
-            'rounded-lg placeholder-black bg-gray-400 text-black border-4 pb-2 rounded-lg w-full md:w-96'
+            'rounded-lg placeholder-gray-500 bg-gray-300 text-black border-4 pb-2 rounded-lg w-full md:w-96'
           )}
           type="text"
           placeholder="Room topic. Appears on the landing page when room is active."
@@ -89,7 +89,7 @@ export function BasicRoomInfo({
         {iOwn && (
         <input
           className={mqp(
-            'rounded-lg placeholder-black bg-gray-400 text-black border-4 pb-2 rounded-lg w-full md:w-96'
+            'rounded-lg placeholder-gray-500 bg-gray-300 text-black border-4 pb-2 rounded-lg w-full md:w-96'
           )}
           type="text"
           placeholder="Logo URI. Displayed on the landing page when room is active."
@@ -113,7 +113,7 @@ export function BasicRoomInfo({
         {iOwn && (
         <input
           className={mqp(
-            'rounded-lg placeholder-black bg-gray-400 text-black border-4 pb-2 rounded-lg w-full md:w-96'
+            'rounded-lg placeholder-gray-500 bg-gray-300 text-black border-4 pb-2 rounded-lg w-full md:w-96'
           )}
           type="text"
           placeholder="Lightning Address. When set, it will display a action to allow for tipping the room to the specified address."
@@ -207,7 +207,7 @@ export function BasicRoomInfo({
         {iOwn && (
         <textarea
           className={mqp(
-            'rounded-lg placeholder-black bg-gray-400 text-black border-4 pb-2 rounded-lg w-full md:w-96'
+            'rounded-lg placeholder-gray-500 bg-gray-300 text-black border-4 pb-2 rounded-lg w-full md:w-96'
           )}
           placeholder="Room description. Supports markdown."
           value={description}
@@ -340,7 +340,7 @@ export function BasicRoomInfo({
             combination of numbers, letters or symbols.
             <input
               className={mqp(
-                'rounded-lg placeholder-black bg-gray-400 text-black border-4 pb-2 rounded-lg w-full md:w-96'
+                'rounded-lg placeholder-gray-500 bg-gray-300 text-black border-4 pb-2 rounded-lg w-full md:w-96'
               )}
               type="password"
               placeholder=""

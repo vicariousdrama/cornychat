@@ -14,6 +14,10 @@ const chatAdFileLocationPath = process.env.CHAT_AD_FILE_LOCATION_PATH || '/pantr
 const relaysACL = process.env.RELAYS_ACL || '';
 const relaysGeneral = process.env.RELAYS_GENERAL || 'wss://relay.damus.io,wss://nos.lol,wss://nostr-pub.wellorder.net,wss://relay.snort.social';
 const relaysZapGoals = process.env.RELAYS_ZAPGOALS || 'wss://relay.damus.io,wss://nos.lol,wss://nostr-pub.wellorder.net,wss://relay.snort.social';
+const liveActivitiesUpdateInterval = process.env.LIVE_ACTIVITIES_UPDATE_INTERVAL ? parseInt(process.env.LIVE_ACTIVITIES_UPDATE_INTERVAL) : 10; // minutes
+const recurringEventsUpdateInterval = process.env.RECURRING_EVENTS_UPDATE_INTERVAL ? parseInt(process.env.RECURRING_EVENTS_UPDATE_INTERVAL) : 30; // minutes
+const scheduledEventsUpdateInterval = process.env.SCHEDULED_EVENTS_UPDATE_INTERVAL ? parseInt(process.env.SCHEDULED_EVENTS_UPDATE_INTERVAL) : 30; // minutes
+const serverZapGoalUpdateInterval = process.env.SERVER_ZAP_GOAL_UPDATE_INTERVAL ? parseInt(process.env.SERVER_ZAP_GOAL_UPDATE_INTERVAL) : 1; // hours
 
 module.exports = {
   serverAdminId,
@@ -30,4 +34,8 @@ module.exports = {
   relaysACL,
   relaysGeneral,
   relaysZapGoals,
+  liveActivitiesUpdateInterval,
+  recurringEventsUpdateInterval,
+  scheduledEventsUpdateInterval,
+  serverZapGoalUpdateInterval,
 };

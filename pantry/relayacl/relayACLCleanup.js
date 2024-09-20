@@ -9,7 +9,7 @@ const key_relayusers = 'relayaccess/users';         // users that login to rooms
 const revokeDisconnectedUsers = async () => {
     // start a background process
     setInterval(async () => {
-        console.log(`Checking for users where relay acl should be revoked`);
+        console.log(`[revokeDisconnectedUsers] checking for users where relay acl should be revoked`);
         let users = activeUsers();
         let granted = await get(key_relayusers);
         for (let grantee of granted) {
@@ -26,7 +26,7 @@ const revokeDisconnectedUsers = async () => {
                 if (f) break;
             }
             if (!f) {
-                console.log(`- removing ${grantee} as no longer active`);
+                console.log(`[revokeDisconnectedUsers] removing ${grantee} as no longer active`);
                 await revokePubkeyFromRelays(true, grantee);
             }
         }

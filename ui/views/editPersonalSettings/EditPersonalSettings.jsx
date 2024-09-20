@@ -476,7 +476,7 @@ export default function EditPersonalSettings({close}) {
               Change Display Name
             </div>
             <input
-              className="rounded placeholder-black bg-gray-400 text-black w-full"
+              className="rounded placeholder-gray-500 bg-gray-300 text-black w-full"
               type="text"
               placeholder=""
               value={name ?? ''}
@@ -496,7 +496,7 @@ export default function EditPersonalSettings({close}) {
               or specify a url for your avatar
             </div>
             <input
-              className="rounded placeholder-black bg-gray-400 text-black w-full"
+              className="rounded placeholder-gray-500 bg-gray-300 text-black w-full"
               type="text"
               placeholder=""
               value={avatar ?? ''}
@@ -510,7 +510,7 @@ export default function EditPersonalSettings({close}) {
             <input
               type="file"
               accept="image/*"
-              className="edit-profile-file-input rounded placeholder-black bg-gray-400 text-black w-72"
+              className="edit-profile-file-input rounded placeholder-gray-500 bg-gray-300 text-black w-72"
             />
             <div className="p-2 text-gray-200 italic">
               Change your profile picture. Limited to 500kb. If your picture is too large, try
@@ -682,7 +682,7 @@ export default function EditPersonalSettings({close}) {
               Sequence of letters or emojis to send when leaving the room
             </div>
             <input
-              className="rounded placeholder-black bg-gray-400 text-black w-full"
+              className="rounded placeholder-gray-500 bg-gray-300 text-black w-full"
               type="text"
               placeholder=""
               value={byeEmoji ?? ''}
@@ -699,7 +699,7 @@ export default function EditPersonalSettings({close}) {
           <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
             <div className="p-2 text-gray-200 bold">
             <input
-              className="rounded placeholder-black bg-gray-400 text-black w-8"
+              className="rounded placeholder-gray-500 bg-gray-300 text-black w-8"
               type="checkbox"
               checked={animEnabled == 'true' ? true : false}
               onChange={e => {
@@ -717,7 +717,7 @@ export default function EditPersonalSettings({close}) {
           <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
             <div className="p-2 text-gray-200 bold">
             <input
-              className="rounded placeholder-black bg-gray-400 text-black w-8"
+              className="rounded placeholder-gray-500 bg-gray-300 text-black w-8"
               type="checkbox"
               checked={ghostsEnabled == 'true' ? true : false}
               onChange={e => {
@@ -736,7 +736,7 @@ export default function EditPersonalSettings({close}) {
           <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
             <div className="p-2 text-gray-200 bold">
             <input
-              className="rounded placeholder-black bg-gray-400 text-black w-8"
+              className="rounded placeholder-gray-500 bg-gray-300 text-black w-8"
               type="checkbox"
               checked={onlyZapsEnabled == 'true' ? true : false}
               onChange={e => {
@@ -754,7 +754,7 @@ export default function EditPersonalSettings({close}) {
           <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
             <div className="p-2 text-gray-200 bold">
               <input
-                className="rounded placeholder-black bg-gray-400 text-black w-8"
+                className="rounded placeholder-gray-500 bg-gray-300 text-black w-8"
                 type="checkbox"
                 checked={showFullsizeAvatars == 'true' ? true : false}
                 onChange={e => {
@@ -782,7 +782,7 @@ export default function EditPersonalSettings({close}) {
               Post Count to Display in Profiles
             </div>
             <input
-              className="rounded placeholder-black bg-gray-50 w-48"
+              className="rounded placeholder-gray-500 bg-gray-300 text-black w-48"
               type="number"
               placeholder=""
               min="1"
@@ -808,7 +808,7 @@ export default function EditPersonalSettings({close}) {
           <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
             <div className="p-2 text-gray-200 bold">
               <input
-                className="rounded placeholder-black bg-gray-400 text-black w-8"
+                className="rounded placeholder-gray-500 bg-gray-300 text-black w-8"
                 type="checkbox"
                 checked={petnameDecrypt == 'true' ? true : false}
                 onChange={e => {
@@ -859,7 +859,7 @@ export default function EditPersonalSettings({close}) {
                 setDoorbellEnabled(e.target.value);
                 sendCSAR("setdoorbell");
               }}
-              className={'border mt-3 ml-2 p-2 text-black rounded'}
+              className={'border mt-3 ml-2 p-2 bg-gray-300 text-black rounded'}
             >
             <option key="0" value="0">None</option>
             {doorbellsounds?.map((doorbellinfo, index) => {
@@ -893,7 +893,7 @@ export default function EditPersonalSettings({close}) {
           <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
             <div className="p-2 text-gray-200 bold">
               <input
-                className="rounded placeholder-black bg-gray-400 text-black w-8"
+                className="rounded placeholder-gray-500 bg-gray-300 text-black w-8"
                 type="checkbox"
                 checked={publishStatus == 'true' ? true : false}
                 onChange={e => {
@@ -920,7 +920,7 @@ export default function EditPersonalSettings({close}) {
                   onChange={e => {
                     setTextchatLayout(e.target.value);
                   }}
-                  className={'border mt-3 ml-2 p-2 text-black rounded'}
+                  className={'border mt-3 ml-2 p-2 bg-gray-300 text-black rounded'}
                 >
                 <option key="left" value="left">All left aligned</option>
                 <option key="versus" value="versus">Versus alignment</option>
@@ -933,7 +933,7 @@ export default function EditPersonalSettings({close}) {
           <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
             <div className="p-2 text-gray-200 bold">
               <input
-                className="rounded placeholder-black bg-gray-400 text-black w-8"
+                className="rounded placeholder-gray-500 bg-gray-300 text-black w-8"
                 type="checkbox"
                 checked={textchatShowDates == 'true' ? true : false}
                 onChange={e => {
@@ -966,7 +966,7 @@ export default function EditPersonalSettings({close}) {
           <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
             <div className="p-2 text-gray-200 bold">
               <input
-                className="rounded placeholder-black bg-gray-400 text-black w-8"
+                className="rounded placeholder-gray-500 bg-gray-300 text-black w-8"
                 type="checkbox"
                 checked={textchatShowTimestamps == 'true' ? true : false}
                 onChange={e => {
@@ -979,7 +979,7 @@ export default function EditPersonalSettings({close}) {
           <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
             <div className="p-2 text-gray-200 bold">
               <input
-                className="rounded placeholder-black bg-gray-400 text-black w-8"
+                className="rounded placeholder-gray-500 bg-gray-300 text-black w-8"
                 type="checkbox"
                 checked={textchatShowAvatars == 'true' ? true : false}
                 onChange={e => {
@@ -992,7 +992,7 @@ export default function EditPersonalSettings({close}) {
           <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
             <div className="p-2 text-gray-200 bold">
               <input
-                className="rounded placeholder-black bg-gray-400 text-black w-8"
+                className="rounded placeholder-gray-500 bg-gray-300 text-black w-8"
                 type="checkbox"
                 checked={textchatShowNames == 'true' ? true : false}
                 onChange={e => {
@@ -1007,7 +1007,7 @@ export default function EditPersonalSettings({close}) {
               Buffer Size
             </div>
             <input
-              className="rounded placeholder-black bg-gray-50 w-48"
+              className="rounded placeholder-gray-500 bg-gray-300 text-black w-48"
               type="number"
               placeholder="50"
               min="10"
@@ -1026,7 +1026,7 @@ export default function EditPersonalSettings({close}) {
           <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
             <div className="p-2 text-gray-200 bold">
               <input
-                className="rounded placeholder-black bg-gray-400 text-black w-8"
+                className="rounded placeholder-gray-500 bg-gray-300 text-black w-8"
                 type="checkbox"
                 checked={textchatEncryptPM == 'true' ? true : false}
                 onChange={e => {
@@ -1039,7 +1039,7 @@ export default function EditPersonalSettings({close}) {
           <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
             <div className="p-2 text-gray-200 bold">
               <input
-                className="rounded placeholder-black bg-gray-400 text-black w-8"
+                className="rounded placeholder-gray-500 bg-gray-300 text-black w-8"
                 type="checkbox"
                 checked={textchatToNostr == 'true' ? true : false}
                 onChange={e => {
@@ -1062,7 +1062,7 @@ export default function EditPersonalSettings({close}) {
               Default Zap Amount
             </div>
             <input
-              className="rounded placeholder-black bg-gray-50 w-48"
+              className="rounded placeholder-gray-500 bg-gray-300 text-black w-48"
               type="number"
               placeholder=""
               value={defaultZapAmount ?? ''}
@@ -1082,7 +1082,7 @@ export default function EditPersonalSettings({close}) {
               Default Zap Comment
             </div>
             <input
-              className="rounded placeholder-black bg-gray-50 w-full"
+              className="rounded placeholder-gray-500 bg-gray-300 text-black w-full"
               type="string"
               placeholder=""
               value={defaultZapComment ?? ''}
@@ -1105,7 +1105,7 @@ export default function EditPersonalSettings({close}) {
             </div>
             <div className="p-2 text-gray-200 bold">
             <input
-              className="rounded placeholder-black bg-gray-400 text-black w-8"
+              className="rounded placeholder-gray-500 bg-gray-300 text-black w-8"
               type="checkbox"
               checked={nwcEnabled == 'true' ? true : false}
               onChange={e => {
@@ -1120,8 +1120,9 @@ export default function EditPersonalSettings({close}) {
               Full Connection String
             </div>
             <input
-              className="rounded placeholder-black bg-gray-50 w-full"
+              className="rounded placeholder-gray-500 bg-gray-300 text-black w-full"
               type="password"
+              autoComplete="off"
               placeholder=""
               value={nwcConnectURL ?? ''}
               onChange={e => {
@@ -1157,7 +1158,7 @@ export default function EditPersonalSettings({close}) {
               Wallet Service Pubkey
             </div>
             <input
-              className="hidden rounded placeholder-black bg-gray-50 w-full"
+              className="hidden rounded placeholder-gray-500 bg-gray-300 text-black w-full"
               type="string"
               placeholder=""
               value={nwcWSPubkey ?? ''}
@@ -1169,7 +1170,7 @@ export default function EditPersonalSettings({close}) {
               Wallet Relay
             </div>
             <input
-              className="hidden rounded placeholder-black bg-gray-50 w-full"
+              className="hidden rounded placeholder-gray-500 bg-gray-300 text-black w-full"
               type="string"
               placeholder=""
               value={nwcRelay ?? ''}
@@ -1181,7 +1182,7 @@ export default function EditPersonalSettings({close}) {
               Secret
             </div>
             <input
-              className="hidden rounded placeholder-black bg-gray-50 w-full"
+              className="hidden rounded placeholder-gray-500 bg-gray-300 text-black w-full"
               type="password"
               placeholder=""
               value={nwcSecret ?? ''}
@@ -1192,7 +1193,7 @@ export default function EditPersonalSettings({close}) {
 
             <div className="p-2 text-gray-200 bold">
             <input
-              className="rounded placeholder-black bg-gray-400 text-black w-8"
+              className="rounded placeholder-gray-500 bg-gray-300 text-black w-8"
               type="checkbox"
               checked={v4vSkipAdEnabled == 'true' ? true : false}
               onChange={e => {
@@ -1209,7 +1210,7 @@ export default function EditPersonalSettings({close}) {
                   onChange={e => {
                     setV4vSkipAdFrequency(e.target.value);
                   }}
-                  className={'border mt-3 ml-2 p-2 text-black rounded'}
+                  className={'border mt-3 ml-2 p-2 bg-gray-300 text-black rounded'}
                 >
                 <option key="v4vSkipAdFrequency5" value="5">5</option>
                 <option key="v4vSkipAdFrequency10" value="10">10</option>
@@ -1231,7 +1232,7 @@ export default function EditPersonalSettings({close}) {
             <>
             <div className="p-2 text-gray-200 bold">
             <input
-              className="rounded placeholder-black bg-gray-50 text-black w-20"
+              className="rounded placeholder-gray-500 bg-gray-300 text-black w-20"
               type="number"
               min="5"
               max="1000"
@@ -1256,7 +1257,7 @@ export default function EditPersonalSettings({close}) {
 
             <div className="p-2 text-gray-200 bold">
               <input
-                className="rounded placeholder-black bg-gray-400 text-black w-8"
+                className="rounded placeholder-gray-500 bg-gray-300 text-black w-8"
                 type="checkbox"
                 checked={v4vTipRoomEnabled == 'true' ? true : false}
                 onChange={e => {
@@ -1273,7 +1274,7 @@ export default function EditPersonalSettings({close}) {
                   onChange={e => {
                     setV4vTipRoomFrequency(e.target.value);
                   }}
-                  className={'border mt-3 ml-2 p-2 text-black rounded'}
+                  className={'border mt-3 ml-2 p-2 bg-gray-300 text-black rounded'}
                 >
                 <option key="v4vTipRoomFrequency5" value="5">5</option>
                 <option key="v4vTipRoomFrequency10" value="10">10</option>
@@ -1290,7 +1291,7 @@ export default function EditPersonalSettings({close}) {
             <>
             <div className="p-2 text-gray-200 bold">
               <input
-                className="rounded placeholder-black bg-gray-50 text-black w-20"
+                className="rounded placeholder-gray-500 bg-gray-300 text-black w-20"
                 type="number"
                 min="5"
                 max="1000"

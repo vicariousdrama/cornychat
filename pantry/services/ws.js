@@ -219,29 +219,29 @@ function handleConnection(ws, req) {
   if (VERIFY_BUILDDATE_ONENTRY) {
     if (!bd) {
       let errmsg = "client version not set. disconnecting";
-      console.log(`killing ws as no build date provided`, roomId, peerId);
+      console.log(`[handleConnection] killing ws as no build date provided`, roomId, peerId);
       ws.send(JSON.stringify({"t":"error","d":errmsg}));
       ws.close();
       return;
     }
     if(bd != 'BUILD_DATE'.split('.')[0]) {
       let errmsg = "client version contains unexpected value. disconnecting";
-      console.log(`killing ws as ping build date was invalid`, roomId, peerId, bd);
+      console.log(`[handleConnection] killing ws as ping build date was invalid`, roomId, peerId, bd);
       ws.send(JSON.stringify({"t":"error","d":errmsg}));
       ws.close();
       return;
     }
   }
 
-  //console.log('ws open', roomId, peerId, subs); // ws open mainchat 9v32sRPpNqbpe0RYLlYdjtTeOxqXoMIvdpqTB3GQ1OM.da4f [ 'all' ]
+  //console.log('[handleConnection] ws open', roomId, peerId, subs); // ws open mainchat 9v32sRPpNqbpe0RYLlYdjtTeOxqXoMIvdpqTB3GQ1OM.da4f [ 'all' ]
   let lastPing = Date.now();
   let pingCount = 0;
   let interval = setInterval(() => {
     let timeSinceClientPing = Date.now() - lastPing;
-    //console.log(`timeSinceClientPing: ${timeSinceClientPing} from peer: ${peerId}`);
+    //console.log(`[handleConnection] timeSinceClientPing: ${timeSinceClientPing} from peer: ${peerId}`);
     if (timeSinceClientPing > PING_MAX_INTERVAL) {
       let errmsg = `client response time exceeds max time allowed (${timeSinceClientPing}ms > ${PING_MAX_INTERVAL} ms). disconnecting`;
-      console.log(`killing ws after ${timeSinceClientPing}ms`, roomId, peerId);
+      console.log(`[handleConnection] killing ws after ${timeSinceClientPing}ms`, roomId, peerId);
       ws.send(JSON.stringify({"t":"error","d":errmsg}));
       ws.close();
       closeWs();
@@ -313,7 +313,7 @@ function handleConnection(ws, req) {
 
   ws.on('message', jsonMsg => {
     let msg = parseMessage(jsonMsg);
-    // console.log('ws message', msg);
+    // console.log('[handleConnection] ws message', msg);
     if (msg !== undefined) {
       if (msg.t === 'ping') {
         if (VERIFY_BUILDDATE_ONPING) {
@@ -322,7 +322,7 @@ function handleConnection(ws, req) {
           let b = msg.b;
           if (!b) {
             let errmsg = "client version not set. disconnecting";
-            console.log(`killing ws as no build date provided`, roomId, peerId);
+            console.log(`[handleConnection] killing ws as no build date provided`, roomId, peerId);
             ws.send(JSON.stringify({"t":"error","d":errmsg}));
             ws.close();
             closeWs();
@@ -330,7 +330,7 @@ function handleConnection(ws, req) {
           } else {
             if(b.split('.')[0] != 'BUILD_DATE'.split('.')[0]) {
               let errmsg = "client version contains unexpected value. disconnecting";
-              console.log(`killing ws as ping build date was invalid`, roomId, peerId, b);
+              console.log(`[handleConnection] killing ws as ping build date was invalid`, roomId, peerId, b);
               ws.send(JSON.stringify({"t":"error","d":errmsg}));
               ws.close();
               closeWs();
@@ -349,12 +349,12 @@ function handleConnection(ws, req) {
   ws.on('close', closeWs);
 
   ws.on('error', error => {
-    console.log('ws error', error);
+    console.log('[handleConnection] ws error', error);
   });
 
   async function closeWs() {
     clearInterval(interval);
-    console.log('ws closed', roomId, peerId);
+    console.log('[closeWs] ws closed', roomId, peerId);
     removePeer(roomId, connection);
     unsubscribeAll(connection);
     //removeKeys(roomId, peerId);
@@ -366,7 +366,7 @@ function handleConnection(ws, req) {
 
 function handleForwardingConnection(ws, req) {
   let {peerId: serverId, subs: topics} = req;
-  console.log('ws start forwarding', serverId, topics);
+  console.log('[handleForwardingConnection] ws start forwarding', serverId, topics);
 
   const connection = {ws, serverId};
 
@@ -382,7 +382,7 @@ function handleForwardingConnection(ws, req) {
   });
 
   ws.on('error', error => {
-    console.log('ws error', error);
+    console.log('[handleForwardingConnection] ws error', error);
   });
 }
 
@@ -417,7 +417,7 @@ function activeUsers() {
 function addWebsocket(server) {
 
   if(VERIFY_BUILDDATE_ONSOCKET) {
-    console.log('ws socket server configuring to verify that clients connect with build date: ', 'BUILD_DATE'.split('.')[0]);
+    console.log('[addWebSocket] ws socket server configuring to verify that clients connect with build date: ', 'BUILD_DATE'.split('.')[0]);
   }
 
   const wss = new WebSocket.Server({noServer: true});
@@ -447,7 +447,7 @@ function addWebsocket(server) {
         !roomInfo.access.identities.includes(publicKey)) ||
       (VERIFY_BUILDDATE_ONSOCKET && !internal && (bd === undefined || bd.split('.')[0] != 'BUILD_DATE'.split('.')[0]))
     ) {
-      console.log('ws rejected!', req.url, 'room', roomId, 'peer', peerId);
+      console.log('[addWebSocket] ws rejected!', req.url, 'room', roomId, 'peer', peerId);
       socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
       socket.destroy();
       return;
@@ -466,7 +466,7 @@ function addWebsocket(server) {
         await grantPubkeyToRelays(true, peerPubkey, grantReason);
       }
     } catch(err) {
-      console.log(`Error granting pubkey access to relays when starting socket: ${err}`);
+      console.log(`[addWebSocket] error granting pubkey access to relays when starting socket: ${err}`);
     }
 
     wss.handleUpgrade(req, socket, head, ws => {
@@ -490,7 +490,7 @@ function addPeer(roomId, connection) {
     roomConnections.get(roomId) ??
     roomConnections.set(roomId, new Set()).get(roomId);
   connections.add(connection);
-  //console.log('all peers:', getPeers(roomId));
+  //console.log('[addPeer] all peers:', getPeers(roomId));
 }
 function removePeer(roomId, connection) {
   let connections = roomConnections.get(roomId);
@@ -498,7 +498,7 @@ function removePeer(roomId, connection) {
     connections.delete(connection);
     if (connections.size === 0) roomConnections.delete(roomId);
   }
-  //console.log('all peers:', getPeers(roomId));
+  //console.log('[removePeer] all peers:', getPeers(roomId));
 }
 
 // async function removeKeys(roomId, userId) {
@@ -644,7 +644,7 @@ function parseMessage(jsonMsg) {
   try {
     return JSON.parse(jsonMsg);
   } catch (err) {
-    console.log('ws: error parsing msg', jsonMsg);
+    console.log('[parseMessage] ws: error parsing msg', jsonMsg);
     console.error(err);
   }
 }
@@ -654,7 +654,7 @@ function sendMessage({ws}, msg) {
   try {
     jsonMsg = JSON.stringify(msg);
   } catch (err) {
-    console.log('ws: error stringifying', msg);
+    console.log('[sendMessage] ws: error stringifying', msg);
     console.error(err);
     return;
   }
@@ -662,7 +662,7 @@ function sendMessage({ws}, msg) {
     ws.send(jsonMsg);
     return true;
   } catch (err) {
-    console.log('ws: error sending', jsonMsg);
+    console.log('[sendMessage] ws: error sending', jsonMsg);
     console.error(err);
     return false;
   }

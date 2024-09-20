@@ -93,7 +93,7 @@ export function UserList({
           <div className="flex">
             <input
               className={mqp(
-                'rounded placeholder-black bg-gray-400 text-black w-full mx-1 md:w-full'
+                'rounded placeholder-gray-500 bg-gray-300 text-black w-full mx-1 md:w-full'
               )}
               type="text"
               placeholder=""

@@ -2,7 +2,7 @@ const fetch = require('node-fetch');
 const fetchCookie = require('fetch-cookie');
 const {CookieJar} = require('tough-cookie'); // depends on punycode
 const {nip19, getPublicKey, finalizeEvent} = require('nostr-tools');
-const {relaysACL, serverNsec} = require('../config');
+const {jamHost, relaysACL, serverNsec} = require('../config');
 const {set, get} = require('../services/redis');
 
 const pmd = false;
@@ -49,7 +49,7 @@ const getRelayConfigs = function() {
             let endpoint = relayACLParts[1];
             let id = relayACLParts[2];
             if (!endpoint || endpoint == '' || !id || id == '' || !relay || relay == '') continue;
-            if (pmd) console.log(`registering relay acl configuration: {relay: ${relay}, endpoint: ${endpoint}, relayId: ${id}}`);
+            if (pmd) console.log(`[getRelayConfigs] registering relay acl configuration: {relay: ${relay}, endpoint: ${endpoint}, relayId: ${id}}`);
             relaysToUse.push({relay: relay, id: id, endpoint: endpoint});
         }
     }
@@ -58,6 +58,27 @@ const getRelayConfigs = function() {
 
 // ----------------------------------------------------------------------------------------------------------------
 // GRANT
+
+const grantPubkeysForRoomsToRelays = async() => {
+    let relayPubkeyEntries = await get(key_relaynonusers);
+    if (!relayPubkeyEntries) return;
+    let relayConfigs = getRelayConfigs();
+    let reason = `${jamHost} restored for a room`;
+    let relayGrants = {}
+    for (let relayPubkeyEntry of relayPubkeyEntries) {
+        for (let relayConfig of relayConfigs) {
+            if (!relayGrants.hasOwnProperty(relayConfig.relay)) {
+                relayGrants[relayConfig.relay] = await listAllowedPubkeys(relayConfig);
+            }
+            if(!relayGrants.hasOwnProperty(relayConfig.relay) || !relayGrants[relayConfig.relay].includes(relayPubkeyEntry)) {
+                console.log(`[grantPubkeysForRoomsToRelays] Granting ${relayPubkeyEntry} to ${relayConfig.relay} for room key access`);
+                await grantPubkeyToRelay(relayPubkeyEntry, relayConfig, reason);
+                if(!relayGrants.hasOwnProperty(relayConfig.relay)) relayGrants[relayConfig.relay] = [];
+                relayGrants[relayConfig.relay].push(relayPubkeyEntry);
+            }
+        }
+    }
+}
 
 const grantPubkeyToRelays = async(isUser, pubkey, reason) => {
     let alwaysGrant = false;
@@ -84,7 +105,7 @@ const grantPubkeyToRelays = async(isUser, pubkey, reason) => {
 const grantPubkeyToRelay = async(pubkey, relayConfig, reason) => {
     // Determine base url
     let baseUrl = `https://${relayConfig.endpoint}`;
-    if (pmd) console.log(`- granting ${pubkey} to ${relayConfig.relay}`);
+    if (pmd) console.log(`[grantPubkeyToRelay] granting ${pubkey} to ${relayConfig.relay}`);
     // Ensure logged in
     let fetchWithCookies = await getFetchWithCookieForRelay(relayConfig);
     if (fetchWithCookies) {
@@ -101,7 +122,7 @@ const grantPubkeyToRelay = async(pubkey, relayConfig, reason) => {
                 body: data
             });
         } catch(error) {
-            console.log(`Unable to grant pubkey to relay ${relayConfig.id}`);
+            console.log(`[grantPubkeyToRelay] Unable to grant pubkey to relay ${relayConfig.id}`);
             console.log(error);
         }
     }
@@ -126,7 +147,7 @@ const listAllowedPubkeys = async(relayConfig) => {
     let allowedPubkeys = [];
     // Determine base url
     let baseUrl = `https://${relayConfig.endpoint}`;
-    if (pmd) console.log(`- listing pubkeys allowed for ${baseUrl}`);
+    if (pmd) console.log(`[listAllowedPubkeys] listing pubkeys allowed for ${baseUrl}`);
     // Setup and perform request
     try {
         let url = `${baseUrl}/api/sconfig/relays/${relayConfig.id}`;
@@ -138,7 +159,7 @@ const listAllowedPubkeys = async(relayConfig) => {
             }
         });
     } catch(error) {
-        console.log(`Unable to list allowed pubkeys for ${relayConfig.id}`);
+        console.log(`[listAllowedPubkeys] unable to list allowed pubkeys for ${relayConfig.id}`);
         console.log(error);
     }
     return allowedPubkeys;
@@ -182,7 +203,7 @@ const revokePubkeyFromRelays = async(isUser, pubkey) => {
 const revokePubkeyFromRelay = async(pubkey, relayConfig) => {
     // Determine base url
     let baseUrl = `https://${relayConfig.endpoint}`;
-    if (pmd) console.log(`- revoking ${pubkey} from ${relayConfig.relay}`);
+    if (pmd) console.log(`[revokePubkeyFromRelay] revoking ${pubkey} from ${relayConfig.relay}`);
     // Ensure logged in
     let fetchWithCookies = await getFetchWithCookieForRelay(relayConfig);
     if (fetchWithCookies) {
@@ -197,7 +218,7 @@ const revokePubkeyFromRelay = async(pubkey, relayConfig) => {
                 }
             });
         } catch(error) {
-            console.log(`Unable to revoke pubkey from relay ${relayConfig.id}`);
+            console.log(`[revokePubkeyFromRelay] unable to revoke pubkey from relay ${relayConfig.id}`);
             console.log(error);
         }
     }
@@ -216,7 +237,7 @@ const getRelayLoginToken = async(fetchWithCookies, baseUrl) => {
             ret = jsonBody.token;
         }
     } catch(error) {
-        console.log(`Unable to get relay token when calling ${url}`);
+        console.log(`[getRelayLoginToken] unable to get relay token when calling ${url}`);
         console.log(error);
     }
     return ret;
@@ -231,7 +252,7 @@ const getRelayCSRFToken = async(fetchWithCookies, baseUrl) => {
             ret = jsonBody.csrfToken;
         }
     } catch(error) {
-        console.log(`Unable to get CSRF token when calling ${url}`);
+        console.log(`[getRelayCSRFToken] unable to get CSRF token when calling ${url}`);
         console.log(error);
     }
     return ret;
@@ -248,10 +269,10 @@ const getFetchWithCookieForRelay = async(relayConfig) => {
     if (doLogin) await loginToRelay(relayConfig);
     let rco = relayCookies[relayConfig.relay];
     if (rco) {
-        if (pmd) console.log(`*** relay cookie for ${relayConfig.relay} = ${JSON.stringify(rco.cookieJar)}`);
+        if (pmd) console.log(`[getFetchWithCookieForRelay] got relay cookie for ${relayConfig.relay} = ${JSON.stringify(rco.cookieJar)}`);
         return rco.fetchWithCookies;
     } else {
-        console.log("ERROR: Unable to get relay cookie");
+        console.log("[getFetchWithCookieForRelay] error, unable to get relay cookie");
         return undefined;
     }
 }
@@ -301,12 +322,13 @@ const loginToRelay = async(relayConfig) => {
             let cookieHeader = res.headers.get('Set-Cookie');
         }
     } catch(error) {
-        console.log(`Unable to login to relay ${baseUrl}`);
+        console.log(`[loginToRelay] unable to login to relay ${baseUrl}`);
         console.log(error);
     }
 }
 
 module.exports = {
+    grantPubkeysForRoomsToRelays,
     grantPubkeyToRelays,
     grantPubkeyToRelay,
     listAllAllowedPubkeys,
