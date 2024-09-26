@@ -26,6 +26,7 @@ export default function StartMyRoomSimple({
         backgroundImage: 'linear-gradient(rgb(110, 47, 218), rgb(0, 0, 0))',
         cursor: 'pointer',
         color: 'rgb(255,255,255)',
+        display: 'inline-block',
     };
 
     if (roomInfo.hidden) {
@@ -37,55 +38,54 @@ export default function StartMyRoomSimple({
     return (
         <div className="text-md rounded-lg p-2 m-2"
             key={`myroom_${index}`}
-             style={coloringStyle}
-             id={`myrooms-${roomId}`}
+            style={coloringStyle}
+            id={`myrooms-${roomId}`}
+            onClick={async (e) => {
+                location.href = `./${roomId}`;
+            }}
         >
             <table cellPadding="0" cellSpacing="0" width="300px"><tbody>
                 <tr>
-                    <td>
-                        <a href={`./${roomId}`}>
-                            <img src={roomLogo} style={{width:'32px', height:'32px', objectFit: 'cover'}} align="left" />
-                            {(roomId != roomName) && (
-                                <>
-                                {roomId}
-                                <br />
-                                </>
-                            )}
-                            {roomName}
-                            {userCount > 0 && (
-                                <>
-                                <br />
-                                ({userCount} users chatting)
-                                </>
-                            )}
-                        </a>
+                    <td width="48"><img src={roomLogo} style={{width:'48px', height:'48px', objectFit: 'cover'}} /></td>
+                    <td width="232" className="text-sm" align="left">
+                        room id: {roomId}<br />
+                        {roomId != roomName && (<>{roomName}</>)}
                     </td>
-                    <td width="80" style={{width: '80px'}} className="text-sm">
-                        {isOwner && ('👑')}
-                        {isModerator && ('🛡️')}
-                        {isSpeaker && ('🎤')}
-                        {isPrivate && ('🕵️')}
-                        {isProtected && ('🔤')}
-                    </td>
-                    <td width="20" style={{width: '20px'}} >
-                        <button className="mr-2 h-6 text-sm rounded-md"
-                        title="Remove yourself from this room"
-                        onClick={async (e) => {
-                            e.stopPropagation();
-                            let result = confirm('Are you sure you want to remove yourself from this room?');
-                            if (result != true) {
-                              return;
-                            }
-                            removeSelfFromRoom(roomId, myId);
-                            let f = document.getElementById(`myrooms-${roomId}`);
-                            if (f) {
-                                f.style.display = 'none';
-                                roomInfo.hidden = true;
-                            }
-                        }}
-                        >
-                        ❌
-                        </button>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <table cellPadding="0" cellSpacing="0" width="300px">
+                            <tr>
+                                <td className="text-sm" align="left">
+                                    {isOwner && (<span title="Room Owner"> 👑 </span> )}
+                                    {isModerator && (<span title="Room Moderator"> 🛡️ </span> )}
+                                    {isSpeaker && (<span title="Speaker"> 🎤 </span> )}
+                                    {isPrivate && (<span title="Private (unlisted) Room"> 🕵️ </span> )}
+                                    {isProtected && (<span title="Passphrase Protected Room"> 🔤 </span> )}
+                                    {userCount > 0 && (<span> {userCount} users chatting </span>)}
+                                </td>
+                                <td className="text-sm" align="right">
+                                    <button className="mr-2 h-6 text-sm rounded-md"
+                                        title="Remove yourself from this room"
+                                        onClick={async (e) => {
+                                            e.stopPropagation();
+                                            let result = confirm('Are you sure you want to remove yourself from this room?');
+                                            if (result != true) {
+                                                return;
+                                            }
+                                            removeSelfFromRoom(roomId, myId);
+                                            let f = document.getElementById(`myrooms-${roomId}`);
+                                            if (f) {
+                                                f.style.display = 'none';
+                                                roomInfo.hidden = true;
+                                            }
+                                        }}
+                                    >
+                                    ❌
+                                    </button>
+                                </td>
+                            </tr>
+                        </table>
                     </td>
                 </tr>
             </tbody></table>

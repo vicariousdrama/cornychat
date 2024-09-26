@@ -472,7 +472,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
               <div>
                 {(isPeerAdmin && (
                   <button
-                    className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
+                    className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-black text-xs"
                     onClick={() => {
                       let result = confirm('Are you sure you want to remove Admin permissions?');
                       if (result != true) {
@@ -485,7 +485,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
                   </button>
                 )) || (
                   <button
-                    className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
+                    className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-black text-xs"
                     onClick={() => {
                       let result = confirm('Are you sure you want to grant Admin permissions?');
                       if (result != true) {
@@ -502,7 +502,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
 
             {!isOwner && (iOwn || iAmAdmin) && (
               <button
-                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
+                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-black text-xs"
                 onClick={() => addOwner(roomId, peerId).then(close)}
               >
                 👑️ Add to room owners
@@ -511,7 +511,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
 
             {isOwner && (iOwn || iAmAdmin) && (
               <button
-                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
+                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-black text-xs"
                 onClick={() => {
                   let result = confirm('Are you sure you want to remove Ownership status?');
                   if (result != true) {
@@ -526,7 +526,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
 
             {!isModerator && (iOwn || iAmAdmin) && (
               <button
-                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
+                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-black text-xs"
                 onClick={() => addModerator(roomId, peerId).then(close)}
               >
                 🛡️ Make moderator
@@ -535,7 +535,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
 
             {isModerator && (iOwn || iAmAdmin) && (
               <button
-                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
+                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-black text-xs"
                 onClick={() => {
                   let result = confirm('Are you sure you want to remove Moderator status?');
                   if (result != true) {
@@ -550,7 +550,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
 
             {!isSpeaker && !stageOnly && (iModerate || iAmAdmin) ? (
               <button
-                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
+                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-black text-xs"
                 onClick={() => addSpeaker(roomId, peerId).then(close)}
               >
                 🎤 Invite to stage
@@ -559,7 +559,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
 
             {isSpeaker && (iModerate || iOwn || iAmAdmin) ? (
               <button
-                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
+                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-black text-xs"
                 onClick={() => removeSpeaker(roomId, peerId).then(close)}
               >
                 ↓ Move to Audience
@@ -570,7 +570,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
             <>
             {showFollowBtn && (
               <button
-                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
+                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-black text-xs"
                 onClick={() => {
                   handleFollowBtn(userNpub, state);
                 }}
@@ -580,7 +580,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
             )}
             {showUnfollowBtn && (
               <button
-                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
+                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-black text-xs"
                 onClick={() => {
                   let result = confirm('Are you sure you want to unfollow this user?');
                   if (result != true) {
@@ -601,7 +601,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
 
             {(hasNostrIdentity && lnAddress != undefined && lnAddress != '') ? (
               <button
-                className="rounded-lg bg-yellow-200 px-3 py-2 mx-1 my-1 text-xs"
+                className="rounded-lg bg-yellow-200 px-3 py-2 mx-1 my-1 text-black text-xs"
                 onClick={() => {
                   close();
                   openModal(InvoiceModal, {info: info, room: room});
@@ -613,7 +613,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
 
             {!isSameId && canKick && (
               <button
-                className="rounded-lg bg-red-500 text-gray-300 px-3 py-2 mx-1 my-1 text-xs"
+                className="rounded-lg bg-red-500 text-gray-300 px-3 py-2 mx-1 my-1 text-white text-xs"
                 onClick={() => {
                   close();
                   openModal(KickBanModal, {

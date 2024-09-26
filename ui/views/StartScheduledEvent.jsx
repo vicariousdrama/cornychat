@@ -31,19 +31,25 @@ export default function StartScheduledEvent({
     var imageUrl = eventInfo?.image ?? 'https://cornychat.com/img/cornychat-app-icon.jpg';
 
     return (
-        <div className="" key={`scheduled_${index}`}>
+        <div className="px-0 text-md rounded-lg m-2" key={`scheduled_${index}`}
+            style={{width: '300px', display: 'inline-block'}}
+        >
         <a href={`${eventInfo.location}`}>
         <div className="select-none px-0 text-md rounded-lg mt-3"
              style={isExternal ? coloringStyleExternal : coloringStyle}
         >
             <table cellPadding="0" cellSpacing="0" border="0" style={{maxWidth:'320px',width:'300px'}}><tbody>
             <tr>
-                <td rowSpan="2" style={{width: '72px'}}>
+                <td style={{width: '72px'}}>
                     <img src={imageUrl}
                         style={{width: '64px', height: '64px', objectFit: 'cover'}} />
                 </td>
-                <td align="left">{eventInfo?.title ?? eventInfo.location}</td></tr>
-            <tr><td align="right" className="text-sm">{localHumanDateTime}</td></tr>
+                <td>
+                    <div style={{width:'221px',height:'48px',overflow:'hidden', textOverflow:'ellipsis',textAlign:'left'}}>
+                    {eventInfo?.title ?? eventInfo.location}
+                    </div>
+                </td></tr>
+            <tr><td colspan="2" align="right" className="text-sm">{localHumanDateTime}</td></tr>
             </tbody></table>
         </div>
         </a>
