@@ -250,7 +250,7 @@ export default function EnterRoom({
           </div>
           <input
             className={mqp(
-              'rounded w-full placeholder-black bg-gray-50 w-full md:w-96'
+              'rounded w-full placeholder-gray-500 bg-gray-300 text-black w-full md:w-96'
             )}
             value={roomPassphrase}
             type="password"

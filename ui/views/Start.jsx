@@ -198,8 +198,8 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
               <>
               {roomList.length == 0 && (
                 <>
-                <h1>No Live Rooms.</h1>
-                <p>Do you want to start one?</p>
+                <h1>No Live Rooms on this instance.</h1>
+                <p>View live activities on other instances and services via the Discover tab. Or, click the button below to start a new room.</p>
                 </>
               )}
               {roomList.length > 0 && (

@@ -28,16 +28,16 @@ export default function StartRoomSimple({
              style={coloringStyle}
              key={`room_${index}`}
         >
-        {isProtected && (
-          <div className="italic text-xs"
-               style={{position:'relative',bottom:'0px',left:'0px',backgroundColor:'rgb(255,128,21)'}} 
-               title={'A passphrase is required to enter this room'}>A passphrase is required for entry to this room</div>)}
         <a href={`./${roomId}`}>
           <table style={{width:'300px',margin:'0px',padding:'0px'}}><tbody>
             <tr>
-              <td rowSpan="2" style={{width: '140px'}}>
+              <td rowSpan="2" style={{width: '140px',position:'relative'}}>
                 <img src={roomLogo}
                      style={{width: '128px', height: '128px', objectFit: 'cover'}} />
+                {isProtected && (
+                  <div className="italic text-xs"
+                      style={{position:'absolute',bottom:'0px',left:'0px',backgroundColor:'rgba(208,80,21,.63)'}} 
+                      title={'A passphrase is required to enter this room'}>A passphrase is required to enter this room</div>)}                     
               </td>
               <td className="text-xl" style={{width: '160px'}} title={`${roomDescription}`}>
                 <div style={{width: '160px', height: '96px', overflowY: 'clip'}} >
