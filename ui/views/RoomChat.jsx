@@ -519,7 +519,7 @@ export default function RoomChat({
                 onKeyPress={(e) => {if(e.key === "Enter") {e.preventDefault();sendText();}}}
             ></input>
             <button id="uploadbutton"
-                className="px-2 w-12 h-12 text-sm rounded-md"
+                className="px-2 mr-1 w-12 h-12 text-sm rounded-md"
                 style={{color: iconColor, backgroundColor: roomColor.buttons.primary}}
                 onClick={(e) => {e.preventDefault();uploadFile();}}
                 onKeyPress={(e) => {if((e.key === " ") || (e.key === "Enter")) {e.preventDefault();uploadFile();}}}
