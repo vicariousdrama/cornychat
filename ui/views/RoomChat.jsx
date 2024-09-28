@@ -7,6 +7,8 @@ import {avatarUrl, displayName} from '../lib/avatar';
 import {getNpubFromInfo, getRelationshipPetname, makeLocalDate} from '../nostr/nostr';
 import {openModal} from './Modal';
 import {Profile} from './Profile';
+import {Send,Upload} from './Svg';
+import {UploadFileModal} from './UploadFileModal';
 
 export default function RoomChat({
     room,
@@ -113,6 +115,14 @@ export default function RoomChat({
             sessionStorage.setItem(`${roomId}.textchat.scrollpos`, newpos);
             setChatScrollPosition(newpos);
         }
+    }
+
+    function uploadFile() {
+        openModal(UploadFileModal, {
+            roomColor, 
+            objectValue: chatText, 
+            setObjectValue: setChatText,
+        });
     }
 
     function sendText() {
@@ -508,13 +518,21 @@ export default function RoomChat({
                 onChange={(e) => {setChatText(e.target.value);}}
                 onKeyPress={(e) => {if(e.key === "Enter") {e.preventDefault();sendText();}}}
             ></input>
+            <button id="uploadbutton"
+                className="px-2 w-12 h-12 text-sm rounded-md"
+                style={{color: iconColor, backgroundColor: roomColor.buttons.primary}}
+                onClick={(e) => {e.preventDefault();uploadFile();}}
+                onKeyPress={(e) => {if((e.key === " ") || (e.key === "Enter")) {e.preventDefault();uploadFile();}}}
+            >
+                <Upload color={iconColor} />
+            </button>            
             <button id="sendbutton"
-                className="px-5 h-12 text-sm rounded-md"
+                className="px-2 w-12 h-12 text-sm rounded-md"
                 style={{color: iconColor, backgroundColor: roomColor.buttons.primary}}
                 onClick={(e) => {e.preventDefault();sendText();}}
                 onKeyPress={(e) => {if((e.key === " ") || (e.key === "Enter")) {e.preventDefault();sendText();}}}
             >
-                Send
+                <Send color={iconColor} />
             </button>
         </div>
     </div>

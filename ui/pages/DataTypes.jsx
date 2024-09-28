@@ -29,6 +29,7 @@ export default function DataTypes() {
       <li><a href="#kind10002relaylist">Kind 10002 - Relay List Metadata</a></li>
       <li><a href="#kind23194nip47request">Kind 23194 - Nostr Wallet Connect Request</a></li>
       <li><a href="#kind23195nip47response">Kind 23195 - Nostr Wallet Connect Response</a></li>
+      <li><a href="#kind27235httpauth">Kind 27235 - HTTP Auth</a></li>
       <li><a href="#kind30311liveactivities">Kind 30311 - Live Activities</a></li>
       <li><a href="#kind30315livestatus">Kind 30315 - Live Statuses</a></li>
       <li><a href="#kind30382relationships">Kind 30382 - Relationships</a></li>
@@ -210,6 +211,15 @@ export default function DataTypes() {
       <p>
         If nostr wallet connect is enabled and a payment request is made, then the response is processed following
         the guidance outlined in <a href="https://github.com/nostr-protocol/nips/blob/master/47.md">NIP-47</a> using the getalby sdk.
+      </p>
+
+      <a name="kind27235httpauth"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 27235 - HTTP Auth</h2>
+      <p>
+        HTTP Auth events are prepared following guidance outlined in 
+        <a href="https://github.com/nostr-protocol/nips/blob/master/98.md">NIP-98</a> when uploading files to media servers
+        as part of <a href="https://github.com/nostr-protocol/nips/blob/master/96.md">NIP-96</a> HTTP File Storage Integration.  
+        Some media servers impose limitations on users that do not authenticate, and this is a means to identify ownership 
+        of the file and benefit from services the user is subscribed to.
       </p>
 
       <a name="kind30311liveactivities"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 30311 - Live Activities</h2>
