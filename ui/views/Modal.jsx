@@ -48,7 +48,7 @@ export function Modal({close, children}) {
         }}
       >
         <div className="absolute top-2 z-20 right-2">
-          <div onClick={close} style={{backgroundColor: 'white', padding: '0.05rem', cursor: 'pointer'}}>
+          <div onClick={close} style={{backgroundColor: 'white', color:'black', padding: '0.05rem', cursor: 'pointer'}}>
             <CloseSvg />
           </div>
         </div>

@@ -7,7 +7,7 @@ import StreamingModal from './StreamingModal';
 import {isDark} from '../lib/theme';
 import {useJam} from '../jam-core-react';
 import {EditRoomModal} from './editRoom/EditRoom';
-import {Edit, Settings, Stop, Stream, Mic, Share, Slideshow, Refresh, Up, Down, Follow, WriteNote} from './Svg';
+import {Edit, Settings, Stop, Stream, Mic, Share, Slideshow, Refresh, Up, Down, Follow, WriteNote, Profile} from './Svg';
 import {followAllNpubsFromIds} from '../nostr/nostr';
 
 export function MyNavMenu({close, roomColor, iAmAdmin}) {
@@ -72,7 +72,7 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
         }}
         className="p-2 flex items-center"
       >
-        <Settings color={iconColor} />
+        <Profile color={iconColor} />
         <p className="text-md ml-1 cursor-pointer">Personal Settings</p>
       </div>
 

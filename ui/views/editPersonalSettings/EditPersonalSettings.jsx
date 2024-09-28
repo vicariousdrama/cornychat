@@ -152,6 +152,11 @@ export default function EditPersonalSettings({close}) {
     localStorage.getItem('v4vtiproom.frequency') ?? '15'
   );
 
+  let [fileUploadAuth, setFileUploadAuth] = useState(
+    localStorage.getItem('fileUpload.auth') ?? 'true'
+  );
+
+
   let [petnameDecrypt, setPetnameDecrypt] = useState(
     localStorage.getItem('petnames.decryptwithoutprompt') ?? 'false'
   );
@@ -403,7 +408,8 @@ export default function EditPersonalSettings({close}) {
     localStorage.setItem('v4vtiproom.amount', v4vTipRoomAmount);
     localStorage.setItem('v4vtiproom.frequency', v4vTipRoomFrequency);
     localStorage.setItem('petnames.decryptwithoutprompt', petnameDecrypt);
-    localStorage.setItem('publishStatus.enabled', publishStatus);  
+    localStorage.setItem('publishStatus.enabled', publishStatus);
+    localStorage.setItem('fileUpload.auth', fileUploadAuth);
 
     if (verifyingNpub) {
       let identities = [];
@@ -458,6 +464,7 @@ export default function EditPersonalSettings({close}) {
   let [expandedStatus, setExpandedStatus] = useState(false);
   let [expandedTextChat, setExpandedTextChat] = useState(false);
   let [expandedZaps, setExpandedZaps] = useState(false);
+  let [expandedFiles, setExpandedFiles] = useState(false);
 
   return (
     <Modal close={close}>
@@ -901,6 +908,27 @@ export default function EditPersonalSettings({close}) {
                 }}
               />
               Periodically publish status update to nostr. You may be prompted to sign kind 30315 events.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <p className="text-lg font-medium text-gray-200 cursor-pointer" onClick={() => setExpandedFiles(!expandedFiles)}>
+          {expandedFiles ? '🔽' : '▶️'} File Settings
+        </p>
+        <div className={expandedFiles ? 'p-4 py-2 bg-gray-700 rounded-lg my-3' : 'hidden'}>
+          <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
+            <div className="p-2 text-gray-200 bold">
+              <input
+                className="rounded placeholder-gray-500 bg-gray-300 text-black w-8"
+                type="checkbox"
+                checked={fileUploadAuth == 'true' ? true : false}
+                onChange={e => {
+                  setFileUploadAuth(e.target.checked ? 'true' : 'false');
+                }}
+              />
+              Authenticate to File Server for uploading images. Authenticating may grant larger file upload permissions depending on your subscription status and you can later manage the file in your account. You may be prompted to sign kind 27235 events.
             </div>
           </div>
         </div>
