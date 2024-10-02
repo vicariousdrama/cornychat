@@ -37,6 +37,7 @@ const nameSymbols = [
   {"npub":"npub1xd5apfmrpzfpr7w9l7uezm2fn8ztrdhvrtj3tlrmvvv8l6czqatshccdx5","symbol":"🐝","title":"Sweet Honeybee"},
   {"npub":"npub1l8zv3fhdntxq00u3nmrxvmrwpenpgway8y67z663t92x6hd98w3qkfkw83","symbol":"📚","title":"Well Read"},
   {"npub":"npub1xswmtflr4yclfyy4mq4y4nynnnu2vu5nk8jp0875khq9gnz0cthsc0p4xw","symbol":"🦩","title":"Flightless Bird Leader"},
+  {"npub":"npub18u5f6090tcvd604pc8mgvr4t956xsn3rmfd04pj36szx8ne4h87qsztxdp","symbol":"🖋️","title":"May your pen always be inked!"},
 ];
 
 export default function Room({room, roomId, uxConfig}) {
