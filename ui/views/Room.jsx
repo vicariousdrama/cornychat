@@ -14,7 +14,8 @@ import MiniRoomMembers from './MiniRoomMembers.jsx';
 import RoomChat from './RoomChat';
 import {useJamState} from '../jam-core-react/JamContext';
 import {get} from '../jam-core/backend';
-import {getNpubFromInfo} from '../nostr/nostr'
+import {getNpubFromInfo, getUserMetadata} from '../nostr/nostr'
+import {nip19} from 'nostr-tools';
 
 const inWebView =
   userAgent.browser?.name !== 'JamWebView' &&
@@ -155,6 +156,11 @@ export default function Room({room, roomId, uxConfig}) {
             let [remoteIdent, ok] = await get(`/identities/${jamId}`);
             if (ok) {
               sessionStorage.setItem(jamId, JSON.stringify(remoteIdent));
+              const userNpub = getNpubFromInfo(remoteIdent);
+              if (userNpub) {
+                const userPubkey = nip19.decode(userNpub).data;
+                const userInfo = await getUserMetadata(userPubkey, jamId);
+              }
             }
           })();
         }

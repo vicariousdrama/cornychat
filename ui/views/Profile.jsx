@@ -26,8 +26,11 @@ import EditPersonalSettings from './editPersonalSettings/EditPersonalSettings';
 import {useMqParser} from '../lib/tailwind-mqp';
 import {colors, isDark} from '../lib/theme';
 import { KickBanModal } from './KickBanModal';
+import {createLinksSanitized} from '../lib/sanitizedText';
 
 export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIdentity, close}) {
+  const supportFollows = false;
+
   async function setUserMetadata() {
     if (!userNpub) return;
     const pubkey = nip19.decode(userNpub).data;
@@ -69,11 +72,17 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
   function iFollowUser(iFollow) {
     if (iFollow === 'npub not found') return;
     if (!window.nostr) return; // dont show follow/unfollow if not nip07 extension
+    if (!supportFollows) return;
     if (iFollow) setShowUnfollowBtn(true);
     if (!iFollow) setShowFollowBtn(true);
   }
 
   async function handleFollowBtn(userNpub, state) {
+    if (!supportFollows) {
+      setShowFollowBtn(false);
+      setShowUnfollowBtn(false);
+      return;
+    }
     const myFollowList = sessionStorage.getItem('myFollowList');
     const parsedFollowingList = JSON.parse(myFollowList);
     const updateBtn = await followUser(userNpub,parsedFollowingList);
@@ -88,6 +97,11 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
   }
 
   async function handleUnfollowBtn(userNpub, state) {
+    if (!supportFollows) {
+      setShowFollowBtn(false);
+      setShowUnfollowBtn(false);
+      return;
+    }
     const myFollowList = sessionStorage.getItem('myFollowList');
     const parsedFollowingList = JSON.parse(myFollowList);
     const updateBtn = await unFollowUser(userNpub,parsedFollowingList);
@@ -216,7 +230,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
     const wasMetadataFetched = sessionStorage.getItem(userNpub);
     const timeToExpire = 3600; // 1 hour cache of profile and outbox relays
     const myFollowListRetrieved = sessionStorage.getItem('myFollowList.retrievedTime');
-    const myFollowListExpired = (myFollowListRetrieved == undefined || ((myFollowListRetrieved + timeToExpire) < Math.floor(Date.now() / 1000)));
+    const myFollowListExpired = supportFollows && (myFollowListRetrieved == undefined || ((myFollowListRetrieved + timeToExpire) < Math.floor(Date.now() / 1000)));
 
     if (wasMetadataFetched && !myFollowListExpired) {
       // Use the cached info
@@ -252,23 +266,27 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
 
         // Reload follow list if expired, or not yet loaded
         let iFollow = false;
-        let myFollowList = [];
-        if (myFollowListExpired || !wasMetadataFetched){
-          myFollowList = await loadFollowList();
-          if (myFollowList) {
-            sessionStorage.setItem('myFollowList.retrievedTime', Math.floor(Date.now() / 1000));
-            sessionStorage.setItem('myFollowList', JSON.stringify(myFollowList));
+        if (supportFollows) {
+          let myFollowList = undefined;
+          if (supportFollows) {
+            if (myFollowListExpired || !wasMetadataFetched){
+              myFollowList = await loadFollowList();
+              if (myFollowList) {
+                sessionStorage.setItem('myFollowList.retrievedTime', Math.floor(Date.now() / 1000));
+                sessionStorage.setItem('myFollowList', JSON.stringify(myFollowList));
+              }
+            } else {
+              myFollowList = JSON.parse(sessionStorage.getItem('myFollowList'));
+            }
           }
-        } else {
-          myFollowList = JSON.parse(sessionStorage.getItem('myFollowList'));
-        }
-        if (myFollowList) {
-          for (let tag of myFollowList) {
-            if (tag.length < 2) continue;
-            if (tag[0] != 'p') continue;
-            if (tag[1] == userPubkey) {
-              iFollow = true;
-              break;
+          if (myFollowList) {
+            for (let tag of myFollowList) {
+              if (tag.length < 2) continue;
+              if (tag[0] != 'p') continue;
+              if (tag[1] == userPubkey) {
+                iFollow = true;
+                break;
+              }
             }
           }
         }
@@ -566,6 +584,8 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
               </button>
             ) : null}
 
+            {false && (
+            <>
             {window.nostr ? (loadingFollows ? (<h4 className="text-sm text-gray-400">Loading Follow List...</h4>) : (
             <>
             {showFollowBtn && (
@@ -597,6 +617,8 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
               <div className="h-12 mx-2 text-sm rounded-md border-2 border-gray-300 w-full text-center text-gray-200">
                 Use a nostr extension to follow/unfollow participants
               </div>
+            )}
+            </>
             )}
 
             {(hasNostrIdentity && lnAddress != undefined && lnAddress != '') ? (
@@ -681,7 +703,8 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
             return <div key={eventkey}>
               <p className="text-sm text-gray-300 break-all mb-1"
                  style={{whiteSpace:'pre-line'}}
-              >{event.content}</p>
+                 dangerouslySetInnerHTML={{ __html: createLinksSanitized(event.content) }}
+              ></p>
               <p className="text-sm text-gray-500 mb-4"
                  style={{textAlign: 'right', borderBottom: 'solid 1px gray'}}>posted on {makeLocalDate(event.created_at)}</p>
             </div>

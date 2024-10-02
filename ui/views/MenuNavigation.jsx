@@ -11,6 +11,7 @@ import {Edit, Settings, Stop, Stream, Mic, Share, Slideshow, Refresh, Up, Down, 
 import {followAllNpubsFromIds} from '../nostr/nostr';
 
 export function MyNavMenu({close, roomColor, iAmAdmin}) {
+  const supportFollows = false;
   const [
     state,
     {
@@ -218,7 +219,7 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
         </div>
       )}
 
-      {window.nostr && (
+      {supportFollows && window.nostr && (
       <div onClick={async () => {
         let inRoomPeerIds = sessionStorage.getItem(roomId + '.peerIds');
         followAllNpubsFromIds(inRoomPeerIds);
