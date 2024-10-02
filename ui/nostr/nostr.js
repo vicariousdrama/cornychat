@@ -75,7 +75,7 @@ export async function getOutboxRelays(pubkey) {
         }
         //console.log('getOutboxRelays: ', outboxRelays);
         res(outboxRelays);
-      }, 2700);
+      }, 1400);
 
       localpool.subscribe(
         filter,
@@ -208,7 +208,7 @@ export async function getUserEventsByKind(pubkey, kind, timeSince) {
         sessionStorage.setItem(`${pubkey}.kind${kind}events`, JSON.stringify(userEvents));
         sessionStorage.setItem(`${pubkey}.kind${kind}events.retrieveTime`, Math.floor(Date.now() / 1000));
         res(userEvents);
-      }, 2700);
+      }, 1400);
       let options = {unsubscribeOnEose: true, allowDuplicateEvents: false};
       
       localpool.subscribe(
@@ -319,6 +319,8 @@ export async function getUserMetadata(pubkey, id) {
             let isNip05Valid = await verifyNip05(userInfo.nip05, npub);
             obj.nip05 = {isValid: isNip05Valid, nip05Address: userInfo.nip05};
             obj.banner = userInfo.banner;
+            const badgeconfigs = await getCBadgeConfigsForPubkey(pubkey);
+            obj.badgeConfigs = badgeconfigs;
             const userMetadataCache = JSON.stringify(obj);
             sessionStorage.setItem(npub, userMetadataCache);
             return userMetadataCache;
@@ -1473,7 +1475,7 @@ export async function getCBadgeConfigsForPubkey(pubkey) {
         }
         localpool.close();
         res(foundBadgeConfigs);
-      }, 3000);
+      }, 1400);
       localpool.subscribe(
         filters,
         relaysToUse,

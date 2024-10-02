@@ -1,5 +1,6 @@
 const {nip19, getPublicKey } = require('nostr-tools');
 const {get, set} = require('../services/redis');
+const {activeUsersInRoom} = require('../services/ws');
 const {permitAllAuthenticator} = require('../routes/controller');
 const verifyIdentities = require('../verifications');
 const {restrictRoomCreation, jamHost} = require('../config');
@@ -277,6 +278,14 @@ const roomAuthenticator = {
       // permissions checks
       let a = await isAdmin(req);
       let npubs = await asNpubs(req.ssrIdentities);
+      let connectedOwners = [];
+      let connectedUsers = activeUsersInRoom(roomId);
+      for (let connectedUser of connectedUsers) {
+        if (roomInfo.owners.includes(connectedUser) && !connectedOwners.includes(connectedUser)) {
+          connectedOwners.push(connectedUser);
+        }
+      }
+      let connectedOwnerNpubs = await asNpubs(connectedOwners);
       let o = false;
       if (roomInfo.owners) {
         o = isAnyInList(req.ssrIdentities, roomInfo.owners);
@@ -325,7 +334,9 @@ const roomAuthenticator = {
         roomInfo = postingRoom;
       }
       // rule: for a room to be public, user must have an npub
-      if (npubs.length == 0) {
+      // OR at least one other owner currently connected must have an npub
+      if (npubs.length == 0 && connectedOwnerNpubs.length == 0) {
+        console.log("forcing room to private");
         roomInfo.isPrivate = true;
         postingRoom.isPrivate = true;
       }

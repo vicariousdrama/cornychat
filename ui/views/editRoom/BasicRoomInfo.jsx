@@ -47,8 +47,6 @@ export function BasicRoomInfo({
 
   let myname = displayName(info, undefined);
   let userNpub = getNpubFromInfo(info);
-  if (iOwn && !userNpub) setIsPrivate(true);  // force a room to private if the owner does not have an npub
-  
 
   let mqp = useMqParser();
   let [expanded, setExpanded] = useState(false);
@@ -293,7 +291,7 @@ export function BasicRoomInfo({
         </label>
         </>
         )}
-        {((!iOwn && isPrivate) || (iOwn && !userNpub)) && (
+        {(!iOwn && isPrivate) && (
           <p className="text-gray-300 text-sm">
           <span className="font-medium text-gray-300">Private Room</span> - not displayed on landing
           page or announced by the Corny Chat bot. Anyone can join a private room by navigating
