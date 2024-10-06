@@ -14,13 +14,13 @@ function sleep(ms) {
 }
 
 function getDefaultOutboxRelays() {
-  return window.jamConfig.relaysGeneral;
+  return normalizeRelays(window.jamConfig.relaysGeneral);
 }
 
 function getCachedOutboxRelaysByPubkey(pubkey) {
   if(window.DEBUG) console.log('in getCachedOutboxRelaybyPubkey for ', pubkey);
   const npub = nip19.npubEncode(pubkey);
-  return getCachedOutboxRelaysByNpub(npub);
+  return normalizeRelays(getCachedOutboxRelaysByNpub(npub));
 }
 function getCachedOutboxRelaysByNpub(npub) {
   if(window.DEBUG) console.log('in getCachedOutboxRelaysByNpub for ', npub);
@@ -1526,6 +1526,16 @@ export async function loadZapGoals() {
   });
 }
 
+function normalizeRelays(relays) {
+  let o = [];
+  for (let r of relays) {
+    if (!r.endsWith("/")) r = r + "/";
+    if (!r.startsWith("wss://")) r = "wss://" + r;
+    if (!o.includes(r)) o.push(r);
+  }
+  return o;
+}
+
 export async function signAndSendEvent(event) {
   if (!window.nostr) return [false, 'A nostr extension is required to sign events'];
   if (!event.hasOwnProperty("created_at")) event["created_at"] = Math.floor(Date.now() / 1000);
@@ -1549,13 +1559,23 @@ export async function signAndSendEvent(event) {
       myOutboxRelays = await getOutboxRelays(myPubkey); // (async() => {await getOutboxRelays(myPubkey)})();
       updateCacheOutboxRelays(myOutboxRelays, myNpub);
     }
+    myOutboxRelays = normalizeRelays(myOutboxRelays);
     const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
-    let localpool = new RelayPool(undefined, poolOptions);
-    console.log("eventSigned: ", JSON.stringify(eventSigned));
-    console.log("publish to relays: ", JSON.stringify(relaysToUse));
-    await localpool.publish(eventSigned, relaysToUse);
-    const sleeping = await sleep(250);
-    localpool.close();
+    if (window.DEBUG) console.log("eventSigned: ", JSON.stringify(eventSigned));
+    if (window.DEBUG) console.log("publish to relays: ", JSON.stringify(relaysToUse));
+    try {
+      let pool = new RelayPool(undefined, poolOptions);
+      let publishEventResults = await pool.publish(eventSigned, relaysToUse);
+      if (window.DEBUG) console.log("publishEventResults: ", JSON.stringify(publishEventResults));
+      if(pool.errorsAndNotices && pool.errorsAndNotices.length > 0) {
+        console.log(`[signAndSendEvent] pool errors and notices: ${JSON.stringify(pool.errorsAndNotices)}`);
+      }
+      const sleeping1 = await sleep(1000);
+      pool.close();
+      const sleeping2 = await sleep(100);
+    } catch (e) {
+      return [false, 'error talking to relays: ' + e];
+    }
     return [true, eventSigned.id];
   }  
 }

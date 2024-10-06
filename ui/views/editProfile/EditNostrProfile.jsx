@@ -7,6 +7,7 @@ import {nip19} from 'nostr-tools';
 import {isDark, colors} from '../../lib/theme.js';
 import {useMqParser} from '../../lib/tailwind-mqp.js';
 import {handleFileUpload} from '../../lib/fileupload.js';
+import {LoadingIcon} from '../Svg.jsx';
 
 export default function EditNostrProfile({close}) {
     let mqp = useMqParser();
@@ -25,6 +26,7 @@ export default function EditNostrProfile({close}) {
     const pubkey = nip19.decode(npub).data;
     let metadata = {};
     const [extraMetadata, setExtraMetadata] = useState({});
+    const [isSaving, setIsSaving] = useState(false);
     // Fields to be supported from metadata
     const [about, setAbout] = useState(metadata?.about || '');
     const [banner, setBanner] = useState(metadata?.banner || '');
@@ -63,7 +65,6 @@ export default function EditNostrProfile({close}) {
                             if (!handledFields.includes(key)) extrametadata[key] = metadata[key];
                         });
                         setExtraMetadata(extrametadata);
-                        console.log('extrametadata:', JSON.stringify(extrametadata))
                     } catch(ignore) { }
                 }
             }
@@ -78,16 +79,22 @@ export default function EditNostrProfile({close}) {
     let submit = async e => {
         e.preventDefault();
 
-        // Update local identity, pushes to server and peers
-        let ok = await updateInfo({name:name,avatar:picture});
+        setIsSaving(true);
 
         // Update nostr profile
         let metadata = {}
         let tags = []
 
-        // Get latest from relays, so we can leave other fields intact
-        const usermetadata = await getUserMetadata(pubkey, id);
+        // NOTE: While we have existing session, we assume the user isn't editing
+        // their profile in multiple different clients.  Once we load it locally
+        // we update that and use for subsequent updates while session is active.
+        // Look for existing metadata
         let metadataJSON = sessionStorage.getItem(`${npub}.kind0content`);
+        if (!metadataJSON) {
+            // Get latest from relays, so we can leave other fields intact
+            const usermetadata = await getUserMetadata(pubkey, id);
+            metadataJSON = sessionStorage.getItem(`${npub}.kind0content`);
+        }
         let tagsJSON = sessionStorage.getItem(`${npub}.kind0tags`);
         if (metadataJSON) {
             try {
@@ -124,14 +131,21 @@ export default function EditNostrProfile({close}) {
             id: null,
             pubkey: null,
             created_at: Math.floor(Date.now() / 1000),
-            kind: 3,
+            kind: 0,
             tags: tags,
             content: JSON.stringify(metadata),
             sig: null,
         };
         let r = await signAndSendEvent(event);
+
+        // Update local identity, pushes to server and peers
+        let ok = await updateInfo({name:name,avatar:picture});
+
+        setIsSaving(false);
+
+        // Close the dialog, or alert any error
         if (!r[0]) {
-            alert(r[1]);
+            setErrorMsg(r[1]);
         } else {
             close();
         }
@@ -388,9 +402,6 @@ export default function EditNostrProfile({close}) {
                 let v = extraMetadata[key];
                 if (typeof(v) == 'object') {
                     v = JSON.stringify(v,null,2);
-                    // v = v.replace("{\"","{ \"");
-                    // v = v.replace("\"}","\" }");
-                    // v = v.replace("\",\"", "\", \"");
                 }
                 return (
             <div className="p-2 text-gray-200 break-all">
@@ -414,7 +425,7 @@ export default function EditNostrProfile({close}) {
                     backgroundColor: roomColor.buttons.primary,
                 }}
             >
-                Save
+                {isSaving ? <LoadingIcon /> : 'Save'}
             </button>
             <button
                 onClick={cancel}
