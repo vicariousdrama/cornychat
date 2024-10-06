@@ -9,6 +9,7 @@ import {avatarUrl, displayName} from '../../lib/avatar.js';
 import EmojiPicker from 'emoji-picker-react';
 import {doorbellsounds} from '../../lib/doorbell.js';
 import crypto from 'crypto-js';
+import {LoadingIcon} from '../Svg.jsx';
 
 function addNostr(identities, nostrNpub, nostrNoteId, nostrEvent) {
   if (!nostrNpub) return;
@@ -35,6 +36,8 @@ export default function EditPersonalSettings({close}) {
   const colorTheme = state.room?.color ?? 'default';
   const roomColor = colors(colorTheme, state.room.customColor);
 
+  let [isSaving, setIsSaving] = useState(false);
+
   let [name, setName] = useState(info?.name);
   let [avatar, setAvatar] = useState(info?.avatar);
   let [verifyingNpub, setVerifyingNpub] = useState(false);
@@ -53,7 +56,6 @@ export default function EditPersonalSettings({close}) {
   }
   const myEncryptionKey = JSON.parse(localStorage.getItem('identities'))._default.secretKey;
   const [showErrorMsg, setErrorMsg] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   let [defaultZapAmount, setDefaultZapAmount] = useState(
     localStorage.getItem('zaps.defaultAmount') ?? (localStorage.getItem('defaultZap') ?? '')
   );
@@ -248,33 +250,6 @@ export default function EditPersonalSettings({close}) {
     );
   }
 
-  const LoadingIcon = () => {
-    return (
-      <div className="flex justify-center">
-        <svg
-          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          ></circle>
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 6.627 5.373 12 12 12v-4c-3.313 0-6-2.687-6-6z"
-          ></path>
-        </svg>
-      </div>
-    );
-  };
-
   const processFile = file => {
     return new Promise((res, rej) => {
       try {
@@ -293,7 +268,7 @@ export default function EditPersonalSettings({close}) {
   };
 
   const updateValues = async (file, identities) => {
-    setIsLoading(false);
+    setIsSaving(true);
     if (file) {
       const avatar = await processFile(file);
       if (!avatar) return;
@@ -370,7 +345,7 @@ export default function EditPersonalSettings({close}) {
   let submit = async e => {
     e.preventDefault();
     //sessionStorage.clear();
-    setIsLoading(true);
+    setIsSaving(true);
     // for now, disallow uploading file, so we set as undefined to alter flow
     const selectedFile = undefined; // document.querySelector('.edit-profile-file-input').files[0];    
     localStorage.setItem('zaps.defaultAmount', defaultZapAmount);
@@ -416,12 +391,12 @@ export default function EditPersonalSettings({close}) {
       if (nip19Type === 'note') { noteid = nip19Decoded.data; }
       if (noteid.length == 0) {
         setErrorMsg(nip19Type + ' type of note or event id not handled');
-        setIsLoading(false);
+        setIsSaving(false);
       } else {
         const verEvent = await getUserEventById(pubkey, noteid);
         if (!verEvent) {
           setErrorMsg('Nostr verification event was not found');
-          setIsLoading(false);
+          setIsSaving(false);
         } else {
           addNostr(identities, nostrNpub, nostrNoteId, verEvent);
           await updateValues(selectedFile, identities);
@@ -430,7 +405,7 @@ export default function EditPersonalSettings({close}) {
     } else {
       await updateValues(selectedFile);
     }
-    setIsLoading(false);
+    setIsSaving(false);
   };
 
   let cancel = e => {
@@ -1207,6 +1182,7 @@ export default function EditPersonalSettings({close}) {
             <input
               className="hidden rounded placeholder-gray-500 bg-gray-300 text-black w-full"
               type="password"
+              autoComplete="off"
               placeholder=""
               value={nwcSecret ?? ''}
               onChange={e => {
@@ -1354,7 +1330,7 @@ export default function EditPersonalSettings({close}) {
             backgroundColor: roomColor.buttons.primary,
           }}
         >
-          Save
+          {isSaving ? <LoadingIcon /> : 'Save'}
         </button>
         <button
           onClick={cancel}
