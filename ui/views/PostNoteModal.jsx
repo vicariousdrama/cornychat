@@ -96,7 +96,7 @@ export const PostNoteModal = ({
         <div className="flex justify-between">
         <textarea
             className={mqp(
-                'rounded-lg placeholder-black bg-gray-400 text-black border-4 pb-2 rounded-lg w-full md:w-96 h-48'
+                'rounded-lg placeholder-gray-500 bg-gray-300 text-black border-4 pb-2 rounded-lg w-full md:w-96 h-48'
             )}
             name="postContent"
             autoComplete="off"

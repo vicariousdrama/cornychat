@@ -47,13 +47,14 @@ export default async function signalws({
       payload.connId = connId;
     }
     doorbell(d, myPeerId, roomId);
-    if (topic === 'error') {
+    /* if (topic === 'error') {
+      // on errors, announce in an alert, and bounce the user to the homepage
       setTimeout(async () => {
         window.location.href = window.location.href.substring(0,window.location.href.lastIndexOf('/'));
       },3000);
       alert(d);
       return;
-    } else if (topic === 'response') {
+    } else */ if (topic === 'response') {
       requestAccepted(requestId, payload);
       return;
     } else if (topic === 'server') {

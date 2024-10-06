@@ -27,6 +27,7 @@ import {useMqParser} from '../lib/tailwind-mqp';
 import {colors, isDark} from '../lib/theme';
 import { KickBanModal } from './KickBanModal';
 import {createLinksSanitized} from '../lib/sanitizedText';
+import EditNostrProfile from './editProfile/EditNostrProfile';
 
 export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIdentity, close}) {
   const supportFollows = false;
@@ -57,7 +58,8 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
     } else {
       userPosts = JSON.parse(userPosts);
     }
-    //const userPosts = await getUserEventsByKind(pubkey, 1, timeSince);
+    // sort to reverse chronological order
+    userPosts.sort((a,b) => (a.created_at > b.created_at) ? -1 : ((b.created_at > a.created_at) ? 1 : 0));
     setLoadingPosts(false);
     return userPosts;
   }
@@ -345,7 +347,18 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
 
     // user posts
     const recentUserPosts = await getUserPosts(userNpub);
-    setUserPosts(recentUserPosts);
+    let filteredUserPosts = [];
+    for (let recentUserPost of recentUserPosts) {
+      let includePost = true;
+      if (recentUserPost.tags.length > 0) {
+        for (let postTag of recentUserPost.tags) {
+          // filter out tags that are a reply or quote
+          if (postTag.length > 0 && postTag[0] == 'e') includePost = false;
+        }
+      }
+      if (includePost) filteredUserPosts.push(recentUserPost);
+    }
+    setUserPosts(filteredUserPosts);
   }, []);
 
   let userDisplayName = displayName(info, room);
@@ -473,7 +486,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
           <p className="text-xl mr-1 font-semibold text-gray-200">Actions:</p>
           <div className="flex flex-wrap items-center my-2">
 
-          {isSameId ? (
+            {isSameId && (
               <button
                 className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
                 style={{backgroundColor: 'rgb(21,21,210)', color: 'rgb(255,255,255)'}}
@@ -484,13 +497,25 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
               >
                 Edit your personal settings
               </button>
-            ) : null}
+            )}
+            {isSameId && window.nostr && (
+              <button
+                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
+                style={{backgroundColor: 'rgb(21,21,210)', color: 'rgb(255,255,255)'}}
+                onClick={() => {
+                  close();
+                  openModal(EditNostrProfile);
+                }}
+              >
+                Edit your profile
+              </button>
+            )}            
 
             {iAmAdmin && (
               <div>
                 {(isPeerAdmin && (
                   <button
-                    className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-black text-xs"
+                    className="rounded-lg px-3 py-2 mx-1 my-1 text-xs bg-red-500 text-gray-300"
                     onClick={() => {
                       let result = confirm('Are you sure you want to remove Admin permissions?');
                       if (result != true) {
@@ -529,7 +554,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
 
             {isOwner && (iOwn || iAmAdmin) && (
               <button
-                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-black text-xs"
+                className="rounded-lg px-3 py-2 mx-1 my-1 text-xs bg-red-500 text-gray-300"
                 onClick={() => {
                   let result = confirm('Are you sure you want to remove Ownership status?');
                   if (result != true) {
@@ -538,7 +563,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
                   removeOwner(roomId, peerId).then(close)
                 }}
               >
-                ❌ Revoke room ownership
+                ❌ Remove Room Owner
               </button>
             )}
 
@@ -553,7 +578,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
 
             {isModerator && (iOwn || iAmAdmin) && (
               <button
-                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-black text-xs"
+                className="rounded-lg px-3 py-2 mx-1 my-1 text-xs bg-red-500 text-gray-300"
                 onClick={() => {
                   let result = confirm('Are you sure you want to remove Moderator status?');
                   if (result != true) {
@@ -562,7 +587,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
                   removeModerator(roomId, peerId).then(close)
                 }}
               >
-                ❌ Demote Moderator
+                ❌ Remove Moderator
               </button>
             )}
 
@@ -577,7 +602,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
 
             {isSpeaker && (iModerate || iOwn || iAmAdmin) ? (
               <button
-                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-black text-xs"
+                className="rounded-lg px-3 py-2 mx-1 my-1 text-xs bg-red-500 text-gray-300"
                 onClick={() => removeSpeaker(roomId, peerId).then(close)}
               >
                 ↓ Move to Audience
@@ -687,7 +712,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
           <p className={about ? 'text-xl mr-1 font-semibold text-gray-200' : 'hidden'}>
             About:
           </p>
-          <p className="text-sm text-gray-300 break-all mb-1"
+          <p className="text-sm text-gray-300 break-word mb-1"
              style={{whiteSpace:'pre-line'}}
           >{about}</p>
         </div>
@@ -701,7 +726,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
           { userPosts?.slice(0,maxPostsToDisplay).map((event, index) => {
             let eventkey = `eventkey_${index}`;
             return <div key={eventkey}>
-              <p className="text-sm text-gray-300 break-all mb-1"
+              <p className="text-sm text-gray-300 break-word mb-1"
                  style={{whiteSpace:'pre-line'}}
                  dangerouslySetInnerHTML={{ __html: createLinksSanitized(event.content) }}
               ></p>

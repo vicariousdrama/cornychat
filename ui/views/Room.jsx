@@ -38,6 +38,7 @@ const nameSymbols = [
   {"npub":"npub1l8zv3fhdntxq00u3nmrxvmrwpenpgway8y67z663t92x6hd98w3qkfkw83","symbol":"📚","title":"Well Read"},
   {"npub":"npub1xswmtflr4yclfyy4mq4y4nynnnu2vu5nk8jp0875khq9gnz0cthsc0p4xw","symbol":"🦩","title":"Flightless Bird Leader"},
   {"npub":"npub18u5f6090tcvd604pc8mgvr4t956xsn3rmfd04pj36szx8ne4h87qsztxdp","symbol":"🖋️","title":"May your pen always be inked!"},
+  {"npub":"npub1tx5ccpregnm9afq0xaj42hh93xl4qd3lfa7u74v5cdvyhwcnlanqplhd8g","symbol":"🎨","title":"Painting one of a kinds"},
 ];
 
 export default function Room({room, roomId, uxConfig}) {
@@ -140,10 +141,11 @@ export default function Room({room, roomId, uxConfig}) {
   // Cache identities in session
   function CacheIdentities(identities) {
     for(let i = 0; i < identities.length; i ++) {
+      // get user identity info from server
       let id = identities[i];
       if (id.length == 43) {
         let jamId = id;
-        const sessionStoreIdent = sessionStorage.getItem(jamId);
+        let sessionStoreIdent = sessionStorage.getItem(jamId);
         let fetchit = false;
         if (sessionStoreIdent == null) {
           fetchit = true;
@@ -157,14 +159,32 @@ export default function Room({room, roomId, uxConfig}) {
             let [remoteIdent, ok] = await get(`/identities/${jamId}`);
             if (ok) {
               sessionStorage.setItem(jamId, JSON.stringify(remoteIdent));
-              const userNpub = getNpubFromInfo(remoteIdent);
-              if (userNpub) {
-                const userPubkey = nip19.decode(userNpub).data;
-                const userInfo = await getUserMetadata(userPubkey, jamId);
-              }
             }
           })();
         }
+        // attempt to fetch user metadata from relays as needed, with incremental delay to
+        // try to avoid overwhelming/spamming relays with parallel fetch requests. if this
+        // still results in errors, then may need to do a bulk request for all metadata of
+        // users in room in one go?
+        /*
+        sessionStoreIdent = sessionStorage.getItem(jamId);
+        if (sessionStoreIdent) {
+          const npub = getNpubFromInfo(sessionStoreIdent);
+          if (npub) {
+            let mc = sessionStorage.getItem(`${npub}`);
+            if (!mc) {
+              (async () => {
+                let timeoutMC = setTimeout(() => {
+                  (async () => {
+                  const userPubkey = nip19.decode(npub).data;
+                  const userInfo = await getUserMetadata(userPubkey, jamId);
+                  })();
+                }, 1000 * i);
+              })();
+            }
+          }          
+        }
+        */
       }
     }
   }

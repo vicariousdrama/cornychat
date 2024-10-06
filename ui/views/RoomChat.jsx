@@ -37,7 +37,6 @@ export default function RoomChat({
     const roomColor = colors(colorTheme, room.customColor);
     const textColor = isDark(roomColor.avatarBg) ? roomColor.text.light : roomColor.text.dark;
     const iconColor = isDark(roomColor.buttons.primary) ? roomColor.icons.light : roomColor.icons.dark;
-    let spoilercount = 0;    
 
     const [time, setTime] = useState(Date.now());
     useEffect(() => {
