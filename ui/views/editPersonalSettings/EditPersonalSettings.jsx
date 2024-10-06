@@ -1,6 +1,5 @@
 import React, {useState} from 'react';
 import {Modal} from '../Modal.jsx';
-import {useMqParser} from '../../lib/tailwind-mqp.js';
 import {use} from 'use-minimal-state';
 import {useJam} from '../../jam-core-react.js';
 import {getUserMetadata, getUserEventById} from '../../nostr/nostr.js';
@@ -33,17 +32,14 @@ export default function EditPersonalSettings({close}) {
   const [id, myIdentity] = use(state, ['myId', 'myIdentity']);
   const info = myIdentity?.info;
   const nostrIdentity = info?.identities?.find(i => i.type === 'nostr');
-  const mqp = useMqParser();
   const colorTheme = state.room?.color ?? 'default';
   const roomColor = colors(colorTheme, state.room.customColor);
-  let nostrNote = nostrIdentity?.verificationInfo;
 
   let [name, setName] = useState(info?.name);
   let [avatar, setAvatar] = useState(info?.avatar);
   let [verifyingNpub, setVerifyingNpub] = useState(false);
   let [nostrNpub, setNostrNpub] = useState(nostrIdentity?.id);
   let [nostrNoteId, setNostrNoteId] = useState(nostrIdentity?.verificationInfo);
-  let [nostrNoteVerified, setNostrNoteVerified] = useState(false);
   let room = use(state, 'room');
 
   if (name == undefined) {
@@ -57,7 +53,6 @@ export default function EditPersonalSettings({close}) {
   }
   const myEncryptionKey = JSON.parse(localStorage.getItem('identities'))._default.secretKey;
   const [showErrorMsg, setErrorMsg] = useState(false);
-  const [showNostrVerify, setShowNostrVerify] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   let [defaultZapAmount, setDefaultZapAmount] = useState(
     localStorage.getItem('zaps.defaultAmount') ?? (localStorage.getItem('defaultZap') ?? '')
@@ -1359,7 +1354,7 @@ export default function EditPersonalSettings({close}) {
             backgroundColor: roomColor.buttons.primary,
           }}
         >
-          {isLoading ? <LoadingIcon /> : 'Done'}
+          Save
         </button>
         <button
           onClick={cancel}

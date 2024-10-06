@@ -30,6 +30,7 @@ export function createLinksSanitized(text) {
     // Convert ||spoilertext|| to <a className="spoiler" id="spoilerlink" href="#spoilerlink" title="Tap to reveal">spoilertext</a>
     let spoilermatches = text.match(/\|\|(.*?)\|\|/);
     if (spoilermatches) {
+        let spoilercount = 0;
         for(let spoilermatch of spoilermatches) {
             spoilercount += 1;
             if (spoilercount % 2 == 1) {

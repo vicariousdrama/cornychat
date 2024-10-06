@@ -6,7 +6,6 @@ import {bech32} from 'bech32';
 import {Buffer} from 'buffer';
 
 const poolOptions = {autoReconnect:true}
-const writepool = new RelayPool(undefined, poolOptions);
 function unique(arr) {
   return [...new Set(arr)];
 }
@@ -149,7 +148,7 @@ export async function signInExtension(
     let tags = [];
     let myId = state.myId;
     let loginEvent = {created_at: created_at, pubkey: pubkey, kind: kind, tags: tags, content: myId};
-    let signedLogin = await window.nostr.signEvent(loginEvent);
+    let signedLogin = await window.nostr.signEvent(loginEvent); // not published to relays, parsed and set to identity
     let npub = nip19.npubEncode(pubkey);
     let dmPubkey = await getDMPubkey();
     if(window.DEBUG) console.log(dmPubkey);
@@ -205,6 +204,8 @@ export async function getUserEventsByKind(pubkey, kind, timeSince) {
             }
           }
         }
+        // sorts as chronological order
+        userEvents.sort((a,b) => (a.created_at > b.created_at) ? 1 : ((b.created_at > a.created_at) ? -1 : 0));
         sessionStorage.setItem(`${pubkey}.kind${kind}events`, JSON.stringify(userEvents));
         sessionStorage.setItem(`${pubkey}.kind${kind}events.retrieveTime`, Math.floor(Date.now() / 1000));
         res(userEvents);
@@ -276,7 +277,7 @@ export async function getUserMetadata(pubkey, id) {
       const userRelays = getCachedOutboxRelaysByPubkey(pubkey);
       const defaultRelays = getDefaultOutboxRelays();
       const relaysToUse = unique([...userRelays, ...defaultRelays]);
-      const filter = [{kinds: [0], authors: [pubkey]}];
+      const filter = [{kinds: [0], authors: [pubkey], limit: 20}];
       //check if i can use a variable set to true or false
       let userEvents = [];
       const timeoutRelays = setTimeout(() => {
@@ -286,11 +287,13 @@ export async function getUserMetadata(pubkey, id) {
           res(undefined);
         } else {
           let userMetadata = {}
+          let userTags = []
           let userDate = 0;
           for (let ue of userEvents) {
             try {
               if (ue.created_at > userDate) {
                 userMetadata = JSON.parse(ue.content);
+                userTags = ue.tags;
                 userDate = ue.created_at;
               }
             } catch (err) {
@@ -323,6 +326,8 @@ export async function getUserMetadata(pubkey, id) {
             obj.badgeConfigs = badgeconfigs;
             const userMetadataCache = JSON.stringify(obj);
             sessionStorage.setItem(npub, userMetadataCache);
+            sessionStorage.setItem(`${npub}.kind0content`, JSON.stringify(userMetadata));
+            sessionStorage.setItem(`${npub}.kind0tags`, JSON.stringify(userTags));
             return userMetadataCache;
           })();
           if(!!false) console.log(savingToSession);
@@ -330,7 +335,7 @@ export async function getUserMetadata(pubkey, id) {
           localpool.close();
           res(userInfo);
         }
-      }, 3000);
+      }, 1400);
       const npub = nip19.npubEncode(pubkey);
       localpool.subscribe(
         filter,
@@ -525,22 +530,8 @@ async function saveFollowList(myFollowList) {
     content: '',
     sig: null,
   };
-  const EventSigned = await window.nostr.signEvent(event);
-  if(window.DEBUG) console.log(EventSigned);
-  //if (!EventSigned) return [null, 'There was an error with your nostr extension'];
-  const defaultRelays = getDefaultOutboxRelays();
-  const myPubkey = await window.nostr.getPublicKey();
-  const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
-  let myOutboxRelays = [];
-  if (userRelays?.length == 0) {
-    const myNpub = nip19.npubEncode(myPubkey);
-    myOutboxRelays = await getOutboxRelays(myPubkey);
-    updateCacheOutboxRelays(myOutboxRelays, myNpub);
-  }
-  const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
-  writepool.publish(EventSigned, relaysToUse);
-  const sleeping = await sleep(100);
-  return true;
+  let r = await signAndSendEvent(event);
+  return r[0];
 }
 
 export async function loadFollowList() {
@@ -813,7 +804,7 @@ export async function makeZapRequest(content, receiver, event, msatsAmount) {
   }
 
   if (window.nostr) {
-    const EventSigned = await window.nostr.signEvent(zapevent);
+    const EventSigned = await window.nostr.signEvent(zapevent); // not published to relays, encoded to send to lightning provider
     if (!EventSigned)
       return [null, 'There was an error with your nostr extension'];
     const eventSignedEncoded = encodeURI(JSON.stringify(EventSigned));
@@ -934,27 +925,8 @@ export async function saveList(dTagValue, name, about, image, kind, theList) {
     content: "",
     sig: null,
   };
-  const eventSigned = await window.nostr.signEvent(event);
-  if (!eventSigned) {
-    return [false, 'There was an error with your nostr extension'];
-  } else {
-    if (window.DEBUG) console.log(eventSigned);
-    // push to relays
-    const defaultRelays = getDefaultOutboxRelays();
-    const myPubkey = await window.nostr.getPublicKey();
-    const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
-    let myOutboxRelays = [];
-    if (userRelays?.length == 0) {
-      const myNpub = nip19.npubEncode(myPubkey);
-      myOutboxRelays = await getOutboxRelays(myPubkey);
-      updateCacheOutboxRelays(myOutboxRelays, myNpub);
-    }
-    const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
-    if (window.DEBUG) console.log(relaysToUse);
-    writepool.publish(eventSigned, relaysToUse);
-    const sleeping = await sleep(100);
-    return [true, ''];
-  }
+  let r = await signAndSendEvent(event);
+  return r;
 }
 
 export async function loadList(kind, pubkey) {
@@ -1044,21 +1016,8 @@ export async function requestDeletionById(id) {
     content: '',
     sig: null,
   };
-  const EventSigned = await window.nostr.signEvent(event);
-  if(window.DEBUG) console.log(EventSigned);
-  const defaultRelays = getDefaultOutboxRelays();
-  const myPubkey = await window.nostr.getPublicKey();
-  const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
-  let myOutboxRelays = [];
-  if (userRelays?.length == 0) {
-    const myNpub = nip19.npubEncode(myPubkey);
-    myOutboxRelays = await getOutboxRelays(myPubkey);
-    updateCacheOutboxRelays(myOutboxRelays, myNpub);
-  }
-  const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
-  writepool.publish(EventSigned, relaysToUse);
-  const sleeping = await sleep(100);
-  return true;  
+  let r = await signAndSendEvent(event);
+  return r[0];  
 }
 
 export function makeLocalDate(timestamp) {
@@ -1335,21 +1294,8 @@ export async function updatePetname(userNpub, petname) {
 
   // Sign and send newRelationship
   if(window.DEBUG) console.log(newRelationship);
-  const EventSigned = await window.nostr.signEvent(newRelationship);
-  await sleep(100);
-  if(window.DEBUG) console.log(EventSigned);
-  const defaultRelays = getDefaultOutboxRelays();
-  const myPubkey = await window.nostr.getPublicKey();
-  const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
-  let myOutboxRelays = [];
-  if (userRelays?.length == 0) {
-    const myNpub = nip19.npubEncode(myPubkey);
-    myOutboxRelays = await getOutboxRelays(myPubkey);
-    updateCacheOutboxRelays(myOutboxRelays, myNpub);
-  }
-  const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
-  writepool.publish(EventSigned, relaysToUse);
-  const sleeping = await sleep(100);
+  let r = await signAndSendEvent(newRelationship);
+  return r[0];
 }
 
 export function loadNWCUrl() {
@@ -1373,45 +1319,6 @@ export function loadNWCUrl() {
     return undefined;
   }
   return `nostr+walletconnect:${nwcWSPubkey}?relay=${nwcRelay}&secret=${nwcSecret}`;   
-}
-
-export async function publishStatus(status, url) {
-  let kind = 30315;
-  let expiration = Math.floor(Date.now() / 1000) + (60*60); // 1 hour from now
-  let tags = [
-    ["d", "music"],
-    ["r", url]
-  ];
-  //tags.push(["expiration", `${expiration}`]);
-  if (window.DEBUG) console.log(`Publishing status to nostr: ${status}, with url ${url}`);
-  let event = {
-    id: null,
-    pubkey: null,
-    created_at: Math.floor(Date.now() / 1000),
-    kind: kind,
-    tags: tags,
-    content: status,
-    sig: null,
-  };
-  const eventSigned = await window.nostr.signEvent(event);
-  if (!eventSigned) {
-    return [false, 'There was an error with your nostr extension'];
-  } else {
-    // push to relays
-    const defaultRelays = getDefaultOutboxRelays();
-    const myPubkey = await window.nostr.getPublicKey();
-    const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
-    let myOutboxRelays = [];
-    if (userRelays?.length == 0) {
-      const myNpub = nip19.npubEncode(myPubkey);
-      myOutboxRelays = await getOutboxRelays(myPubkey); // (async() => {await getOutboxRelays(myPubkey)})();
-      updateCacheOutboxRelays(myOutboxRelays, myNpub);
-    }
-    const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
-    writepool.publish(eventSigned, relaysToUse);
-    const sleeping = await sleep(100);
-    return [true, ''];
-  }  
 }
 
 export async function getCBadgeConfigsForPubkey(pubkey) {
@@ -1507,25 +1414,8 @@ export async function sendLiveChat(roomATag, textchat) {
     content: textchat,
     sig: null,
   };
-  const eventSigned = await window.nostr.signEvent(event);
-  if (!eventSigned) {
-    return [false, 'There was an error with your nostr extension'];
-  } else {
-    // push to relays
-    const defaultRelays = getDefaultOutboxRelays();
-    const myPubkey = await window.nostr.getPublicKey();
-    const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
-    let myOutboxRelays = [];
-    if (userRelays?.length == 0) {
-      const myNpub = nip19.npubEncode(myPubkey);
-      myOutboxRelays = await getOutboxRelays(myPubkey); // (async() => {await getOutboxRelays(myPubkey)})();
-      updateCacheOutboxRelays(myOutboxRelays, myNpub);
-    }
-    const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
-    writepool.publish(eventSigned, relaysToUse);
-    const sleeping = await sleep(100);
-    return [true, eventSigned.id];
-  }  
+  let r = await signAndSendEvent(event);
+  return r;
 }
 
 export async function publishZapGoal(description, amount) {
@@ -1555,18 +1445,33 @@ export async function publishZapGoal(description, amount) {
       content: description,
       sig: null,
     };
-    const eventSigned = await window.nostr.signEvent(event);
-    if (!eventSigned) {
-      return [false, 'There was an error with your nostr extension'];
-    } else {
-      // push to relays
-      writepool.publish(eventSigned, relaysToUse);
-      const sleeping = await sleep(100);
-      return [true, eventSigned];
-    }
+    let r = await signAndSendEvent(event);
+    return r;
   } catch (err) {
     return [false, `Error in publishZapGoal: ${err}`];
   }
+}
+
+export async function publishStatus(status, url) {
+  let kind = 30315;
+  let expiration = Math.floor(Date.now() / 1000) + (60*60); // 1 hour from now
+  let tags = [
+    ["d", "music"],
+    ["r", url]
+  ];
+  //tags.push(["expiration", `${expiration}`]);
+  if (window.DEBUG) console.log(`Publishing status to nostr: ${status}, with url ${url}`);
+  let event = {
+    id: null,
+    pubkey: null,
+    created_at: Math.floor(Date.now() / 1000),
+    kind: kind,
+    tags: tags,
+    content: status,
+    sig: null,
+  };
+  let r = signAndSendEvent(event);
+  return r;  
 }
 
 export async function loadZapGoals() {
@@ -1645,8 +1550,12 @@ export async function signAndSendEvent(event) {
       updateCacheOutboxRelays(myOutboxRelays, myNpub);
     }
     const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
-    writepool.publish(eventSigned, relaysToUse);
-    const sleeping = await sleep(100);
+    let localpool = new RelayPool(undefined, poolOptions);
+    console.log("eventSigned: ", JSON.stringify(eventSigned));
+    console.log("publish to relays: ", JSON.stringify(relaysToUse));
+    await localpool.publish(eventSigned, relaysToUse);
+    const sleeping = await sleep(250);
+    localpool.close();
     return [true, eventSigned.id];
   }  
 }

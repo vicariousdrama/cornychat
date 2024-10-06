@@ -20,12 +20,12 @@ export const CreateZapGoalModal = ({
     const myPubkey = await window.nostr.getPublicKey();
     const myNpub = nip19.npubEncode(myPubkey);
     setZGcontent(decodeHTMLEncoded(zgContent));
-    let [ok, event] = await publishZapGoal(zgContent, zgAmount);
+    let [ok, ret2] = await publishZapGoal(zgContent, zgAmount);
     if (ok) {
-        setZapGoal({content:zgContent,amount:zgAmount,id:event.id,npub:myNpub});
+        setZapGoal({content:zgContent,amount:zgAmount,id:ret2,npub:myNpub});
         close();
     } else {
-        alert(`An error occurred while creating and publishing the zap goal.\n${event}`);
+        alert(`An error occurred while creating and publishing the zap goal.\n${ret2}`);
     }
   };
 
