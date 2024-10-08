@@ -36,7 +36,9 @@ export default function ZapGoalBar({
     let textStyleUnfilled = {marginTop: '0px', marginLeft: '2px', marginRight: '2px', position: 'relative', color: textColorUnfilled}
 
     function setWidths(totalSats) {
-        let width = document.getElementById('zapgoal').parentElement.parentElement.clientWidth;
+        let zg = document.getElementById("zapgoal");
+        let width = 100;
+        if (zg) width = zg.parentElement.parentElement.clientWidth;
         fillWidth = goalAmount > 0 ? Math.floor((totalSats/goalAmount) * width) : width;
         if (fillWidth > width) fillWidth = width;
         let unfilledWidth = width - fillWidth;
@@ -46,16 +48,16 @@ export default function ZapGoalBar({
         let zut = document.getElementById("zapgoal_unfilled_text");
         let zf = document.getElementById("zapgoal_filled");
         let zft = document.getElementById("zapgoal_filled_text");
-        zft.innerText = leftok ? (rightok ? totalSats : totalSats + " / " + goalAmount) : "";
-        zft.style.textAlign = leftok ? (rightok ? 'right' : 'center') : 'center';
-        zut.innerText = rightok ? (leftok ? (remainAmount > 0 ? String(remainAmount) + " to go" : goalAmount): totalSats + " / " + goalAmount) : "";
-        zut.style.textAlign = rightok ? (leftok ? 'left' : 'center') : 'center';
-        zf.style.display = fillWidth > 0 ? 'inline' : 'none';
-        zf.style.width = String(fillWidth) + "px";
-        zu.style.display = unfilledWidth > 0 ? 'inline' : 'none';
-        zu.style.width = String(unfilledWidth) + "px";
-        zu.style.border = `${unfilledWidth <= 0 ? 0 : 1}px solid ${borderColorUnfilled}`;
-        document.getElementById("zapgoal").setAttribute("title", String(totalSats) + " sats towards goal of " + goalAmount);
+        if (zft) zft.innerText = leftok ? (rightok ? totalSats : totalSats + " / " + goalAmount) : "";
+        if (zft) zft.style.textAlign = leftok ? (rightok ? 'right' : 'center') : 'center';
+        if (zut) zut.innerText = rightok ? (leftok ? (remainAmount > 0 ? String(remainAmount) + " to go" : goalAmount): totalSats + " / " + goalAmount) : "";
+        if (zut) zut.style.textAlign = rightok ? (leftok ? 'left' : 'center') : 'center';
+        if (zf) zf.style.display = fillWidth > 0 ? 'inline' : 'none';
+        if (zf) zf.style.width = String(fillWidth) + "px";
+        if (zu) zu.style.display = unfilledWidth > 0 ? 'inline' : 'none';
+        if (zu) zu.style.width = String(unfilledWidth) + "px";
+        if (zu) zu.style.border = `${unfilledWidth <= 0 ? 0 : 1}px solid ${borderColorUnfilled}`;
+        if (zg) zg.setAttribute("title", String(totalSats) + " sats towards goal of " + goalAmount);
     }
 
     async function _checkZaps(zapgoal) {
