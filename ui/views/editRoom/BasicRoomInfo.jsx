@@ -8,6 +8,8 @@ import {dosha256hexrounds} from '../../lib/sha256rounds.js';
 import {openModal} from '../Modal';
 import {CreateZapGoalModal} from './CreateZapGoal.jsx';
 import { ImportZapGoalModal} from './ImportZapGoal.jsx';
+import {handleFileUpload} from '../../lib/fileupload.js';
+import {LoadingIcon} from '../Svg.jsx';
 
 export function BasicRoomInfo({
   iOwn,
@@ -50,6 +52,24 @@ export function BasicRoomInfo({
 
   let mqp = useMqParser();
   let [expanded, setExpanded] = useState(false);
+
+  let uploadLogoFile = async e => {
+    e.preventDefault();
+    let buttonObject = document.getElementById('buttonUploadLogo');
+    let fileObject = document.getElementById('fileUploadLogo');
+    let textObject = document.getElementById('fileUploadingLogo');
+    buttonObject.style.display = 'none';
+    fileObject.style.display = 'none';
+    textObject.style.display = 'inline';
+    let urls = await handleFileUpload(fileUploadLogo);
+    if (urls.length > 0) {
+      setLogoURI(urls[0]);
+    }
+    textObject.style.display = 'none';
+    fileObject.style.display = 'inline';
+    buttonObject.style.display = 'inline';
+  }
+
   return (
     <div>
       <p className="text-lg font-medium text-gray-200 cursor-pointer" onClick={() => setExpanded(!expanded)}>
@@ -81,27 +101,54 @@ export function BasicRoomInfo({
       </div>
 
       <div className="my-2">
-        <p className="text-sm font-medium text-gray-300">
-          Room logo URI: {!iOwn && (logoURI)}
-        </p>
+        <div className="text-sm font-medium text-gray-300">
+          Room Logo URI
+        </div>
+        <div className="flex justify-between">
+            <img
+                className="w-full h-full"
+                src={logoURI}
+            />
+        </div>
         {iOwn && (
-        <input
-          className={mqp(
-            'rounded-lg placeholder-gray-500 bg-gray-300 text-black border-4 pb-2 rounded-lg w-full md:w-96'
-          )}
-          type="text"
-          placeholder="Logo URI. Displayed on the landing page when room is active."
-          value={logoURI}
-          name="jam-room-logo-uri"
-          autoComplete="off"
-          style={{
-            fontSize: '15px',
-          }}
-          onChange={e => {
-            setLogoURI(e.target.value);
-          }}
-        ></input>
-        )}
+          <>
+        <div className="flex justify-between">
+          <input
+            className="rounded placeholder-gray-500 bg-gray-300 text-black w-full"
+            type="text"
+            placeholder=""
+            value={logoURI ?? ''}
+            name="logoURI"
+            onChange={e => {
+              setLogoURI(e.target.value);
+            }}
+          />
+        </div>
+        <div className="flex justify-between">
+          <input type="file" name="uploadLogoFile" id="fileUploadLogo" accept="image/*" 
+            className="w-full"
+            style={{
+              fontSize: '10pt',
+              margin: '0px',
+              marginLeft: '4px',
+              padding: '2px'
+            }} 
+          />
+        </div>
+        <div>
+            <button 
+                id="buttonUploadLogo"
+                className="px-5 text-md rounded-md" 
+                style={{
+                    color: textColor,
+                    backgroundColor: roomColor.buttons.primary,
+                }}
+                onClick={async(e) => {uploadLogoFile(e);}}
+            >Upload</button>
+        </div>
+        <div id="fileUploadingLogo" style={{display: 'none', fontSize: '10pt', }}><LoadingIcon /> uploading file</div>
+        </>
+        )}        
       </div>
 
       <div className="my-2">
