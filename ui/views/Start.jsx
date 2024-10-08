@@ -83,20 +83,24 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
   }, []);
 
   let submit = e => {
-    let result = confirm('Are you sure you want to create a new room?');
-    if (result != true) {
-      return;
-    }
     e.preventDefault();
     setProps('userInteracted', true);
     let roomId;
     const mn = bip39.generateMnemonic(wordlist).split(' ');
     const roomNum = (Math.floor(Math.random() * 1000)+1).toString();
     roomId = mn[0] + mn[1] + roomNum;
-
+    roomId = prompt('Set your desired room id for the room url or use this randomly selected one', roomId);
+    if (roomId == null || roomId == undefined) return;
+    let match = roomId.match(/^[a-z0-9]{4,24}$/);
+    if (!match) {
+      alert('The room id must be between 4 and 24 lowercase characters and numbers');
+      return;
+    }
+    roomId = match[0];
     (async () => {
       let theTime = Date.now();
-      let roomPosted = {name: roomId, stageOnly, videoEnabled, currentSlide: 1, updateTime: theTime, createdTime: theTime, roomSlides : [
+      let addTutorialSlides = false;
+      let tutorialSlides = [
         ["/img/tutorial/tutorial-01.png","Tutorial Start"],
         ["/img/tutorial/tutorial-02.png","Room Settings"],
         ["/img/tutorial/tutorial-03.png","Basic Room Info"],
@@ -107,7 +111,12 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
         ["/img/tutorial/tutorial-08.png","Owners, Moderators, and Speakers"],
         ["/img/tutorial/tutorial-09.png","Scheduling Events"],
         ["/img/tutorial/tutorial-10.png","Tutorial Conclusion"]
-      ]};
+      ];
+      let roomPosted = {name: roomId, stageOnly, videoEnabled, updateTime: theTime, createdTime: theTime};
+      if (addTutorialSlides) {
+        roomPosted["roomSlides"] = tutorialSlides;
+        roomPosted["currentSlide"] = 1;
+      }
       let ok = await createRoom(roomId, roomPosted);
       if (ok) {
         if (urlRoomId !== roomId) navigate('/' + roomId);
