@@ -1,6 +1,8 @@
 import React, {useState} from 'react';
 import {useMqParser} from '../../lib/tailwind-mqp';
 import {RgbaColorPicker} from 'react-colorful';
+import {handleFileUpload} from '../../lib/fileupload.js';
+import {LoadingIcon} from '../Svg.jsx';
 
 export function DesignRoomInfo({
   iOwn,
@@ -30,6 +32,8 @@ export function DesignRoomInfo({
   styleButtons,
   tooltipStates,
   setTooltipStates,
+  textColor,
+  roomColor,
 }) {
   let mqp = useMqParser();
   let [expanded, setExpanded] = useState(false);
@@ -49,6 +53,23 @@ export function DesignRoomInfo({
     setColorType('');
   }
 
+  let uploadBackgroundFile = async e => {
+    e.preventDefault();
+    let buttonObject = document.getElementById('buttonUploadBackground');
+    let fileObject = document.getElementById('fileUploadBackground');
+    let textObject = document.getElementById('fileUploadingBackground');
+    buttonObject.style.display = 'none';
+    fileObject.style.display = 'none';
+    textObject.style.display = 'inline';
+    let urls = await handleFileUpload(fileUploadBackground);
+    if (urls.length > 0) {
+      setBackgroundURI(urls[0]);
+    }
+    textObject.style.display = 'none';
+    fileObject.style.display = 'inline';
+    buttonObject.style.display = 'inline';
+  }
+
   function PaletteColor() {
     return (
       <>
@@ -60,7 +81,7 @@ export function DesignRoomInfo({
               key={palettekey}
               className={
                 color === colorThemeName
-                  ? 'border-2 m-2 pb-2 rounded-lg border-blue-500'
+                  ? 'border-4 m-2 pb-2 rounded-lg border-blue-500'
                   : 'cursor-pointer border-2 m-2 pb-2 rounded-lg hover:border-blue-500'
               }
               onClick={() => setColor(colorThemeName)}
@@ -70,16 +91,14 @@ export function DesignRoomInfo({
                 <div>{colorThemeName}</div>
                 <div className="flex">
                   <div
-                    onMouseEnter={() => displayTooltip(index, 'Background')}
                     className="w-1/5 p-4"
+                    onMouseEnter={() => displayTooltip(index, 'Background')}
                     style={{backgroundColor: colorPalette[1].background}}
                   ></div>
 
                   <div
                     className="w-1/5 p-4"
-                    onMouseEnter={() =>
-                      displayTooltip(index, 'Panel background')
-                    }
+                    onMouseEnter={() => displayTooltip(index, 'Panel background')}
                     style={{backgroundColor: colorPalette[1].avatarBg}}
                   ></div>
 
@@ -109,25 +128,53 @@ export function DesignRoomInfo({
       {expanded ? '🔽' : '▶️'} Designer Settings
       </p>
       <div className={expanded ? '' : 'hidden'}>
-      <p className="text-sm font-medium text-gray-300">
-        Background Image URI: {!iOwn && (backgroundURI)}
-      </p>
+      <div className="text-sm font-medium text-gray-300">
+          Background URI
+        </div>
+      <div className="flex justify-between">
+        <img
+          className="w-full h-full"
+          src={backgroundURI}
+        />
+      </div>
       {iOwn && (
-      <input
-        className={mqp(
-          'rounded-lg placeholder-gray-500 bg-gray-300 text-black border-4 m-2 pb-2 rounded-lg w-full md:w-96'
-        )}
-        type="text"
-        placeholder="Background Image URI"
-        value={backgroundURI}
-        name="room background image URI"
-        style={{
-          fontSize: '15px',
-        }}
-        onChange={e => {
-          setBackgroundURI(e.target.value);
-        }}
-      ></input>
+        <>
+      <div className="flex justify-between">
+        <input
+          className="rounded placeholder-gray-500 bg-gray-300 text-black w-full"
+          type="text"
+          placeholder=""
+          value={backgroundURI ?? ''}
+          name="backgroundURI"
+          onChange={e => {
+            setBackgroundURI(e.target.value);
+          }}
+        />
+      </div>
+      <div className="flex justify-between">
+        <input type="file" name="uploadBackgroundFile" id="fileUploadBackground" accept="image/*" 
+          className="w-full"
+          style={{
+            fontSize: '10pt',
+            margin: '0px',
+            marginLeft: '4px',
+            padding: '2px'
+          }} 
+        />
+      </div>
+      <div>
+        <button 
+          id="buttonUploadBackground"
+          className="px-5 text-md rounded-md" 
+          style={{
+              color: textColor,
+              backgroundColor: roomColor.buttons.primary,
+          }}
+          onClick={async(e) => {uploadBackgroundFile(e);}}
+        >Upload</button>
+      </div>
+      <div id="fileUploadingBackground" style={{display: 'none', fontSize: '10pt', }}><LoadingIcon /> uploading file</div>
+      </>
       )}
 
       <p className="text-sm font-medium text-gray-300">
@@ -210,18 +257,16 @@ export function DesignRoomInfo({
         <div className="mt-3">
           <div className="flex flex-wrap justify-between mt-3">
             <div
-              className={'mx-1.5 cursor-pointer flex border-2 m-2 pb-2 rounded-lg ' + (colorPickerBg ? 'border-blue-500' : 'hover:border-blue-500')}
+              className={'mx-1.5 cursor-pointer flex m-2 pb-2 rounded-lg ' + (colorPickerBg ? 'border-4 border-blue-500' : 'border-2 hover:border-blue-500')}
               onClick={() => {
-                setColorPickerBg(!colorPickerBg);
                 setColorPickerAvatar(false);
+                setColorPickerBg(true);
                 setColorPickerButton(false);
               }}
             >
               <div
                 className="w-8 h-8 rounded-full"
-                style={{
-                  backgroundColor: styleBg,
-                }}
+                style={{backgroundColor: styleBg}}
               ></div>
               <div className="flex text-xs">Background / Alternate</div>
             </div>
@@ -230,9 +275,9 @@ export function DesignRoomInfo({
         <div className="mt-3">
           <div className="flex flex-wrap justify-between mt-3">
             <div
-              className={'mx-1.5 cursor-pointer flex border-2 m-2 pb-2 rounded-lg ' + (colorPickerAvatar ? 'border-blue-500' : 'hover:border-blue-500')}
+              className={'mx-1.5 cursor-pointer flex m-2 pb-2 rounded-lg ' + (colorPickerAvatar ? 'border-4 border-blue-500' : 'border-2 hover:border-blue-500')}
               onClick={() => {
-                setColorPickerAvatar(!colorPickerAvatar);
+                setColorPickerAvatar(true);
                 setColorPickerBg(false);
                 setColorPickerButton(false);
               }}
@@ -248,11 +293,11 @@ export function DesignRoomInfo({
         <div className="mt-3">
           <div className="flex flex-wrap justify-between mt-3">
             <div
-              className={'mx-1.5 cursor-pointer flex border-2 m-2 pb-2 rounded-lg ' + (colorPickerButton ? 'border-blue-500' : 'hover:border-blue-500')}
+              className={'mx-1.5 cursor-pointer flex m-2 pb-2 rounded-lg ' + (colorPickerButton ? 'border-4 border-blue-500' : 'border-2 hover:border-blue-500')}
               onClick={() => {
-                setColorPickerButton(!colorPickerButton);
-                setColorPickerBg(false);
                 setColorPickerAvatar(false);
+                setColorPickerBg(false);
+                setColorPickerButton(true);
               }}
             >
               <div

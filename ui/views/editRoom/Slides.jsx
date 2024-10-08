@@ -3,7 +3,8 @@ import {useMqParser} from '../../lib/tailwind-mqp';
 import {ExportSlidesModal} from './ExportSlides';
 import {ImportSlidesModal} from './ImportSlides';
 import {openModal} from '../Modal';
-import {Trash} from '../Svg';
+import {Trash, LoadingIcon} from '../Svg';
+import {handleFileUpload} from '../../lib/fileupload.js';
 
 export function Slides({
   iOwn,
@@ -26,49 +27,22 @@ export function Slides({
   const imageTypes = [".bmp",".gif","jpg","jpeg",".png",".svg",".webp"];
 
   // Upload images 
-  async function uploadFile() { 
-    const files = slideFileUpload.files; 
-    if (!files.length) { return; } 
-    const uploadUrl = 'https://nostr.build/api/v2/upload/files';
-    const uploadMethod = 'POST';
-    let doAuth = ((localStorage.getItem(`fileUpload.auth`) ?? 'false') == 'true');
-    let authHeader = undefined;
-    if (doAuth && window.nostr) {
-        const authEvent = {
-            id: null,
-            pubkey: null,
-            created_at: Math.floor(Date.now() / 1000),
-            kind: 27235,
-            tags: [['u', uploadUrl],['method', uploadMethod]],
-            content: '',
-            sig: null,
-        };
-        const signedAuthEvent = await window.nostr.signEvent(authEvent);
-        let jsonAuthEvent = JSON.stringify(signedAuthEvent);
-        let base64AuthEvent = btoa(jsonAuthEvent);
-        authHeader = `Nostr: ${base64AuthEvent}`;
+  let uploadSlideFile = async e => {
+    e.preventDefault();
+    let buttonObject = document.getElementById('buttonUploadSlide');
+    let fileObject = document.getElementById('fileUploadSlide');
+    let textObject = document.getElementById('fileUploadingSlide');
+    buttonObject.style.display = 'none';
+    fileObject.style.display = 'none';
+    textObject.style.display = 'inline';
+    let urls = await handleFileUpload(fileUploadSlide);
+    if (urls.length > 0) {
+      setSlideURI(urls[0]);
     }
-    const headers = (authHeader ? {'Authorization':authHeader} : {});
-    for (let file of files) { 
-      const formData = new FormData(); 
-      formData.append('file', file); 
-      try { 
-          const response = await fetch(
-            uploadUrl, 
-            { method: uploadMethod, body: formData, headers: headers}
-          );
-          const result = await response.json(); 
-          if (result.status === 'success') { 
-            const imageUrl = result.data[0].url; 
-            setSlideURI(imageUrl);
-          } else { 
-            alert('Upload failed. Please try again.'); 
-          } 
-      } catch (error) { 
-          alert('An error occurred during the upload. Please try again.');
-      } 
-    } 
-  };
+    textObject.style.display = 'none';
+    fileObject.style.display = 'inline';
+    buttonObject.style.display = 'inline';
+  }
 
   function removeSlide(indexSlide) {
     let result = confirm('Are you sure you want to remove this slide?');
@@ -196,24 +170,28 @@ export function Slides({
           </select> of the list:
         </p>
         <div className="flex justify-between">
-          <input type="file" name="upload" id="slideFileUpload" accept="image/*" 
-            className="w-full"
-            style={{
-              fontSize: '10pt',
-              margin: '0px',
-              marginLeft: '4px',
-              padding: '2px'
-            }} 
+          <input type="file" name="uploadSlide" id="fileUploadSlide" accept="image/*" 
+              className="w-full"
+              style={{
+                  fontSize: '10pt',
+                  margin: '0px',
+                  marginLeft: '4px',
+                  padding: '2px'
+              }} 
           />
+        </div>
+        <div>
           <button 
-            className="px-5 text-xs rounded-md" 
+            id="buttonUploadSlide"
+            className="px-5 text-md rounded-md" 
             style={{
               color: textColor,
               backgroundColor: roomColor.buttons.primary,
             }}
-            onClick={async() => {uploadFile();}}
+            onClick={async(e) => {uploadSlideFile(e);}}
           >Upload</button>
         </div>
+        <div id="fileUploadingSlide" style={{display: 'none', fontSize: '10pt', }}><LoadingIcon /> uploading file</div>
         <div className="flex">
           <input
             className={mqp(

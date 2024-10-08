@@ -14,13 +14,22 @@ function isDark(color) {
       .map(val => parseFloat(val.trim()));
 
   let rgb;
-  if (color.startsWith('#') && color.length >= 7) {
-    rgb = hexToRgb(color.substring(0, 7));
-  } else if (color.startsWith('rgba(')) {
-    rgb = parseRgba(color);
-  } else {
-    console.error('Invalid color format');
-    return null;
+  if (typeof(color) == 'string') {
+    if (color.startsWith('#') && color.length >= 7) {
+      rgb = hexToRgb(color.substring(0, 7));
+    } else if (color.startsWith('rgba(')) {
+      rgb = parseRgba(color);
+    } else {
+      console.error('Invalid color format');
+      return null;
+    }
+  } else if (typeof(color) == 'object') {
+    if (color.hasOwnProperty('a')) {
+      rgb = parseRgba(`rgba(${color.r},${color.g},${color.b},${color.a})`);
+    } else { // array of values?
+      console.error('Unexpected color format: ', color);
+      return null;
+    }
   }
 
   const relativeLuminance = (r, g, b) => 0.2126 * r + 0.7152 * g + 0.0722 * b;

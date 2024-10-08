@@ -16,12 +16,6 @@ import {use} from 'use-minimal-state';
 export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) {
   const [state, api] = useJam();
   const {
-    addModerator,
-    addOwner,
-    addSpeaker,
-    removeModerator,
-    removeOwner,
-    removeSpeaker,
     updateRoom
   } = api;
   let submitUpdate = async partialRoom => {
@@ -288,6 +282,8 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
           styleButtons={styleButtons}
           tooltipStates={tooltipStates}
           setTooltipStates={setTooltipStates}
+          textColor={textColor}
+          roomColor={roomColor}
         />
       </div>
 

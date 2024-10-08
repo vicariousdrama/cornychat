@@ -270,7 +270,7 @@ export default function EditNostrProfile({close}) {
                     onClick={async(e) => {uploadPictureFile(e);}}
                 >Upload</button>
             </div>
-            <div id="fileUploadingPicture" style={{display: 'none', fontSize: '10pt', }}>...uploading file...</div>
+            <div id="fileUploadingPicture" style={{display: 'none', fontSize: '10pt', }}><LoadingIcon /> uploading file</div>
         </div>
 
         <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
@@ -317,7 +317,7 @@ export default function EditNostrProfile({close}) {
                 onClick={async(e) => {uploadBannerFile(e);}}
             >Upload</button>
             </div>
-            <div id="fileUploadingBanner" style={{display: 'none', fontSize: '10pt', }}>...uploading file...</div>
+            <div id="fileUploadingBanner" style={{display: 'none', fontSize: '10pt', }}><LoadingIcon /> uploading file</div>
         </div>
 
         <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
