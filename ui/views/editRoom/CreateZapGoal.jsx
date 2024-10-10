@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {Modal} from '../Modal';
-import {publishZapGoal} from '../../nostr/nostr';
+import {getPublicKey, publishZapGoal} from '../../nostr/nostr';
 import {useMqParser} from '../../lib/tailwind-mqp';
 import {nip19} from 'nostr-tools';
 
@@ -17,7 +17,7 @@ export const CreateZapGoalModal = ({
 
   let submit = async e => {
     e.preventDefault();
-    const myPubkey = await window.nostr.getPublicKey();
+    const myPubkey = await getPublicKey();
     const myNpub = nip19.npubEncode(myPubkey);
     setZGcontent(decodeHTMLEncoded(zgContent));
     let [ok, ret2] = await publishZapGoal(zgContent, zgAmount);
