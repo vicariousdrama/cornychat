@@ -129,6 +129,16 @@ export async function getDMPubkey() {
   return localStorage.getItem("dmPubkey");
 }
 
+export async function getPublicKey() {
+
+  let pubkey = sessionStorage.getItem("pubkey");
+  if (!pubkey) {
+    pubkey = await window.nostr.getPublicKey();
+    sessionStorage.setItem("pubkey", pubkey);
+  }
+  return pubkey;
+}
+
 export async function signInExtension(
   state,
   setProps,
@@ -142,7 +152,7 @@ export async function signInExtension(
     }
     let id = state.id;
     let roomId = state.roomId;
-    let pubkey = await window.nostr.getPublicKey();
+    let pubkey = await getPublicKey();
     let created_at = Math.floor(Date.now()/1000);
     let kind = 1;
     let tags = [];
@@ -366,7 +376,7 @@ export async function getZapReceipts(eventId) {
     try {
       let userRelays = [];
       if (window.nostr) {
-        const myPubkey = await window.nostr.getPublicKey();
+        const myPubkey = await getPublicKey();
         userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
       }
       const defaultRelays = getDefaultOutboxRelays();
@@ -540,7 +550,7 @@ export async function loadFollowList() {
     const localpool = new RelayPool(undefined,poolOptions);
     try {
       const defaultRelays = getDefaultOutboxRelays();
-      const myPubkey = await window.nostr.getPublicKey();
+      const myPubkey = await getPublicKey();
       const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
       let myOutboxRelays = [];
       if (userRelays?.length == 0) {
@@ -936,7 +946,7 @@ export async function loadList(kind, pubkey) {
     try {
       let events = [];
       const defaultRelays = getDefaultOutboxRelays();
-      const myPubkey = await window.nostr.getPublicKey();
+      const myPubkey = await getPublicKey();
       const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
       let myOutboxRelays = [];
       if (userRelays?.length == 0) {
@@ -1055,7 +1065,7 @@ export async function loadPetnames() {
       if(Window.DEBUG) console.log('loadPetnames: getDefaultOutboxRelays');
       const defaultRelays = getDefaultOutboxRelays();
       if(Window.DEBUG) console.log('loadPetnames: getPublicKey');
-      const myPubkey = await window.nostr.getPublicKey();
+      const myPubkey = await getPublicKey();
       if(Window.DEBUG) console.log('loadPetnames: outbox relays');
       const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
       let myOutboxRelays = [];
@@ -1168,7 +1178,7 @@ export async function getRelationshipForNpub(userNpub) {
     try {
       let events = [];
       const defaultRelays = getDefaultOutboxRelays();
-      const myPubkey = await window.nostr.getPublicKey();
+      const myPubkey = await getPublicKey();
       const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
       let myOutboxRelays = [];
       if (userRelays?.length == 0) {
@@ -1256,7 +1266,7 @@ export async function updatePetname(userNpub, petname) {
   }
   if (useEncryption && window.nostr.nip44) {
     // Look for petname in encrypted content
-    const myPubkey = await window.nostr.getPublicKey();
+    const myPubkey = await getPublicKey();
     let enc = newRelationship.content;
     let dectags = [];
     if (enc != undefined && enc.length > 0 && window.nostr.nip44) {
@@ -1328,7 +1338,7 @@ export async function getCBadgeConfigsForPubkey(pubkey) {
     try {
       let events = [];
       const defaultRelays = getDefaultOutboxRelays();
-      const myPubkey = await window.nostr.getPublicKey();
+      const myPubkey = await getPublicKey();
       const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
       let myOutboxRelays = [];
       if (userRelays?.length == 0) {
@@ -1422,7 +1432,7 @@ export async function publishZapGoal(description, amount) {
   if (window.DEBUG) console.log("in publishZapGoal");
   try {
     const defaultRelays = getDefaultOutboxRelays();
-    const myPubkey = await window.nostr.getPublicKey();
+    const myPubkey = await getPublicKey();
     const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
     let myOutboxRelays = [];
     if (userRelays?.length == 0) {
@@ -1481,7 +1491,7 @@ export async function loadZapGoals() {
     try {
       let events = [];
       const defaultRelays = getDefaultOutboxRelays();
-      const myPubkey = await window.nostr.getPublicKey();
+      const myPubkey = await getPublicKey();
       const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
       let myOutboxRelays = [];
       if (userRelays?.length == 0) {
@@ -1551,7 +1561,7 @@ export async function signAndSendEvent(event) {
   } else {
     // push to relays
     const defaultRelays = getDefaultOutboxRelays();
-    const myPubkey = await window.nostr.getPublicKey();
+    const myPubkey = await await getPublicKey();
     const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
     let myOutboxRelays = [];
     if (userRelays?.length == 0) {

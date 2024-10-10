@@ -3,7 +3,7 @@ import {Modal} from './Modal';
 import {isDark} from '../lib/theme';
 import {useMqParser} from '../lib/tailwind-mqp';
 import {useJam} from '../jam-core-react';
-import {signAndSendEvent} from '../nostr/nostr';
+import {getPublicKey, signAndSendEvent} from '../nostr/nostr';
 
 export const PostNoteModal = ({
     close,
@@ -18,7 +18,7 @@ export const PostNoteModal = ({
     let submit = async e => {
         e.preventDefault();
 
-        let myPubkey = await window.nostr.getPublicKey();
+        let myPubkey = await getPublicKey();
         let created_at = Math.floor(Date.now() / 1000);
         let tags = [];
         let content = postText;

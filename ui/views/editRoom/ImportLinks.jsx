@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {Modal} from '../Modal';
-import {loadList, requestDeletionById} from '../../nostr/nostr';
+import {getPublicKey, loadList, requestDeletionById} from '../../nostr/nostr';
 
 export const ImportLinksModal = ({
     close,
@@ -16,7 +16,7 @@ export const ImportLinksModal = ({
   useEffect(() => {
     const loadData = async () => {
         setLoadingData(true);
-        let pubkey = await window.nostr.getPublicKey();
+        let pubkey = await getPublicKey();
         let loadedLinkLists = await loadList(31388, pubkey);
         setLinkLists(loadedLinkLists);
         setLoadingData(false);
