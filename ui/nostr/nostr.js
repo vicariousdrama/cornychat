@@ -1,4 +1,4 @@
-import {nip19, validateEvent, verifySignature, getPublicKey} from 'nostr-tools';
+import {nip19, validateEvent, verifySignature} from 'nostr-tools';
 import {RelayPool} from 'nostr-relaypool';
 import {nanoid} from 'nanoid';
 import crypto from 'crypto-js';
