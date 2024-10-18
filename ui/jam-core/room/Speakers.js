@@ -6,7 +6,7 @@ import {useDidChange} from '../../lib/state-utils';
 import {getCache} from '../../lib/GetRequest';
 import {actions} from '../state';
 import {put, apiUrl} from '../backend';
-import {isValidNostr, getNpubFromInfo} from '../../nostr/nostr';
+import {getNpubFromInfo} from '../../nostr/nostr';
 
 export {addSpeaker, removeSpeaker};
 
@@ -58,7 +58,8 @@ export default function Speakers() {
         // if I'm moderator or owner and someone else left stage, I remove him from speakers
         let iAmModerator = room.moderators.includes(myId) || (userNpub != undefined && room.moderators?.includes(userNpub));
         let iAmOwner = room.owners.includes(myId) || (userNpub != undefined && room.owners?.includes(userNpub));
-        if ((iAmOwner || iAmModerator) && room.speakers.includes(peerId)) {
+        let iAmAdmin = (localStorage.getItem('iAmAdmin') || 'false') == 'true';
+        if ((iAmAdmin || iAmOwner || iAmModerator) && room.speakers.includes(peerId)) {
           removeSpeaker({myIdentity}, roomId, peerId);
         }
       } else {

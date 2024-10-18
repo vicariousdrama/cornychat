@@ -165,7 +165,7 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
     return (
       <div className="flex">
         <button className="human-radius text-xs select-none"
-          style={{width:'48px',height:'48px','color':'yellow',lineHeight: '.95'}}
+          style={{width:'48px',height:'48px',backgroundColor:`rgb(17,17,17)`,color:'yellow',lineHeight: '.95'}}
           onClick={() => {
             handRaised = false;
             handType = '';

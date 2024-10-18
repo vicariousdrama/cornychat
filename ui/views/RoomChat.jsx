@@ -342,16 +342,23 @@ export default function RoomChat({
                         )}
                         {textchatShowAvatar && (
                         <img className="flex w-6 h-6 human-radius" src={useravatar} 
-                        onClick={() =>
+                        onClick={() => {
+                            let avatarInfo = undefined;
+                            if (identities.hasOwnProperty(userid)) avatarInfo = identities[userid];
+                            if (!avatarInfo) {
+                                let uos = sessionStorage.getItem(userid);
+                                if(uos) avatarInfo = JSON.parse(uos);
+                            }
                             openModal(Profile, {
-                              info: identities[userid],
+                              info: avatarInfo,
                               room,
                               peerId: userid,
                               iOwn,
                               iModerate,
                               actorIdentity: myIdentity,
                               iAmAdmin,
-                            })
+                            });
+                            }
                           }                        
                         />
                         )}
@@ -391,17 +398,24 @@ export default function RoomChat({
                             />)}
                         {textchatShowAvatar && (
                         <img className="flex w-6 h-6 human-radius" src={useravatar} 
-                        onClick={() =>
+                        onClick={() => {
+                            let avatarInfo = undefined;
+                            if (identities.hasOwnProperty(userid)) avatarInfo = identities[userid];
+                            if (!avatarInfo) {
+                                let uos = sessionStorage.getItem(userid);
+                                if(uos) avatarInfo = JSON.parse(uos);
+                            }
                             openModal(Profile, {
-                              info: identities[userid],
+                              info: avatarInfo,
                               room,
                               peerId: userid,
                               iOwn,
                               iModerate,
                               actorIdentity: myIdentity,
                               iAmAdmin,
-                            })
-                          }                        
+                            });
+                            }
+                        }
                         />
                         )}
                         {textchatShowTimestamps && (
