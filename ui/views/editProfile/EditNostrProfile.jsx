@@ -28,18 +28,20 @@ export default function EditNostrProfile({close}) {
     const [extraMetadata, setExtraMetadata] = useState({});
     const [isSaving, setIsSaving] = useState(false);
     // Fields to be supported from metadata
-    const [about, setAbout] = useState(metadata?.about || '');
-    const [banner, setBanner] = useState(metadata?.banner || '');
-    const [display_name, setDisplay_Name] = useState(metadata?.display_name || '');
-    const [lud16, setLud16] = useState(metadata?.lud16 || '');
-    const [name, setName] = useState(metadata?.name || '');
-    const [nip05, setNip05] = useState(metadata?.nip05 || '');
-    const [picture, setPicture] = useState(metadata?.picture || '');
-    const [website, setWebsite] = useState(metadata?.website || '');
+    const [about, setAbout] = useState(metadata?.about ?? '');
+    const [banner, setBanner] = useState(metadata?.banner ?? '');
+    const [display_name, setDisplay_Name] = useState(metadata?.display_name ?? '');
+    const [lud16, setLud16] = useState(metadata?.lud16 ?? '');
+    const [name, setName] = useState(metadata?.name ?? '');
+    const [nip05, setNip05] = useState(metadata?.nip05 ?? '');
+    const [picture, setPicture] = useState(metadata?.picture ?? '');
+    const [website, setWebsite] = useState(metadata?.website ?? '');
     const [loaded, setLoaded] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        if (!loaded) {
+        if (!loaded && !loading) {
+            setLoading(true);
             const loadMetadata = async() => {
                 // Look for existing metadata
                 let metadataJSON = sessionStorage.getItem(`${npub}.kind0content`);
@@ -50,14 +52,14 @@ export default function EditNostrProfile({close}) {
                 if (metadataJSON) {
                     try {
                         metadata = JSON.parse(metadataJSON);
-                        setAbout(metadata?.about || '');
-                        setBanner(metadata?.banner || '');
-                        setDisplay_Name(metadata?.display_name || '');
-                        setLud16(metadata?.lud16 || '');
-                        setName(metadata?.name || '');
-                        setNip05(metadata?.nip05 || '');
-                        setPicture(metadata?.picture || '');
-                        setWebsite(metadata?.website || '');
+                        setAbout(metadata?.about ?? '');
+                        setBanner(metadata?.banner ?? '');
+                        setDisplay_Name(metadata?.display_name ?? '');
+                        setLud16(metadata?.lud16 ?? '');
+                        setName(metadata?.name ?? '');
+                        setNip05(metadata?.nip05 ?? '');
+                        setPicture(metadata?.picture ?? '');
+                        setWebsite(metadata?.website ?? '');
                         
                         let handledFields = ['about','banner','display_name','lud16','name','nip05','picture','website'];
                         let extrametadata = {}
@@ -70,6 +72,7 @@ export default function EditNostrProfile({close}) {
             }
             loadMetadata();
             setLoaded(true);
+            setLoading(false);
         }
         // This function is called when component unmounts
         return () => {
@@ -108,22 +111,22 @@ export default function EditNostrProfile({close}) {
         }
 
         // Update fields that we support changes for
-        metadata["about"] = about;
-        metadata["banner"] = banner;
-        metadata["display_name"] = display_name;
-        metadata["lud16"] = lud16;
-        metadata["name"] = name;
-        metadata["nip05"] = nip05;
-        metadata["picture"] = picture;
-        metadata["website"] = website;
+        metadata["about"] = about ?? '';
+        metadata["banner"] = banner ?? '';
+        metadata["display_name"] = display_name ?? '';
+        metadata["lud16"] = lud16 ?? '';
+        metadata["name"] = name ?? '';
+        metadata["nip05"] = nip05 ?? '';
+        metadata["picture"] = picture ?? '';
+        metadata["website"] = website ?? '';
 
         // Save to session state
         sessionStorage.setItem(`${npub}.kind0content`, JSON.stringify(metadata));
-        let m = JSON.parse(sessionStorage.getItem(npub));
-        m["about"] = about;
-        m["banner"] = banner;
-        m["lightningAddress"] = lud16;
-        m["nip05"] = {nipO5Address: nip05};
+        let m = JSON.parse(sessionStorage.getItem(npub) ?? '{}');
+        m["about"] = about ?? '';
+        m["banner"] = banner ?? '';
+        m["lightningAddress"] = lud16 ?? '';
+        m["nip05"] = {nipO5Address: nip05 ?? ''};
         sessionStorage.setItem(npub, JSON.stringify(m));
 
         // Create event

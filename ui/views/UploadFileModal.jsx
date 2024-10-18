@@ -17,6 +17,7 @@ export const UploadFileModal = ({
 
     let uploadFile = async e => {
       e.preventDefault();
+      const files = fileUpload.files; 
       if (!files.length) {return;} 
       let filesUploaded = 0;
       let newValue = objectValue;      
@@ -42,60 +43,6 @@ export const UploadFileModal = ({
       }      
     }
 
-
-    // let uploadFile = async e => {
-    //     e.preventDefault();
-    //     const files = modalFileUpload.files; 
-    //     if (!files.length) {return;} 
-    //     let filesUploaded = 0;
-    //     let newValue = objectValue;
-    //     const uploadUrl = 'https://nostr.build/api/v2/upload/files';
-    //     const uploadMethod = 'POST';
-    //     let doAuth = ((localStorage.getItem(`fileUpload.auth`) ?? 'false') == 'true');
-    //     let authHeader = undefined;
-    //     if (doAuth && window.nostr) {
-    //         const authEvent = {
-    //             id: null,
-    //             pubkey: null,
-    //             created_at: Math.floor(Date.now() / 1000),
-    //             kind: 27235,
-    //             tags: [['u', uploadUrl],['method', uploadMethod]],
-    //             content: '',
-    //             sig: null,
-    //         };
-    //         const signedAuthEvent = await window.nostr.signEvent(authEvent);
-    //         let jsonAuthEvent = JSON.stringify(signedAuthEvent);
-    //         let base64AuthEvent = btoa(jsonAuthEvent);
-    //         authHeader = `Nostr: ${base64AuthEvent}`;
-    //     }
-    //     const headers = (authHeader ? {'Authorization':authHeader} : {});
-    //     for (let file of files) { 
-    //         const formData = new FormData(); 
-    //         formData.append('file', file); 
-    //         try { 
-    //             //docs: https://github.com/nostrbuild/nostr.build/blob/main/api/v2/routes_upload.php
-    //             const response = await fetch(
-    //                 uploadUrl, 
-    //                 { method: uploadMethod, body: formData, headers: headers}
-    //             );
-    //             const result = await response.json(); 
-    //             if (result.status === 'success') { 
-    //                 const fileUrl = result.data[0].url;
-    //                 newValue = newValue + ' ' + fileUrl;
-    //                 setObjectValue(newValue);
-    //                 filesUploaded += 1;
-    //             } else { 
-    //                 alert('Upload failed. Please try again.'); 
-    //             } 
-    //         } catch (error) { 
-    //             alert('An error occurred during the upload. Please try again.');
-    //         } 
-    //     }
-    //     if (filesUploaded == files.length) {
-    //         close();
-    //     }
-    // };
-
     return (
     <Modal close={close}>
       <div className="bg-gray-700 text-gray-200 p-6 rounded-lg">
@@ -104,7 +51,7 @@ export const UploadFileModal = ({
             Files will be uploaded to nostr.build and the resulting url will be appended to the end of the text chat input field
         </div>
         <div className="flex justify-between">
-          <input type="file" name="fileUpload" id="fileUpload" accept="image/*" 
+          <input type="file" name="uploadFile" id="fileUpload" accept="image/*" 
             className="w-full"
             style={{
               fontSize: '10pt',

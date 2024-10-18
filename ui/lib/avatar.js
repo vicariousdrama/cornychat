@@ -50,7 +50,7 @@ const roomDisplayName = (info, room) => {
 
 export const avatarUrl = (info, room, defaultAvatar = DEFAULT_AVATAR) => {
   let avatar = DEFAULT_AVATAR;
-  if (info.avatar && !room.access?.lockedIdentities && info.avatar !== '') {
+  if (info?.avatar && !room.access?.lockedIdentities && info?.avatar !== '') {
     avatar = info.avatar;
   } else {
     avatar = roomAvatar(info, room, defaultAvatar);

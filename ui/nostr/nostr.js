@@ -458,7 +458,7 @@ export async function zapEvent(npubToZap, event, comment, amount, lud16override)
       }
     }
 
-    if (!lightningAddress) {
+    if (!lightningAddress || lightningAddress.split("@").length != 2) {
       throw new Error('Lightning address not found for this npub or provided to zapEvent call.');
     }
 
@@ -717,12 +717,11 @@ export async function followAllNpubsFromIds(inRoomPeerIds) {
 
 export async function verifyNip05(nip05, userNpub) {
   if(window.DEBUG) console.log("in verifyNip05");
-  if (!nip05) {
-    return false;
-  }
+  if (!nip05) return false;
   if (nip05 !== '' && userNpub) {
     const pubkey = nip19.decode(userNpub).data;
     const url = nip05.split('@');
+    if (url.length != 2) return false;
     const domain = url[1];
     const name = url[0];
 
@@ -762,6 +761,7 @@ export async function getLNService(address) {
   if(window.DEBUG) console.log("in getLNService for address", address);
   let address2 = normalizeLightningAddress(address);
   if (address2 == undefined) return address2;
+  if (address2.split("@").length != 2) return undefined;
   let username = address2.split("@")[0];
   let domain = address2.split("@")[1];
   let url = `https://${domain}/.well-known/lnurlp/${username}`;

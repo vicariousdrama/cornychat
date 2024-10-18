@@ -24,26 +24,20 @@ const inWebView =
       userAgent.browser?.name !== 'Mobile Safari'));
 
 const nameSymbols = [
-  {"name":"Marie","symbol":"🌹","title":"Valentine"},
-  {"npub":"npub1el3mgvtdjpfntdkwq446pmprpdv85v6rs85zh7dq9gvy7tgx37xs2kl27r","symbol":"🌹","title":"Valentine"},
-  {"name":"TheNoshole","symbol":"🌹","title":"Puzzles Valentine"},
-  {"npub":"npub1ymt2j3n8tesrlr0yhaheem6yyqmmwrr7actslurw6annls6vnrcslapxnz","symbol":"🌹","title":"Puzzles Valentine"},
-  {"name":"island","symbol":"🥃","title":"Likes Bourbon"},
-  {"npub":"npub1jzuma368395gu523y4vk4d34p0lxgctk436hggn4qcuj93075qgqtn3vm0","symbol":"🥃","title":"Likes Bourbon"},
-  {"name":"Sai","symbol":"🎭","title":"Tragic Comedy"},
-  {"npub":"npub16tnq9ruem6evwmywhu69xxl0qk802f03vf8hftvkuvw0n7mmz83stxcvw5","symbol":"🎭","title":"Tragic Comedy"},
-  {"name":"puzzles","symbol":"🧩","title":"Retired Puzzle Maker"},
-  {"npub":"npub12r0yjt8723ey2r035qtklhmdj90f0j6an7xnan8005jl7z5gw80qat9qrx","symbol":"🧩","title":"Retired Puzzle Maker"},
-  {"npub":"npub1xd5apfmrpzfpr7w9l7uezm2fn8ztrdhvrtj3tlrmvvv8l6czqatshccdx5","symbol":"🐝","title":"Sweet Honeybee"},
-  {"npub":"npub1l8zv3fhdntxq00u3nmrxvmrwpenpgway8y67z663t92x6hd98w3qkfkw83","symbol":"📚","title":"Well Read"},
-  {"npub":"npub1xswmtflr4yclfyy4mq4y4nynnnu2vu5nk8jp0875khq9gnz0cthsc0p4xw","symbol":"🦩","title":"Flightless Bird Leader"},
-  {"npub":"npub18u5f6090tcvd604pc8mgvr4t956xsn3rmfd04pj36szx8ne4h87qsztxdp","symbol":"🖋️","title":"May your pen always be inked!"},
-  {"npub":"npub1tx5ccpregnm9afq0xaj42hh93xl4qd3lfa7u74v5cdvyhwcnlanqplhd8g","symbol":"🎨","title":"Painting one of a kinds"},
+  {"npub":"npub1el3mgvtdjpfntdkwq446pmprpdv85v6rs85zh7dq9gvy7tgx37xs2kl27r","symbol":"🍷","title":"Enjoys the Finer Things"}, // Marie
+  {"npub":"npub1ymt2j3n8tesrlr0yhaheem6yyqmmwrr7actslurw6annls6vnrcslapxnz","symbol":"🕳️","title":"Hole among holes"}, // Noshole
+  {"npub":"npub1jzuma368395gu523y4vk4d34p0lxgctk436hggn4qcuj93075qgqtn3vm0","symbol":"🥃","title":"Likes Bourbon"}, // Island
+  {"npub":"npub16tnq9ruem6evwmywhu69xxl0qk802f03vf8hftvkuvw0n7mmz83stxcvw5","symbol":"🎭","title":"Tragic Comedy"}, // Sai
+  {"npub":"npub12r0yjt8723ey2r035qtklhmdj90f0j6an7xnan8005jl7z5gw80qat9qrx","symbol":"🧩","title":"Retired Puzzle Maker"}, // Puzzles
+  {"npub":"npub1xd5apfmrpzfpr7w9l7uezm2fn8ztrdhvrtj3tlrmvvv8l6czqatshccdx5","symbol":"🐝","title":"Sweet Honeybee"}, // B UnknownProtocol
+  {"npub":"npub1l8zv3fhdntxq00u3nmrxvmrwpenpgway8y67z663t92x6hd98w3qkfkw83","symbol":"📚","title":"Well Read"}, // Companion
+  {"npub":"npub1xswmtflr4yclfyy4mq4y4nynnnu2vu5nk8jp0875khq9gnz0cthsc0p4xw","symbol":"🦩","title":"Flightless Bird Leader"}, // Kajoozie
+  {"npub":"npub18u5f6090tcvd604pc8mgvr4t956xsn3rmfd04pj36szx8ne4h87qsztxdp","symbol":"🖋️","title":"May your pen always be inked!"}, // ThePentorapher
+  {"npub":"npub1tx5ccpregnm9afq0xaj42hh93xl4qd3lfa7u74v5cdvyhwcnlanqplhd8g","symbol":"🎨","title":"Painting one of a kinds"}, // Bitcoin Painter
 ];
 
 export default function Room({room, roomId, uxConfig}) {
-  // room = {name, description, moderators: [peerId], speakers: [peerId], access}
-  const [state, {sendTextChat}] = useJam();
+  const [state] = useJam();
   useWakeLock();
   usePushToTalk();
   useCtrlCombos();
@@ -96,9 +90,17 @@ export default function Room({room, roomId, uxConfig}) {
   let [showMyNavMenu, setShowMyNavMenu] = useState(false);
   let [showChat, setShowChat] = useState(false);
   let fullsizeAvatars = (localStorage.getItem('fullsizeAvatars') ?? 'true') == 'true';
-  let [iAmAdmin, setIAmAdmin] = useState((localStorage.getItem('iAmAdmin') || 'false') == 'true');
+  let iAmAdmin = (localStorage.getItem('iAmAdmin') || 'false') == 'true';
   const [showLinks, setShowLinks] = useState(false);
   const inRoomPeerIds = peers.filter(id => peerState[id]?.inRoom);
+  let inRoomChatIds = [];
+  let inRoomChat = localStorage.getItem(`${roomId}.textchat`);
+  if (inRoomChat) {
+    inRoomChat = JSON.parse(inRoomChat);
+    for(let irc of inRoomChat) {
+      if (!inRoomChatIds.includes(irc[0])) inRoomChatIds.push(irc[0]);
+    }
+  }
   const nJoinedPeers = inRoomPeerIds.length;
   const [audience, setAudience] = useState(state.peers.length + 1);
   useMemo(() => setAudience(state.peers.length + 1), [state.peers]);
@@ -189,6 +191,7 @@ export default function Room({room, roomId, uxConfig}) {
     }
   }
   CacheIdentities(inRoomPeerIds);
+  CacheIdentities(inRoomChatIds);
   CacheIdentities([myInfo.id]);
   if (iModerate) {
     CacheIdentities(moderators);
@@ -225,52 +228,90 @@ export default function Room({room, roomId, uxConfig}) {
   }
   let myPeerId = myInfo.id;
   let stagePeers = stageOnly ? peers : [];
+  let audiencePeers = [];
+  let useNewSAPeerLogic = true;
   if (!stageOnly) {
-    for(let id of (speakers ?? [])) {
-      if (peers.includes(id)) {
-        if (!stagePeers.includes(id)) {
-          stagePeers.push(id);
+    if (useNewSAPeerLogic) {
+      if (window.DEBUG) console.log('doing new sa peer logic: peers',peers);
+      for (let n of inRoomPeerIds) {
+        // if already handled, skip
+        if (stagePeers.includes(n) || audiencePeers.includes(n)) continue;
+        // if there is no speakers, then everyone is in the audience
+        if (!speakers || speakers.length == 0) {
+          if (!audiencePeers.includes(n)) audiencePeers.push(n);
+          continue;
         }
-      } else if (id.startsWith("npub")) {
-        for (let n of peers) {
-          if (stagePeers.includes(n)) {
+        // anyone that has left the stage is in the audience
+        if (peerState.hasOwnProperty(n)) {
+          let ls = peerState[n].leftStage;
+          if (ls) {
+            if (!audiencePeers.includes(n)) audiencePeers.push(n);
             continue;
           }
-          let o = sessionStorage.getItem(n);
-          let p = getNpubFromInfo(o);
-          if (p && p.startsWith(id)) {
-            if (!stagePeers.includes(n)) {
-              stagePeers.push(n);
-            }
+        }
+        // with speakers, need to check if user in speaker array
+        let o = sessionStorage.getItem(n);
+        let p = getNpubFromInfo(o);
+        let a2s = false;
+        for(let id of (speakers ?? [])) {
+          if (id == n) {
+            if(!stagePeers.includes(n)) stagePeers.push(n);
+            a2s = true;
+            break;
+          }
+          if (p && id.startsWith("npub") && p == id) {
+            if(!stagePeers.includes(n)) stagePeers.push(n);
+            a2s = true;
             break;
           }
         }
+        if (a2s) continue;
+        // still here means they are in audience
+        if (!audiencePeers.includes(n)) audiencePeers.push(n);
       }
+    } else {
+      for(let id of (speakers ?? [])) {
+        if (peers.includes(id)) {
+          if (!stagePeers.includes(id)) {
+            stagePeers.push(id);
+          }
+        } else if (id.startsWith("npub")) {
+          for (let n of peers) {
+            if (stagePeers.includes(n)) {
+              continue;
+            }
+            let o = sessionStorage.getItem(n);
+            let p = getNpubFromInfo(o);
+            if (p && p.startsWith(id)) {
+              if (!stagePeers.includes(n)) {
+                stagePeers.push(n);
+              }
+              break;
+            }
+          }
+        }
+      }
+      for (let n of peers) {
+        // if there is no speakers, then everyone is in the audience
+        if (!speakers) {
+          if (!audiencePeers.includes(n)) {
+            audiencePeers.push(n);
+          }
+          continue;
+        }
+        // if this person is on stage, they cant also be in the audience
+        if (stagePeers.includes(n)) continue;
+        let o = sessionStorage.getItem(n);
+        let p = getNpubFromInfo(o);
+        // if peer has no npub, or their npub is not in the speaker array, add to audience
+        if (!p || !speakers.includes(p)) {
+          if (!audiencePeers.includes(n)) {
+            audiencePeers.push(n);
+          }
+          continue;
+        }
+      } 
     }
-  }
-
-  let audiencePeers = [];
-  if (!stageOnly) {
-    for (let n of peers) {
-      // if there is no speakers, then everyone is in the audience
-      if (!speakers) {
-        if (!audiencePeers.includes(n)) {
-          audiencePeers.push(n);
-        }
-        continue;
-      }
-      // if this person is on stage, they cant also be in the audience
-      if (stagePeers.includes(n)) continue;
-      let o = sessionStorage.getItem(n);
-      let p = getNpubFromInfo(o);
-      // if peer has no npub, or their npub is not in the speaker array, add to audience
-      if (!p || !speakers.includes(p)) {
-        if (!audiencePeers.includes(n)) {
-          audiencePeers.push(n);
-        }
-        continue;
-      }
-    } 
   }
 
   () => setAudience(stagePeers.length + audiencePeers.length + 1);
@@ -315,7 +356,6 @@ export default function Room({room, roomId, uxConfig}) {
           audience={(nJoinedPeers+1)}
         />
 
-
         {isRecording && (
         <div className="rounded-md mx-4 mt-2 mb-4" style={{backgroundColor: 'red', color: 'white'}}>
           RECORDING IN PROGRESS
@@ -323,14 +363,8 @@ export default function Room({room, roomId, uxConfig}) {
         )}
       </div>
 
-
-      <div
-        // className="overflow-y-scroll"
-        // className={mqp('flex flex-col justify-between pt-2 md:pt-10 md:p-10')}
-      >
-
+      <div>
         <div style={{height: isRecording ? '156px' : '104px'}}></div>
-
         <div className="w-full">
           <RoomSlides
             colors={roomColor}
@@ -341,8 +375,7 @@ export default function Room({room, roomId, uxConfig}) {
             }}
           />
         </div>
-
-        { srfm && (
+        {srfm && (
         <div className="rounded-md m-0 p-0 mt-2 mb-4" style={{backgroundColor: audienceBarBG, color: audienceBarFG}}>
           {srfm}
         </div>
@@ -423,7 +456,6 @@ export default function Room({room, roomId, uxConfig}) {
       </div>
       <Navigation
         {...{
-//          room,
           showMyNavMenu,
           setShowMyNavMenu,
           showChat,

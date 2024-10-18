@@ -72,6 +72,7 @@ async function sendSats(lightningAddress, satAmount, comment, fnSuccess, textFor
 async function zapSats(lightningAddress, satAmount, pubkey, eventId, comment, fnSuccess, textForSuccess, keyForSuccess) {
     if (lightningAddress == undefined) return false;
     if (lightningAddress.length == 0) return false;
+    if (lightningAddress.split("@").length != 2) return false;
     if (satAmount == undefined) return false;
     if (satAmount < 1) return false;
     const msatsAmount = satAmount * 1000;

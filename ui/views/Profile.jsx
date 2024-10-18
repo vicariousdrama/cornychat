@@ -219,10 +219,12 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
   const [editingPetname, setEditingPetname] = useState(false);
   const maxPostsToDisplay = Math.floor(localStorage.getItem('maxPostsToDisplay') || '3');
 
-  const actorNpub = getNpubFromInfo(actorIdentity.info);
+  const actorNpub = getNpubFromInfo(actorIdentity?.info);
   const shortNpub = userNpub ? userNpub.substring(0, 20) : null;
-  const hasNostrIdentity = checkNostrIdentity(info.identities);
-  const isSameId = info.id === actorIdentity.info.id;
+  const userNpub1 = userNpub ? userNpub.substring(0,32) : null;
+  const userNpub2 = userNpub ? userNpub.substring(32,userNpub.length) : null;
+  const hasNostrIdentity = checkNostrIdentity(info?.identities);
+  const isSameId = info?.id === actorIdentity?.info?.id;
 
   const colorTheme = room?.color ?? 'default';
   const roomColor = colors(colorTheme, room.customColor);
@@ -261,7 +263,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
     } else {
       // Repopulate the cache
       const userMetadata = await setUserMetadata();
-      let obj = {};
+      let obj = {badgeConfigs: []};
       if (userNpub && actorNpub) {
         const actorPubkey = nip19.decode(actorNpub).data;
         const userPubkey = nip19.decode(userNpub).data;
@@ -302,6 +304,8 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
       } else {
         setLoadingFollows(false);
         obj.iFollow = 'npub not found';
+        obj.badgeConfigs = [];
+        setBadgeConfigs(obj.badgeConfigs);
       }
 
       if (userMetadata) {
@@ -348,15 +352,17 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
     // user posts
     const recentUserPosts = await getUserPosts(userNpub);
     let filteredUserPosts = [];
-    for (let recentUserPost of recentUserPosts) {
-      let includePost = true;
-      if (recentUserPost.tags.length > 0) {
-        for (let postTag of recentUserPost.tags) {
-          // filter out tags that are a reply or quote
-          if (postTag.length > 0 && postTag[0] == 'e') includePost = false;
+    if (recentUserPosts) {
+      for (let recentUserPost of recentUserPosts) {
+        let includePost = true;
+        if (recentUserPost.tags.length > 0) {
+          for (let postTag of recentUserPost.tags) {
+            // filter out tags that are a reply or quote
+            if (postTag.length > 0 && postTag[0] == 'e') includePost = false;
+          }
         }
+        if (includePost) filteredUserPosts.push(recentUserPost);
       }
-      if (includePost) filteredUserPosts.push(recentUserPost);
     }
     setUserPosts(filteredUserPosts);
   }, []);
@@ -469,8 +475,9 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
                   }
                   onClick={() => copiedToClipboardFn()}
                 >
-                  {userNpub ? `${shortNpub}...` : null}
-
+                  NPUB: <br />
+                  {userNpub1}<br />
+                  {userNpub2}
                   {copiedToClipboard ? (
                     <CopiedToClipboard />
                   ) : (
@@ -478,6 +485,16 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
                   )}
                 </span>
               </div>
+              {iAmAdmin && (
+              <div className="flex justify-center">
+                <span
+                  className={'flex text-sm text-gray-400 cursor-pointer'}
+                  onClick={() => navigator.clipboard.writeText(peerId)}
+                >
+                  Device ID:<br />{peerId}
+                </span>
+              </div>
+              )}
             </div>
           </div>
         </div>
