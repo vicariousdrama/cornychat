@@ -34,6 +34,7 @@ const nameSymbols = [
   {"npub":"npub1xswmtflr4yclfyy4mq4y4nynnnu2vu5nk8jp0875khq9gnz0cthsc0p4xw","symbol":"🦩","title":"Flightless Bird Leader"}, // Kajoozie
   {"npub":"npub18u5f6090tcvd604pc8mgvr4t956xsn3rmfd04pj36szx8ne4h87qsztxdp","symbol":"🖋️","title":"May your pen always be inked!"}, // ThePentorapher
   {"npub":"npub1tx5ccpregnm9afq0xaj42hh93xl4qd3lfa7u74v5cdvyhwcnlanqplhd8g","symbol":"🎨","title":"Painting one of a kinds"}, // Bitcoin Painter
+  {"npub":"npub1q7why7lw8kq9ufr43ps75ngz3vhx5duqt7xmgklcq3dljqqfjegq2km2vr","symbol":"🐅","title":"Eye of the Tiger"}, // Tigs
 ];
 
 export default function Room({room, roomId, uxConfig}) {
