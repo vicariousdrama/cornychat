@@ -90,201 +90,91 @@ const deleteNostrSchedule = async (roomId, oldScheduledStart) => {
 
 const getScheduledEvents = async () => {
     return new Promise(async (res, rej) => {
-        const localpool = new RelayPool(undefined,poolOptions);
         try {
-            // Look for any calendar time event with the tag 'audiospace' to be implementation agnostic
-            // This allows other services like Nostr Nests to publish scheduled events if they want to
-            // be included on the schedule
-            //const filter = [{kinds: [31923], '#t':['audiospace']}]; 
-            const timestamp = Math.floor(Date.now() / 1000);
-            let calendarEvents = [];
-            let daySeconds = 86400; // 24 * 60 * 60
-            let hourSeconds = 3600;
-            let maxTime = timestamp + (30 * daySeconds);
-            let daysago30 = timestamp - (daySeconds * 30);
-            let daysago1 = timestamp - (daySeconds * 1);
-            let waitForEvents = 5000; // 5 seconds
-            let matchedEvents = [];
-            let deleteEvents = [];
-            let liveActivitiesEvents = [];
-            let scheduledEventLimit = 12;
-            let audioSpaceCount = 0;
-            const calendarFilter = [{kinds: [31923], limit: 5000, since: daysago30}];
-            const deleteFilter = [{kinds: [5], limit: 5000, since: daysago30}];
-            const liveactivitiesFilter = [{kinds: [30311], limit: 5000, since: daysago1}];
+            const localpool = new RelayPool(undefined,poolOptions);
+            try {
+                // Look for any calendar time event with the tag 'audiospace' to be implementation agnostic
+                // This allows other services like Nostr Nests to publish scheduled events if they want to
+                // be included on the schedule
+                //const filter = [{kinds: [31923], '#t':['audiospace']}]; 
+                const timestamp = Math.floor(Date.now() / 1000);
+                let calendarEvents = [];
+                let daySeconds = 86400; // 24 * 60 * 60
+                let hourSeconds = 3600;
+                let maxTime = timestamp + (30 * daySeconds);
+                let daysago30 = timestamp - (daySeconds * 30);
+                let daysago1 = timestamp - (daySeconds * 1);
+                let waitForEvents = 5000; // 5 seconds
+                let matchedEvents = [];
+                let deleteEvents = [];
+                let liveActivitiesEvents = [];
+                let scheduledEventLimit = 12;
+                let audioSpaceCount = 0;
+                const calendarFilter = [{kinds: [31923], limit: 5000, since: daysago30}];
+                const deleteFilter = [{kinds: [5], limit: 5000, since: daysago30}];
+                const liveactivitiesFilter = [{kinds: [30311], limit: 5000, since: daysago1}];
 
-            setTimeout(() => {
-                let deletedAudiospaces = [];
-                // Build deleted event list. Some relays do not acknowledge delete types, and some do,
-                // so we do a best effort to track deleted calendar events here
-                for (let event of deleteEvents) {
-                    if (event.kind != 5) continue;
-                    const eventTags = event.tags;
-                    for (let eventTag of eventTags) {
-                        if (eventTag.length < 2) continue;
-                        if (eventTag[0] == 'a') {
-                            let v = eventTag[1];
-                            if (!v.startsWith('31923:')) continue;
-                            let deletedTime = event.created_at;
-                            let aTagParts = v.split(':');
-                            if (aTagParts.length != 3) continue;
-                            deletedAudiospaces.push({deleted: deletedTime, a: v, kind: 31923, pubkey: aTagParts[1], d: aTagParts[2]});
-                        }
-                    }
-                }
-                // Build events within range, that aren't deleted
-                console.log('[getScheduledEvents] number of audiospace calendar events: ', calendarEvents.length);
-                for (let event of calendarEvents) {
-                    if (event.kind != 31923) continue;
-                    const eventTags = event.tags;                    
-                    let isDeleted = false;
-                    let endTime = undefined;
-                    let image = '/favicon.png';    // default image, TODO: externalize
-                    let location = undefined;
-                    let startTime = undefined;
-                    let title = undefined;
-                    let isAudioSpace = false;
-                    let dTag = undefined;
-                    for (let eventTag of eventTags) {
-                        if (eventTag.length < 2) continue;
-                        if (eventTag[0] == 'end' && eventTag[1].length > 0) {
-                            try {
-                                endTime = parseInt(eventTag[1]);
-                            } catch(error) { continue; }
-                        }
-                        if (eventTag[0] == 'start' && eventTag[1].length > 0) {
-                            try {
-                                startTime = parseInt(eventTag[1]);
-                            } catch(error) {
-                                continue;
+                setTimeout(() => {
+                    let deletedAudiospaces = [];
+                    // Build deleted event list. Some relays do not acknowledge delete types, and some do,
+                    // so we do a best effort to track deleted calendar events here
+                    for (let event of deleteEvents) {
+                        if (event.kind != 5) continue;
+                        const eventTags = event.tags;
+                        for (let eventTag of eventTags) {
+                            if (eventTag.length < 2) continue;
+                            if (eventTag[0] == 'a') {
+                                let v = eventTag[1];
+                                if (!v.startsWith('31923:')) continue;
+                                let deletedTime = event.created_at;
+                                let aTagParts = v.split(':');
+                                if (aTagParts.length != 3) continue;
+                                deletedAudiospaces.push({deleted: deletedTime, a: v, kind: 31923, pubkey: aTagParts[1], d: aTagParts[2]});
                             }
                         }
-                        if (eventTag[0] == 't' && eventTag[1] == 'audiospace') { isAudioSpace = true; } // backwards compatible, can remove after 20240401
-                        if (eventTag[0] == 'l' && eventTag[1] == 'audiospace') { isAudioSpace = true; }
-                        if (eventTag[0] == 'location' && eventTag[1].length > 0)  { location = eventTag[1]; }
-                        if (eventTag[0] == 'title' && eventTag[1].length > 0)     { title = eventTag[1]; }
-                        if (eventTag[0] == 'image' && eventTag[1].length > 0)     { image = eventTag[1]; }
-                        if (eventTag[0] == 'deleted' && eventTag[1].length > 0)   { isDeleted = true; } // backwards compatible, can remove after 20240401
-                        if (eventTag[0] == 'expiration' && eventTag[1].length > 0) {
-                            try {
-                                let expirationTime = parseInt(eventTag[1]);
-                                if (expirationTime < timestamp) {
-                                    isDeleted = ture;
-                                }
-                            } catch(error) { continue; }
-                        }
-                        if (eventTag[0] == 'd' && eventTag[1].length > 0)         { dTag = eventTag[1]; }
                     }
-                    // Check for deleted
-                    if (!dTag) continue;
-                    for (let das of deletedAudiospaces) {
-                        if (das.deletedTime < event.created_at) continue; // deleted before creation is ok
-                        if (das.kind != event.kind) continue; // must be same kind to be deleted
-                        if (das.pubkey != event.pubkey) continue; // must be same user to be deleted
-                        if (das.d == dTag) isDeleted = true;
-                    }
-                    if (isDeleted) {
-                        //console.log('[getScheduledEvents] skipping event that was deleted');
-                        continue;
-                    }
-                    // Reject based on erroneous time
-                    if (startTime == undefined) {
-                        if (pmd) console.log('[getScheduledEvents] skipping event that has no start time');
-                        continue;               // must have a time
-                    }
-                    if (endTime == undefined) {
-                        if (pmd) console.log('[getScheduledEvents] skipping event that has no end time');
-                        continue;                 // must have a time
-                    }
-                    if (startTime > endTime) {
-                        if (pmd) console.log('[getScheduledEvents] skipping event that starts after it ends');
-                        continue;                  // must begin before ending
-                    }
-                    if (endTime - startTime > daySeconds) {
-                        if (pmd) console.log('[getScheduledEvents] skipping event that lasts more than 1 day')
-                        continue;     // exclude events lasting more than 1 day
-                    }
-                    if ((startTime < timestamp) && (endTime + hourSeconds < timestamp)) {
-                        //console.log('[getScheduledEvents] skipping event that has ended more than an hour ago');
-                        continue;
-                    }
-                    if (startTime > maxTime) {
-                        if (pmd) console.log('[getScheduledEvents] skipping event that starts more than a week from now');
-                        continue;                  // must start within 1 week
-                    }
-                    // check for required fields
-                    if (!isAudioSpace) {
-                        continue;
-                    }
-                    if (!(title && location && startTime && endTime)) {
-                        if (pmd) console.log('[getScheduledEvents] skipping event that is missing one of title, location, startTime, endTime');
-                        continue;
-                    }
-                    console.log(`[getScheduledEvents] adding a scheduled event: ${title} (${location} starting ${startTime})`);
-                    // all good to include
-                    let matchedEvent = {
-                        startTime,
-                        endTime,
-                        image,
-                        location,
-                        title,
-                    }
-                    audioSpaceCount += 1;
-                    matchedEvents.push(matchedEvent);
-                }
-
-                // sort by the startTime so sooner/current ones are first
-                if (matchedEvents.length > 0) {
-                    matchedEvents.sort((a,b) => (a.startTime > b.startTime) ? 1 : ((b.startTime > a.startTime) ? -1 : 0));
-                }
-
-                // if we have less than scheduledEventLimit events, bring in other types from live activities
-                if (matchedEvents.length < scheduledEventLimit) {
-                    console.log("[getScheduledEvents] checking live activities for planned events");
-                    let plannedActivities = [];
-                    for (let event of liveActivitiesEvents) {
-                        if (event.kind != 30311) continue;
-                        const eventTags = event.tags;
+                    // Build events within range, that aren't deleted
+                    console.log('[getScheduledEvents] number of audiospace calendar events: ', calendarEvents.length);
+                    for (let event of calendarEvents) {
+                        if (event.kind != 31923) continue;
+                        const eventTags = event.tags;                    
                         let isDeleted = false;
                         let endTime = undefined;
-                        let image = undefined;
+                        let image = '/favicon.png';    // default image, TODO: externalize
                         let location = undefined;
                         let startTime = undefined;
                         let title = undefined;
+                        let isAudioSpace = false;
                         let dTag = undefined;
-                        let service = undefined;
-                        let status = undefined;
                         for (let eventTag of eventTags) {
                             if (eventTag.length < 2) continue;
-                            if (eventTag[0] == 'service' && eventTag[1].length > 0) {
-                                service = eventTag[1];
-                            }
-                            if (eventTag[0] == 'starts' && eventTag[1].length > 0) {
-                                try {
-                                    startTime = parseInt(eventTag[1]);
-                                    //endTime = startTime + (hourSeconds * 2); // assume 2 hour length
-                                    endTime = timestamp + (hourSeconds * 2); // assume it ends in 2 hours unless denoted otherwise
-                                } catch(error) {
-                                    continue;
-                                }
-                            }
-                            if (eventTag[0] == 'ends' && eventTag[1].length > 0) {
+                            if (eventTag[0] == 'end' && eventTag[1].length > 0) {
                                 try {
                                     endTime = parseInt(eventTag[1]);
+                                } catch(error) { continue; }
+                            }
+                            if (eventTag[0] == 'start' && eventTag[1].length > 0) {
+                                try {
+                                    startTime = parseInt(eventTag[1]);
                                 } catch(error) {
                                     continue;
                                 }
                             }
-                            if (eventTag[0] == 'streaming' && eventTag[1].length > 0) {
-                                if (eventTag[1].startsWith('https://')) {
-                                    location = eventTag[1]; 
-                                }
-                            }
+                            if (eventTag[0] == 't' && eventTag[1] == 'audiospace') { isAudioSpace = true; } // backwards compatible, can remove after 20240401
+                            if (eventTag[0] == 'l' && eventTag[1] == 'audiospace') { isAudioSpace = true; }
+                            if (eventTag[0] == 'location' && eventTag[1].length > 0)  { location = eventTag[1]; }
                             if (eventTag[0] == 'title' && eventTag[1].length > 0)     { title = eventTag[1]; }
                             if (eventTag[0] == 'image' && eventTag[1].length > 0)     { image = eventTag[1]; }
-                            if (eventTag[0] == 'deleted' && eventTag[1].length > 0)   { isDeleted = true; }
+                            if (eventTag[0] == 'deleted' && eventTag[1].length > 0)   { isDeleted = true; } // backwards compatible, can remove after 20240401
+                            if (eventTag[0] == 'expiration' && eventTag[1].length > 0) {
+                                try {
+                                    let expirationTime = parseInt(eventTag[1]);
+                                    if (expirationTime < timestamp) {
+                                        isDeleted = ture;
+                                    }
+                                } catch(error) { continue; }
+                            }
                             if (eventTag[0] == 'd' && eventTag[1].length > 0)         { dTag = eventTag[1]; }
-                            if (eventTag[0] == 'status' && eventTag[1].length > 0)    { status = eventTag[1]; }
                         }
                         // Check for deleted
                         if (!dTag) continue;
@@ -295,111 +185,225 @@ const getScheduledEvents = async () => {
                             if (das.d == dTag) isDeleted = true;
                         }
                         if (isDeleted) {
-                            //console.log(`[getScheduledEvents] skipping activity ${dTag} that was deleted`);
+                            //console.log('[getScheduledEvents] skipping event that was deleted');
                             continue;
-                        }
-                        // Check for ended
-                        if (status && status == 'ended') {
-                            continue;
-                        }
-                        // Must have service tag
-                        if (service == undefined) {
-                            //console.log(`[getScheduledEvents] skipping activity ${dTag} that has no service`);
-                            continue;
-                        }
-                        // SPECIAL FIX FOR NOSTRNESTS: Set location if service is nostrnests
-                        if (service == 'https://nostrnests.com') {
-                            //location = `https://nostrnests.com/api/v1/live/${dTag}/live.m3u8`;
-                            if (image == undefined) {
-                                image = 'https://nostrnests.com/favicon.png';
-                            }
-                            let nostrnestsRelays = [ 'wss://relay.snort.social/', 'wss://nos.lol/', 'wss://relay.damus.io/', 'wss://nostr.land/' ];
-                            let naddr1 = nip19.naddrEncode({identifier:dTag,pubkey:event.pubkey,kind:event.kind,relays:nostrnestsRelays});
-                            location = `https://nostrnests.com/${naddr1}`;
-                        }
-                        // SPECIAL FIX FOR ZAP.STREAM: Set location if service is zap.stream
-                        if (service == 'https://api.zap.stream/api/nostr') {
-                            //location = `https://data.zap.stream/stream/${dTag}.m3u8`;
-                            if (image == undefined) {
-                                image = 'https://zap.stream/logo.png';
-                            }
-                            let naddr1 = nip19.naddrEncode({identifier:dTag,pubkey:event.pubkey,kind:event.kind});
-                            location = `https://zap.stream/${naddr1}`;
-                        }
-                        // Set image to default if not yet set
-                        if (image == undefined) {
-                            image = `${service}/favicon.png`;
                         }
                         // Reject based on erroneous time
                         if (startTime == undefined) {
-                            //console.log(`[getScheduledEvents] skipping event ${dTag} that has no start time`);
+                            if (pmd) console.log('[getScheduledEvents] skipping event that has no start time');
                             continue;               // must have a time
                         }
                         if (endTime == undefined) {
-                            //console.log(`[getScheduledEvents] skipping event ${dTag} that has no end time`);
+                            if (pmd) console.log('[getScheduledEvents] skipping event that has no end time');
                             continue;                 // must have a time
                         }
                         if (startTime > endTime) {
-                            //console.log(`[getScheduledEvents] skipping event ${dTag} that starts after it ends`);
+                            if (pmd) console.log('[getScheduledEvents] skipping event that starts after it ends');
                             continue;                  // must begin before ending
                         }
                         if (endTime - startTime > daySeconds) {
-                            //console.log(`[getScheduledEvents] skipping event ${dTag} that lasts more than 1 day`);
+                            if (pmd) console.log('[getScheduledEvents] skipping event that lasts more than 1 day')
                             continue;     // exclude events lasting more than 1 day
                         }
                         if ((startTime < timestamp) && (endTime + hourSeconds < timestamp)) {
-                            //console.log(`skipping event ${dTag} that has ended more than an hour ago`);
+                            //console.log('[getScheduledEvents] skipping event that has ended more than an hour ago');
                             continue;
                         }
                         if (startTime > maxTime) {
-                            //console.log(`[getScheduledEvents] skipping event ${dTag} that starts more than a week from now`);
+                            if (pmd) console.log('[getScheduledEvents] skipping event that starts more than a week from now');
                             continue;                  // must start within 1 week
                         }
                         // check for required fields
-                        if (!(title && location && startTime && endTime)) {
-                            //console.log(`[getScheduledEvents] skipping event ${dTag} that is missing one of title, location, startTime, endTime`);
+                        if (!isAudioSpace) {
                             continue;
                         }
-                        console.log(`[getScheduledEvents] adding a live activity event: ${title} (${location} starting ${startTime})`);
+                        if (!(title && location && startTime && endTime)) {
+                            if (pmd) console.log('[getScheduledEvents] skipping event that is missing one of title, location, startTime, endTime');
+                            continue;
+                        }
+                        console.log(`[getScheduledEvents] adding a scheduled event: ${title} (${location} starting ${startTime})`);
                         // all good to include
-                        let plannedActivity = {
+                        let matchedEvent = {
                             startTime,
                             endTime,
                             image,
                             location,
                             title,
                         }
-                        plannedActivities.push(plannedActivity);
+                        audioSpaceCount += 1;
+                        matchedEvents.push(matchedEvent);
                     }
-                    
-                    plannedActivities.sort((a,b) => (a.startTime > b.startTime) ? 1 : ((b.startTime > a.startTime) ? -1 : 0));
-                    for(let sortedActivity of plannedActivities) {
-                        if (matchedEvents.length < scheduledEventLimit) {
-                            matchedEvents.push(sortedActivity);
-                        } else {
-                            break;
+
+                    // sort by the startTime so sooner/current ones are first
+                    if (matchedEvents.length > 0) {
+                        matchedEvents.sort((a,b) => (a.startTime > b.startTime) ? 1 : ((b.startTime > a.startTime) ? -1 : 0));
+                    }
+
+                    // if we have less than scheduledEventLimit events, bring in other types from live activities
+                    if (matchedEvents.length < scheduledEventLimit) {
+                        console.log("[getScheduledEvents] checking live activities for planned events");
+                        let plannedActivities = [];
+                        for (let event of liveActivitiesEvents) {
+                            if (event.kind != 30311) continue;
+                            const eventTags = event.tags;
+                            let isDeleted = false;
+                            let endTime = undefined;
+                            let image = undefined;
+                            let location = undefined;
+                            let startTime = undefined;
+                            let title = undefined;
+                            let dTag = undefined;
+                            let service = undefined;
+                            let status = undefined;
+                            for (let eventTag of eventTags) {
+                                if (eventTag.length < 2) continue;
+                                if (eventTag[0] == 'service' && eventTag[1].length > 0) {
+                                    service = eventTag[1];
+                                }
+                                if (eventTag[0] == 'starts' && eventTag[1].length > 0) {
+                                    try {
+                                        startTime = parseInt(eventTag[1]);
+                                        //endTime = startTime + (hourSeconds * 2); // assume 2 hour length
+                                        endTime = timestamp + (hourSeconds * 2); // assume it ends in 2 hours unless denoted otherwise
+                                    } catch(error) {
+                                        continue;
+                                    }
+                                }
+                                if (eventTag[0] == 'ends' && eventTag[1].length > 0) {
+                                    try {
+                                        endTime = parseInt(eventTag[1]);
+                                    } catch(error) {
+                                        continue;
+                                    }
+                                }
+                                if (eventTag[0] == 'streaming' && eventTag[1].length > 0) {
+                                    if (eventTag[1].startsWith('https://')) {
+                                        location = eventTag[1]; 
+                                    }
+                                }
+                                if (eventTag[0] == 'title' && eventTag[1].length > 0)     { title = eventTag[1]; }
+                                if (eventTag[0] == 'image' && eventTag[1].length > 0)     { image = eventTag[1]; }
+                                if (eventTag[0] == 'deleted' && eventTag[1].length > 0)   { isDeleted = true; }
+                                if (eventTag[0] == 'd' && eventTag[1].length > 0)         { dTag = eventTag[1]; }
+                                if (eventTag[0] == 'status' && eventTag[1].length > 0)    { status = eventTag[1]; }
+                            }
+                            // Check for deleted
+                            if (!dTag) continue;
+                            for (let das of deletedAudiospaces) {
+                                if (das.deletedTime < event.created_at) continue; // deleted before creation is ok
+                                if (das.kind != event.kind) continue; // must be same kind to be deleted
+                                if (das.pubkey != event.pubkey) continue; // must be same user to be deleted
+                                if (das.d == dTag) isDeleted = true;
+                            }
+                            if (isDeleted) {
+                                //console.log(`[getScheduledEvents] skipping activity ${dTag} that was deleted`);
+                                continue;
+                            }
+                            // Check for ended
+                            if (status && status == 'ended') {
+                                continue;
+                            }
+                            // Must have service tag
+                            if (service == undefined) {
+                                //console.log(`[getScheduledEvents] skipping activity ${dTag} that has no service`);
+                                continue;
+                            }
+                            // SPECIAL FIX FOR NOSTRNESTS: Set location if service is nostrnests
+                            if (service == 'https://nostrnests.com') {
+                                //location = `https://nostrnests.com/api/v1/live/${dTag}/live.m3u8`;
+                                if (image == undefined) {
+                                    image = 'https://nostrnests.com/favicon.png';
+                                }
+                                let nostrnestsRelays = [ 'wss://relay.snort.social/', 'wss://nos.lol/', 'wss://relay.damus.io/', 'wss://nostr.land/' ];
+                                let naddr1 = nip19.naddrEncode({identifier:dTag,pubkey:event.pubkey,kind:event.kind,relays:nostrnestsRelays});
+                                location = `https://nostrnests.com/${naddr1}`;
+                            }
+                            // SPECIAL FIX FOR ZAP.STREAM: Set location if service is zap.stream
+                            if (service == 'https://api.zap.stream/api/nostr') {
+                                //location = `https://data.zap.stream/stream/${dTag}.m3u8`;
+                                if (image == undefined) {
+                                    image = 'https://zap.stream/logo.png';
+                                }
+                                let naddr1 = nip19.naddrEncode({identifier:dTag,pubkey:event.pubkey,kind:event.kind});
+                                location = `https://zap.stream/${naddr1}`;
+                            }
+                            // Set image to default if not yet set
+                            if (image == undefined) {
+                                image = `${service}/favicon.png`;
+                            }
+                            // Reject based on erroneous time
+                            if (startTime == undefined) {
+                                //console.log(`[getScheduledEvents] skipping event ${dTag} that has no start time`);
+                                continue;               // must have a time
+                            }
+                            if (endTime == undefined) {
+                                //console.log(`[getScheduledEvents] skipping event ${dTag} that has no end time`);
+                                continue;                 // must have a time
+                            }
+                            if (startTime > endTime) {
+                                //console.log(`[getScheduledEvents] skipping event ${dTag} that starts after it ends`);
+                                continue;                  // must begin before ending
+                            }
+                            if (endTime - startTime > daySeconds) {
+                                //console.log(`[getScheduledEvents] skipping event ${dTag} that lasts more than 1 day`);
+                                continue;     // exclude events lasting more than 1 day
+                            }
+                            if ((startTime < timestamp) && (endTime + hourSeconds < timestamp)) {
+                                //console.log(`skipping event ${dTag} that has ended more than an hour ago`);
+                                continue;
+                            }
+                            if (startTime > maxTime) {
+                                //console.log(`[getScheduledEvents] skipping event ${dTag} that starts more than a week from now`);
+                                continue;                  // must start within 1 week
+                            }
+                            // check for required fields
+                            if (!(title && location && startTime && endTime)) {
+                                //console.log(`[getScheduledEvents] skipping event ${dTag} that is missing one of title, location, startTime, endTime`);
+                                continue;
+                            }
+                            console.log(`[getScheduledEvents] adding a live activity event: ${title} (${location} starting ${startTime})`);
+                            // all good to include
+                            let plannedActivity = {
+                                startTime,
+                                endTime,
+                                image,
+                                location,
+                                title,
+                            }
+                            plannedActivities.push(plannedActivity);
                         }
+                        
+                        plannedActivities.sort((a,b) => (a.startTime > b.startTime) ? 1 : ((b.startTime > a.startTime) ? -1 : 0));
+                        for(let sortedActivity of plannedActivities) {
+                            if (matchedEvents.length < scheduledEventLimit) {
+                                matchedEvents.push(sortedActivity);
+                            } else {
+                                break;
+                            }
+                        }
+                        matchedEvents.sort((a,b) => (a.startTime > b.startTime) ? 1 : ((b.startTime > a.startTime) ? -1 : 0));
                     }
-                    matchedEvents.sort((a,b) => (a.startTime > b.startTime) ? 1 : ((b.startTime > a.startTime) ? -1 : 0));
-                }
+                    localpool.close();
+
+                    // remove multiple (subsequent) entries with same location
+                    let filteredEvents = filterEventsByLocation(matchedEvents);
+
+                    // return it
+                    res(filteredEvents);
+
+                }, waitForEvents);
+
+                let options = {unsubscribeOnEose: true, allowDuplicateEvents: false, allowOlderEvents: false};
+                localpool.subscribe(calendarFilter, relaysToUse, (event, onEose, url) => {calendarEvents.push(event)}, undefined, undefined, options);
+                localpool.subscribe(deleteFilter, relaysToUse, (event, onEose, url) => {deleteEvents.push(event)}, undefined, undefined, options);
+                localpool.subscribe(liveactivitiesFilter, relaysToUse, (event, onEose, url) => {liveActivitiesEvents.push(event)}, undefined, undefined, options);
+            } catch (error) {
                 localpool.close();
-
-                // remove multiple (subsequent) entries with same location
-                let filteredEvents = filterEventsByLocation(matchedEvents);
-
-                // return it
-                res(filteredEvents);
-
-            }, waitForEvents);
-
-            let options = {unsubscribeOnEose: true, allowDuplicateEvents: false, allowOlderEvents: false};
-            localpool.subscribe(calendarFilter, relaysToUse, (event, onEose, url) => {calendarEvents.push(event)}, undefined, undefined, options);
-            localpool.subscribe(deleteFilter, relaysToUse, (event, onEose, url) => {deleteEvents.push(event)}, undefined, undefined, options);
-            localpool.subscribe(liveactivitiesFilter, relaysToUse, (event, onEose, url) => {liveActivitiesEvents.push(event)}, undefined, undefined, options);
-        } catch (error) {
-            localpool.close();
-            rej(undefined);
-            console.log('[getScheduledEvents] There was an error while fetching scheduled events: ', error);
+                rej(undefined);
+                console.log('[getScheduledEvents] There was an error while fetching scheduled events: ', error);
+            }
+        } catch (localpoolerror) {
+            console.log('[getScheduledEvents] error creating relay pool: ', localpoolerror);
         }
     });
 }
@@ -648,28 +652,32 @@ const deleteLiveActivity = async (roomId, dtt, eventId) => {
 const getLiveActivities = async() => {
     if (pmd) console.log("[getLiveActivities] retrieving live activities");
     return new Promise(async (res, rej) => {
-        const localpool = new RelayPool(undefined,poolOptions);
         try {
-            let goalFilter = [{kinds:[30311], limit: 5000}];
-            goalFilter[0]["#L"] = ["com.cornychat"]
-            goalFilter[0]["#l"] = [jamHost]
-            let waitForEvents = 3000; // 3 seconds
-            let matchedRelayEvents = {};
-            let options = {unsubscribeOnEose: true, allowDuplicateEvents: false, allowOlderEvents: false};
-            setTimeout(() => {
+            const localpool = new RelayPool(undefined,poolOptions);
+            try {
+                let goalFilter = [{kinds:[30311], limit: 5000}];
+                goalFilter[0]["#L"] = ["com.cornychat"]
+                goalFilter[0]["#l"] = [jamHost]
+                let waitForEvents = 3000; // 3 seconds
+                let matchedRelayEvents = {};
+                let options = {unsubscribeOnEose: true, allowDuplicateEvents: false, allowOlderEvents: false};
+                setTimeout(() => {
+                    localpool.close();
+                    res(matchedRelayEvents);
+                }, waitForEvents);
+                localpool.subscribe(goalFilter, relaysToUse, (event, onEose, url) => {
+                    if (!matchedRelayEvents.hasOwnProperty(url)) {
+                        matchedRelayEvents[url] = [];
+                    }
+                    matchedRelayEvents[url].push(event);
+                }, undefined, undefined, options);
+            } catch (error) {
                 localpool.close();
-                res(matchedRelayEvents);
-            }, waitForEvents);
-            localpool.subscribe(goalFilter, relaysToUse, (event, onEose, url) => {
-                if (!matchedRelayEvents.hasOwnProperty(url)) {
-                    matchedRelayEvents[url] = [];
-                }
-                matchedRelayEvents[url].push(event);
-            }, undefined, undefined, options);
-        } catch (error) {
-            localpool.close();
-            rej(undefined);
-            console.log('[getLiveActivities] error while fetching live activities: ', error);
+                rej(undefined);
+                console.log('[getLiveActivities] error while fetching live activities: ', error);
+            }
+        } catch (localpoolerror) {
+            console.log('[GetLiveActivities] error creating relay pool: ', localpoolerror);
         }
     });
 }
@@ -860,21 +868,25 @@ const publishRoomActive = async (roomId, dtt, roomInfo, userInfo, isnew) => {
 const getZapGoals = async (pubkey) => {
     console.log('[getZapGoals] retrieving zap goals for pubkey: ', pubkey);
     return new Promise(async (res, rej) => {
-        const localpool = new RelayPool(undefined,poolOptions);
         try {
-            let goalFilter = [{kinds:[9041], authors: [pubkey], limit: 50}];
-            let waitForEvents = 3000; // 3 seconds
-            let matchedEvents = [];
-            let options = {unsubscribeOnEose: true, allowDuplicateEvents: false, allowOlderEvents: false};
-            setTimeout(() => {
+            const localpool = new RelayPool(undefined,poolOptions);
+            try {
+                let goalFilter = [{kinds:[9041], authors: [pubkey], limit: 50}];
+                let waitForEvents = 3000; // 3 seconds
+                let matchedEvents = [];
+                let options = {unsubscribeOnEose: true, allowDuplicateEvents: false, allowOlderEvents: false};
+                setTimeout(() => {
+                    localpool.close();
+                    res(matchedEvents);
+                }, waitForEvents);
+                localpool.subscribe(goalFilter, relaysToUse, (event, onEose, url) => {matchedEvents.push(event)}, undefined, undefined, options);
+            } catch (error) {
                 localpool.close();
-                res(matchedEvents);
-            }, waitForEvents);
-            localpool.subscribe(goalFilter, relaysToUse, (event, onEose, url) => {matchedEvents.push(event)}, undefined, undefined, options);
-        } catch (error) {
-            localpool.close();
-            rej(undefined);
-            console.log('[getZapGoals] error while fetching zap goals: ', error);
+                rej(undefined);
+                console.log('[getZapGoals] error while fetching zap goals: ', error);
+            }
+        } catch (localpoolerror) {
+            console.log('[getZapGoals] error creating relay pool: ', localpoolerror);
         }
     });
 }
@@ -882,22 +894,26 @@ const getZapGoals = async (pubkey) => {
 const publishZapGoal = async (sk, content, amount, relays) => {
     console.log('[publishZapGoal] publishing new zap goal');
     return new Promise(async (res, rej) => {
-        const localwritepool = getRelayPool();
-        let pk = getPublicKey(sk);
-        const kind = 9041;
-        let amountTag = ["amount", String(amount * 1000)];
-        let relayTag = ["relays", ...relays];
-        let tags = [amountTag, relayTag];
-        const event = finalizeEvent({
-            created_at: Math.floor(Date.now() / 1000),
-            kind: kind,
-            tags: tags,
-            content: content,
-        }, sk);
-        await publishEvent(localwritepool, event, relaysToUse);
-        await sleep(250);
-        doneRelayPool(localwritepool);
-        res(event);
+        try {
+            const localwritepool = getRelayPool();
+            let pk = getPublicKey(sk);
+            const kind = 9041;
+            let amountTag = ["amount", String(amount * 1000)];
+            let relayTag = ["relays", ...relays];
+            let tags = [amountTag, relayTag];
+            const event = finalizeEvent({
+                created_at: Math.floor(Date.now() / 1000),
+                kind: kind,
+                tags: tags,
+                content: content,
+            }, sk);
+            await publishEvent(localwritepool, event, relaysToUse);
+            await sleep(250);
+            doneRelayPool(localwritepool);
+            res(event);
+        } catch (localpoolerror) {
+            console.log('[publishZapGoal] error creating relay pool: ', localpoolerror);
+        }
     });
 }
 
