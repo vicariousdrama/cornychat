@@ -1,0 +1,7 @@
+identifier: corny-chat
+maintainers:
+- npub1yx6pjypd4r7qh2gysjhvjd9l2km6hnm4amdnjyjw3467fy05rf0qfp7kza
+- npub1z0mwcfjf8rqznnrxja88cmk20p8gtt0ptkrhl5q6p53jd9yr8zlq2c6ere
+relays:
+- 'wss://bevo.nostr1.com'
+- 'wss://thebarn.nostr1.com'
