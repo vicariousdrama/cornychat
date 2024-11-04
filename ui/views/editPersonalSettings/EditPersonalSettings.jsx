@@ -153,7 +153,6 @@ export default function EditPersonalSettings({close}) {
     localStorage.getItem('fileUpload.auth') ?? 'true'
   );
 
-
   let [petnameDecrypt, setPetnameDecrypt] = useState(
     localStorage.getItem('petnames.decryptwithoutprompt') ?? 'false'
   );
@@ -173,6 +172,8 @@ export default function EditPersonalSettings({close}) {
   if (userType == 'nostr') {
     userType = (nostrNoteId == undefined ? 'nostrExtension' : 'nostrManual');
   }
+
+  let customEmojis = sessionStorage.getItem('customEmojis') ? JSON.parse(sessionStorage.getItem('customEmojis')) : [];
 
   let [stickyEmoji1, setStickyEmoji1] = useState(localStorage.getItem('stickyEmoji1') ?? '☕');
   let [stickyEmoji2, setStickyEmoji2] = useState(localStorage.getItem('stickyEmoji2') ?? '🌽');
@@ -577,7 +578,9 @@ export default function EditPersonalSettings({close}) {
 
           <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
             <div className="p-2 text-gray-200 bold">
-              Sticky Emojis - These may be displayed with the raise hand icon from the navigation bar. Click an existing emoji to clear it and choose another one.
+              Sticky Emojis - These may be displayed using the raise hand icon from the navigation bar. 
+              Click an existing emoji to clear it and choose another one.
+              For more choices, add emoji packs at <a style={{display:'inline'}} target="_blank" href="https://emojito.meme/browse"><img style={{display:'inline',width:'20px',height:'20px',border:'0px'}} src="https://i.nostr.build/p7ORJdewBYXIeLmg.png" /> Emojito.Meme</a>
             </div>
             <div className="p-2 text-gray-200">
               <span className="italic">Sticky Emoji 1 </span>{(stickyEmoji1.length != 0) && (
@@ -593,7 +596,19 @@ export default function EditPersonalSettings({close}) {
                     display: 'inline',
                   }}
                 />
-                ) : (stickyEmoji1)}</p>
+                ) : (stickyEmoji1.toString().startsWith('https://') ? (
+                  <img
+                    src={stickyEmoji1.toString()}
+                    style={{
+                      width: '24px',
+                      height: 'auto',
+                      border: '0px',
+                      display: 'inline',
+                    }}
+                  />
+                ) : (
+                  stickyEmoji1
+                ))}</p>
                 </div>
               )}
             </div>
@@ -604,15 +619,7 @@ export default function EditPersonalSettings({close}) {
               previewConfig={{showPreview: false}}
               autoFocusSearch={false}
               searchPlaceHolder=''
-              customEmojis={[
-                {id: 'E1', names: ['Pepe 1'], imgUrl:'/img/emojis/emoji-E1.png'},
-                {id: 'E2', names: ['Pepe 2'], imgUrl:'/img/emojis/emoji-E2.png'},
-                {id: 'E3', names: ['Pepe 3'], imgUrl:'/img/emojis/emoji-E3.png'},
-                {id: 'E4', names: ['Pepe 4'], imgUrl:'/img/emojis/emoji-E4.png'},
-                {id: 'E5', names: ['Pepe 5'], imgUrl:'/img/emojis/emoji-E5.png'},
-                {id: 'E6', names: ['Pepe 6'], imgUrl:'/img/emojis/emoji-E6.png'},
-                {id: 'E7', names: ['Pepe 7'], imgUrl:'/img/emojis/emoji-E7.png'},
-              ]}
+              customEmojis={customEmojis}
             />
             )}
             <div className="p-2 text-gray-200">
@@ -629,7 +636,19 @@ export default function EditPersonalSettings({close}) {
                       display: 'inline',
                     }}
                   />
-                ) : (stickyEmoji2)}</p>
+                ) : (stickyEmoji2.toString().startsWith('https://') ? (
+                  <img
+                    src={stickyEmoji2.toString()}
+                    style={{
+                      width: '24px',
+                      height: 'auto',
+                      border: '0px',
+                      display: 'inline',
+                    }}
+                  />
+                ) : (
+                  stickyEmoji2
+                ))}</p>
                 </div>
               )}
             </div>
@@ -640,15 +659,7 @@ export default function EditPersonalSettings({close}) {
               previewConfig={{showPreview: false}}
               autoFocusSearch={false}
               searchPlaceHolder=''
-              customEmojis={[
-                {id: 'E1', names: ['Pepe 1'], imgUrl:'/img/emojis/emoji-E1.png'},
-                {id: 'E2', names: ['Pepe 2'], imgUrl:'/img/emojis/emoji-E2.png'},
-                {id: 'E3', names: ['Pepe 3'], imgUrl:'/img/emojis/emoji-E3.png'},
-                {id: 'E4', names: ['Pepe 4'], imgUrl:'/img/emojis/emoji-E4.png'},
-                {id: 'E5', names: ['Pepe 5'], imgUrl:'/img/emojis/emoji-E5.png'},
-                {id: 'E6', names: ['Pepe 6'], imgUrl:'/img/emojis/emoji-E6.png'},
-                {id: 'E7', names: ['Pepe 7'], imgUrl:'/img/emojis/emoji-E7.png'},
-              ]}
+              customEmojis={customEmojis}
             />
             )}
             

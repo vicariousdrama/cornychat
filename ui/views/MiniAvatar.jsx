@@ -255,10 +255,21 @@ function StickyHand({
             }}
           />
           ) : (
+            handType.toString().startsWith('https://') ? (
+              <img
+              src={handType.toString()}
+              style={{
+                width: '24px',
+                height: 'auto',
+                border: '0px',
+                display: 'inline',
+              }}
+            />
+            ) : (
             <span className={mqp(handType.toString().charCodeAt(0) < 255 ? 'text-xs' : 'text-md')}
               style={{textShadow: handType.toString().charCodeAt(0) > 255 ? '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000': ''}}
             >{handType}</span>
-          )}
+          ))}
         </div>
       </div>
       )}
@@ -306,6 +317,29 @@ function AnimatedEmoji({emoji, ...props}) {
       >
         <img
           src={`/img/emojis/emoji-${emoji.toString().toUpperCase()}.png`}
+          style={{
+            width: '100%',
+            height: 'auto',
+            border: '0px',
+            zIndex: '15',
+          }}
+        />
+      </div>
+    );
+  } else if (emoji.startsWith('https://') && emoji.length > 1) {
+    return (
+      <div
+        ref={setElement}
+        style={{
+          width: '96px',
+          height: '96px',
+          border: '0px',
+          zIndex: '15',
+        }}
+        {...props}
+      >
+        <img
+          src={emoji.toString()}
           style={{
             width: '100%',
             height: 'auto',

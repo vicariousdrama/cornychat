@@ -8,7 +8,7 @@ import {MicOnSvg, Links, Audience} from './Svg';
 import {openModal} from './Modal';
 import {InvoiceModal} from './Invoice';
 import {tipRoom, time4Ad, time4Tip, value4valueAdSkip, zapRoomGoal, zapServerGoal} from '../lib/v4v';
-import {publishStatus} from '../nostr/nostr';
+import {getCustomEmojis, publishStatus} from '../nostr/nostr';
 import ZapGoalBar from './ZapGoalBar';
 
 export default function RoomHeader2({
@@ -188,6 +188,14 @@ export default function RoomHeader2({
                 }
             }
         }, atagdelay);
+
+        // Custom Emojis (set session info referenced in personal settings and room settings)
+        let timeoutCustomEmojis = setTimeout(() => {
+            let r = (async () => {
+                let ce = await getCustomEmojis();
+            })();
+        }, 5000);
+
         // This function is called when component unmounts
         return () => {
             clearTimeout(timeoutEntered);
@@ -196,6 +204,7 @@ export default function RoomHeader2({
             clearInterval(intervalAdSkip);
             clearInterval(intervalStatusUpdate);
             clearTimeout(timeoutATagUpdate);
+            clearTimeout(timeoutCustomEmojis);
         }
     }, []);
 
