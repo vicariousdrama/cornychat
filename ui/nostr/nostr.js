@@ -1589,3 +1589,96 @@ export async function signAndSendEvent(event) {
     return [true, eventSigned.id];
   }  
 }
+
+export async function getCustomEmojis() {
+  // Tag in user's 10030 event.  For each a tag, 
+  //    ["a", "30030:1c9dcd8fd2d2fb879d6f02d6cc56aeefd74a9678ae48434b0f0de7a21852f704:Celtic "]
+  // get the relevant 30030 event. Then add to the customEmojis
+  //    ["emoji", "Cacodemon", "https://media.tenor.com/BzhCHGfoSm8AAAAi/caco-cacodemon.gif"]
+  // The resulting customEmojis object returned is suitable for passing to EmojiPicker of emoji-picker-react
+  let legacyEmojis = [
+    {id: 'E1', names: ['Pepe 1'], imgUrl:'/img/emojis/emoji-E1.png'},
+    {id: 'E2', names: ['Pepe 2'], imgUrl:'/img/emojis/emoji-E2.png'},
+    {id: 'E3', names: ['Pepe 3'], imgUrl:'/img/emojis/emoji-E3.png'},
+    {id: 'E4', names: ['Pepe 4'], imgUrl:'/img/emojis/emoji-E4.png'},
+    {id: 'E5', names: ['Pepe 5'], imgUrl:'/img/emojis/emoji-E5.png'},
+    {id: 'E6', names: ['Pepe 6'], imgUrl:'/img/emojis/emoji-E6.png'},
+    {id: 'E7', names: ['Pepe 7'], imgUrl:'/img/emojis/emoji-E7.png'},
+  ]
+  let customEmojis = legacyEmojis;
+  if (window.nostr) {
+    let pubkey = await getPublicKey();
+    const currentTime = Math.floor(Date.now() / 1000);
+    const timeToExpire = 3600; // 1 hour
+    const myCustomEmojisRetrieved = sessionStorage.getItem('customEmojis.retrievedTime');
+    const myCustomEmojisExpired = (myCustomEmojisRetrieved == undefined || ((myCustomEmojisRetrieved + timeToExpire) < currentTime));
+    customEmojis = sessionStorage.getItem('customEmojis');
+    if (myCustomEmojisExpired || customEmojis == undefined) {
+      customEmojis = legacyEmojis;
+      console.log(pubkey);
+      let kind10030s = await getUserEventsByKind(pubkey, 10030, 0);
+      console.log(kind10030s);
+      let newestkind10030 = 0;
+      for (let kind10030 of kind10030s) {
+        if (kind10030.tags == undefined) continue;
+        if (kind10030.tags.length == 0) continue;
+        if (kind10030.created_at > newestkind10030) {
+          newestkind10030 = kind10030.created_at;
+        }
+      }
+      for (let kind10030 of kind10030s) {
+        if (kind10030.created_at != newestkind10030) continue;
+        let kind10030tags = kind10030.tags;
+        if (kind10030tags == undefined) continue;
+        for (let kind10030tag of kind10030tags) {
+          if (kind10030tag.length < 2) continue;
+          if (kind10030tag[0] != 'a') continue;
+          let aTagParts = kind10030tag[1].split(":");
+          if (aTagParts.length != 3) continue;
+          if (aTagParts[0] != '30030') continue;
+          let emojiSetPubkey = aTagParts[1];
+          let emojiSetName = aTagParts[2];
+          console.log(emojiSetPubkey);
+          let kind30030s = sessionStorage.getItem(`${emojiSetPubkey}.kind30030events`);
+          if (kind30030s == undefined) {
+            kind30030s = await getUserEventsByKind(emojiSetPubkey, 30030, 0);
+          } else {
+            kind30030s = JSON.parse(sessionStorage.getItem(`${emojiSetPubkey}.kind30030events`));
+          }
+          console.log(kind30030s);
+          for (let kind30030 of kind30030s) {
+            let kind30030tags = kind30030.tags;
+            let targetFound = false;
+            for (let kind30030tag of kind30030tags) {
+              if (kind30030tag.length < 2) continue;
+              if (kind30030tag[0] != 'd') continue;
+              if (kind30030tag[1] != emojiSetName) continue;
+              targetFound = true;
+              break;
+            }
+            if (targetFound) {
+              for (let kind30030tag of kind30030tags) {
+                if (kind30030tag.length < 3) continue;
+                if (kind30030tag[0] != 'emoji') continue;
+                let emojiName = kind30030tag[1];
+                let emojiUrl = kind30030tag[2];
+                let emojiId = emojiUrl;
+                let addit = true;
+                for (let ce of customEmojis) {
+                  if (ce.id == emojiId) {addit = false; break;}
+                  if (ce.imgUrl == emojiUrl) {addit = false; break;}
+                }
+                if (addit) customEmojis.push({id: emojiId, names: [emojiName, emojiSetName], imgUrl: emojiUrl});
+              }
+            }
+          }
+        }
+      }
+      sessionStorage.setItem('customEmojis.retrievedTime', currentTime);
+      sessionStorage.setItem('customEmojis', JSON.stringify(customEmojis));
+    } else {
+      customEmojis = JSON.parse(customEmojis);
+    }
+  }
+  return customEmojis;
+}

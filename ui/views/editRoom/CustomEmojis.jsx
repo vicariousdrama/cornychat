@@ -19,8 +19,11 @@ export function CustomEmojis({
     setCustomEmojis(newEmojis);
   }
 
-  function addEmoji(emoji) {
+  function addEmoji(emojiobject) {
+    let emoji = emojiobject.emoji;
     let theemoji = emoji.toString().toUpperCase().startsWith('E') ? emoji.toString().toUpperCase() : emoji;
+    if (emoji.startsWith('https://')) theemoji = emojiobject.imageUrl;
+    //console.log(JSON.stringify(emojiobject));
     if (customEmojis.includes(theemoji)) return;
     setCustomEmojis(prevArray => [...prevArray, theemoji]);
   }
@@ -33,6 +36,8 @@ export function CustomEmojis({
     setCustomEmojis(reactionEmojis);
   }
 
+  let roomCustomEmojis = sessionStorage.getItem('customEmojis') ? JSON.parse(sessionStorage.getItem('customEmojis')) : [];
+
   return (
     <div>
       <p className="text-lg font-medium text-gray-200 cursor-pointer" onClick={() => setExpanded(!expanded)}>
@@ -42,24 +47,17 @@ export function CustomEmojis({
       {iOwn && (
       <div className="my-5">
         <p className="text-sm font-medium text-gray-300 p-2">
-          Add your custom emoji reactions:
+          Select the custom emoji reactions for this room.  You can also include emojis that you've favorited at 
+          <a style={{display:'inline'}} href="https://emojito.meme/browse" target="_blank"><img style={{display:'inline',width:'20px',height:'20px',border:'0px'}} src="https://i.nostr.build/p7ORJdewBYXIeLmg.png" /> Emojito.Meme</a>.
         </p>
         <EmojiPicker
           lazyLoadEmojis={true}
           width={'width:max-content'}
-          onEmojiClick={emoji => addEmoji(emoji.emoji)}
+          onEmojiClick={emojiobject => addEmoji(emojiobject)}
           previewConfig={{showPreview: false}}
           autoFocusSearch={false}
           searchPlaceHolder=''
-          customEmojis={[
-            {id: 'E1', names: ['Pepe 1'], imgUrl:'/img/emojis/emoji-E1.png'},
-            {id: 'E2', names: ['Pepe 2'], imgUrl:'/img/emojis/emoji-E2.png'},
-            {id: 'E3', names: ['Pepe 3'], imgUrl:'/img/emojis/emoji-E3.png'},
-            {id: 'E4', names: ['Pepe 4'], imgUrl:'/img/emojis/emoji-E4.png'},
-            {id: 'E5', names: ['Pepe 5'], imgUrl:'/img/emojis/emoji-E5.png'},
-            {id: 'E6', names: ['Pepe 6'], imgUrl:'/img/emojis/emoji-E6.png'},
-            {id: 'E7', names: ['Pepe 7'], imgUrl:'/img/emojis/emoji-E7.png'},
-          ]}
+          customEmojis={roomCustomEmojis}
         />
         <div className="mt-3">
           <p className="text-sm font-medium text-gray-300 p-2">
@@ -84,7 +82,17 @@ export function CustomEmojis({
                     display: 'inline',
                   }}
                 />
-              ) : (emoji)}</p>
+              ) : (emoji.toString().startsWith('https://') ? (
+                <img
+                  src={emoji.toString()}
+                  style={{
+                    width: '24px',
+                    height: 'auto',
+                    border: '0px',
+                    display: 'inline',
+                  }}
+                />
+              ) : (emoji))}</p>
                 </div>
               );
             })}

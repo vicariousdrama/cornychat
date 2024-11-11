@@ -139,9 +139,19 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
                     display: 'inline',
                   }}
                 />
+              ) : (r.toString().startsWith('https://') ? (
+                <img
+                  src={r}
+                  style={{
+                    width: '100%',
+                    height: 'auto',
+                    border: '0px',
+                    display: 'inline',
+                  }}
+                />
               ) : (
                 r
-              )}
+              ))}
             </button>
           ))
         ) : (
@@ -234,7 +244,19 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
             }}
           />
         ) : (
+          (localStorage.getItem('stickyEmoji1') ?? '☕').toString().startsWith('https://') ? (
+            <img
+            src={localStorage.getItem('stickyEmoji1').toString()}
+            style={{
+              width: '90%',
+              height: 'auto',
+              border: '0px',
+              display: 'inline',
+            }}
+          />
+          ) : (
           localStorage.getItem('stickyEmoji1') ?? '☕'
+          )
         )}</button>
         <button className="human-radius text-xl select-none"
           style={{width:'48px',height:'48px',backgroundColor:`rgb(17,17,170)`,color:'yellow'}}
@@ -256,7 +278,19 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
               }}
             />
           ) : (
+            (localStorage.getItem('stickyEmoji2') ?? '🌽').toString().startsWith('https://') ? (
+              <img
+              src={localStorage.getItem('stickyEmoji2').toString()}
+              style={{
+                width: '90%',
+                height: 'auto',
+                border: '0px',
+                display: 'inline',
+              }}
+            />
+            ) : (
             localStorage.getItem('stickyEmoji2') ?? '🌽'
+            )
         )}</button>
       </div>
     );
@@ -474,12 +508,21 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
                   display: 'inline',
                 }}
               />
-            ):(
+            ):( handType.toString().startsWith('https://') ? (
+                <img
+                src={handType.toString()}
+                style={{
+                  width: '90%',
+                  height: 'auto',
+                  border: '0px',
+                  display: 'inline',
+                }}
+              />
+            ) : (              
               <span className={mqp(handType.toString().charCodeAt(0) < 255 ? 'text-xs' : 'text-lg')}
                 style={{textShadow: handType.toString().charCodeAt(0) > 255 ? '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000': ''}}
               >{handType}</span>
-            )
-            )))}
+            )))))}
             </button>
           </div>
         ) : (
