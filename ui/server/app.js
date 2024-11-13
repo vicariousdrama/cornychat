@@ -74,6 +74,24 @@ app.use(async (req, res) => {
     );
   }
 
+  if (req.path.startsWith('/_/integrations/nostr/')) {
+    let parts = req.path.split('/');
+    let lastpart = parts.slice(-1)[0];
+    if (lastpart.startsWith("n")) {
+      res.send(
+        ejs.render(
+          fs.readFileSync('server/templates/nostrhandler.ejs').toString('utf-8'),
+          {
+            bech32encoded: lastpart,
+          }
+        )
+      );
+    } else {
+      console.log('invalid bech32 value in path:', lastpart);
+      return res.send('invalid bech32 value for handler');
+    }
+  }
+
   if (false && req.path === '/_/integrations/slack') {
     return res.json({
       response_type: 'in_channel',

@@ -27,9 +27,11 @@ export default function DataTypes() {
       <li><a href="#kind9734zaprequest">Kind 9734 - Zap Request</a></li>
       <li><a href="#kind9735zapreceipt">Kind 9735 - Zap Receipt</a></li>
       <li><a href="#kind10002relaylist">Kind 10002 - Relay List Metadata</a></li>
+      <li><a href="#kind10030useremojilist">Kind 10030 - User Emoji List</a></li>
       <li><a href="#kind23194nip47request">Kind 23194 - Nostr Wallet Connect Request</a></li>
       <li><a href="#kind23195nip47response">Kind 23195 - Nostr Wallet Connect Response</a></li>
       <li><a href="#kind27235httpauth">Kind 27235 - HTTP Auth</a></li>
+      <li><a href="#kind30030emojisets">Kind 30030 - Emoji Sets</a></li>
       <li><a href="#kind30311liveactivities">Kind 30311 - Live Activities</a></li>
       <li><a href="#kind30315livestatus">Kind 30315 - Live Statuses</a></li>
       <li><a href="#kind30382relationships">Kind 30382 - Relationships</a></li>
@@ -200,6 +202,14 @@ export default function DataTypes() {
         elsewhere as the inbox / outbox model.
       </p>
 
+      <a name="kind10030useremojilist"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 10030 - User Emoji List</h2>
+      <p>
+        When a user logs into a room, if their current session doesn't have a cache of custom emojis yet, it will be
+        built up based on the emoji sets (kind 30030) referenced in their User Emoji List.  This allows users to
+        select from these emojis when setting their sticky emojis in personal settings, or adding room reactions via
+        room settings. This follows the structure outlined in <a href="https://github.com/nostr-protocol/nips/blob/master/51.md">NIP-51</a>.
+      </p>
+
       <a name="kind23194nip47request"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 23194 - Nostr Wallet Connect Request</h2>
       <p>
         When setting up a zap request, if nostr wallet connect is enabled in the user's personal settings, then a
@@ -220,6 +230,15 @@ export default function DataTypes() {
         as part of <a href="https://github.com/nostr-protocol/nips/blob/master/96.md">NIP-96</a> HTTP File Storage Integration.  
         Some media servers impose limitations on users that do not authenticate, and this is a means to identify ownership 
         of the file and benefit from services the user is subscribed to.
+      </p>
+
+      <a name="kind30030emojisets"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 30030 - Emoji Sets</h2>
+      <p>
+        Emoji Sets contain a list of short code references for emojis and their corresponding image urls. When a 
+        user logs into a room, if their current session doesn't have a cache of custom emojis yet, it will be
+        built up based on the emoji sets referenced in their User Emoji List (kind 10030).  This allows users to
+        select from these emojis when setting their sticky emojis in personal settings, or adding room reactions via
+        room settings. This follows the structure outlined in <a href="https://github.com/nostr-protocol/nips/blob/master/51.md">NIP-51</a>.
       </p>
 
       <a name="kind30311liveactivities"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 30311 - Live Activities</h2>
