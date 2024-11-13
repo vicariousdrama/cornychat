@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="cache-control" content="no-cache" />
+    <meta http-equiv="expires" content="0">
+    <meta http-equiv="pragma" content="no-cache">    
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+    <title><%= bech32encoded %></title>
+</head>
+<body>
+<div id="root">Initializing...</div>
+<script src="https://unpkg.com/nostr-tools/lib/nostr.bundle.js"></script>
+<script type="module">
+function renderError(msg) {
+    document.getElementById('root').innerText = msg;
+}
+// Always wants a single nostr event, but the newest of them if relays return different results
+let scount = 0;
+async function getNostrEvent(filter, providedRelays) {
+    let ts = Math.floor(Date.now() / 1000);
+    scount += 1;
+    let subscriptionId = `t${ts}c${scount}`;
+    const defaultRelays = ["wss://nos.lol", "wss://nostr-pub.wellorder.net/", "wss://relay.nostr.band/"];
+    const relays = [...new Set([...providedRelays, ...defaultRelays])];
+    return new Promise((resolve, reject) => {
+        let events = [];
+        let eventids = [];
+        let completedRelays = 0;
+        const totalRelays = relays.length;
+        relays.forEach((relay) => {
+            const ws = new WebSocket(relay);
+            ws.onopen = () => {
+                if (window.DEBUG) console.log(`Opening connection to ${relay}`);
+                ws.send(JSON.stringify(["REQ", subscriptionId, filter]));
+            }
+            ws.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                const messageType = message[0];
+                if (messageType === "EVENT" && message.length >= 2) {
+                    let nostrEvent = message[2];
+                    if (!eventids.includes(nostrEvent.id)) {
+                        // placeholder for any validation
+                        events.push(nostrEvent);
+                        eventids.push(nostrEvent.id);
+                    }
+                }
+                if (messageType === "EOSE") {
+                    if (window.DEBUG) console.log(`Received EOSE from ${relay}`);
+                    completedRelays++;
+                    if (completedRelays === totalRelays) {
+                        if (window.DEBUG) console.log('All relays completed, handling completion');
+                        handleCompletion();
+                    }
+                }
+                if (messageType === "NOTICE") {
+                    if (message.length > 1) console.log(`notice from ${relay}: ${JSON.stringif(message[1])}`);
+                }
+            };
+            ws.onerror = (err) => {
+                console.error(`Error fetching from ${relay}:`, err);
+                completedRelays++;
+                if (completedRelays === totalRelays) {
+                    if (window.DEBUG) console.log('All relays completed, handling completion');
+                    handleCompletion();
+                }
+            };
+            ws.onclose = () => {
+                if (window.DEBUG) console.log(`Closed connection to ${relay}`);
+            };
+        });
+
+        const handleCompletion = () => {
+            // Sort by timestamp
+            events.sort((a, b) => b.created_at - a.created_at);
+            if (window.DEBUG) console.log(`Total events collected: ${events.length}`);
+            // Close all connections after we've processed everything
+            relays.forEach((relay) => {
+                const ws = new WebSocket(relay);
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify(["CLOSE", subscriptionId]));
+                    ws.close();
+                }
+            });
+            // Return the newest event we collected
+            if (events.length > 0) {
+                resolve(events[0]);
+            } else {
+                resolve(undefined);
+            }
+        };
+        // Maintain the timeout as a fallback
+        setTimeout(() => {
+            if (window.DEBUG) console.log('Timeout reached, handling completion');
+            handleCompletion();
+        }, 2000);
+    });
+}
+
+function getTagValue(event, k) {
+    if (!event) return '';
+    if (!event.tags) return '';
+    for(let tag of event.tags) {
+        if (tag[0] != k) continue;
+        if (tag.length < 2) continue;
+        return tag[1];
+    }
+    return '';
+}
+function clearRoot() {
+    const myNode = document.getElementById('root');
+    while (myNode.firstChild) {
+        myNode.removeChild(myNode.lastChild);
+    }
+}
+function renderTitle(s) {
+    document.title = s;
+    renderHeader(s);
+}
+function renderHeader(s) {
+    let h = document.createElement('h1');
+    let htext = document.createTextNode(s);
+    h.appendChild(htext);
+    document.getElementById('root').appendChild(h);
+}
+function renderText(s) {
+    let h = document.createElement('p');
+    let htext = document.createTextNode(s);
+    h.appendChild(htext);
+    document.getElementById('root').appendChild(h);
+}
+function renderEvent(event) {
+    clearRoot();
+    let dTag = getTagValue(event, 'd');
+    let titleTag = getTagValue(event, 'title');
+    let renderGeneric = true;
+    if (event.kind === 0) {
+        renderGeneric = false;
+        renderTitle(`Metadata`);
+        renderText(`You can view user profile's of nostr user's when logged in. Public Corny Chat rooms also have their own profile assigned`);
+        renderHeader(`Author`);
+        renderText(event.pubkey);
+        renderHeader(`Created At`);
+        renderText(event.created_at);
+        renderHeader(`Metadata Fields`);
+        let j = JSON.parse(event.content);
+        renderText(j);
+        let t = document.createElement('table');
+        Object.keys(j).forEach(function(key,index) {
+            if(j.hasOwnProperty(key)) {
+                let v = j[key];
+                if (typeof(v) == 'object') {
+                    v = JSON.stringify(v,null,2);
+                }
+                let r = document.createElement('tr');
+                for (let v of tag) {
+                    let c1 = document.createElement('td');
+                    c1.appendChild(document.createTextNode(key));
+                    r.appendChild(c1);
+                    let c2 = document.createElement('td');
+                    c2.appendChild(document.createTextNode(v));
+                    r.appendChild(c2);
+                }
+                t.appendChild(r);                
+            }
+        });
+        document.getElementById('root').appendChild(t);        
+    }
+    else if (event.kind === 1) {
+        renderTitle(`Note`);
+        renderText(`Corny Chat displays simple notes authored by users when viewing their profile, as well as announcing scheduled events, and verifications`);
+    }
+    else if (event.kind === 2) {
+        renderTitle(`Relays`);
+        renderText(`This deprecated list is no longer supported`);
+    }
+    else if (event.kind === 3) {
+        renderTitle(`Follow List`);
+        renderText(`This deprecated list is no longer supported`);
+    }
+    else if (event.kind === 5) {
+        renderTitle(`Deletion Request`);
+        renderText(`Corny Chat uses deletion requests internally to filter out scheduled events`);
+    }
+    else if (event.kind === 8) {
+        renderTitle(`Badge Award`);
+        renderText(`Corny Chat renders Corny Chat specific badges when viewing a user's profile`);
+    }
+    else if (event.kind === 1311) {
+        renderTitle(`Live Text`);
+        renderText(`Corny Chat permits users to optionally send their room text messages as live text when live activities is enabled for the room`);
+    }
+    else if (event.kind === 9041) {
+        renderTitle(`Zap Goal`);
+        renderText(`Corny Chat supports zap goals for the server, as well as each room set by the room owners`);
+    }
+    else if (event.kind === 9375) {
+        renderTitle(`Zap Receipt`);
+        renderText(`Corny Chat looks for zap receipts to tally up the total progress towards a zap goal in a room`);
+    }
+    else if (event.kind === 10002) {
+        renderTitle(`Relay List`);
+        renderText(`Corny Chat supports the outbox model and discovery of a user's relays via the Relay List Metadata`);
+    }
+    else if (event.kind === 23194) {
+        renderTitle(`Nostr Wallet Connect Request`);
+        renderText(`NWC requests are used in Corny Chat for issuing commands to a NWC provider`);
+    }
+    else if (event.kind === 23195) {
+        renderTitle(`Nostr Wallet Connect Response`);
+        renderText(`Corny Chat parses returned responses from NWC providers to determine if the preimage was returned`);
+    }
+    else if (event.kind === 27235) {
+        renderTitle(`HTTP Auth`);
+        renderText(`Corny Chat prepares HTTP Auth requests for file uploads to media servers like nostr.build.`);
+    }
+    else if (event.kind === 30030) {
+        renderGeneric = false;
+        renderTitle(`Custom Emoji Pack: ${dTag}`);
+        renderText(`If you have marked an emoji pack as favorited/bookmarked in your kind 10030 event, then it will be available to you in personal settings for sticky emojis, as well as room settings for room reactions`);
+        let t = document.createElement('table');
+        let r = document.createElement('tr');
+        let c1 = document.createElement('td');
+        c1.appendChild(document.createTextNode('short code'));
+        let c2 = document.createElement('td');
+        c2.appendChild(document.createTextNode('emoji image url'));
+        r.appendChild(c1);
+        r.appendChild(c2);
+        t.appendChild(r);
+        for (let tag of event.tags) {
+            if (tag.length != 3) continue;
+            if (tag[0] != 'emoji') continue;
+            r = document.createElement('tr');
+            c1 = document.createElement('td');
+            c1.appendChild(document.createTextNode(tag[1]));
+            c2 = document.createElement('td');
+            let i2 = document.createElement('img');
+            let a1 = document.createAttribute('src');
+            a1.value = tag[2];
+            i2.setAttributeNode(a1);
+            let a2 = document.createAttribute('width');
+            a2.value = '48';
+            i2.setAttributeNode(a2); 
+            c2.appendChild(i2);
+            r.appendChild(c1);
+            r.appendChild(c2);
+            t.appendChild(r);
+        }
+        document.getElementById('root').appendChild(t);
+    }
+    else if (event.kind === 30311) {
+        renderTitle(`Live Activity: ${titleTag}`);
+        renderText(`Corny Chat rooms may be configured as live activities to promote discovery and correlate live text chat`);
+    }
+    else if (event.kind === 30315) {
+        renderTitle(`Live Status`);
+        renderText(`Corny Chat can periodically publish your status as in a room if you turn that option on in personal settings.`);
+    }
+    else if (event.kind === 30382) {
+        renderTitle(`Relationships`);
+        renderText(`Corny Chat supports personalized pet names for any nostr user in a room`);
+    }
+    else if (event.kind === 30388) {
+        renderTitle(`Corny Chat Slide Set`);
+        renderText(`Corny Chat supports slides within rooms for talking through static images`);
+    }
+    else if (event.kind === 31388) {
+        renderTitle(`Corny Chat Link Set`);
+        renderText(`Corny Chat rooms may have links assigned, and leverage link sets for import/export purposes.`);
+    }
+    else if (event.kind === 31923) {
+        renderTitle(`Scheduled Events`);
+        renderText(`Corny Chat supports recurring scheduled events for rooms to announce future activities`);
+    }
+    else {
+        renderTitle(`Kind ${event.kind}`);
+    }
+    if (renderGeneric) {
+        renderHeader(`Author`);
+        renderText(event.pubkey);
+        renderHeader(`Created At`);
+        renderText(event.created_at);
+        renderHeader(`Content`);
+        renderText(event.content);
+        renderHeader(`Tags`);
+        let t = document.createElement('table');
+        for (let tag of event.tags) {
+            let r = document.createElement('tr');
+            for (let v of tag) {
+                let c = document.createElement('td');
+                c.appendChild(document.createTextNode(v));
+                r.appendChild(c);
+            }
+            t.appendChild(r);
+        }
+        document.getElementById('root').appendChild(t);
+    }
+}
+
+let valueToParse = `<%= bech32encoded %>`
+let type = '';
+let data = '';
+let filter = {};
+let relays = [];
+let fetchit = true;
+try {
+    let parsed = window.NostrTools.nip19.decode(valueToParse);
+    type = parsed.type;
+    data = parsed.data;
+    if (type === 'naddr') {
+        let identifier = data.identifier;   // Nascar
+        let kind = data.kind;               // 30030
+        let pubkey = data.pubkey;           // 21b419102da8fc0ba90484aec934bf55b7abcf75eedb39124e8d75e491f41a5e
+        relays = data.relays ?? [];         // [ "wss://nos.lol" ]
+        if (kind) filter["kinds"] = [kind];
+        if (pubkey) filter["authors"] = [pubkey];
+        if (identifier) filter["#d"] = [identifier];
+    } else if (type === 'nevent') {
+        let id = data.id;                   // 8f2e5f5afee87416e48f6941b79ae6cd12b0236c64f0c9e58b36640dc0055fcb
+        let kind = data.kind;               // 1
+        let author = data.author;           // fcf70a45cfa817eaa813b9ba8a375d713d3169f4a27f3dcac3d49112df67d37e
+        if (data.ids) id = data.ids[0];     // malformed request passing arrays
+        if (data.kinds) kind = data.kinds[0];
+        if (data.authors) author = data.authors[0];
+        relays = data.relays ?? [];         // []
+        if (kind) filter["kinds"] = [kind];
+        if (author) filter["authors"] = [author];
+        if (id) filter["ids"] = [id];
+    } else if (type === 'npub') {
+        let pubkey = data;                  // fcf70a45cfa817eaa813b9ba8a375d713d3169f4a27f3dcac3d49112df67d37e
+        filter = {kinds: [0], authors: [pubkey]};
+    } else if (type === 'nprofile') {
+        let pubkey = data.pubkey;           // fcf70a45cfa817eaa813b9ba8a375d713d3169f4a27f3dcac3d49112df67d37e
+        let relays = data.relays ?? [];     // [ "wss://nostr-pub.wellorder.net/", "wss://relay.nostr.band/" ]
+        filter = {kinds: [0], authors: [pubkey]};
+    } else if (type === 'note') {
+        let id = data;                      // 8f2e5f5afee87416e48f6941b79ae6cd12b0236c64f0c9e58b36640dc0055fcb
+        filter = {ids: [id]};
+    } else {
+        fetchit = false;
+        renderError(`unrecognized human readable part (${type}) in ${valueToParse}. Data is ${JSON.stringify(data)}`);
+    }
+    if (fetchit) {
+        (async () => {
+            let event = await getNostrEvent(filter, relays);
+            if (event == undefined) {
+                renderError(`No event found on relays for ${valueToParse} ` + JSON.stringify(filter));
+            } else {
+                renderEvent(event);
+            }
+        })();
+    }
+} catch(e) {
+    renderError(`error parsing value (${valueToParse}): ${e}`);
+}
+
+</script>
+</body>
+</html>
