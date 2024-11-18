@@ -158,7 +158,7 @@ export default function RoomHeader2({
             const publishStatusEnabled = (localStorage.getItem('publishStatus.enabled') ?? 'false') == 'true';
             const publishStatusLastTime = (localStorage.getItem('publishStatus.timechecked') ?? 0);
             if (publishStatusLastTime < Date.now() - statusintervalReport) {
-                if (publishStatusEnabled && window.nostr) {
+                if (publishStatusEnabled && window.nostr && !room.isPrivate) {
                     const urlStatus = `${jamConfig.urls.jam}/${roomId}`;
                     const nostrStatus = `${urlStatus}`;
                     let r = (async () => {await publishStatus(nostrStatus, urlStatus);})();

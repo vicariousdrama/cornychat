@@ -77,13 +77,13 @@
         link_css.setAttribute('rel', 'stylesheet');
         document.head.appendChild(link_css);
     }
-    let animInterval = '';
+    let animInterval = undefined;
+    let animFlakes = undefined;
     function load_animation() {
         // Valentines
         if (thed.getDate() == 14 && thed.getMonth() == 1) {
             linkCSS('/css/hearts.css');
             animInterval = setInterval(makeHearts, 1500);
-            // to stop: clearInterval(animInterval);
             return;
         }
 
@@ -96,17 +96,25 @@
         }
 
         // Corn Days
-        if (thed.getDate() >= 11 && thed.getDate() <= 13) {
+        if (thed.getDate() >= 12 && thed.getDate() <= 14) {
             linkCSS('/css/corns.css');
             animInterval = setInterval(makeCorn, 1388);
-            // to stop: clearInterval(animInterval);
             return;
         }
 
         // Snow during December + January
         if (thed.getMonth() == 11 || thed.getMonth() == 0) {
-            var mysnowflakes = new Snowflakes({color: "#d7c1f9",minOpacity: 0.4,maxOpacity: 0.8,maxSize:50,speed:3});
+            animFlakes = new Snowflakes({color: "#d7c1f9",minOpacity: 0.4,maxOpacity: 0.8,maxSize:50,speed:3});
             return;
+        }
+    }
+    function stop_animation() {
+        try {
+            if (animInterval) clearInterval(animInterval);
+            if (animFlakes) animFlakes.destroy();
+            if (document.getElementById('root').classList.contains('flipdiv')) document.getElementById('root').classList.remove("flipdiv");
+        } catch(animerr) {
+            // ignore
         }
     }
     if (animationsEnabled == 'true') {

@@ -352,6 +352,9 @@ export default function EditPersonalSettings({close}) {
     localStorage.setItem('zaps.defaultAmount', defaultZapAmount);
     localStorage.setItem('zaps.defaultComment', defaultZapComment);
     localStorage.setItem('byeEmoji',byeEmoji);
+    if((localStorage.getItem('animationsEnabled') ?? 'false') != animEnabled) {
+      if (animEnabled) {window.load_animation()} else { window.stop_animation()}
+    }
     localStorage.setItem('animationsEnabled',animEnabled);
     localStorage.setItem('ghostsEnabled',ghostsEnabled);
     localStorage.setItem('fullsizeAvatars',showFullsizeAvatars);
@@ -694,9 +697,10 @@ export default function EditPersonalSettings({close}) {
                 setAnimEnabled(e.target.checked ? 'true' : 'false');
               }}
             />
-              Enable Animations
+              Enable Seasonal Animations
             </div>
             <div className="p-2 text-gray-200 italic">
+              Throughout the year, animations appear for winter, valentine's day, and corn days.
               Animations may cause flickering on some devices.  Uncheck this option to disable them
               <span className="text-gray-300"> (optional)</span>
             </div>
