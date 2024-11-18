@@ -55,7 +55,7 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
 
   let [currentSlide, setCurrentSlide] = useState(room?.currentSlide ?? -1);
   let hasSlides = false;
-  if (room.roomSlides != null) { hasSlides = true; }
+  if (room.roomSlides != null) { hasSlides = room.roomSlides.length > 0; }
 
   let [isRecordingAllowed] = useState(room?.isRecordingAllowed ?? false);
 
