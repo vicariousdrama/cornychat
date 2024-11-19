@@ -440,6 +440,16 @@ export default function EditPersonalSettings({close}) {
   let [expandedZaps, setExpandedZaps] = useState(false);
   let [expandedFiles, setExpandedFiles] = useState(false);
 
+  function hideSearchIcon() {
+    try {
+      let o = document.getElementsByClassName('epr-icn-search');
+      if (o && o.length > 0) o[0].style.display = 'none';
+    } catch(e) {
+      // ignore
+    }
+  }
+  let hsit = setTimeout(() => {hideSearchIcon();}, 500);
+
   return (
     <Modal close={close}>
       <h1 className="text-gray-200">Edit Personal Settings</h1>
