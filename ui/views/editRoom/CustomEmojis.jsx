@@ -36,6 +36,16 @@ export function CustomEmojis({
     setCustomEmojis(reactionEmojis);
   }
 
+  function hideSearchIcon() {
+    try {
+      let o = document.getElementsByClassName('epr-icn-search');
+      if (o && o.length > 0) o[0].style.display = 'none';
+    } catch(e) {
+      // ignore
+    }
+  }
+  let hsit = setTimeout(() => {hideSearchIcon();}, 500);
+ 
   let roomCustomEmojis = sessionStorage.getItem('customEmojis') ? JSON.parse(sessionStorage.getItem('customEmojis')) : [];
 
   return (
