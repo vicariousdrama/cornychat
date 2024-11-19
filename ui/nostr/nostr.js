@@ -1590,6 +1590,13 @@ export async function signAndSendEvent(event) {
   }  
 }
 
+export async function rebuildCustomEmojis() {
+  sessionStorage.removeItem('customEmojis');
+  sessionStorage.removeItem('customEmojis.retrievedTime');
+  let ce = await getCustomEmojis();
+  return ce;
+}
+
 export async function getCustomEmojis() {
   // Tag in user's 10030 event.  For each a tag, 
   //    ["a", "30030:1c9dcd8fd2d2fb879d6f02d6cc56aeefd74a9678ae48434b0f0de7a21852f704:Celtic "]
@@ -1615,9 +1622,9 @@ export async function getCustomEmojis() {
     customEmojis = sessionStorage.getItem('customEmojis');
     if (myCustomEmojisExpired || customEmojis == undefined) {
       customEmojis = legacyEmojis;
-      console.log(pubkey);
+      if (window.DEBUG) console.log('user pubkey', pubkey);
       let kind10030s = await getUserEventsByKind(pubkey, 10030, 0);
-      console.log(kind10030s);
+      if (window.DEBUG) console.log('10030', kind10030s);
       let newestkind10030 = 0;
       for (let kind10030 of kind10030s) {
         if (kind10030.tags == undefined) continue;
@@ -1638,14 +1645,14 @@ export async function getCustomEmojis() {
           if (aTagParts[0] != '30030') continue;
           let emojiSetPubkey = aTagParts[1];
           let emojiSetName = aTagParts[2];
-          console.log(emojiSetPubkey);
+          if (window.DEBUG) console.log('pubkey that authored emoji set', emojiSetPubkey);
           let kind30030s = sessionStorage.getItem(`${emojiSetPubkey}.kind30030events`);
           if (kind30030s == undefined) {
             kind30030s = await getUserEventsByKind(emojiSetPubkey, 30030, 0);
           } else {
             kind30030s = JSON.parse(sessionStorage.getItem(`${emojiSetPubkey}.kind30030events`));
           }
-          console.log(kind30030s);
+          if (window.DEBUG) console.log('30030', kind30030s);
           for (let kind30030 of kind30030s) {
             let kind30030tags = kind30030.tags;
             let targetFound = false;
