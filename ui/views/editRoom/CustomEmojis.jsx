@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {useMqParser} from '../../lib/tailwind-mqp';
 import EmojiPicker from 'emoji-picker-react';
 import reactionEmojis from '../../emojis';
+import {rebuildCustomEmojis} from '../../nostr/nostr.js';
 
 export function CustomEmojis({
   iOwn,
@@ -59,6 +60,19 @@ export function CustomEmojis({
         <p className="text-sm font-medium text-gray-300 p-2">
           Select the custom emoji reactions for this room.  You can also include emojis that you've favorited at 
           <a style={{display:'inline'}} href="https://emojito.meme/browse" target="_blank"><img style={{display:'inline',width:'20px',height:'20px',border:'0px'}} src="https://i.nostr.build/p7ORJdewBYXIeLmg.png" /> Emojito.Meme</a>.
+          <button
+            className="mx-2 px-2 py-2 text-sm rounded-md"
+            style={{
+              color: textColor,
+              backgroundColor: roomColor.buttons.primary,
+            }}
+            onClick={async(e) => {
+              e.preventDefault();
+              customEmojis = await rebuildCustomEmojis();
+            }}
+          >
+          Rebuild Custom Emojis
+          </button>
         </p>
         <EmojiPicker
           lazyLoadEmojis={true}

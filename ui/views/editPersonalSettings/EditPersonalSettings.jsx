@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {Modal} from '../Modal.jsx';
 import {use} from 'use-minimal-state';
 import {useJam} from '../../jam-core-react.js';
-import {getUserMetadata, getUserEventById} from '../../nostr/nostr.js';
+import {getUserMetadata, getUserEventById, rebuildCustomEmojis} from '../../nostr/nostr.js';
 import {nip19} from 'nostr-tools';
 import {isDark, colors} from '../../lib/theme.js';
 import {avatarUrl, displayName} from '../../lib/avatar.js';
@@ -35,6 +35,7 @@ export default function EditPersonalSettings({close}) {
   const nostrIdentity = info?.identities?.find(i => i.type === 'nostr');
   const colorTheme = state.room?.color ?? 'default';
   const roomColor = colors(colorTheme, state.room.customColor);
+  const textColor = isDark(roomColor.buttons.primary) ? roomColor.text.light : roomColor.text.dark
 
   let [isSaving, setIsSaving] = useState(false);
 
@@ -594,6 +595,19 @@ export default function EditPersonalSettings({close}) {
               Sticky Emojis - These may be displayed using the raise hand icon from the navigation bar. 
               Click an existing emoji to clear it and choose another one.
               For more choices, add emoji packs at <a style={{display:'inline'}} target="_blank" href="https://emojito.meme/browse"><img style={{display:'inline',width:'20px',height:'20px',border:'0px'}} src="https://i.nostr.build/p7ORJdewBYXIeLmg.png" /> Emojito.Meme</a>
+              <button
+                className="mx-2 px-2 py-2 text-sm rounded-md"
+                style={{
+                  color: textColor,
+                  backgroundColor: roomColor.buttons.primary,
+                }}
+                onClick={async(e) => {
+                  e.preventDefault();
+                  customEmojis = await rebuildCustomEmojis();
+                }}                
+              >
+              Rebuild Custom Emojis
+              </button>
             </div>
             <div className="p-2 text-gray-200">
               <span className="italic">Sticky Emoji 1 </span>{(stickyEmoji1.length != 0) && (
@@ -1349,9 +1363,7 @@ export default function EditPersonalSettings({close}) {
           onClick={submit}
           className="flex-grow mt-5 h-12 px-6 text-lg rounded-lg"
           style={{
-            color: isDark(roomColor.buttons.primary)
-              ? roomColor.text.light
-              : roomColor.text.dark,
+            color: textColor,
             backgroundColor: roomColor.buttons.primary,
           }}
         >
