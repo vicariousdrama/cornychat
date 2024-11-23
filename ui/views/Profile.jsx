@@ -30,7 +30,7 @@ import {createLinksSanitized} from '../lib/sanitizedText';
 import EditNostrProfile from './editProfile/EditNostrProfile';
 
 export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIdentity, close}) {
-  const supportFollows = false;
+  const supportFollows = true; // kind 3 is deprecated, now using kind 30000 as d=cornychat-follows
 
   async function setUserMetadata() {
     if (!userNpub) return;
@@ -243,8 +243,8 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
       const iFollowCache = data.iFollow;
       const aboutCache = data.about;
       const lightningAddressCache = normalizeLightningAddress(data.lightningAddress);
-      const isNip05ValidCache = data.nip05.isValid;
-      const nip05AddressCache = data.nip05.nip05Address;
+      const isNip05ValidCache = data.nip05?.isValid || false;
+      const nip05AddressCache = data.nip05?.nip05Address;
       const bannerCache = data.banner;
       iFollowUser(iFollowCache);
       setAbout(aboutCache);
@@ -331,10 +331,12 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
 
         obj.about = userMetadata.about;
         obj.lightningAddress = lightningAddress;
-        obj.nip05 = {
-          isValid: isNip05Valid,
-          nip05Address: userMetadata.nip05,
-        };
+        if (userMetadata.nip05) {
+          obj.nip05 = {
+            isValid: isNip05Valid,
+            nip05Address: userMetadata.nip05,
+          };
+        }
         obj.banner = userMetadata.banner;
         obj.jamId = peerId;
 
@@ -626,7 +628,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
               </button>
             ) : null}
 
-            {false && (
+            {supportFollows && (
             <>
             {window.nostr ? (loadingFollows ? (<h4 className="text-sm text-gray-400">Loading Follow List...</h4>) : (
             <>

@@ -529,14 +529,19 @@ export async function openLNExtension(LNInvoice) {
 }
 
 async function saveFollowList(myFollowList) {
+  // kind 3 is deprecated, now using kind 30000 as d=cornychat-follows
   if(window.DEBUG) console.log("in saveFollowList");
   if (!window.nostr) return false;
+  const dTag = 'cornychat-follows';
+  const nameTag = 'Corny Chat Follows';
+  const kind = 30000;
+  const tags = [['d',dTag],['name',nameTag],...myFollowList];
   const event = {
     id: null,
     pubkey: null,
     created_at: Math.floor(Date.now() / 1000),
-    kind: 3,
-    tags: myFollowList,
+    kind: kind,
+    tags: tags,
     content: '',
     sig: null,
   };
@@ -545,10 +550,13 @@ async function saveFollowList(myFollowList) {
 }
 
 export async function loadFollowList() {
+  // kind 3 is deprecated, now using kind 30000 as d=cornychat-follows
   if(window.DEBUG) console.log("in loadFollowList");
   return new Promise(async (res, rej) => {
     const localpool = new RelayPool(undefined,poolOptions);
     try {
+      const kind = 30000;
+      const dTag = 'cornychat-follows';
       const defaultRelays = getDefaultOutboxRelays();
       const myPubkey = await getPublicKey();
       const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
@@ -559,7 +567,8 @@ export async function loadFollowList() {
         updateCacheOutboxRelays(myOutboxRelays, myNpub);
       }
       const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
-      const filter = [{kinds: [3], authors: [myPubkey]}];
+      const filter = [{kinds: [kind], authors: [myPubkey]}];
+      filter[0]['#d'] = dTag;
       let events = [];
 
       setTimeout(() => {
@@ -676,13 +685,14 @@ export async function followAllNpubsFromIds(inRoomPeerIds) {
 
   // tracking
   let numberOfAddedPubkeys = 0;
-
+  let namesAdded = [];
   // iterate all peer ids, checking for pubkeys to add
   for (let peerId of inRoomPeerIds) {
     const peerValue = sessionStorage.getItem(peerId);
     if (peerValue == undefined) continue;
     const peerObj = JSON.parse(peerValue);
     const npub = getNpubFromInfo(peerObj);
+    const name = peerObj.name ?? npub;
     if (npub == undefined) continue;
     const pubkey = nip19.decode(npub).data;
     let following = false;
@@ -703,15 +713,16 @@ export async function followAllNpubsFromIds(inRoomPeerIds) {
       s = JSON.stringify(userCache);
       sessionStorage.setItem(npub, s);
       numberOfAddedPubkeys ++;
+      namesAdded.push(name);
     }
   }
 
   if (numberOfAddedPubkeys > 0) {
     sessionStorage.setItem('myFollowList', JSON.stringify(myFollowList));
     const isOK = await saveFollowList(myFollowList);
-    alert('Followed ' + numberOfAddedPubkeys + ' new nostr users');
+    alert('Followed ' + numberOfAddedPubkeys + ' new nostr users\n\n- ' + namesAdded.join('\n- '));
   } else {
-    alert('You are already following everyone in the room');
+    alert('You are already following all nostr users in the room');
   }
 }
 

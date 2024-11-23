@@ -11,7 +11,7 @@ import {Edit, Settings, Stop, Stream, Mic, Share, Slideshow, Refresh, Up, Down, 
 import {followAllNpubsFromIds} from '../nostr/nostr';
 
 export function MyNavMenu({close, roomColor, iAmAdmin}) {
-  const supportFollows = false;
+  const supportFollows = true; // kind 3 is deprecated, now using kind 30000 as d=cornychat-follows
   const [
     state,
     {
