@@ -18,7 +18,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
   const [myRoomList, setMyRoomList] = useState([]);
   const [loadingZapGoal, setLoadingZapGoal] = useState(false);
   const [zapGoal, setZapGoal] = useState({});
-  const [{room}, {enterRoom, setProps, createRoom, listRooms, listScheduledEvents, listMyRooms, getZapGoal}] = useJam();
+  const [{room}, {enterRoom, setProps, createRoom, listRooms, listScheduledEvents, listMyRooms, getZapGoal, getMOTD}] = useJam();
   const [viewMode, setViewMode] = useState('liverooms');
   const colorGroupLive = `rgba(1,111,210,1)`;
   const colorGroupMyRooms = `rgba(110,47,210,1)`;
@@ -27,6 +27,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
   const [backgroundColorActive, setBackgroundColorActive] = useState(colorGroupLive.replace(')',',.25)'));
   let {stageOnly = false, videoEnabled = false} = newRoom;
   const mainroomonly = [{"roomId":"mainchat","name":"Main Chat","description":"","logoURI":"","userCount":"0","userInfo":[]}];
+  const [motd, setMotd] = useState(undefined);
   let myId = useJamState('myId');
   useEffect(() => {
     const loadZapGoal = async () => {
@@ -77,6 +78,14 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
       setLoadingMyRooms(false);
     };
     loadMyRooms();
+    const loadMOTD = async () => {
+      let motdinfo = await(getMOTD());
+      if (motdinfo && motdinfo[1]) {
+        let motdtext = motdinfo[0].motd || 'No MOTD';
+        setMotd(motdtext);  
+      }
+    }
+    loadMOTD();
     if ((roomList.length == 0) && (myRoomList.length != 0)) {
       setViewMode("myrooms");
     }
@@ -173,6 +182,12 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
             </center>
           </div>
           </center>
+        )}
+
+        {motd && (
+        <div className="text-white p-2 mt-2 mr-1 ml-1 rounded-md" style={{border:'1px solid rgb(210, 84, 0)', width: '100%', backgroundColor: roomColors.background}}>
+        MOTD: {motd}
+        </div>
         )}
 
         <div className="flex flex-wrap justify-center">

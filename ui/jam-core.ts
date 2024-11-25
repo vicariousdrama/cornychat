@@ -35,6 +35,7 @@ import {
   getRoom,
   apiUrl,
   recordingsDownloadLink,
+  getMOTD,
   getRoomList,
   getScheduledEvents,
   getStaticRoomsList,
@@ -98,7 +99,7 @@ function createApi<T extends StateType>(
     createRoom: (roomId: string, partialRoom?: Partial<RoomType>) =>
       createRoom(state, roomId, partialRoom as any) as Promise<boolean>,
 
-
+    getMOTD:  () => getMOTD(),
     getRoom: (roomId: string) =>
       (getRoom(roomId) as unknown) as Promise<RoomType | undefined>,
     getRoomATag: (roomId: string) =>

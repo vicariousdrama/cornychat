@@ -23,6 +23,7 @@ const scheduledEventsRouter = require('./routes/scheduledEventsRouter');
 const staticRoomsRouter = require('./routes/staticRoomsRouter');
 const staticEventsRouter = require('./routes/staticEventsRouter');
 const roomModeratorsRouter = require('./routes/roomModerators');
+const motdRouter = require('./routes/motdRouter');
 const nip05Router = require('./routes/nip05Router');
 const squareAdRouter = require('./routes/adRouterSquare');
 const chatAdRouter = require('./routes/adRouterChat');
@@ -61,6 +62,7 @@ app.use('/api/v1/', controller('identities', identityAuthenticator));
 
 app.use('/api/v1/admin/', adminRouter);
 
+app.use('/api/v1/motd/', motdRouter);
 app.use('/api/v1/roomlist/', roomListRouter);
 app.use('/api/v1/scheduledevents/', scheduledEventsRouter);
 app.use('/api/v1/staticrooms/', staticRoomsRouter);

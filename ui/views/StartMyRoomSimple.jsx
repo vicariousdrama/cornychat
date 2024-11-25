@@ -20,6 +20,14 @@ export default function StartMyRoomSimple({
     const isSpeaker = roomInfo?.isSpeaker ?? false;
     const isPrivate = roomInfo?.isPrivate ?? true;
     const isProtected = roomInfo?.isProtected ?? false;
+    const lastAccessed = roomInfo?.lastAccessed ?? 0;
+
+    // time constraint
+    let now = Date.now();
+    let d30 = (30 * 24 * 60 * 60 * 1000);
+    let oldtime30 = now - (d30); // 30 days ago
+    let oldtime60 = now - (d30 * 2); // 60 days ago
+    let oldtime90 = now - (d30 * 3); // 90 days ago
 
     var coloringStyle = {
         backgroundColor: 'rgb(210,111,210)',
@@ -28,6 +36,16 @@ export default function StartMyRoomSimple({
         color: 'rgb(255,255,255)',
         display: 'inline-block',
     };
+
+    if (lastAccessed < oldtime30) {
+        coloringStyle.backgroundImage = 'linear-gradient(rgb(148, 116, 0), rgb(0, 0, 0))';
+    }
+    if (lastAccessed < oldtime60) {
+        coloringStyle.backgroundImage = 'linear-gradient(rgb(210, 84, 0), rgb(0, 0, 0))';
+    }
+    if (lastAccessed < oldtime90) {
+        coloringStyle.backgroundImage = 'linear-gradient(rgb(210, 2, 21), rgb(0, 0, 0))';
+    }
 
     if (roomInfo.hidden) {
         return (
