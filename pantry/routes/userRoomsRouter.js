@@ -179,6 +179,7 @@ router.get('/:userId', async function (req, res) {
             }
             if (isSpeaker || isOwner || isModerator) {
                 let peerIds = await activeUsersInRoom(roomId);
+                let lastAccessed = await get (`activity/${roomkey}/last-accessed`);
                 userrooms.push({
                     roomId:roomId,
                     name:n,
@@ -190,6 +191,7 @@ router.get('/:userId', async function (req, res) {
                     isOwner:isOwner,
                     isSpeaker:isSpeaker,
                     isModerator:isModerator,
+                    lastAccessed:lastAccessed || 0,
                 });
                 frcount += 1;
             }
@@ -198,6 +200,13 @@ router.get('/:userId', async function (req, res) {
                 if (pmd) console.log(`[userRoomsRouter] reviewed ${rrcount} rooms, found ${frcount} so far for user ${userid} (npub: ${usernpub}) ${(new Date()).getTime()}`);
             }
         }
+    }
+    // Sort
+    if (userrooms.length > 0) {
+        // most recently accessed to the top
+        userrooms.sort((a,b) => (a.lastAccessed < b.lastAccessed) ? 1 : ((b.lastAccessed < a.lastAccessed) ? -1 : 0));
+        // rooms with active users to the top
+        userrooms.sort((a,b) => (a.userCount < b.userCount) ? 1 : ((b.userCount < a.userCount) ? -1 : 0));
     }
     // Save results to a key
     await set(userroomskey, {t: (new Date()).getTime(), r: userrooms});

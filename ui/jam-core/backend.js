@@ -17,6 +17,7 @@ export {
   updateRoom,
   getRoom,
   recordingsDownloadLink,
+  getMOTD,
   getRoomList,
   getScheduledEvents,
   getStaticRoomsList,
@@ -204,6 +205,10 @@ async function recordingsDownloadLink({myIdentity}, roomId) {
   return `${API}/rooms/${roomId}/recordings.zip?token=${await signedToken(
     myIdentity
   )}`;
+}
+
+async function getMOTD() {
+  return await get(`/motd/`);
 }
 
 async function getRoomList() {
