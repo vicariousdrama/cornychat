@@ -31,6 +31,7 @@ export default function DataTypes() {
       <li><a href="#kind23194nip47request">Kind 23194 - Nostr Wallet Connect Request</a></li>
       <li><a href="#kind23195nip47response">Kind 23195 - Nostr Wallet Connect Response</a></li>
       <li><a href="#kind27235httpauth">Kind 27235 - HTTP Auth</a></li>
+      <li><a href="#kind30000followset">Kind 30000 - Follow Set</a></li>
       <li><a href="#kind30030emojisets">Kind 30030 - Emoji Sets</a></li>
       <li><a href="#kind30311liveactivities">Kind 30311 - Live Activities</a></li>
       <li><a href="#kind30315livestatus">Kind 30315 - Live Statuses</a></li>
@@ -124,14 +125,8 @@ export default function DataTypes() {
 
       <a name="kind3follow"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 3 - Follow List</h2>
       <p>
-        If a user has a nostr extension, they will also be presented with options to Follow or Unfollow a participant when
-        viewing their profile. A user can view another's profile by clicking on their avatar image while
-        in a Corny Chat audio room. For the first time during the browsing session, the client will fetch the 
-        contact list and check if they are following the user whose profile they are viewing.  The current contact
-        list is stored in session storage and updated based on follow/unfollow actions performed.  When a change
-        is made to who a user is following through the app, it will publish an updated follow list as kind 3 as
-        defined in <a href="https://github.com/nostr-protocol/nips/blob/master/02.md">NIP-02</a>. Neither the main 
-        relay url, nor pet names are assigned when following a user.
+        Kind 3 is deprecated and no longer supported by Corny Chat. The application has upgraded to
+        <a href="#kind30000followset">Kind 30000 - Follow Set</a>
       </p>
 
       <a name="kind5eventdeletion"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 5 - Event Deletions</h2>
@@ -231,6 +226,25 @@ export default function DataTypes() {
         Some media servers impose limitations on users that do not authenticate, and this is a means to identify ownership 
         of the file and benefit from services the user is subscribed to.
       </p>
+
+      <a name="kind30000followset"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 30000 - Follow Set</h2>
+      <p>
+        If a user has a nostr extension, they will also be presented with options to Follow or Unfollow a participant when
+        viewing their profile. A user can view another's profile by clicking on their avatar image while
+        in a Corny Chat audio room. For the first time during the browsing session, the client will fetch the 
+        contact list and check if they are following the user whose profile they are viewing.  The current contact
+        list is stored in session storage and updated based on follow/unfollow actions performed.  When a change
+        is made to who a user is following through the app, it will publish an updated follow list as kind 30000 as
+        defined in <a href="https://github.com/nostr-protocol/nips/blob/master/51.md">NIP-51</a>. The following tags are set
+      </p>
+
+      <table style={{borderCollapse:'collapse', border: '1px solid #FF0000', margin: '20px', fontFamily: 'courier', fontSize: '.8em'}}>
+      <tr><td colspan="2">tags: [</td></tr>
+      <tr><td style={{width:'50px'}}></td><td>["d", "cornychat-follows"],</td></tr>
+      <tr><td style={{width:'50px'}}></td><td>["name", "Corny Chat Follows"],</td></tr>
+      <tr><td style={{width:'50px'}}></td><td>["p", "pubkey of user being followed"],     // repeated</td></tr>
+      <tr><td colspan="2">]</td></tr>
+      </table>
 
       <a name="kind30030emojisets"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 30030 - Emoji Sets</h2>
       <p>
