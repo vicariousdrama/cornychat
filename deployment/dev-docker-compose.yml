@@ -7,7 +7,7 @@ services:
     volumes:
       - "./turnserver.conf:/etc/coturn/turnserver.conf"
     network_mode: host
-    restart: always
+    restart: unless-stopped
     ports:
       - "3478:3478/udp" # STUN/TURN UDP
       - "3478:3478/tcp" # STUN/TURN TCP
@@ -32,7 +32,7 @@ services:
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
       - '--storage.tsdb.retention.time=1y'
-    restart: always
+    restart: unless-stopped
     profiles: [ "metrics" ]
   grafana:
     networks:
@@ -49,7 +49,7 @@ services:
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_SERVER_ROOT_URL: "https://${JAM_HOST}/_/grafana"
       GF_SERVER_SERVE_FROM_SUB_PATH: "true"
-    restart: always
+    restart: unless-stopped
     labels:
       - traefik.http.routers.grafana.rule=(Host(`${JAM_HOST}`) && PathPrefix(`/_/grafana`))
       - traefik.http.routers.grafana.tls=true
@@ -60,7 +60,7 @@ services:
     networks:
       - jam
     image: cornychat/ui:${CHANNEL}
-    restart: always
+    restart: unless-stopped
     environment:
       - ADS
       - DEFAULT_AVATAR
@@ -115,13 +115,13 @@ services:
       - BACKUP_NAME=pantryredis
     volumes: # use :ro to make sure volume gets mounted read only
       - ../data/pantryredis:/data/pantryredis:ro
-    restart: always
+    restart: unless-stopped
     profiles: [ "backup" ]
   pantry-sfu:
     #build: ../pantry-sfu
     #image: registry.gitlab.com/jam-systems/jam/pantry-sfu:${CHANNEL}
     image: cornychat/pantry-sfu:${CHANNEL}
-    restart: always
+    restart: unless-stopped
     network_mode: host
     depends_on:
       - pantry
@@ -144,7 +144,7 @@ services:
           - pantry
     #build: ../pantry
     image: cornychat/pantry:${CHANNEL}
-    restart: always
+    restart: unless-stopped
     depends_on:
       - pantryredis
     environment:
@@ -192,7 +192,7 @@ services:
           - ${LNBITS_HOST}
     hostname: traefik
     image: traefik
-    restart: always
+    restart: unless-stopped
     command:
       - "--entryPoints.web.address=:80"
       - "--entryPoints.websecure.address=:443"
@@ -235,7 +235,7 @@ services:
       - ./lnbits/lnbits.macaroon:/app/lnbits.macaroon
     ports:
       - "5000:5000"
-    restart: always
+    restart: unless-stopped
     profiles: [ "lnbits" ]
   backuplnbits:
     depends_on:
@@ -252,7 +252,7 @@ services:
       - BACKUP_NAME=lnbits
     volumes: # use :ro to make sure volume gets mounted read only
       - ../data/lnbits:/data/lnbits:ro
-    restart: always
+    restart: unless-stopped
     profiles: [ "backup" ]
 volumes:
   prometheus_data: {}
