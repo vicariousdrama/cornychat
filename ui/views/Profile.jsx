@@ -733,7 +733,8 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
           </p>
           <p className="text-sm text-gray-300 break-word mb-1"
              style={{whiteSpace:'pre-line'}}
-          >{about}</p>
+             dangerouslySetInnerHTML={{ __html: createLinksSanitized(about) }}             
+          ></p>
         </div>
         </>
         )}
