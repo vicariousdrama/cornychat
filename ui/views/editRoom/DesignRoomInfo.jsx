@@ -53,6 +53,7 @@ export function DesignRoomInfo({
     setColorType('');
   }
 
+  let showUploadFile = ((localStorage.getItem(`fileUpload.auth`) ?? 'false') == 'true') && window.nostr;
   let uploadBackgroundFile = async e => {
     e.preventDefault();
     let buttonObject = document.getElementById('buttonUploadBackground');
@@ -151,6 +152,8 @@ export function DesignRoomInfo({
           }}
         />
       </div>
+      {showUploadFile && (
+        <>
       <div className="flex justify-between">
         <input type="file" name="uploadBackgroundFile" id="fileUploadBackground" accept="image/*" 
           className="w-full"
@@ -174,6 +177,8 @@ export function DesignRoomInfo({
         >Upload</button>
       </div>
       <div id="fileUploadingBackground" style={{display: 'none', fontSize: '10pt', }}><LoadingIcon /> uploading file</div>
+      </>
+      )}
       </>
       )}
 

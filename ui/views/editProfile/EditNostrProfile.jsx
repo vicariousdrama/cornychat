@@ -159,6 +159,7 @@ export default function EditNostrProfile({close}) {
         close();
     };
 
+    let showUploadFile = ((localStorage.getItem(`fileUpload.auth`) ?? 'false') == 'true') && window.nostr;
     let uploadBannerFile = async e => {
         e.preventDefault();
         let buttonObject = document.getElementById('buttonUploadBanner');
@@ -251,6 +252,8 @@ export default function EditNostrProfile({close}) {
                     }}
                 />
             </div>
+            {showUploadFile && (
+            <>
             <div className="flex justify-between">
                 <input type="file" name="uploadPicture" id="fileUploadPicture" accept="image/*" 
                     className="w-full"
@@ -274,6 +277,8 @@ export default function EditNostrProfile({close}) {
                 >Upload</button>
             </div>
             <div id="fileUploadingPicture" style={{display: 'none', fontSize: '10pt', }}><LoadingIcon /> uploading file</div>
+            </>
+            )}
         </div>
 
         <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
@@ -298,6 +303,8 @@ export default function EditNostrProfile({close}) {
                     }}
                 />                
             </div>
+            {showUploadFile && (
+            <>
             <div className="flex justify-between">
                 <input type="file" name="uploadBanner" id="fileUploadBanner" accept="image/*" 
                     className="w-full"
@@ -321,6 +328,8 @@ export default function EditNostrProfile({close}) {
             >Upload</button>
             </div>
             <div id="fileUploadingBanner" style={{display: 'none', fontSize: '10pt', }}><LoadingIcon /> uploading file</div>
+            </>
+            )}
         </div>
 
         <div className="p-4 py-2 bg-gray-700 rounded-lg my-3">
