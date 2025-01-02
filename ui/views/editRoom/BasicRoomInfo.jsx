@@ -53,6 +53,7 @@ export function BasicRoomInfo({
   let mqp = useMqParser();
   let [expanded, setExpanded] = useState(false);
 
+  let showUploadFile = ((localStorage.getItem(`fileUpload.auth`) ?? 'false') == 'true') && window.nostr;
   let uploadLogoFile = async e => {
     e.preventDefault();
     let buttonObject = document.getElementById('buttonUploadLogo');
@@ -124,6 +125,8 @@ export function BasicRoomInfo({
             }}
           />
         </div>
+        {showUploadFile && (
+          <>
         <div className="flex justify-between">
           <input type="file" name="uploadLogoFile" id="fileUploadLogo" accept="image/*" 
             className="w-full"
@@ -147,6 +150,8 @@ export function BasicRoomInfo({
             >Upload</button>
         </div>
         <div id="fileUploadingLogo" style={{display: 'none', fontSize: '10pt', }}><LoadingIcon /> uploading file</div>
+        </>
+        )}
         </>
         )}        
       </div>

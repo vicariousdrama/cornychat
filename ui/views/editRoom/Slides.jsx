@@ -27,6 +27,7 @@ export function Slides({
   const imageTypes = [".bmp",".gif","jpg","jpeg",".png",".svg",".webp"];
 
   // Upload images 
+  let showUploadFile = ((localStorage.getItem(`fileUpload.auth`) ?? 'false') == 'true') && window.nostr;
   let uploadSlideFile = async e => {
     e.preventDefault();
     let buttonObject = document.getElementById('buttonUploadSlide');
@@ -169,6 +170,8 @@ export function Slides({
             <option key="sis_end" value="end">end</option>
           </select> of the list:
         </p>
+        {showUploadFile && (
+        <>
         <div className="flex justify-between">
           <input type="file" name="uploadSlide" id="fileUploadSlide" accept="image/*" 
               className="w-full"
@@ -192,6 +195,8 @@ export function Slides({
           >Upload</button>
         </div>
         <div id="fileUploadingSlide" style={{display: 'none', fontSize: '10pt', }}><LoadingIcon /> uploading file</div>
+        </>
+        )}
         <div className="flex">
           <input
             className={mqp(

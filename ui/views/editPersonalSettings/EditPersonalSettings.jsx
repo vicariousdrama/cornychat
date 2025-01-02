@@ -151,7 +151,7 @@ export default function EditPersonalSettings({close}) {
   );
 
   let [fileUploadAuth, setFileUploadAuth] = useState(
-    localStorage.getItem('fileUpload.auth') ?? 'true'
+    localStorage.getItem('fileUpload.auth') ?? 'false'
   );
 
   let [petnameDecrypt, setPetnameDecrypt] = useState(
@@ -937,7 +937,11 @@ export default function EditPersonalSettings({close}) {
                   setFileUploadAuth(e.target.checked ? 'true' : 'false');
                 }}
               />
-              Authenticate to File Server for uploading images. Authenticating may grant larger file upload permissions depending on your subscription status and you can later manage the file in your account. You may be prompted to sign kind 27235 events.
+              Enable image uploads to nostr.build.
+            </div>
+            <div classname="p-2 text-gray-200 italic">
+              You must have a paid account with nostr.build to use this option, and you'll need to authorize signing kind 27235 events when prompted.
+              If enabled, an upload button will be available in the text chat, room settings and profile settings in areas to permit image uploads.
             </div>
           </div>
         </div>

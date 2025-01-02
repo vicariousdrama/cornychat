@@ -23,6 +23,9 @@ async function handleFileUpload (fileObject) {
         let jsonAuthEvent = JSON.stringify(signedAuthEvent);
         let base64AuthEvent = btoa(jsonAuthEvent);
         authHeader = `Nostr: ${base64AuthEvent}`;
+    } else {
+        alert('This feature is not supported without a NIP-07 extension for authenticating to nostr.build to associate the upload with your account');
+        return;
     }
     const headers = (authHeader ? {'Authorization':authHeader} : {});
     for (let file of files) { 

@@ -33,6 +33,7 @@ export default function RoomChat({
     let textchatShowDates = ((localStorage.getItem("textchat.showDates") ?? 'false') == 'true');
     let textchatShowDatesDuration = Math.floor(localStorage.getItem("textchat.showDates.duration") ?? '3600');
     let textchatShowTimestamps = ((localStorage.getItem("textchat.showTimestamps") ?? 'false') == 'true');
+    let textentryShowUploadFile = ((localStorage.getItem(`fileUpload.auth`) ?? 'false') == 'true') && window.nostr;
     const colorTheme = room?.color ?? 'default';
     const roomColor = colors(colorTheme, room.customColor);
     const textColor = isDark(roomColor.avatarBg) ? roomColor.text.light : roomColor.text.dark;
@@ -461,6 +462,7 @@ export default function RoomChat({
                 onChange={(e) => {setChatText(e.target.value);}}
                 onKeyPress={(e) => {if(e.key === "Enter") {e.preventDefault();sendText();}}}
             ></input>
+            {textentryShowUploadFile && (
             <button id="uploadbutton"
                 className="px-2 mr-1 w-12 h-12 text-sm rounded-md"
                 style={{color: iconColor, backgroundColor: roomColor.buttons.primary}}
@@ -468,7 +470,8 @@ export default function RoomChat({
                 onKeyPress={(e) => {if((e.key === " ") || (e.key === "Enter")) {e.preventDefault();uploadFile();}}}
             >
                 <Upload color={iconColor} />
-            </button>            
+            </button>
+            )}
             <button id="sendbutton"
                 className="px-2 w-12 h-12 text-sm rounded-md"
                 style={{color: iconColor, backgroundColor: roomColor.buttons.primary}}
