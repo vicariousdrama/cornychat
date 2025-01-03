@@ -6,6 +6,7 @@ import {avatarUrl, displayName} from '../lib/avatar';
 import {getNpubFromInfo, getRelationshipPetname, makeLocalDate} from '../nostr/nostr';
 import {openModal} from './Modal';
 import {Profile} from './Profile';
+import {GifChooser} from './GifChooser';
 import {Send,Upload} from './Svg';
 import {UploadFileModal} from './UploadFileModal';
 import {createLinksSanitized} from '../lib/sanitizedText';
@@ -134,14 +135,24 @@ export default function RoomChat({
         } else if (chatText.startsWith("/help")) {
             let textTime = Math.floor(Date.now() / 1000);
             textchats.push([myId, "Supported markdown", false, null, textTime]);
-            textchats.push([myId, "• To **bold** surround with 2 *", false, null, textTime]);
             textchats.push([myId, "• To *italicize* surround with 1 *", false, null, textTime]);
+            textchats.push([myId, "• To **bold** surround with 2 *", false, null, textTime]);
             textchats.push([myId, "• To hide spoilers, surround with 2 |", false, null, textTime]);
             textchats.push([myId, "• Emoji shortcodes are surrounded by 1 :", false, null, textTime]);
             textchats.push([myId, "• /help shows this guidance", false, null, textTime]);
             textchats.push([myId, "• /clear resets your text buffer", false, null, textTime]);
             textchats.push([myId, "• /me emotes a statement", false, null, textTime]);
+            if(jamConfig.gifs) {
+                textchats.push([myId, "• /gif phrase to search", false, null, textTime]);
+            }
             localStorage.setItem(`${roomId}.textchat`,JSON.stringify(textchats));
+        } else if (jamConfig.gifs && chatText.startsWith("/gif")) {
+            let gifPhrase = chatText.replace("/gif ", "");
+            openModal(GifChooser, {
+                chatTarget,
+                room,
+                phrase: gifPhrase,
+            });            
         } else {
             (async () => {await sendTextChat(chatText, chatTarget);})(); // send to swarm (including us) as text-chat
         }

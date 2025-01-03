@@ -53,10 +53,12 @@ const jamConfig = {
   development: !!process.env.DEVELOPMENT,
   sfu: ['true', '1'].includes(process.env.JAM_SFU),
   broadcast: ['true', '1'].includes(process.env.JAM_BROADCAST),
+  gifs: ['true','1'].includes(process.env.GIF_SEARCH_ENABLED),
   hideJamInfo: ['true', '1'].includes(process.env.JAM_HIDE_JAM_INFO),
   handbill: ['true', '1'].includes(process.env.ADS),
   relaysGeneral: relaysGeneral.split(','),
   relaysZapGoals: relaysZapGoals.split(','),
+  subs: ['true','1'].includes(process.env.SUBSCRIPTIONS_ENABLED),
   v4vLN: serverLightningAddress,
 };
 console.log(jamConfig);

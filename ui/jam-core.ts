@@ -35,6 +35,7 @@ import {
   getRoom,
   apiUrl,
   recordingsDownloadLink,
+  getGifs,
   getMOTD,
   getRoomList,
   getScheduledEvents,
@@ -141,6 +142,7 @@ function createApi<T extends StateType>(
 
     listRooms: () => getRoomList(),
     listScheduledEvents: () => getScheduledEvents(),
+    listGifs: (phrase: string, cursor: string) => getGifs(phrase, cursor),
     listMyRooms: (userId: string) => getMyRoomList(userId),
     listStaticRooms: () => getStaticRoomsList(),
     listStaticEvents: () => getStaticEventsList(),

@@ -239,6 +239,8 @@ nano .env
 
 10. If you want to have backups (probably a good idea), you can add `,backup` to the end of the `COMPOSE_PROFILES` value. Be sure to follow the section _Configuring Backups_ below
 
+11. To enable gif searches from the text chat in a room, set the value of `GIF_SEARCH_ENABLED` to `true`, as well as specifying your API Key for accessing the service in `GIF_SEARCH_APIKEY`.  The current implementation uses gifbuddy.lol, written by [lemon](nostr:npub1hee433872q2gen90cqh2ypwcq9z7y5ugn23etrd2l2rrwpruss8qwmrsv6). 
+
 Press CTRL+O, CTRL+X to save and exit
 
 **Edit the turnserver.conf file**

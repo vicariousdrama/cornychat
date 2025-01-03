@@ -22,6 +22,7 @@ export default function About() {
       <p>Art: Kajoozie, Noshole, Puzzles</p>
       <p>Early Financial Supporters: ₿², Bevo, chef4₿rains, Dargoyle, Frank, Jode, Kajoozie, Marie, New1, Noshole, Oobiyou, Propaganda Daily, Puzzles, Ralf, Rex Damascus, Sai, Séimí, Tekkadan, The ₿itcoin Painter, The Pentographer, TheRupertDamnit, Tigs, Vic</p>
       <p>Super Testers: ₿², Spiral Crunch</p>
+      <p>Additional Services Corny Chat Integrates with or Recommends: Emojito.Meme, GifBuddy.lol</p>
 
       <h2>Bug Reports</h2>
       <p>For bug reports, ideas, etc, feel free to use the Github repository and file an issue.</p>
