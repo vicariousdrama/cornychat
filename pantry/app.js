@@ -16,10 +16,11 @@ const {controller} = require('./routes/controller');
 //const roomKeyRouter = require('./routes/roomKey');
 const liveRoomRouter = require('./routes/liveRoom');
 const recordingsRouter = require('./routes/recordings');
-const {adEnabled, hlsFileLocationPath} = require('./config');
+const {adEnabled, gifSearchEnabled, hlsFileLocationPath, subscriptionsEnabled} = require('./config');
 
 const adReportRouter = require('./routes/adReportRouter');
 const chatAdRouter = require('./routes/adRouterChat');
+const imagePickerRouter = require('./routes/imagePickerRouter');
 const motdRouter = require('./routes/motdRouter');
 const nip05Router = require('./routes/nip05Router');
 const nip53Router = require('./routes/nip53Router');
@@ -60,6 +61,14 @@ if(adEnabled) {
   app.use('/api/v1/cimg/:roomId/:adId', chatAdRouter);
 }
 
+if(gifSearchEnabled) {
+  app.use('/api/v1/imagepicker/', imagePickerRouter);
+}
+
+if(subscriptionsEnabled) {
+  app.use('/api/v1/subscription/', subscriptionRouter);
+}
+
 app.use('/api/v1/admin/', adminRouter);
 app.use('/api/v1/adr/:year/:month', adReportRouter);
 app.use('/api/v1/motd/', motdRouter);
@@ -74,7 +83,6 @@ app.use('/api/v1/rooms/:id/nip53', nip53Router);
 app.use('/api/v1/scheduledevents/', scheduledEventsRouter);
 app.use('/api/v1/staticrooms/', staticRoomsRouter);
 app.use('/api/v1/staticevents/', staticEventsRouter);
-app.use('/api/v1/subscription/', subscriptionRouter);
 app.use('/api/v1/userrooms/', userRoomRouter);
 app.use('/api/v1/zapgoal/:id', zapGoalRouter);
 

@@ -64,6 +64,7 @@ services:
     environment:
       - ADS
       - DEFAULT_AVATAR
+      - GIF_SEARCH_ENABLED
       - JAM_BROADCAST
       - JAM_HOST
       - JAM_STUN_SERVER
@@ -84,6 +85,7 @@ services:
       - SLACK_CLIENT_ID
       - SLACK_CLIENT_SECRET
       - SLACK_API_URL
+      - SUBSCRIPTIONS_ENABLED
     labels:
       - traefik.http.routers.${COMPOSE_PROJECT_NAME}_ui.rule=Host(`${JAM_HOST}`)
       - traefik.http.routers.${COMPOSE_PROJECT_NAME}_ui.tls=true
@@ -150,6 +152,9 @@ services:
     environment:
       - ADS
       - CHAT_AD_FILE_LOCATION_PATH
+      - GIF_SEARCH_ENABLED
+      - GIF_SEARCH_ENDPOINT
+      - GIF_SEARCH_APIKEY
       - HLS_FILE_LOCATION_PATH
       - JAM_HOST
       - JAM_RESTRICT_ROOM_CREATION
@@ -170,6 +175,13 @@ services:
       - SERVER_PROFILE_NIP05
       - SERVER_ZAP_GOAL_UPDATE_INTERVAL
       - SQUARE_AD_FILE_LOCATION_PATH
+      - SUBSCRIPTIONS_ENABLED
+      - SUBSCRIPTIONS_WALLET_API_KEY
+      - SUBSCRIPTIONS_TIERS_OFFERED
+      - SUBSCRIPTIONS_RATES_OFFERED
+      - SUBSCRIPTIONS_TIER_0_RATE_PER_DAY
+      - SUBSCRIPTIONS_TIER_0_RATE_PER_MONTH
+      - SUBSCRIPTIONS_TIER_0_RATE_PER_YEAR
     labels:
       - traefik.http.routers.${COMPOSE_PROJECT_NAME}_pantry.rule=(Host(`${JAM_HOST}`) && PathPrefix(`/_/pantry`))
       - traefik.http.routers.${COMPOSE_PROJECT_NAME}_pantry.middlewares=${COMPOSE_PROJECT_NAME}_pantry_stripprefix

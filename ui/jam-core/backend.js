@@ -17,6 +17,7 @@ export {
   updateRoom,
   getRoom,
   recordingsDownloadLink,
+  getGifs,
   getMOTD,
   getRoomList,
   getScheduledEvents,
@@ -225,6 +226,14 @@ async function getStaticRoomsList() {
 
 async function getStaticEventsList() {
   return await get(`/staticevents/`);
+}
+
+async function getGifs(phrase, cursor) {
+  if (cursor) {
+    return await get(`/imagepicker/${phrase}/next/${cursor}`);
+  } else {
+    return await get(`/imagepicker/${phrase}`);
+  }
 }
 
 async function getMyRoomList(userId) {

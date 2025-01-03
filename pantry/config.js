@@ -18,6 +18,10 @@ const liveActivitiesUpdateInterval = process.env.LIVE_ACTIVITIES_UPDATE_INTERVAL
 const recurringEventsUpdateInterval = process.env.RECURRING_EVENTS_UPDATE_INTERVAL ? parseInt(process.env.RECURRING_EVENTS_UPDATE_INTERVAL) : 30; // minutes
 const scheduledEventsUpdateInterval = process.env.SCHEDULED_EVENTS_UPDATE_INTERVAL ? parseInt(process.env.SCHEDULED_EVENTS_UPDATE_INTERVAL) : 30; // minutes
 const serverZapGoalUpdateInterval = process.env.SERVER_ZAP_GOAL_UPDATE_INTERVAL ? parseInt(process.env.SERVER_ZAP_GOAL_UPDATE_INTERVAL) : 1; // hours
+const subscriptionsEnabled = process.env.SUBSCRIPTIONS_ENABLED ?? false;
+const gifSearchEnabled = process.env.GIF_SEARCH_ENABLED ?? false;
+const gifSearchEndpoint = process.env.GIF_SEARCH_ENDPOINT ?? 'https://gifbuddy.lol/api/search_gifs';
+const gifSearchApiKey = process.env.GIF_SEARCH_APIKEY ?? '';
 
 module.exports = {
   serverAdminId,
@@ -38,4 +42,8 @@ module.exports = {
   recurringEventsUpdateInterval,
   scheduledEventsUpdateInterval,
   serverZapGoalUpdateInterval,
+  subscriptionsEnabled,
+  gifSearchEnabled,
+  gifSearchEndpoint,
+  gifSearchApiKey,
 };
