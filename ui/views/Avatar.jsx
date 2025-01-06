@@ -5,6 +5,8 @@ import animateEmoji from '../lib/animate-emoji';
 import {useMqParser} from '../lib/tailwind-mqp';
 import {colors, isDark} from '../lib/theme';
 import {useApiQuery} from '../jam-core-react';
+import {createLinksSanitized} from '../lib/sanitizedText';
+import {createEmojiImages} from '../nostr/emojiText';
 
 export function StageAvatar({
   room,
@@ -119,8 +121,11 @@ function Avatar({
   if (userDisplayName.length == 0) {
     userDisplayName = displayName(info, room);
   }
+  let profileTags = [];
   if (userNpub != undefined) {
     userDisplayName = getRelationshipPetname(userNpub, userDisplayName);
+    const tagCache = sessionStorage.getItem(`${userNpub}.kind0tags`) || '[]';
+    profileTags = JSON.parse(tagCache);
   }
   let hasNameSymbol = false;
   let userSymbol = null;
@@ -255,8 +260,8 @@ function Avatar({
           className="overflow-hidden whitespace-nowrap text-s mt-0 w-24"
           style={{color: avatarCardFG, width: '95px',overflow:'hidden',paddingLeft:'2px',paddingRight:'2px'}}
           title={userDisplayName}
+          dangerouslySetInnerHTML={{ __html: createLinksSanitized(createEmojiImages(userDisplayName, profileTags),'1.125rem',false) }}
         >
-          {userDisplayName}
         </div>
 
       </div>

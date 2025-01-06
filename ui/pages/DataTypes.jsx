@@ -40,6 +40,37 @@ export default function DataTypes() {
       <li><a href="#kind31388linkset">Kind 31388 - Link Set</a></li>
       <li><a href="#kind31923scheduledevent">Kind 31923 - Scheduled Event</a></li>
       </ul>
+
+      <h2>Supported NIPS</h2>
+
+      <ul style={{listStyleType: 'circle', margin: '20px'}}>
+      <li><a href="https://github.com/nostr-protocol/nips/blob/master/01.md">NIP-01 - Basic Protocol Flow Description</a></li>
+      <li><a href="https://github.com/nostr-protocol/nips/blob/master/02.md">NIP-02 - Follow List</a></li>
+      <li><a href="https://github.com/nostr-protocol/nips/blob/master/05.md">NIP-05 - Mapping Nostr Keys to DNS-based internet identifiers</a></li>
+      <li><a href="https://github.com/nostr-protocol/nips/blob/master/07.md">NIP-07 - window.nostr capability for web browsers</a></li>
+      <li><a href="https://github.com/nostr-protocol/nips/blob/master/09.md">NIP-09 - Event Deletion Request</a></li>
+      <li><a href="https://github.com/nostr-protocol/nips/blob/master/19.md">NIP-19 - bech32-encoded entities</a></li>
+      <li><a href="https://github.com/nostr-protocol/nips/blob/master/21.md">NIP-21 - notsr: URI scheme</a></li>
+      <li><a href="https://github.com/nostr-protocol/nips/blob/master/24.md">NIP-24 - Extra metadata fields and tags</a></li>
+      <li><a href="https://github.com/nostr-protocol/nips/blob/master/30.md">NIP-30 - Custom Emoji</a></li>
+      <li><a href="https://github.com/nostr-protocol/nips/blob/master/32.md">NIP-32 - Labeling</a></li>
+      <li><a href="https://github.com/nostr-protocol/nips/blob/master/33.md">NIP-33 - Parameterized Replaceable Events</a></li>
+      <li><a href="https://github.com/nostr-protocol/nips/blob/master/38.md">NIP-38 - User statuses</a></li>
+      <li><a href="https://github.com/nostr-protocol/nips/blob/master/40.md">NIP-40 - Expiration Timestamp</a></li>
+      <li><a href="https://github.com/nostr-protocol/nips/blob/master/47.md">NIP-47 - Nostr Wallet Connect</a></li>
+      <li><a href="https://github.com/nostr-protocol/nips/blob/master/51.md">NIP-51 - Lists</a></li>
+      <li><a href="https://github.com/nostr-protocol/nips/blob/master/52.md">NIP-52 - Calendar Events</a></li>
+      <li><a href="https://github.com/nostr-protocol/nips/blob/master/53.md">NIP-53 - Live Activities</a></li>
+      <li><a href="https://github.com/nostr-protocol/nips/blob/master/57.md">NIP-57 - Lightning Zaps</a></li>
+      <li><a href="https://github.com/nostr-protocol/nips/blob/master/58.md">NIP-58 - Badges</a></li>
+      <li><a href="https://github.com/nostr-protocol/nips/blob/master/65.md">NIP-65 - Relay List Metadata</a></li>
+      <li><a href="https://github.com/nostr-protocol/nips/blob/master/75.md">NIP-75 - Zap Goals</a></li>
+      <li><a href="https://github.com/vitorpamplona/nips/blob/relationship-status/81.md">NIP-81 - Relationship Status</a></li>
+      <li><a href="https://github.com/nostr-protocol/nips/blob/master/89.md">NIP-89 - Recommended Application Handlers</a></li>
+      <li><a href="https://github.com/nostr-protocol/nips/blob/master/96.md">NIP-96 - HTTP File Storage Integration</a></li>
+      <li><a href="https://github.com/nostr-protocol/nips/blob/master/98.md">NIP-98 - HTTP Auth</a></li>
+      </ul>
+
       <a name="kind0userprofile"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 0 - User Profile</h2>
       <p>
         Within the application, a user is anonymous by default. They may choose to <a href="#kind1extensionlogin">sign in</a> with 
@@ -57,6 +88,8 @@ export default function DataTypes() {
         <li>lud06</li>
         <li>banner</li>
       </ul>
+      <p>Per <a href="https://github.com/nostr-protocol/nips/blob/master/30.md">NIP-30</a>, emojis are supported in the 
+        name and about fields.</p>
       <a name="kind0roomprofile"></a><h2 style={{backgroundColor: '#ff0000'}}>Kind 0 - Room Profile</h2>
       <p>
         Each room within Corny Chat can support a nostr profile. When a room owner sets the topic for the room, its room 
@@ -106,9 +139,8 @@ export default function DataTypes() {
         When a user views the profile of a room particpant, recent posts authored by that participant are loaded
         and displayed if the participant is a nostr user.  This is from the kind 1 posts that are made.  By default, 
         up to 3 of these kinds of posts will be displayed, after having been fetched from the relays associated with that
-        user's relay list metadata.  At this time, transformations of content beyond new paragraphs or breaking for
-        line returns are not performed. For example, inline image or link urls are not rendered, nor are there any
-        treatments of tags.
+        user's relay list metadata.  URLs inline that are detected as images are rendered as such.  If emoji shortcodes
+        are present, they are converted to images per <a href="https://github.com/nostr-protocol/nips/blob/master/30.md">NIP-30</a>.
       </p>
       <p>
         The ability to post a note is also supported by choosing 'Note to Nostr' from the menu.  The input interface

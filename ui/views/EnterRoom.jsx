@@ -7,12 +7,14 @@ import gfm from 'remark-gfm';
 import {useMqParser, useWidth} from '../lib/tailwind-mqp';
 import {useJam} from '../jam-core-react';
 import {colors, isDark} from '../lib/theme.js';
-import {makeLocalDate, signInExtension, getDMPubkey, getNpubFromInfo} from '../nostr/nostr';
+import {makeLocalDate, signInExtension, getDMPubkey, getNpubFromInfo, getRelationshipPetname} from '../nostr/nostr';
 //import {time4Ad, value4valueAdSkip} from '../lib/v4v';
 import EditPersonalSettings from './editPersonalSettings/EditPersonalSettings.jsx';
 import {update} from 'minimal-state';
 import {dosha256hexrounds} from '../lib/sha256rounds.js';
 import {canWebRTC} from '../lib/webrtc.js';
+import {createLinksSanitized} from '../lib/sanitizedText';
+import {createEmojiImages} from '../nostr/emojiText';
 
 const iOS =
   /^iP/.test(navigator.platform) ||
@@ -60,8 +62,8 @@ export default function EnterRoom({
   const colorTheme = room?.color ?? 'default';
   const roomColor = colors(colorTheme, room.customColor);
   let closedBy = room.closedBy ?? '';
-  let usersDisplayName = displayName(myIdentity.info, room);
-  let usersAvatarUrl = avatarUrl(myIdentity.info, room);
+  let userDisplayName = displayName(myIdentity.info, room);
+  let userAvatarUrl = avatarUrl(myIdentity.info, room);
   let [returnToHomepage, setReturnToHomepage] = useState(true);
   const textColor = isDark(roomColor.buttons.primary) ? roomColor.text.light : roomColor.text.dark;
   let isProtected = (room.isProtected && ((room.passphraseHash ?? '').length > 0));
@@ -90,6 +92,14 @@ export default function EnterRoom({
   let adimg = `${jamConfig.urls.pantry}/api/v1/aimg/${roomId}`;
   let hasNostrInfo = false; //getNpubFromInfo(myIdentity.info) != undefined;
   let joinRoomButtonAlwaysEnabled = true;
+
+  let userNpub = getNpubFromInfo(myIdentity.info);
+  let profileTags = [];
+  if (userNpub != undefined) {
+    userDisplayName = getRelationshipPetname(userNpub, userDisplayName);
+    const tagCache = sessionStorage.getItem(`${userNpub}.kind0tags`) || '[]';
+    profileTags = JSON.parse(tagCache);
+  }
 
   useEffect(() => {
     // Setup a timeout to hide the image
@@ -224,15 +234,19 @@ export default function EnterRoom({
           <div className="w-16 h-16 border-2 human-radius mx-auto">
           <img
             className="w-full h-full human-radius cursor-pointer"
-            alt={usersDisplayName}
-            src={usersAvatarUrl}
+            alt={userDisplayName}
+            src={userAvatarUrl}
             onClick={() => {
               setReturnToHomepage(false);
               openModal(EditPersonalSettings);
             }}
            />
           </div>
-          {usersDisplayName}
+          <p
+            title={userDisplayName}
+            dangerouslySetInnerHTML={{ __html: createLinksSanitized(createEmojiImages(userDisplayName, profileTags),'1rem',false) }}
+          >
+          </p>
           <div className="text-sm text-gray-300 hidden">
             Click your avatar to make changes.
           </div>
