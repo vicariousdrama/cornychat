@@ -1,15 +1,25 @@
 import EmojiConvertor from 'emoji-js';
+import { buildCustomEmojiTags, createEmojiImages } from '../nostr/emojiText';
 
 const emoji = new EmojiConvertor();
 
-export function createLinksSanitized(text) {
+export function createLinksSanitized(text, maxImageHeight, clickableImage) {
+    let _maxImageHeight = '20rem';
+    if (maxImageHeight != undefined) _maxImageHeight = maxImageHeight;
     function isImage(url) {
+        // INTENTIONAL EXCLUSIONS
+        if (url.startsWith("https://primal.")) return false; // primal cdn fails to return, so dont even try to render as an image
+        // ACCEPTABLE CONVERSIONS
         if (url.endsWith(".gif")) return true;
         if (url.endsWith(".jpg")) return true;
         if (url.endsWith(".png")) return true;
         if (url.endsWith(".webp")) return true;
+        // ASSUMED IMAGES
         if (url.startsWith("https://www.tradingview.com/x/")) return true;
         if (url.startsWith("https://imgprxy.stacker.news/")) return true;
+        if (url.startsWith("https://discords.com/_next/image")) return true;
+        if (url.startsWith("https://cdn.discordapp.com/emojis/")) return true;
+        if (url.startsWith("https://pbs.twimg.com/media/")) return true;
         return false;
     }    
     // Function to escape HTML entities
@@ -41,10 +51,18 @@ export function createLinksSanitized(text) {
     // Regular expression to match URLs
     const urlRegex = /(\bhttps?:\/\/[^\s<>"']*[^\s<>"'?,]+)/gi;
 
-    // Replace colon-sequences with emojis
+    // Replace standard shortcode colon-sequences with emojis
     emoji.replace_mode = 'unified';
     emoji.allow_native = true;
     text = emoji.replace_colons(text);
+
+    // Replace custom emoji colon-sequences with image urls
+    buildCustomEmojiTags();
+    let customEmojiTags = sessionStorage.getItem('customEmojiTags');
+    if (customEmojiTags) {
+        customEmojiTags = JSON.parse(customEmojiTags);
+        text = createEmojiImages(text, customEmojiTags);
+    }
 
     // Replace URLs with <a> tags
     return text.replace(urlRegex, (match) => {
@@ -57,10 +75,22 @@ export function createLinksSanitized(text) {
             url = match.substring(0, queryOrFragmentIndex);
             queryString = match.substring(queryOrFragmentIndex);
         }
-        if ((queryString.length == 0) && isImage(url)) {
+        if (isImage(url)) {
+            // Special handler for discord urls
+            if (url.startsWith("https://discords.com/_next/image")) {
+                let decodedQuerystring = decodeURIComponent(queryString);
+                decodedQuerystring = decodedQuerystring.replace("?url=", "");
+                if (isImage(decodedQuerystring)) {
+                    url = decodedQuerystring;
+                }
+            }
             // Images without a querystring
-            const baseImageTag = `<a href="${url}" target="_blank"><img src="${url}" style="max-height:20rem" /></a>`;
-            return baseImageTag;
+            const baseImageTag = `<img src="${url}" style="display:inline;max-height:${_maxImageHeight}" />`;
+            if (clickableImage) {
+                return `<a href="${url}" target="_blank">${baseImageTag}</a>`;
+            } else {
+                return baseImageTag;
+            }
         } else {
             // Hyperlink
             // Return the <a> tag with the base URL and a second <a> tag for the full URL including the query string

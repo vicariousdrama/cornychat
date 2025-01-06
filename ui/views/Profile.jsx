@@ -27,6 +27,7 @@ import {useMqParser} from '../lib/tailwind-mqp';
 import {colors, isDark} from '../lib/theme';
 import { KickBanModal } from './KickBanModal';
 import {createLinksSanitized} from '../lib/sanitizedText';
+import {createEmojiImages} from '../nostr/emojiText';
 import EditNostrProfile from './editProfile/EditNostrProfile';
 
 export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIdentity, close}) {
@@ -205,6 +206,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
 
   const [isValidNip05, setIsValidNip05] = useState(false);
   const [lnAddress, setLnAddress] = useState('');
+  const [profileTags, setProfileTags] = useState([]);
   const [about, setAbout] = useState(undefined);
   const [nip05, setNip05] = useState('');
   const [banner, setbanner] = useState(undefined);
@@ -349,6 +351,8 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
         sessionStorage.setItem(userNpub, userMetadataCache);
       }
     }
+    const tagCache = JSON.parse(sessionStorage.getItem(`${userNpub}.kind0tags`) || '[]');
+    setProfileTags(tagCache);
     setLoadingProfile(false);
 
     // user posts
@@ -370,6 +374,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
   }, []);
 
   let userDisplayName = displayName(info, room);
+  userDisplayName = createEmojiImages(userDisplayName, profileTags);
   if (userNpub != undefined) {
     userDisplayName = getRelationshipPetname(userNpub, userDisplayName);
   }
@@ -442,9 +447,9 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
             {!editingPetname && userNpub && (
               <p className="text-xl mr-1 font-semibold text-gray-200 cursor-pointer"
                 onClick={() => setEditingPetname(true)}
-              >
-                {userDisplayName}
-              </p>
+                style={{whiteSpace:'pre-line'}}
+                dangerouslySetInnerHTML={{ __html: createLinksSanitized(createEmojiImages(userDisplayName, profileTags), '1.4rem', false) }}
+              ></p>
             )}
             {!editingPetname && !userNpub && (
               <p className="text-xl mr-1 font-semibold text-gray-200"
@@ -733,7 +738,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
           </p>
           <p className="text-sm text-gray-300 break-word mb-1"
              style={{whiteSpace:'pre-line'}}
-             dangerouslySetInnerHTML={{ __html: createLinksSanitized(about) }}             
+             dangerouslySetInnerHTML={{ __html: createLinksSanitized(createEmojiImages(about, profileTags), '20rem', true) }}
           ></p>
         </div>
         </>
@@ -748,7 +753,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
             return <div key={eventkey}>
               <p className="text-sm text-gray-300 break-word mb-1"
                  style={{whiteSpace:'pre-line'}}
-                 dangerouslySetInnerHTML={{ __html: createLinksSanitized(event.content) }}
+                 dangerouslySetInnerHTML={{ __html: createLinksSanitized(createEmojiImages(event.content, event.tags),'20rem', false) }}
               ></p>
               <p className="text-sm text-gray-500 mb-4"
                  style={{textAlign: 'right', borderBottom: 'solid 1px gray'}}>posted on {makeLocalDate(event.created_at)}</p>

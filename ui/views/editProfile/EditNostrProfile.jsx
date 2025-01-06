@@ -8,6 +8,7 @@ import {isDark, colors} from '../../lib/theme.js';
 import {useMqParser} from '../../lib/tailwind-mqp.js';
 import {handleFileUpload} from '../../lib/fileupload.js';
 import {LoadingIcon} from '../Svg.jsx';
+import {addMissingEmojiTags, buildCustomEmojiTags} from '../../nostr/emojiText.js';
 
 export default function EditNostrProfile({close}) {
     let mqp = useMqParser();
@@ -79,6 +80,8 @@ export default function EditNostrProfile({close}) {
         }
     }, []);
 
+
+
     let submit = async e => {
         e.preventDefault();
 
@@ -108,6 +111,16 @@ export default function EditNostrProfile({close}) {
             try {
                 tags = JSON.parse(tagsJSON);
             } catch(ignore) {}
+        }
+
+        // Check if including a custom emoji reference
+        buildCustomEmojiTags();
+        tags = addMissingEmojiTags(tags, name);
+        tags = addMissingEmojiTags(tags, about);
+        // Update our kind 0 tags
+        if (tagsJSON != JSON.stringify(tags)) {
+            tagsJSON = JSON.stringify(tags);
+            sessionStorage.setItem(`${npub}.kind0tags`, tagsJSON);
         }
 
         // Update fields that we support changes for
@@ -407,11 +420,58 @@ export default function EditNostrProfile({close}) {
 
         {Object.keys(extraMetadata).length > 0 && (
         <div className="p-4 py-2 bg-gray-700 rounded-lg my-3 break-word">
-            <div className="p-2 text-gray-200 bold">
+            <div className="p-2 text-lg text-gray-200 bold">
                 Other Metadata
             </div>
             {Object.keys(extraMetadata).map((key,index) => {
                 let v = extraMetadata[key];
+                if (typeof(v) == 'string') {
+                    return (
+                        <>
+                        <div className="p-2 text-gray-100 bold break-all">
+                        {key}
+                        </div>
+                        <hr />
+                        <div className="p-2 text-gray-300 bg-gray-600 break-all">
+                        {v}
+                        </div>
+                        </>
+                    );
+                } else if (typeof(v) == 'object') {
+                    return (
+                        <>
+                        <div className="p-2 text-gray-100 bold break-all">
+                        {key}
+                        </div>
+                        <hr />
+                    {Object.keys(v).map((vk,vi) => {
+                        let vv = v[vk];
+                        if (typeof(vv) != 'string') {
+                            vv = JSON.stringify(vv,null,2);
+                        }
+                        return (
+                            <div className="p-2 text-gray-300 bg-gray-600 break-all">
+                            {vk}: {vv}
+                        </div>                             
+                        );
+                    })}
+                        </>
+                    );
+                } else {
+                    v = JSON.stringify(v,null,2);
+                    return (
+                        <>
+                        <div className="p-2 text-gray-100 bold break-all">
+                        {key}
+                        </div>
+                        <hr />
+                        <div className="p-2 text-gray-300 bg-gray-600 break-all">
+                        {v}
+                        </div>
+                        </>
+                    );    
+                }
+
                 if (typeof(v) == 'object') {
                     v = JSON.stringify(v,null,2);
                 }

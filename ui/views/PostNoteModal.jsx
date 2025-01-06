@@ -4,6 +4,7 @@ import {isDark} from '../lib/theme';
 import {useMqParser} from '../lib/tailwind-mqp';
 import {useJam} from '../jam-core-react';
 import {getPublicKey, signAndSendEvent} from '../nostr/nostr';
+import { addMissingEmojiTags, buildCustomEmojiTags } from '../nostr/emojiText';
 
 export const PostNoteModal = ({
     close,
@@ -73,6 +74,10 @@ export const PostNoteModal = ({
                 }
             }
         }
+
+        // Check if including a custom emoji reference
+        buildCustomEmojiTags();
+        tags = addMissingEmojiTags(tags, postText);
 
         let event = {
             created_at: created_at,

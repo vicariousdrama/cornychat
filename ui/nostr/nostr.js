@@ -4,6 +4,7 @@ import {nanoid} from 'nanoid';
 import crypto from 'crypto-js';
 import {bech32} from 'bech32';
 import {Buffer} from 'buffer';
+import { addMissingEmojiTags, buildCustomEmojiTags } from './emojiText';
 
 const poolOptions = {autoReconnect:true}
 function unique(arr) {
@@ -1426,6 +1427,12 @@ export async function sendLiveChat(roomATag, textchat) {
   let tags = [
     ["a", roomATag]
   ];
+
+  // Check if including a custom emoji reference
+  buildCustomEmojiTags();
+  let customEmojiTags = sessionStorage.getItem('customEmojiTags');
+  tags = addMissingEmojiTags(tags, textchat);
+
   let event = {
     id: null,
     pubkey: null,
