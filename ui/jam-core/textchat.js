@@ -2,6 +2,7 @@ import {useAction, useOn, useRootState} from '../lib/state-tree';
 import {sendPeerEvent, sendEventToOnePeer} from '../lib/swarm';
 import {actions} from './state';
 import {sendLiveChat} from '../nostr/nostr';
+import { buildCustomEmojiTags, createEmojiImages } from '../nostr/emojiText';
 
 function TextChat({swarm}) {
   const state = useRootState();
@@ -129,30 +130,40 @@ function TextChat({swarm}) {
       let peerId = payload.peerId;
       if (!textchat) textchat = payload;
       if (textchat.length == 0) return;
+
+      // Replace custom emoji colon-sequences with image urls
+      let textchat2 = textchat; // will represent conversion from short code to images
+      buildCustomEmojiTags();
+      let customEmojiTags = sessionStorage.getItem('customEmojiTags');
+      if (customEmojiTags) {
+          customEmojiTags = JSON.parse(customEmojiTags);
+          textchat2 = createEmojiImages(textchat2, customEmojiTags);
+      }
+
       let myId = JSON.parse(localStorage.getItem('identities'))._default.publicKey;
       if (peerId && peerId != '0') {
         // peer to peer can optionally (by default) be encrypted so only the recipient and sender can read
         (async () => {
-          let fulltext = textchat;
+          let fulltext = textchat2;
           let toPeer = '';
           let toMe = '';
           if ((localStorage.getItem('textchat.encryptPM') ?? 'true') == 'true') {
             let maxsize = 100; // must be less than 192. rsa-oaep will end up transforming and padded to 256. 
-            while(textchat.length > 0) {
-              let partialtext = textchat.slice(0,maxsize);
+            while(textchat2.length > 0) {
+              let partialtext = textchat2.slice(0,maxsize);
               let encPeerId = await encryptToPeerId(peerId, partialtext);
               let encMyId = await encryptToPeerId(myId, partialtext);
               if (encPeerId.length == 0 || encMyId.length == 0) {
                 // failure to encrypt, revert to sending plain
                 toPeer = `⚠️${fulltext}`;
                 toMe = `⚠️${fulltext}`;
-                textchat = '';
+                textchat2 = '';
               } else {
                 // concatenate encrypted portions
                 toPeer = toPeer + encPeerId;
                 toMe = toMe + encMyId;
               }
-              textchat = textchat.slice(maxsize);
+              textchat2 = textchat2.slice(maxsize);
             }
           } else {
             toPeer = fulltext;
@@ -178,7 +189,7 @@ function TextChat({swarm}) {
               }
             }
           }
-          sendPeerEvent(swarm, ACTION, {d:false,t:encodeURIComponent(textchat),n:nostrEventId});
+          sendPeerEvent(swarm, ACTION, {d:false,t:encodeURIComponent(textchat2),n:nostrEventId});
         })();
       }
     }
