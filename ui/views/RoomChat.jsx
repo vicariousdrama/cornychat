@@ -81,7 +81,7 @@ export default function RoomChat({
             document.getElementById('chatentry').scrollIntoView();
             siv = true;
         }        
-      }, 1000);   
+      }, 300);
 
       return () => {
         clearInterval(intervalChatScroll);
@@ -339,6 +339,7 @@ export default function RoomChat({
                 thetext = "*" + thetext.replace("/me","") + "*";
                 username = "*" + username + "*";                    
             }
+            let textHTML = createLinksSanitized(thetext,'20rem',false);
             previousTimeString = groupTimeString;
             if(userid != myId || textchatLayout == 'left') {
                 // others : left aligned
@@ -349,7 +350,7 @@ export default function RoomChat({
                         style={{borderBottom: '1px solid rgb(55,65,81)', backgroundColor: chatBackgroundColor }}>
                         {textchatShowTimestamps && (
                         <div className="flex text-sm break-words mr-1"
-                             style={{color: chatLineTextColor}}>{timestampString}</div>
+                             style={{color: chatLineTextColor, width: '34px'}}>{timestampString}</div>
                         )}
                         {textchatShowAvatar && (
                         <img className="flex w-6 h-6 human-radius" src={useravatar} 
@@ -380,8 +381,9 @@ export default function RoomChat({
                             />
                             )}
                             {!emoting && (<>: </>)}
+                            {(textHTML.indexOf('<img') > -1) && (<br />)}
                             <span style={{display:'inline'}}
-                            dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext,'20rem',false) }}
+                            dangerouslySetInnerHTML={{ __html: textHTML }}
                             />
                         </div>
                         {isdm && (<span className="rounded" style={{backgroundColor: 'rgb(32,128,32)',color:'rgb(255,255,255)'}}>{myId==userid ? '>>' + (textchatShowNames ? tousername : "") : '<<'}</span>)}
@@ -403,7 +405,7 @@ export default function RoomChat({
                     style={{borderBottom: '1px solid rgb(55,65,81)', backgroundColor: chatBackgroundColor }}>
                         <div className="flex-grow text-sm text-right break-words mr-1" 
                              style={{color: chatLineTextColor}}
-                             dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext, '20rem', true) }} />
+                             dangerouslySetInnerHTML={{ __html: textHTML }} />
                         {isdm && (<span className="rounded" style={{backgroundColor: 'rgb(32,128,32)',color:'rgb(255,255,255)'}}>{myId==userid ? '>>' + (textchatShowNames ? tousername : "") : '<<'}</span>)}
                         {isNostrEvent && (
                             <img

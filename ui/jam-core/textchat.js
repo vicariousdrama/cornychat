@@ -181,6 +181,7 @@ function TextChat({swarm}) {
             let roomATag = sessionStorage.getItem(atagkey) || '';
             if (roomATag.length > 0) {
               let sendNostrLiveChat = true;
+              if (textchat.startsWith("cashu")) sendNostrLiveChat = false;
               if (textchat.startsWith("/")) sendNostrLiveChat = false;
               if (textchat.startsWith("*has entered the room ")) sendNostrLiveChat = false;
               if (sendNostrLiveChat) {
