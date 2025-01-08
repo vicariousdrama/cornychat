@@ -379,6 +379,7 @@ export default function RoomChat({
                             dangerouslySetInnerHTML={{ __html: createLinksSanitized(username,'1rem',false) }}
                             />
                             )}
+                            {!emoting && (<>: </>)}
                             <span style={{display:'inline'}}
                             dangerouslySetInnerHTML={{ __html: createLinksSanitized(thetext,'20rem',false) }}
                             />
