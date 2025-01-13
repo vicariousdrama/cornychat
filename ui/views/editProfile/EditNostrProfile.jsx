@@ -8,7 +8,7 @@ import {isDark, colors} from '../../lib/theme.js';
 import {useMqParser} from '../../lib/tailwind-mqp.js';
 import {handleFileUpload} from '../../lib/fileupload.js';
 import {LoadingIcon} from '../Svg.jsx';
-import {addMissingEmojiTags, buildCustomEmojiTags} from '../../nostr/emojiText.js';
+import {addMissingEmojiTags, buildKnownEmojiTags} from '../../nostr/emojiText.js';
 
 export default function EditNostrProfile({close}) {
     let mqp = useMqParser();
@@ -114,7 +114,7 @@ export default function EditNostrProfile({close}) {
         }
 
         // Check if including a custom emoji reference
-        buildCustomEmojiTags();
+        buildKnownEmojiTags();
         tags = addMissingEmojiTags(tags, name);
         tags = addMissingEmojiTags(tags, about);
         // Update our kind 0 tags

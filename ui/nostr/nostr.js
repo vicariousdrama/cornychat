@@ -4,7 +4,7 @@ import {nanoid} from 'nanoid';
 import crypto from 'crypto-js';
 import {bech32} from 'bech32';
 import {Buffer} from 'buffer';
-import { addMissingEmojiTags, buildCustomEmojiTags } from './emojiText';
+import { addMissingEmojiTags, buildKnownEmojiTags } from './emojiText';
 
 const poolOptions = {autoReconnect:true}
 function unique(arr) {
@@ -307,9 +307,7 @@ export async function getUserMetadata(pubkey, id) {
                 userTags = ue.tags;
                 userDate = ue.created_at;
               }
-            } catch (err) {
-              //ignore
-            }
+            } finally {}
           }
           let username = userMetadata?.display_name || userMetadata?.name ||  '';
           const userInfo = {
@@ -554,6 +552,23 @@ export async function loadFollowList() {
   // kind 3 is deprecated, now using kind 30000 as d=cornychat-follows
   if(window.DEBUG) console.log("in loadFollowList");
   return new Promise(async (res, rej) => {
+    // return from local cache if it has not aged out
+    const currentTime = Math.floor(Date.now() / 1000);
+    const timeToExpire = 3600; // 1 hour
+    const myFollowListRetrieved = sessionStorage.getItem('myFollowList.retrievedTime');
+    const myFollowListExpired = (myFollowListRetrieved == undefined || ((myFollowListRetrieved + timeToExpire) < currentTime));
+    let myFollowList = sessionStorage.getItem('myFollowList');
+    if (!myFollowListExpired && myFollowList != undefined) {
+      try {
+        myFollowList = JSON.parse(sessionStorage.getItem('myFollowList'));
+        res(myFollowList);
+        return;
+      } catch (e) {
+        rej(e);
+        return;
+      } finally {}
+    }
+    // we will be building
     const localpool = new RelayPool(undefined,poolOptions);
     try {
       const kind = 30000;
@@ -590,6 +605,8 @@ export async function loadFollowList() {
         // populate follow list from tags of newest
         const newestEvent = events[fi];
         const followList = newestEvent.tags;
+        sessionStorage.setItem('myFollowList.retrievedTime', currentTime);
+        sessionStorage.setItem('myFollowList', JSON.stringify(followList));
         res(followList);
       }, 2700);
 
@@ -668,21 +685,7 @@ export async function followAllNpubsFromIds(inRoomPeerIds) {
     return;
   }
   inRoomPeerIds = JSON.parse(inRoomPeerIds);
-  // ensure we have a list to work with
-  const currentTime = Math.floor(Date.now() / 1000);
-  const timeToExpire = 3600; // 1 hour
-  const myFollowListRetrieved = sessionStorage.getItem('myFollowList.retrievedTime');
-  const myFollowListExpired = (myFollowListRetrieved == undefined || ((myFollowListRetrieved + timeToExpire) < currentTime));
-  let myFollowList = sessionStorage.getItem('myFollowList');
-  if (myFollowListExpired || myFollowList == undefined) {
-    myFollowList = await loadFollowList();
-    if (myFollowList) {
-      sessionStorage.setItem('myFollowList.retrievedTime', currentTime);
-      sessionStorage.setItem('myFollowList', JSON.stringify(myFollowList));
-    }
-  } else {
-    myFollowList = JSON.parse(sessionStorage.getItem('myFollowList'));
-  }
+  let myFollowList = await loadFollowList();
 
   // tracking
   let numberOfAddedPubkeys = 0;
@@ -1269,7 +1272,7 @@ export async function updatePetname(userNpub, petname) {
   for (let tag of newRelationship.tags) {
     if (tag.length < 2) continue;
     let k = tag[0];
-    if (k == 'petname') {
+    if (k == 'petname') {      
       isCleartext = true;
       petnameFound = true;
       tag[1] = petname;
@@ -1298,7 +1301,7 @@ export async function updatePetname(userNpub, petname) {
       }
     }
     // If no petname found, add to dec tags
-    if (!petnameFound) {
+    if (!petnameFound && petname && petname.length > 0) {
       isEncrypted = true;
       dectags.push(["petname",petname]);
     }
@@ -1308,7 +1311,7 @@ export async function updatePetname(userNpub, petname) {
     newRelationship.content = enc;
   } else {
     // If no petname found, add to tags
-    if (!petnameFound) {
+    if (!petnameFound && petname && petname.length > 0) {
       isCleartext = true;
       newRelationship.tags.push(["petname",petname]);
     }
@@ -1429,8 +1432,7 @@ export async function sendLiveChat(roomATag, textchat) {
   ];
 
   // Check if including a custom emoji reference
-  buildCustomEmojiTags();
-  let customEmojiTags = sessionStorage.getItem('customEmojiTags');
+  buildKnownEmojiTags();
   tags = addMissingEmojiTags(tags, textchat);
 
   let event = {
@@ -1615,6 +1617,162 @@ export async function rebuildCustomEmojis() {
   return ce;
 }
 
+export async function getUncachedPeerMetadata(inRoomPeerIds) {
+  if(window.DEBUG) console.log("in getUncachedPeerMetadata");
+  // Get the follow list
+  let myFollowList = await loadFollowList();
+  return new Promise((res, rej) => {
+    // return from local cache if it has not aged out
+    const currentTime = Math.floor(Date.now() / 1000);
+    const timeToExpire = 5; // 5 seconds
+    const keyPrefix = 'recentPeerMetadata';
+    const keyTime = `${keyPrefix}.retrievedTime`
+    const listRetrieved = sessionStorage.getItem(keyTime);
+    const listExpired = (listRetrieved == undefined || ((listRetrieved + timeToExpire) < currentTime));
+    let listData = sessionStorage.getItem(keyPrefix);
+    if (!listExpired && listData != undefined) {
+      try {
+        listData = JSON.parse(sessionStorage.getItem(keyPrefix));
+        res(listData);
+      } catch(e) {
+        res([]);
+      } finally {}
+    }
+    if (!inRoomPeerIds || inRoomPeerIds.length == 0) {
+      listData = [];
+      sessionStorage.setItem(keyTime, currentTime);
+      sessionStorage.setItem(keyPrefix, listData);
+      res(listData);
+    }
+    let suffix = '.kind0tags';
+    let npubsCached = [];
+    Object.keys(sessionStorage).forEach(function(key) {
+      if (key.endsWith(suffix)) {
+        npubsCached.push(key.replaceAll(suffix, ''));
+      }
+    });
+    let npubsToFetch = [];
+    for (let peerId of inRoomPeerIds) {
+      let peerInfo = sessionStorage.getItem(peerId);
+      if (!peerInfo) continue;
+      const peerNpub = getNpubFromInfo(peerInfo);
+      if (!peerNpub) continue;
+      if (peerNpub.length == 0) continue;
+      if (!npubsCached.includes(peerNpub) && !npubsToFetch.includes(peerNpub)) npubsToFetch.push(peerNpub);
+    }
+    if (npubsToFetch.length == 0) {
+      listData = [];
+      sessionStorage.setItem(keyTime, currentTime);
+      sessionStorage.setItem(keyPrefix, listData);
+      res(listData);
+    }
+    let pubkeysToFetch = [];
+    for (let npub of npubsToFetch) {
+      try {
+      const userPubkey = nip19.decode(npub).data;
+      pubkeysToFetch.push(userPubkey);
+      } finally {}
+    }
+    // Query the metadata records for users we need to cache
+    const localpool = new RelayPool(undefined,poolOptions);
+    try {
+      const userRelays = [];
+      const defaultRelays = getDefaultOutboxRelays();
+      const relaysToUse = unique([...userRelays, ...defaultRelays]);
+      const filter = [{kinds: [0], authors: pubkeysToFetch, limit: 500}];
+      let userEvents = [];
+      const timeoutRelays = setTimeout(() => {
+        if (userEvents.length === 0) {
+          if(window.DEBUG) console.log('Nostr relays did not return any events');
+          localpool.close();
+          rej(undefined);
+        } else {
+          let userInfos = [];
+          for (let currentUserEvent of userEvents) {
+            let userMetadata = undefined
+            let userTags = [];
+            let userDate = 0;
+            let userId = undefined;
+            let userNpub = nip19.npubEncode(currentUserEvent.pubkey);
+            for (let ue of userEvents) {
+              if (ue.pubkey != currentUserEvent.pubkey) continue;
+              if (ue.created_at < userDate) continue;
+              userTags = ue.tags;
+              userDate = ue.created_at;
+              userId= ue.id;            
+              try {
+                userMetadata = JSON.parse(ue.content);
+              } catch(e) {
+                userMetadata = undefined;
+              } finally {}
+            }
+            if (userMetadata) {
+              let username = userMetadata?.display_name || userMetadata?.name || '';
+              const userInfo = {
+                name: username,
+                id: userId,
+                picture: userMetadata?.picture,
+                npub: userNpub,
+                about: userMetadata?.about,
+                nip05: userMetadata?.nip05,
+                lud16: userMetadata?.lud16,
+                lud06: userMetadata?.lud06,
+                banner: userMetadata?.banner,  
+              }
+              userInfos.push(userInfo);
+              (async () => {
+                let obj = {}
+                obj.iFollow = false;
+                for (let mfle of myFollowList) {
+                  if (mfle.length < 2) continue;
+                  if (mfle[0] != 'p') continue;
+                  if (mfle[1] != currentUserEvent.pubkey) continue;
+                  obj.iFollow = true;
+                  break;
+                }
+                obj.about = userInfo.about;
+                obj.lightningAddress = userInfo.lud16 ?? userInfo.lud06;
+                let isNip05Valid = await verifyNip05(userInfo.nip05, userNpub);
+                obj.nip05 = {isValid: isNip05Valid, nip05Address: userInfo.nip05};
+                obj.banner = userInfo.banner;
+                const badgeconfigs = await getCBadgeConfigsForPubkey(currentUserEvent.pubkey);
+                obj.badgeConfigs = badgeconfigs;
+                const userMetadataCache = JSON.stringify(obj);
+                sessionStorage.setItem(userNpub, userMetadataCache);
+                sessionStorage.setItem(`${userNpub}.kind0content`, JSON.stringify(userMetadata));
+                sessionStorage.setItem(`${userNpub}.kind0tags`, JSON.stringify(userTags));
+              })();
+            }
+          } // currentUserEvent
+          localpool.close();
+          if(userInfos.length > 0) {
+            sessionStorage.removeItem('knownEmojiTags.buildTime');
+            buildKnownEmojiTags();
+          }
+          listData = userInfos;
+          sessionStorage.setItem(keyTime, currentTime);
+          sessionStorage.setItem(keyPrefix, listData);
+          res(listData);
+        }
+      }, 1800);
+      localpool.subscribe(
+        filter,
+        relaysToUse,
+        (event, afterEose, url) => {
+          userEvents.push(event);
+        },
+        undefined,
+        undefined,
+        {unsubscribeOnEose: true}
+      );
+    } catch (error) {
+      console.log('There was an error in getUncachedPeerMetadata: ', error);
+      localpool.close();
+      rej(undefined)
+    }
+  });
+}
+
 export async function getCustomEmojis() {
   // Tag in user's 10030 event.  For each a tag, 
   //    ["a", "30030:1c9dcd8fd2d2fb879d6f02d6cc56aeefd74a9678ae48434b0f0de7a21852f704:Celtic "]
@@ -1635,7 +1793,8 @@ export async function getCustomEmojis() {
     let pubkey = await getPublicKey();
     const currentTime = Math.floor(Date.now() / 1000);
     const timeToExpire = 3600; // 1 hour
-    const myCustomEmojisRetrieved = sessionStorage.getItem('customEmojis.retrievedTime');
+    let myCustomEmojisRetrieved = sessionStorage.getItem('customEmojis.retrievedTime');
+    if (myCustomEmojisRetrieved) myCustomEmojisRetrieved *= 1;
     const myCustomEmojisExpired = (myCustomEmojisRetrieved == undefined || ((myCustomEmojisRetrieved + timeToExpire) < currentTime));
     customEmojis = sessionStorage.getItem('customEmojis');
     if (myCustomEmojisExpired || customEmojis == undefined) {

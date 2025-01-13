@@ -14,8 +14,7 @@ import MiniRoomMembers from './MiniRoomMembers.jsx';
 import RoomChat from './RoomChat';
 import {useJamState} from '../jam-core-react/JamContext';
 import {get} from '../jam-core/backend';
-import {getNpubFromInfo, getUserMetadata} from '../nostr/nostr'
-import {nip19} from 'nostr-tools';
+import {getNpubFromInfo} from '../nostr/nostr'
 
 const inWebView =
   userAgent.browser?.name !== 'JamWebView' &&
@@ -88,6 +87,7 @@ export default function Room({room, roomId, uxConfig}) {
   let myInfo = myIdentity.info;
   let hasEnteredRoom = inRoom === roomId;
 
+  let [emojiTime, setEmojiTime] = useState(0);
   let [showMyNavMenu, setShowMyNavMenu] = useState(false);
   let [showChat, setShowChat] = useState(false);
   let fullsizeAvatars = (localStorage.getItem('fullsizeAvatars') ?? 'true') == 'true';
@@ -165,29 +165,6 @@ export default function Room({room, roomId, uxConfig}) {
             }
           })();
         }
-        // attempt to fetch user metadata from relays as needed, with incremental delay to
-        // try to avoid overwhelming/spamming relays with parallel fetch requests. if this
-        // still results in errors, then may need to do a bulk request for all metadata of
-        // users in room in one go?
-        /*
-        sessionStoreIdent = sessionStorage.getItem(jamId);
-        if (sessionStoreIdent) {
-          const npub = getNpubFromInfo(sessionStoreIdent);
-          if (npub) {
-            let mc = sessionStorage.getItem(`${npub}`);
-            if (!mc) {
-              (async () => {
-                let timeoutMC = setTimeout(() => {
-                  (async () => {
-                  const userPubkey = nip19.decode(npub).data;
-                  const userInfo = await getUserMetadata(userPubkey, jamId);
-                  })();
-                }, 1000 * i);
-              })();
-            }
-          }          
-        }
-        */
       }
     }
   }
@@ -353,8 +330,10 @@ export default function Room({room, roomId, uxConfig}) {
             lud16,
             room,
             roomId,
+            inRoomPeerIds,
+            setEmojiTime,
           }}
-          audience={(nJoinedPeers+1)}
+          userCount={(nJoinedPeers+1)}
         />
 
         {isRecording && (
@@ -435,6 +414,7 @@ export default function Room({room, roomId, uxConfig}) {
             stagePeers,
             state,
             nameSymbols,
+            emojiTime,
           }}
         />
         )}
@@ -449,6 +429,7 @@ export default function Room({room, roomId, uxConfig}) {
               identities,
               myIdentity,
               peers,
+              emojiTime,
             }}
           />
         )}

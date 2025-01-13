@@ -10,9 +10,6 @@ export function createEmojiImages(text, tags) {
         hasEmojis = true;
     }
 
-    // Quick exit
-    if (!hasEmojis) return text;
-
     // Regular expression to match emoji shortcode
     const emojiRegex = /(\:[A-Za-z0-9 ]*\:)/gi;
 
@@ -22,15 +19,15 @@ export function createEmojiImages(text, tags) {
         if (emojiMap.hasOwnProperty(emojicode)) {
             return " " + emojiMap[emojicode] + " ";
         } else {
-            return match;
+            return ' ◌ ';
         }
     });
 }
 
 export function addMissingEmojiTags(tags, v) {
-    let customEmojiTags = sessionStorage.getItem('customEmojiTags');
-    if (customEmojiTags) {
-        customEmojiTags = JSON.parse(customEmojiTags);
+    let knownEmojiTags = sessionStorage.getItem('knownEmojiTags');
+    if (knownEmojiTags) {
+        knownEmojiTags = JSON.parse(knownEmojiTags);
         const reEmojis = /(\:[A-Za-z0-9 ]*\:)/gi;
         let emojis = undefined;
         emojis = v.match(reEmojis);
@@ -47,7 +44,7 @@ export function addMissingEmojiTags(tags, v) {
                     }
                 }
                 if (!f) {
-                    for(let cet of customEmojiTags) {
+                    for(let cet of knownEmojiTags) {
                         if (cet[1] == emojicode) {
                             tags.push(cet);
                             break;
@@ -60,11 +57,15 @@ export function addMissingEmojiTags(tags, v) {
     return tags;       
 }
 
-export function buildCustomEmojiTags() {
-    let customEmojiTags = sessionStorage.getItem('customEmojiTags');
-    let customEmojiTagsTime = sessionStorage.getItem('customEmojiTags.buildTime');
-    if (!customEmojiTags || !customEmojiTagsTime || ((customEmojiTagsTime + 60000) < Date.now())) {
-        let customEmojiTags = []
+export function buildKnownEmojiTags() {
+    let keyMain = 'knownEmojiTags';
+    let keyTime = `${keyMain}.buildTime`;
+    let knownEmojiTags = sessionStorage.getItem(keyMain);
+    let knownEmojiTagsTime = sessionStorage.getItem(keyTime);
+    if (knownEmojiTagsTime) knownEmojiTagsTime *= 1;
+    let currentTime = Date.now();
+    if (!knownEmojiTags || !knownEmojiTagsTime || ((knownEmojiTagsTime + 3000) < currentTime)) {
+        let knownEmojiTags = []
         // my custom emojis
         let customEmojis = sessionStorage.getItem('customEmojis');
         if (customEmojis) {
@@ -74,25 +75,27 @@ export function buildCustomEmojiTags() {
                 if (!ce.hasOwnProperty('imgUrl')) continue;
                 let cev = ce.imgUrl;
                 if (cev.startsWith("/")) cev = `${jamConfig.urls.jam}${cev}`;
-                let cek = ce.names[0];
-                customEmojiTags.push(['emoji',cek,cev]);
+                for (let cek of ce.names) {
+                    let kt = ['emoji',cek,cev];
+                    knownEmojiTags.push(kt);
+                }
             }
         }
         // add any seen in user profiles
-        let suffix = 'kind0tags';
-        for (let ssk of Object.keys(sessionStorage)) {
-            if (ssk.endsWith(suffix)) {
-                let ssv = sessionStorage.getItem(ssk);
+        let suffix = '.kind0tags';
+        Object.keys(sessionStorage).forEach(key => {
+            if (key.endsWith(suffix)) {
+                let ssv = sessionStorage.getItem(key);
                 try {
                     ssv = JSON.parse(ssv);
                     for (let t of ssv) {
                         if (t.length < 3) continue;
-                        if (t[0] == 'emoji') customEmojiTags.push(t);
+                        if (t[0] == 'emoji') knownEmojiTags.push(t);
                     }
-                } finally {}
+                } finally {}                   
             }
-        }
-        sessionStorage.setItem('customEmojiTags', JSON.stringify(customEmojiTags));
-        sessionStorage.setItem('customEmojiTags.buildTime', Date.now());
+        });
+        sessionStorage.setItem(keyMain, JSON.stringify(knownEmojiTags));
+        sessionStorage.setItem(keyTime, currentTime);
     }
 }

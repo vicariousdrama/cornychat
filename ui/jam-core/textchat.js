@@ -2,7 +2,7 @@ import {useAction, useOn, useRootState} from '../lib/state-tree';
 import {sendPeerEvent, sendEventToOnePeer} from '../lib/swarm';
 import {actions} from './state';
 import {sendLiveChat} from '../nostr/nostr';
-import { buildCustomEmojiTags, createEmojiImages } from '../nostr/emojiText';
+import { buildKnownEmojiTags, createEmojiImages } from '../nostr/emojiText';
 
 function TextChat({swarm}) {
   const state = useRootState();
@@ -131,13 +131,13 @@ function TextChat({swarm}) {
       if (!textchat) textchat = payload;
       if (textchat.length == 0) return;
 
-      // Replace custom emoji colon-sequences with image urls
+      // Replace known emoji colon-sequences with image urls
       let textchat2 = textchat; // will represent conversion from short code to images
-      buildCustomEmojiTags();
-      let customEmojiTags = sessionStorage.getItem('customEmojiTags');
-      if (customEmojiTags) {
-          customEmojiTags = JSON.parse(customEmojiTags);
-          textchat2 = createEmojiImages(textchat2, customEmojiTags);
+      buildKnownEmojiTags();
+      let knownEmojiTags = sessionStorage.getItem('knownEmojiTags');
+      if (knownEmojiTags) {
+          knownEmojiTags = JSON.parse(knownEmojiTags);
+          textchat2 = createEmojiImages(textchat2, knownEmojiTags);
       }
 
       let myId = JSON.parse(localStorage.getItem('identities'))._default.publicKey;
