@@ -133,7 +133,7 @@ export async function getDMPubkey() {
 export async function getPublicKey() {
 
   let pubkey = sessionStorage.getItem("pubkey");
-  if (!pubkey) {
+  if (!pubkey && window.nostr) {
     pubkey = await window.nostr.getPublicKey();
     sessionStorage.setItem("pubkey", pubkey);
   }
@@ -1353,16 +1353,7 @@ export async function getCBadgeConfigsForPubkey(pubkey) {
     try {
       let events = [];
       const defaultRelays = getDefaultOutboxRelays();
-      const myPubkey = await getPublicKey();
-      const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
-      let myOutboxRelays = [];
-      if (userRelays?.length == 0) {
-        const myNpub = nip19.npubEncode(myPubkey);
-        myOutboxRelays = await getOutboxRelays(myPubkey); // (async() => {await getOutboxRelays(myPubkey)})();
-        if(window.DEBUG) console.log('myOutboxRelays from await call', myOutboxRelays);
-        updateCacheOutboxRelays(myOutboxRelays, myNpub);
-      }
-      const relaysToUse = unique([...myOutboxRelays, ...userRelays, ...defaultRelays]);
+      const relaysToUse = unique([...defaultRelays]);
       const timestamp = Math.floor(Date.now() / 1000);
       const filter = {kinds:[8],limit:500};
       const ap = "30009:21b419102da8fc0ba90484aec934bf55b7abcf75eedb39124e8d75e491f41a5e";
@@ -1620,7 +1611,10 @@ export async function rebuildCustomEmojis() {
 export async function getUncachedPeerMetadata(inRoomPeerIds) {
   if(window.DEBUG) console.log("in getUncachedPeerMetadata");
   // Get the follow list
-  let myFollowList = await loadFollowList();
+  let myFollowList = [];
+  if (window.nostr) {
+    myFollowList = await loadFollowList();
+  }
   return new Promise((res, rej) => {
     // return from local cache if it has not aged out
     const currentTime = Math.floor(Date.now() / 1000);

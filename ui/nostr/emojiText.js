@@ -1,5 +1,7 @@
 export function createEmojiImages(text, tags) {
 
+    if (!text) return '';
+
     // Build emoji map from this text
     let hasEmojis = false;
     let emojiMap = {}

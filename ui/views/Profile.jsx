@@ -31,7 +31,7 @@ import {createEmojiImages} from '../nostr/emojiText';
 import EditNostrProfile from './editProfile/EditNostrProfile';
 
 export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIdentity, close}) {
-  const supportFollows = true; // kind 3 is deprecated, now using kind 30000 as d=cornychat-follows
+  const supportFollows = (window.nostr != undefined); // kind 3 is deprecated, now using kind 30000 as d=cornychat-follows
 
   async function setUserMetadata() {
     if (!userNpub) return;
@@ -273,7 +273,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
 
         // Reload follow list if expired, or not yet loaded
         let iFollow = false;
-        if (supportFollows) {
+        if (supportFollows && window.nostr) {
           let myFollowList = await loadFollowList();
           if (myFollowList) {
             for (let tag of myFollowList) {
