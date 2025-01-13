@@ -19,6 +19,7 @@ export default function RoomChat({
     identities,
     myIdentity,
     peers,
+    emojiTime,
 }) {
     const mqp = useMqParser();
     const [state, {sendTextChat}] = useJam();

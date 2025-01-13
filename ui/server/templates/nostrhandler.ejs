@@ -228,7 +228,7 @@ function renderEvent(event) {
         r.appendChild(c2);
         t.appendChild(r);
         for (let tag of event.tags) {
-            if (tag.length != 3) continue;
+            if (tag.length < 3) continue;
             if (tag[0] != 'emoji') continue;
             r = document.createElement('tr');
             c1 = document.createElement('td');

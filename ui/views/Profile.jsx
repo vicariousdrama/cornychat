@@ -122,6 +122,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
     e.preventDefault();
     if(userNpub != undefined) {
       localStorage.setItem(`${userNpub}.petname`, petname);
+      if (!petname || petname.length == 0) localStorage.removeItem(`${userNpub}.petname`);
       userDisplayName = petname;
       let allowUnencrypted = localStorage.getItem("petnames.allowunencrypted");
       if (window.nostr) {
@@ -273,18 +274,7 @@ export function Profile({info, room, peerId, iOwn, iModerate, iAmAdmin, actorIde
         // Reload follow list if expired, or not yet loaded
         let iFollow = false;
         if (supportFollows) {
-          let myFollowList = undefined;
-          if (supportFollows) {
-            if (myFollowListExpired || !wasMetadataFetched){
-              myFollowList = await loadFollowList();
-              if (myFollowList) {
-                sessionStorage.setItem('myFollowList.retrievedTime', Math.floor(Date.now() / 1000));
-                sessionStorage.setItem('myFollowList', JSON.stringify(myFollowList));
-              }
-            } else {
-              myFollowList = JSON.parse(sessionStorage.getItem('myFollowList'));
-            }
-          }
+          let myFollowList = await loadFollowList();
           if (myFollowList) {
             for (let tag of myFollowList) {
               if (tag.length < 2) continue;

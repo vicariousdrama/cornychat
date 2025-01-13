@@ -1,5 +1,5 @@
 import EmojiConvertor from 'emoji-js';
-import { buildCustomEmojiTags, createEmojiImages } from '../nostr/emojiText';
+import { createEmojiImages } from '../nostr/emojiText';
 
 const emoji = new EmojiConvertor();
 
@@ -56,12 +56,11 @@ export function createLinksSanitized(text, maxImageHeight, clickableImage) {
     emoji.allow_native = true;
     text = emoji.replace_colons(text);
 
-    // Replace custom emoji colon-sequences with image urls
-    buildCustomEmojiTags();
-    let customEmojiTags = sessionStorage.getItem('customEmojiTags');
-    if (customEmojiTags) {
-        customEmojiTags = JSON.parse(customEmojiTags);
-        text = createEmojiImages(text, customEmojiTags);
+    // Replace known emoji colon-sequences with image urls
+    let knownEmojiTags = sessionStorage.getItem('knownEmojiTags');
+    if (knownEmojiTags) {
+        knownEmojiTags = JSON.parse(knownEmojiTags);
+        text = createEmojiImages(text, knownEmojiTags);
     }
 
     // Replace URLs with <a> tags

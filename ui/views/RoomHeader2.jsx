@@ -8,8 +8,9 @@ import {MicOnSvg, Links, Audience} from './Svg';
 import {openModal} from './Modal';
 import {InvoiceModal} from './Invoice';
 import {tipRoom, time4Ad, time4Tip, value4valueAdSkip, zapRoomGoal, zapServerGoal} from '../lib/v4v';
-import {getCustomEmojis, publishStatus} from '../nostr/nostr';
+import {getCustomEmojis, getUncachedPeerMetadata, publishStatus} from '../nostr/nostr';
 import ZapGoalBar from './ZapGoalBar';
+import {buildKnownEmojiTags} from '../../nostr/emojiText.js';
 
 export default function RoomHeader2({
     colors,
@@ -19,11 +20,13 @@ export default function RoomHeader2({
     roomLinks,
     showLinks,
     setShowLinks,
-    audience,
+    userCount,
     closed,
     lud16,
     room,
     roomId,
+    inRoomPeerIds,
+    setEmojiTime,
 }) {
     let [isRecording, isPodcasting] = useJamState([
         'isSomeoneRecording',
@@ -196,6 +199,18 @@ export default function RoomHeader2({
             })();
         }, 5000);
 
+        // Peer profiles (precache metadata including emoji refs for peers we haven't seen yet)
+        let intervalFetchPeerMetadata = setInterval(() => {
+            let r = (async () => {
+                let pm = await getUncachedPeerMetadata([...inRoomPeerIds]);
+                if (pm && pm.length > 0) {
+                    sessionStorage.removeItem('knownEmojiTags.buildTime');
+                    setEmojiTime(Date.now());
+                }
+                buildKnownEmojiTags();
+            })();
+        }, 5000);
+
         // This function is called when component unmounts
         return () => {
             clearTimeout(timeoutEntered);
@@ -205,6 +220,7 @@ export default function RoomHeader2({
             clearInterval(intervalStatusUpdate);
             clearTimeout(timeoutATagUpdate);
             clearTimeout(timeoutCustomEmojis);
+            clearTimeout(intervalFetchPeerMetadata);
         }
     }, []);
 
@@ -408,7 +424,7 @@ export default function RoomHeader2({
                     }}
                 >
                     <Audience color={isDark(colors.buttons.primary) ? colors.icons.light : colors.icons.dark} />
-                    <div className="px-1">{audience}</div>
+                    <div className="px-1">{userCount}</div>
                 </div>
                 <div className="flex items-center justify-center w-16 h-6 text-xs mx-0 cursor-pointer align-center"
                     style={{

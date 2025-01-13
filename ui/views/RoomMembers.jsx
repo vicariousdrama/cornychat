@@ -30,6 +30,7 @@ export default function RoomMembers({
   stagePeers,
   state,
   nameSymbols,
+  emojiTime,
 }) {
 
 
