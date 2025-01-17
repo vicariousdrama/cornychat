@@ -23,7 +23,8 @@ const inWebView =
       userAgent.browser?.name !== 'Mobile Safari'));
 
 const nameSymbols = [
-  {"npub":"npub1el3mgvtdjpfntdkwq446pmprpdv85v6rs85zh7dq9gvy7tgx37xs2kl27r","symbol":"🍷","title":"Enjoys the Finer Things"}, // Marie
+  {"npub":"npub1yx6pjypd4r7qh2gysjhvjd9l2km6hnm4amdnjyjw3467fy05rf0qfp7kza","symbol":"🌑🌒🌓🌔🌕🌖🌗🌘","title":"Shadowy Super Coder"}, // Vic
+  {"npub":"npub1el3mgvtdjpfntdkwq446pmprpdv85v6rs85zh7dq9gvy7tgx37xs2kl27r","symbol":"🍷🌹","title":"Enjoys the Finer Things"}, // Marie
   {"npub":"npub1ymt2j3n8tesrlr0yhaheem6yyqmmwrr7actslurw6annls6vnrcslapxnz","symbol":"🕳️","title":"Hole among holes"}, // Noshole
   {"npub":"npub1jzuma368395gu523y4vk4d34p0lxgctk436hggn4qcuj93075qgqtn3vm0","symbol":"🥃","title":"Likes Bourbon"}, // Island
   {"npub":"npub16tnq9ruem6evwmywhu69xxl0qk802f03vf8hftvkuvw0n7mmz83stxcvw5","symbol":"🎭","title":"Tragic Comedy"}, // Sai
