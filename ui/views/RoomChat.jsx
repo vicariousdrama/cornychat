@@ -140,6 +140,7 @@ export default function RoomChat({
             textchats.push([myId, "• To **bold** surround with 2 *", false, null, textTime]);
             textchats.push([myId, "• To hide spoilers, surround with 2 |", false, null, textTime]);
             textchats.push([myId, "• Emoji shortcodes are surrounded by 1 :", false, null, textTime]);
+            textchats.push([myId, "Commands", false, null, textTime]);
             textchats.push([myId, "• /help shows this guidance", false, null, textTime]);
             textchats.push([myId, "• /clear resets your text buffer", false, null, textTime]);
             textchats.push([myId, "• /me emotes a statement", false, null, textTime]);
@@ -470,9 +471,9 @@ export default function RoomChat({
             })}
             </select>
             <input id="chatentry"
-                className={mqp('rounded placeholder-black bg-gray-400 text-black w-full mx-1')}
+                className={mqp('rounded placeholder-gray-500 bg-gray-300 text-black w-full mx-1')}
                 type="text"
-                placeholder=""
+                placeholder="Type /help for list of commands"
                 value={chatText}
                 autoComplete="off"
                 style={{borderWidth: '0px',fontSize: '15px'}}

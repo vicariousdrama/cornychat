@@ -225,7 +225,7 @@ export const InvoiceEventModal = ({event, lud16, close}) => {
           {/* Input 1 */}
           <input
             type="number"
-            className="w-full p-2 border border-gray-300 bg-gray-400 text-black placeholder-black mb-4"
+            className="w-full p-2 border placeholder-gray-500 bg-gray-300 text-black placeholder-black mb-4"
             placeholder="Custom amount"
             value={amount}
             onChange={e => {
@@ -236,7 +236,7 @@ export const InvoiceEventModal = ({event, lud16, close}) => {
           {/* Input 2 */}
           <input
             type="text"
-            className="w-full p-2 border border-gray-300 bg-gray-400 text-black placeholder-black mb-4"
+            className="w-full p-2 border placeholder-gray-500 bg-gray-300 text-black placeholder-black mb-4"
             placeholder="Comment (optional)"
             value={comment}
             onChange={e => {

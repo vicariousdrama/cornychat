@@ -63,7 +63,10 @@ export const InvoiceModal = ({info, room, close}) => {
     })();
   }
   const userMetadata = JSON.parse(sessionStorage.getItem(npub));
-  const lightningAddress = userMetadata?.lightningAddress;
+  // If target (npub) is the same as the room, then favor the lud16 defined on the room, overriding metadata profile which may be stale.
+  // Note that zap goals for a room are handled differently, via InvoiceEvent
+  const lud16 = ((npub && room && room?.npub && npub == room?.npub && room?.lud16) ? room.lud16 : userMetadata?.lightningAddress);
+  const lightningAddress = (lud16 ? lud16 : userMetadata?.lightningAddress); // use override lud16 if provided, else fallback to the address for the npub
 
   let colorTheme = room?.color ?? 'default';
   let roomColors = colors(colorTheme, room.customColor);
@@ -220,7 +223,7 @@ export const InvoiceModal = ({info, room, close}) => {
           {/* Input 1 */}
           <input
             type="number"
-            className="w-full p-2 border border-gray-300 bg-gray-400 text-black placeholder-black mb-4"
+            className="w-full p-2 border placeholder-gray-500 bg-gray-300 text-black placeholder-black mb-4"
             placeholder="Custom amount"
             value={amount}
             onChange={e => {
@@ -231,7 +234,7 @@ export const InvoiceModal = ({info, room, close}) => {
           {/* Input 2 */}
           <input
             type="text"
-            className="w-full p-2 border border-gray-300 bg-gray-400 text-black placeholder-black mb-4"
+            className="w-full p-2 border placeholder-gray-500 bg-gray-300 text-black placeholder-black mb-4"
             placeholder="Comment (optional)"
             value={comment}
             onChange={e => {
@@ -252,7 +255,7 @@ export const InvoiceModal = ({info, room, close}) => {
                 npub,
                 comment,
                 amount,
-                state
+                lightningAddress
               );
               await handleResult(result);
             }}

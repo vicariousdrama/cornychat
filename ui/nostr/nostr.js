@@ -421,10 +421,9 @@ export async function getZapReceipts(eventId) {
   });  
 }
 
-export async function sendZaps(npubToZap, comment, amount) {
-  return zapEvent(npubToZap, undefined, comment, amount, undefined);
+export async function sendZaps(npubToZap, comment, amount, lud16override) {
+  return zapEvent(npubToZap, undefined, comment, amount, lud16override);
 }
-
 export async function zapEvent(npubToZap, event, comment, amount, lud16override) {
   if(window.DEBUG) console.log("in sendZaps");
   try {
@@ -462,6 +461,10 @@ export async function zapEvent(npubToZap, event, comment, amount, lud16override)
     }
 
     const LnService = await getLNService(lightningAddress);
+    if (LnService == undefined) {
+      let msg = 'Error encountered communicating with recipients lightning custodian';
+      throw new Error(msg);
+    }
 
     if (LnService.hasOwnProperty('error')) {
       throw new Error(LnService.reason);
@@ -510,7 +513,7 @@ export async function zapEvent(npubToZap, event, comment, amount, lud16override)
       return [true, lnInvoice.pr];
     }
   } catch (error) {
-    console.log('There was an error sending zaps: ', error);
+    //console.log('There was an error sending zaps: ', error);
     return [undefined, error];
   }
 }
@@ -780,8 +783,25 @@ export async function getLNService(address) {
   let username = address2.split("@")[0];
   let domain = address2.split("@")[1];
   let url = `https://${domain}/.well-known/lnurlp/${username}`;
-  let data = await (await fetch(url)).json();
-  return data;
+  try {
+    let response = await fetch(url);
+    let data = await(response);
+    if (response.ok && response.status == 200) {
+      let json = data.json();
+      if (!json.callback) {
+        return {error: true, reason: `Error: Response from Lightning Custodian at ${domain} does not include callback url`}
+      }
+    }
+    if (response.status == 404) {
+      return {error: true, reason: `Error: Status code 404 communicating with Lightning Custodian at ${domain}. Does account ${username} exist?`}
+    } else {
+      console.log(`error in getLNService is unknown`, response);
+      return {error: true, reason: `Error: Status code ${response.status} communicating with Lightning Custodian at ${domain}.`}      
+    }
+  } catch (e) {
+    console.log('error in  getLNService:', e);
+    return undefined;
+  }
 }
 
 export async function getLNInvoice(zapEvent, lightningAddress, LNService, msatsAmount, comment) {
