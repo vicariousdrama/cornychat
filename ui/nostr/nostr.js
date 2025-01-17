@@ -787,10 +787,11 @@ export async function getLNService(address) {
     let response = await fetch(url);
     let data = await(response);
     if (response.ok && response.status == 200) {
-      let json = data.json();
-      if (!json.callback) {
+      let json = await data.json();
+      if(!json?.hasOwnProperty('callback')) {
         return {error: true, reason: `Error: Response from Lightning Custodian at ${domain} does not include callback url`}
       }
+      return json;
     }
     if (response.status == 404) {
       return {error: true, reason: `Error: Status code 404 communicating with Lightning Custodian at ${domain}. Does account ${username} exist?`}
