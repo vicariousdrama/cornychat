@@ -155,7 +155,7 @@ function Avatar({
   if (hasNameSymbol && userSymbol && userSymbol.length > 1) {
     let usp = splitEmoji(userSymbol);
     let uspl = usp.length;
-    let uspi = Date.now() % uspl;
+    let uspi = Math.floor(Date.now() / 1000) % uspl;
     userSymbol = usp[uspi];
   }
 
