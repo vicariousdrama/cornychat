@@ -151,12 +151,10 @@ function Avatar({
     }
   }
   hasNameSymbol = inRoom && hasNameSymbol;
-  const splitEmoji = (string) => [...string];
-  if (hasNameSymbol && userSymbol && userSymbol.length > 1) {
-    let usp = splitEmoji(userSymbol);
-    let uspl = usp.length;
+  if (hasNameSymbol && userSymbol && typeof(userSymbol) != "string") {
+    let uspl = userSymbol.length;
     let uspi = Math.floor(Date.now() / 1000) % uspl;
-    userSymbol = usp[uspi];
+    userSymbol = userSymbol[uspi];
   }
 
   let ghostsEnabled = ((localStorage.getItem('ghostsEnabled') ?? 'false') == 'true');
