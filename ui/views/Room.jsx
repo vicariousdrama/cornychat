@@ -23,8 +23,8 @@ const inWebView =
       userAgent.browser?.name !== 'Mobile Safari'));
 
 const nameSymbols = [
-  {"npub":"npub1yx6pjypd4r7qh2gysjhvjd9l2km6hnm4amdnjyjw3467fy05rf0qfp7kza","symbol":"🌑🌒🌓🌔🌕🌖🌗🌘","title":"Shadowy Super Coder"}, // Vic
-  {"npub":"npub1el3mgvtdjpfntdkwq446pmprpdv85v6rs85zh7dq9gvy7tgx37xs2kl27r","symbol":"🍷🌹","title":"Enjoys the Finer Things"}, // Marie
+  {"npub":"npub1yx6pjypd4r7qh2gysjhvjd9l2km6hnm4amdnjyjw3467fy05rf0qfp7kza","symbol":["🌑","🌒","🌓","🌔","🌕","🌖","🌗","🌘"],"title":"Shadowy Super Coder"}, // Vic
+  {"npub":"npub1el3mgvtdjpfntdkwq446pmprpdv85v6rs85zh7dq9gvy7tgx37xs2kl27r","symbol":["🍷","🌹"],"title":"Enjoys the Finer Things"}, // Marie
   {"npub":"npub1ymt2j3n8tesrlr0yhaheem6yyqmmwrr7actslurw6annls6vnrcslapxnz","symbol":"🕳️","title":"Hole among holes"}, // Noshole
   {"npub":"npub1jzuma368395gu523y4vk4d34p0lxgctk436hggn4qcuj93075qgqtn3vm0","symbol":"🥃","title":"Likes Bourbon"}, // Island
   {"npub":"npub16tnq9ruem6evwmywhu69xxl0qk802f03vf8hftvkuvw0n7mmz83stxcvw5","symbol":"🎭","title":"Tragic Comedy"}, // Sai
@@ -35,6 +35,10 @@ const nameSymbols = [
   {"npub":"npub18u5f6090tcvd604pc8mgvr4t956xsn3rmfd04pj36szx8ne4h87qsztxdp","symbol":"🖋️","title":"May your pen always be inked!"}, // ThePentorapher
   {"npub":"npub1tx5ccpregnm9afq0xaj42hh93xl4qd3lfa7u74v5cdvyhwcnlanqplhd8g","symbol":"🎨","title":"Painting one of a kinds"}, // Bitcoin Painter
   {"npub":"npub1q7why7lw8kq9ufr43ps75ngz3vhx5duqt7xmgklcq3dljqqfjegq2km2vr","symbol":"🐅","title":"Eye of the Tiger"}, // Tigs
+  {"npub":"npub1r8u6lw8c2h67s66magtqu78vtpckfzcsmmdsg06gqm723njsunfs8kfjwl","symbol":"🐊","title":"President Elect"}, // The Rupert Damnit
+  {"npub":"npub1hgvtv4zn2l8l3ef34n87r4sf5s00xq3lhgr3mvwt7kn8gjxpjprqc89jnv","symbol":"🧶","title":"Stringy String String"}, // Yarn Lady
+  {"npub":"npub1mrechz2tgtmspqc9e6l30dyfy4j57g43srzcvxupzs0cpn8h9pyqwms0g5","symbol":"🧀","title":"MR. E-K-S-O"}, // MRE Cheese
+  {"npub":"npub1y3arg4886u5helmr9yxxp4drud5lcy2k0ekqnzujnxku0g9q9uwsd5nany","symbol":"🍁","title":"Eh"}, // TSM
 ];
 
 export default function Room({room, roomId, uxConfig}) {
