@@ -733,16 +733,47 @@ export async function followAllNpubsFromIds(inRoomPeerIds) {
   }
 }
 
+export async function isNpubOK(userNpub) {
+  if (userNpub == undefined) return true;
+  const harmfulNpubs = [
+    'npub180cvv07tjdrrgpa0j7j7tmnyl2yr6yr7l8j4s3evf6u64th6gkwsyjh6w6',    // actively working against nostr developers
+    'npub12262qa4uhw7u8gdwlgmntqtv7aye8vdcmvszkqwgs0zchel6mz7s6cgrkj',    // actively attacks other projects
+  ]
+  if (harmfulNpubs.contains(userNpub)) return false;
+  return true;
+}
+
+export async function isDomainOK(domain) {
+  if (domain == undefined) return false;
+  const harmfulDomains = [
+    'getalby.com',        // mega
+    'nip05.social',       // mega
+    'nostr.directory',    // mega
+    'nostr-check.com',    // mega
+    'nostrcheck.me',      // mega
+    'nostrich.house',     // mega
+    'nostrplebs.com',     // mega, non-reciprocal
+    'primal.net',         // mega, nostr adjacent silo
+    'stacker.news',       // mega, nostr adjacent silo
+    'verified-nostr.com', // mega
+    'zap.stream',         // non-reciprocal
+    'zaps.lol',           // mega
+    'zbd.gg'];            // mega, nostr adjacent silo
+  if (harmfulDomains.includes(domain)) return false;
+  return true;
+}
+
 export async function verifyNip05(nip05, userNpub) {
   if(window.DEBUG) console.log("in verifyNip05");
   if (!nip05) return false;
   if (nip05 !== '' && userNpub) {
+    if (!isNpubOK(userNpub)) return false;
     const pubkey = nip19.decode(userNpub).data;
     const url = nip05.split('@');
     if (url.length != 2) return false;
     const domain = url[1];
     const name = url[0];
-
+    if (!isDomainOK(domain)) return false;
     try {
       const data = await (
         await fetch(`https://${domain}/.well-known/nostr.json?name=${name}`)
