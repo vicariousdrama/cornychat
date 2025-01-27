@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {avatarUrl, displayName} from '../lib/avatar';
-import {isValidNostr, getNpubFromInfo, getRelationshipPetname} from '../nostr/nostr';
+import {isNpubOK, isValidNostr, getNpubFromInfo, getRelationshipPetname} from '../nostr/nostr';
 import animateEmoji from '../lib/animate-emoji';
 import {useMqParser} from '../lib/tailwind-mqp';
 import {colors, isDark} from '../lib/theme';
@@ -190,7 +190,7 @@ function Avatar({
             }}>
               {roleSymbol}
             </div>
-            {isValidNostr(info) ? (
+            {(isValidNostr(info) && isNpubOK(userNpub)) ? (
             <div title={'Verified Signature by Nostr Pubkey'} style={{marginTop:'-2px'}}>
               <img
                 style={{width:'24px',height:'24px',opacity:inRoom?1:.15}}
