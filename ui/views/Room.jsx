@@ -39,6 +39,7 @@ const nameSymbols = [
   {"npub":"npub1hgvtv4zn2l8l3ef34n87r4sf5s00xq3lhgr3mvwt7kn8gjxpjprqc89jnv","symbol":"🧶","title":"Stringy String String"}, // Yarn Lady
   {"npub":"npub1mrechz2tgtmspqc9e6l30dyfy4j57g43srzcvxupzs0cpn8h9pyqwms0g5","symbol":"🧀","title":"MR. E-K-S-O"}, // MRE Cheese
   {"npub":"npub1y3arg4886u5helmr9yxxp4drud5lcy2k0ekqnzujnxku0g9q9uwsd5nany","symbol":"🍁","title":"Eh"}, // TSM
+  {"npub":"npub12zqf55l7l9vsg5f6ssx5pq4f9dzu6hcmnepkm8ftj25fecy379jqkq99h8","symbol":"🫖","title":"Here is my handle, Here is my spout"}, // Tekkadan
 ];
 
 export default function Room({room, roomId, uxConfig}) {
