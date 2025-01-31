@@ -190,22 +190,31 @@ function Avatar({
             }}>
               {roleSymbol}
             </div>
-            {(isValidNostr(info) && isNpubOK(userNpub)) ? (
-            <div title={'Verified Signature by Nostr Pubkey'} style={{marginTop:'-2px'}}>
-              <img
-                style={{width:'24px',height:'24px',opacity:inRoom?1:.15}}
-                alt={'Verified Signature by Nostr Pubkey'}
-                src={'/img/symbols/nostr-icon-purple-256x256.png'}
-              />
-            </div>
-            ) : (
-            <div title={'Anonymous'} style={{marginTop:'-2px'}}>
-              <img
-                style={{width:'24px',height:'24px',opacity:inRoom?1:.15}}
-                alt={'Anonymous'}
-                src={'/img/symbols/guyfawkes.png'}
-              />
-            </div>
+            {!isNpubOK(userNpub) ? (
+              <div title={'Npub is not ok. May be harmful user/scammer, or may be using a questionable custodian for nip05 or lightning'} style={{marginTop:'-2px'}}>
+                <img
+                  style={{width:'24px',height:'24px',opacity:inRoom?1:.15}}
+                  alt={'Harmful User/Possible Scammer/Bad NIP05 or LUD16'}
+                  src={'/img/symbols/scam.png'}
+                />
+              </div>
+            ) : (isValidNostr(info) ? (
+              <div title={'Verified Signature by Nostr Pubkey'} style={{marginTop:'-2px'}}>
+                <img
+                  style={{width:'24px',height:'24px',opacity:inRoom?1:.15}}
+                  alt={'Verified Signature by Nostr Pubkey'}
+                  src={'/img/symbols/nostr-icon-purple-256x256.png'}
+                />
+              </div>
+              ) : (
+              <div title={'Anonymous'} style={{marginTop:'-2px'}}>
+                <img
+                  style={{width:'24px',height:'24px',opacity:inRoom?1:.15}}
+                  alt={'Anonymous'}
+                  src={'/img/symbols/guyfawkes.png'}
+                />
+              </div>
+              )
             )}
             {hasNameSymbol && (
             <div title={userSymbolTitle} style={{marginTop:'-2px'}}>

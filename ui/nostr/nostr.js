@@ -739,14 +739,47 @@ export async function isNpubOK(userNpub) {
     'npub180cvv07tjdrrgpa0j7j7tmnyl2yr6yr7l8j4s3evf6u64th6gkwsyjh6w6',    // actively working against nostr developers
     'npub12262qa4uhw7u8gdwlgmntqtv7aye8vdcmvszkqwgs0zchel6mz7s6cgrkj',    // actively attacks other projects
   ]
-  if (harmfulNpubs.contains(userNpub)) return false;
+  if (harmfulNpubs.includes(userNpub)) return false;
+  try {
+    let o = undefined;
+    let internetaddress = undefined;
+    o = sessionStorage.getItem(userNpub);
+    if (o) {
+      o = JSON.parse(o);
+      internetaddress = o.nip05?.nip05Address ?? '';
+      if (!isAddressOK(internetaddress)) return false;
+    }
+    o = sessionStorage.getItem(`${userNpub}.kind0content`);
+    if (o) {
+      o = JSON.parse(o);
+      internetaddress = o.nip05 ?? '';
+      if (!isAddressOK(internetaddress)) return false;
+      internetaddress = o.lud16 ?? '';
+      if (!isAddressOK(internetaddress)) return false;
+    }
+  } finally {
+    return true;
+  }
+}
+
+export async function isAddressOK(address) {
+  if (!address) return true;
+  if (address.length > 0) {
+    let url = address.split('@');
+    if (url.length >= 2) {
+      let domain = url[1];
+      if (!isDomainOK(domain)) {
+        return false;
+      }
+    }
+  }
   return true;
 }
 
 export async function isDomainOK(domain) {
   if (domain == undefined) return false;
   const harmfulDomains = [
-    'getalby.com',        // mega
+    'getalby.com',        // mega (they are a big custodian where anyone can claim to be the user)
     'nip05.social',       // mega
     'nostr.directory',    // mega
     'nostr-check.com',    // mega
