@@ -191,10 +191,10 @@ function Avatar({
               {roleSymbol}
             </div>
             {!isNpubOK(userNpub) ? (
-              <div title={'Npub is not ok. May be harmful user/scammer, or may be using a questionable custodian for nip05 or lightning'} style={{marginTop:'-2px'}}>
+              <div title={'NPUB, NIP05, or LUD16 is not ok. May be harmful user/scammer, or using a risky custodian'} style={{marginTop:'-2px'}}>
                 <img
-                  style={{width:'24px',height:'24px',opacity:inRoom?1:.15}}
-                  alt={'Harmful User/Possible Scammer/Bad NIP05 or LUD16'}
+                  style={{width:'22px',height:'22px',opacity:inRoom?1:.15}}
+                  alt={'NPUB, NIP05, or LUD16 is not ok'}
                   src={'/img/symbols/scam.png'}
                 />
               </div>
