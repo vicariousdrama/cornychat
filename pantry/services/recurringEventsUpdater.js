@@ -1,5 +1,5 @@
 const {recurringEventsUpdateInterval} = require('../config');
-const {get, set, list} = require('./redis');
+const {del, get, set, list} = require('./redis');
 const {publishNostrSchedule} = require('../nostr/nostr');
 const RECURRING_CHECK_INTERVAL = recurringEventsUpdateInterval * 60 * 1000;
 
@@ -18,6 +18,7 @@ const recurringEventsUpdater = async () => {
         if (scheduledRoomKeys) {
             for (let scheduledRoomInfoKey of scheduledRoomKeys) {
                 try {
+                    console.log(`[recurringEventsUpdater] checking info for ${scheduledRoomInfoKey}`);
                     let scheduledRoomInfo = await get(scheduledRoomInfoKey);
                     if (!scheduledRoomInfo) continue;
                     if (!scheduledRoomInfo.start) continue;
@@ -30,11 +31,21 @@ const recurringEventsUpdater = async () => {
                     // ok, we need to do an update, lets get current room info
                     let roomId = scheduledRoomInfoKey.split('/')[1];
                     let roomInfo = await get(`rooms/${roomId}`);
+                    // If the room has no schedule, then delete the scheduled room info
+                    if (!roomInfo.schedule) {
+                        console.log(`[recurringEventsUpdater] room ${roomId} no longer has a schedule. removing key ${scheduledRoomInfoKey}`);
+                        await del(scheduledRoomInfoKey);
+                        continue;
+                    }
                     // Calculate the next scheduled event
                     let newSchedule = {...roomInfo.schedule};
                     console.log(JSON.stringify(newSchedule));
                     let eventDuration = newSchedule.endUnixTime - newSchedule.startUnixTime;
-                    if (newSchedule.repeat == 'daily') {
+                    if (newSchedule.repeat == 'never') {
+                        console.log(`[recurringEventsUpdater] room ${roomId} scheduled event does not repeat. removing key ${scheduledRoomInfoKey}`);
+                        await del(scheduledRoomInfoKey);
+                        continue;
+                    } else if (newSchedule.repeat == 'daily') {
                         while (newSchedule.startUnixTime < currentDate) newSchedule.startUnixTime += 86400;
                     } else if (newSchedule.repeat == 'weekly') {
                         while (newSchedule.startUnixTime < currentDate) newSchedule.startUnixTime += (7 * 86400);
@@ -52,6 +63,9 @@ const recurringEventsUpdater = async () => {
                             let e = new Date(d.setMonth(d.getMonth() + 12));
                             newSchedule.startUnixTime = (e.getTime() / 1000);
                         }
+                    } else {
+                        console.log(`[recurringEventsUpdater] room ${roomId} scheduled event repeat value is ${newSchedule.repeat}. There is no present support to set the new time.`);
+                        continue;
                     }
                     let sdate = new Date(newSchedule.startUnixTime * 1000);
                     newSchedule.startdate = sdate.toISOString().split('T')[0];
@@ -60,6 +74,11 @@ const recurringEventsUpdater = async () => {
                     let edate = new Date(newSchedule.endUnixTime * 1000);
                     newSchedule.enddate = edate.toISOString().split('T')[0];
                     newSchedule.endtime = edate.toISOString().split('T')[1].substring(0,5);
+                    // Make sure it changed
+                    if (newSchedule.startUnixTime == roomInfo.schedule.startUnixTime) {
+                        console.log(`[recurringEventsUpdater] room ${roomId} scheduled start date remains the same.`);
+                        continue;
+                    }
                     console.log(`[recurringEventsUpdater] ${newSchedule.repeat} scheduled event updated to new start time ${newSchedule.startUnixTime}`);
                     // Update the room
                     roomInfo.schedule = newSchedule;
@@ -67,7 +86,7 @@ const recurringEventsUpdater = async () => {
                     // Publish to nostr (and this will update the scheduledRoom/roomId key)
                     let newSchedulePublished = await publishNostrSchedule(roomId, newSchedule, roomInfo.moderators, roomInfo.logoURI);
                 } catch (e) {
-                    console.log(`[recurringEventsUpdater] error updating recurring scheduled event: ${e}`);
+                    console.log(`[recurringEventsUpdater] error updating recurring scheduled event for ${scheduledRoomInfoKey}: ${e}`);
                 }
             }
         }

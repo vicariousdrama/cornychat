@@ -733,13 +733,17 @@ export async function followAllNpubsFromIds(inRoomPeerIds) {
   }
 }
 
-export async function isNpubOK(userNpub) {
-  if (userNpub == undefined) return true;
+export function isNpubOK(userNpub) {
+  if (userNpub == undefined) {
+    return true;
+  }
   const harmfulNpubs = [
     'npub180cvv07tjdrrgpa0j7j7tmnyl2yr6yr7l8j4s3evf6u64th6gkwsyjh6w6',    // actively working against nostr developers
     'npub12262qa4uhw7u8gdwlgmntqtv7aye8vdcmvszkqwgs0zchel6mz7s6cgrkj',    // actively attacks other projects
   ]
-  if (harmfulNpubs.includes(userNpub)) return false;
+  if (harmfulNpubs.includes(userNpub)) {
+    return false;
+  }
   try {
     let o = undefined;
     let internetaddress = undefined;
@@ -753,31 +757,42 @@ export async function isNpubOK(userNpub) {
     if (o) {
       o = JSON.parse(o);
       internetaddress = o.nip05 ?? '';
-      if (!isAddressOK(internetaddress)) return false;
+      if (!isAddressOK(internetaddress)) {
+        return false;
+      }
       internetaddress = o.lud16 ?? '';
       if (!isAddressOK(internetaddress)) return false;
     }
-  } finally {
-    return true;
-  }
-}
-
-export async function isAddressOK(address) {
-  if (!address) return true;
-  if (address.length > 0) {
-    let url = address.split('@');
-    if (url.length >= 2) {
-      let domain = url[1];
-      if (!isDomainOK(domain)) {
-        return false;
-      }
-    }
+  } catch(e) {
+    console.log(`isNpubOK error: ${e}`);
   }
   return true;
 }
 
-export async function isDomainOK(domain) {
-  if (domain == undefined) return false;
+export function isAddressOK(address) {
+  if (!address) {
+    return false;
+  }
+  if (address.length == 0) {
+    return false;
+  }
+  let url = address.split('@');
+  if (url.length >= 2) {
+    let domain = url[1];
+    if (!isDomainOK(domain)) {
+      return false;
+    } else {
+      return true;
+    }
+  } else {
+    return false;
+  }
+}
+
+export function isDomainOK(domain) {
+  if (domain == undefined) {
+    return false;
+  } 
   const harmfulDomains = [
     'getalby.com',        // mega (they are a big custodian where anyone can claim to be the user)
     'nip05.social',       // mega
@@ -792,7 +807,9 @@ export async function isDomainOK(domain) {
     'zap.stream',         // non-reciprocal
     'zaps.lol',           // mega
     'zbd.gg'];            // mega, nostr adjacent silo
-  if (harmfulDomains.includes(domain)) return false;
+  if (harmfulDomains.includes(domain)) {
+    return false;
+  }
   return true;
 }
 
