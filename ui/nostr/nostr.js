@@ -751,17 +751,17 @@ export function isNpubOK(userNpub) {
     if (o) {
       o = JSON.parse(o);
       internetaddress = o.nip05?.nip05Address ?? '';
-      if (!isAddressOK(internetaddress)) return false;
+      if (internetaddress.length > 0 && !isAddressOK(internetaddress)) return false;
     }
     o = sessionStorage.getItem(`${userNpub}.kind0content`);
     if (o) {
       o = JSON.parse(o);
       internetaddress = o.nip05 ?? '';
-      if (!isAddressOK(internetaddress)) {
+      if (internetaddress.length > 0 && !isAddressOK(internetaddress)) {
         return false;
       }
       internetaddress = o.lud16 ?? '';
-      if (!isAddressOK(internetaddress)) return false;
+      if (internetaddress.length > 0 && !isAddressOK(internetaddress)) return false;
     }
   } catch(e) {
     console.log(`isNpubOK error: ${e}`);

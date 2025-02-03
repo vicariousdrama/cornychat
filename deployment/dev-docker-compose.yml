@@ -101,6 +101,7 @@ services:
     image: library/redis
     volumes:
       - "../data/pantryredis:/data"
+    restart: unless-stopped
     command: "redis-server --appendonly yes"
   backupredis:
     depends_on:
