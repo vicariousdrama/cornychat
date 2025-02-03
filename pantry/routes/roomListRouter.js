@@ -52,12 +52,16 @@ router.get('', async function (req, res) {
                 continue;
             }
             let isProtected = ((roomInfo.isProtected || false) && ((roomInfo.passphraseHash ?? '').length > 0));
+            let isStageOnly = roomInfo?.stageOnly ?? false;
+            let isLiveActivity = roomInfo?.isLiveActivityAnnounced ?? false;
             rooms.push({
                 roomId:roomId,
                 name:roomInfo.name,
                 description:roomInfo.description,
                 logoURI:roomInfo.logoURI,
                 isProtected:isProtected,
+                isStageOnly:isStageOnly,
+                isLiveActivity:isLiveActivity,
                 userCount:userCount,
                 userInfo:userInfo,
             });
