@@ -1,6 +1,7 @@
 FROM node:alpine
 ARG BUILD_DATE=0
 ENV JAM_CONFIG_DIR=/jam-config
+RUN apk add --no-cache git
 RUN mkdir /pantry
 WORKDIR /pantry
 COPY yarn.lock package.json /pantry/
