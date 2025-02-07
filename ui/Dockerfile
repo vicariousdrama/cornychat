@@ -1,6 +1,6 @@
 FROM node:alpine AS builder
 ARG BUILD_DATE=0
-RUN apk add --no-cache git
+
 COPY yarn.lock package.json ./
 
 RUN yarn
