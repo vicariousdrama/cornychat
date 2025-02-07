@@ -16,6 +16,7 @@ const {liveEventUpdater} = require('../services/liveEventUpdater');
 const {zapGoalUpdater} = require('../services/zapGoalUpdater');
 const {grantPubkeysForRoomsToRelays, revokeAllUserPubkeys} = require('../relayacl/relayACL');
 const {revokeDisconnectedUsers} = require('../relayacl/relayACLCleanup');
+const {removeDuplicatePubkeys} = require('../relayacl/relayACLCleanup');
 
 /**
  * Get port from environment and store in Express.
@@ -46,6 +47,8 @@ zapGoalUpdater().then(() => 'Zap Goal Updater started.');
 revokeAllUserPubkeys().then(() => 'Initiated removal of user pubkeys from relay acl.');
 grantPubkeysForRoomsToRelays().then(() => 'Initiated granting of room pubkeys from redis to relay acl.');
 revokeDisconnectedUsers().then(() => 'Background removal of user pubkeys from relay acl started.')
+removeDuplicatePubkeys().then(() => 'Deduplicating pubkeys from relay acls.');
+
 
 /**
  * Normalize a port into a number, string, or false.

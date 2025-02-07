@@ -23,9 +23,13 @@ function doneRelayPool(p) {
     if (newpoolPerWrite) p.close();
 }
 const publishEvent = async (pool,event,relays) => {
-    if (pmd) console.log(`[publishEvent] publishing to relays ${JSON.stringify(relays)}\n${JSON.stringify(event)}`);
-    let publishEventResults = await pool.publish(event, relays);
-    if(pool.errorsAndNotices && pool.errorsAndNotices.length > 0) console.log(`[publishEvent] pool errors and notices: ${JSON.stringify(pool.errorsAndNotices)}`);
+    try {
+        if (pmd) console.log(`[publishEvent] publishing to relays ${JSON.stringify(relays)}\n${JSON.stringify(event)}`);
+        let publishEventResults = await pool.publish(event, relays);
+        if(pool.errorsAndNotices && pool.errorsAndNotices.length > 0) console.log(`[publishEvent] pool errors and notices: ${JSON.stringify(pool.errorsAndNotices)}`);
+    } catch (e) {
+        console.log(`[publishEvent] Error: ${e}`);
+    }
 }
 
 const deleteNostrSchedule = async (roomId, oldScheduledStart) => {
@@ -409,108 +413,112 @@ const getScheduledEvents = async () => {
 }
 
 const publishNostrSchedule = async (roomId, schedule, moderatorids, logoURI) => {
-    // Validate
-    // - must have a schedule
-    if (schedule == undefined) return;
-    // - must have an npub
-    if (!schedule.setByNpub || schedule.setByNpub == '' || schedule.setByNpub.length != 63) return;
+    try {
+        // Validate
+        // - must have a schedule
+        if (schedule == undefined) return;
+        // - must have an npub
+        if (!schedule.setByNpub || schedule.setByNpub == '' || schedule.setByNpub.length != 63) return;
 
-    console.log("[publishNostrSchedule] Preparing schedule to publish for room", roomId);
-    const localwritepool = getRelayPool();
-    const scheduledByPubkey = nip19.decode(schedule.setByNpub).data;
-    const eventUUID = `${jamHost}-${roomId}-${schedule?.startUnixTime}`;
-    const roomUrl = `https://${jamHost}/${roomId}`;
-    const title = schedule?.title ?? `Corny Chat: ${roomId}`;
-    const content = (schedule?.summary ?? `This event is scheduled on Corny Chat in room: ${roomId}`) + `\n\n${roomUrl}`;
-    const timezone = schedule?.timezone ?? 'Europe/London';
-    const labelNamespace = "com.cornychat";      // Other instances SHOULD NOT change this
-    const tags = [
-        ["d", eventUUID],
-        ["title", title],
-        ["name", title],                         // deprecated, but Flockstr depends on
-        ["start", `${schedule?.startUnixTime}`],
-        ["end", `${schedule?.endUnixTime}`],
-        ["start_tzid", timezone],
-        ["end_tzid", timezone],
-        ["location", roomUrl],
-//        ["about", content],                      // Undocumented Flockstr tag (remove once Flockstr is updated)
-        ["summary", content],                    // short description of event, replaces deprecated/undocumented Flockstr tag about
-        ["image", logoURI],                      // Undocumented Flockstr tag
-        ["L", labelNamespace],                   // Need to document all these tags for sanity
-        ["l", jamHost, labelNamespace],
-        ["l", "audiospace", labelNamespace],
-        ["r", roomUrl],
-        ["p", scheduledByPubkey, "", "host"],
-    ]
-    const includedPubkeys = [scheduledByPubkey];
-    for (let moderatorid of moderatorids) {
-        const info = await get('identities/' + moderatorid);
-        if (info?.identities) {
-            for (let ident of info.identities) {
-                if ('nostr' == (ident.type || '')) {
-                    try {
-                        let modNpub = ident.id || '';
-                        let modPubkey = nip19.decode(modNpub).data;
-                        if (!includedPubkeys.includes(modPubkey)) {
-                            includedPubkeys.push(modPubkey);
-                            tags.push(["p",modPubkey,"","moderator"]);
-                        }
-                    } catch(err) { /*ignore*/ }
-                }
-            }
-        }
-    }
-    if (serverNsec.length > 0) {
-        const sk = nip19.decode(serverNsec).data;
-        const event = finalizeEvent({
-            created_at: Math.floor(Date.now() / 1000),
-            kind: 31923,
-            tags: tags,
-            content: content,
-        }, sk);
-        await publishEvent(localwritepool, event, relaysToUse);
-        await sleep(100);
-    }
-
-    // capture the scheduling as active
-    let scheduledRoomSet = await set(`scheduledRoom/${roomId}`, {repeat: schedule.repeat, start: schedule?.startUnixTime, end: schedule?.endUnixTime});
-    // inject into server/scheduledEvents
-    let injectedSchedule = await injectServerSchedule({startTime: schedule?.startUnixTime, endTime: schedule?.endUnixTime, image: logoURI, location: roomUrl, title: title});
-
-    console.log("[publishNostrSchedule] Preparing kind 1 to publish event from room");
-    let roomNsec = await getRoomNSEC(roomId, true);
-    let roomSk = nip19.decode(roomNsec).data;
-    let timeZoneName = "Europe/London"; // Intl.DateTimeFormat().resolvedOptions().timeZone; // Europe/London
-    let timeZoneOffset = 0;
-    let timeZoneAbbrev = 'UTC';
-    for(let r =0; r < rawTimeZones.length; r++) {
-        if(rawTimeZones[r].name == timeZoneName) {
-            timeZoneOffset = rawTimeZones[r].rawOffsetInMinutes * -60;
-            timeZoneAbbrev = rawTimeZones[r].abbreviation;
-        }
-    }
-    let edate = new Date(schedule?.startUnixTime * 1000);
-    let dateOptions = { weekday: 'long', month: 'long', day: 'numeric' }; 
-    let humanDate = new Intl.DateTimeFormat('en-us',dateOptions).format(edate);
-    let timeOptions = { timeStyle: 'short'};
-    let humanTime = new Intl.DateTimeFormat('en-us',timeOptions).format(edate);
-    let summary = schedule?.summary ?? '';
-    const kind1content = `The next scheduled event for this audiospace room is on ${humanDate} at ${humanTime} (${timeZoneAbbrev})\n\n${title}\n\n${summary}\n\nin\n${roomUrl}`;
-    const kind1event = finalizeEvent({
-        created_at: Math.floor(Date.now() / 1000),
-        kind: 1,
-        tags: [
-            ["L", labelNamespace],
+        console.log("[publishNostrSchedule] Preparing schedule to publish for room", roomId);
+        const localwritepool = getRelayPool();
+        const scheduledByPubkey = nip19.decode(schedule.setByNpub).data;
+        const eventUUID = `${jamHost}-${roomId}-${schedule?.startUnixTime}`;
+        const roomUrl = `https://${jamHost}/${roomId}`;
+        const title = schedule?.title ?? `Corny Chat: ${roomId}`;
+        const content = (schedule?.summary ?? `This event is scheduled on Corny Chat in room: ${roomId}`) + `\n\n${roomUrl}`;
+        const timezone = schedule?.timezone ?? 'Europe/London';
+        const labelNamespace = "com.cornychat";      // Other instances SHOULD NOT change this
+        const tags = [
+            ["d", eventUUID],
+            ["title", title],
+            ["name", title],                         // deprecated, but Flockstr depends on
+            ["start", `${schedule?.startUnixTime}`],
+            ["end", `${schedule?.endUnixTime}`],
+            ["start_tzid", timezone],
+            ["end_tzid", timezone],
+            ["location", roomUrl],
+    //        ["about", content],                      // Undocumented Flockstr tag (remove once Flockstr is updated)
+            ["summary", content],                    // short description of event, replaces deprecated/undocumented Flockstr tag about
+            ["image", logoURI],                      // Undocumented Flockstr tag
+            ["L", labelNamespace],                   // Need to document all these tags for sanity
             ["l", jamHost, labelNamespace],
             ["l", "audiospace", labelNamespace],
             ["r", roomUrl],
-            ["t", "audiospace"],
-        ],
-        content: kind1content,
-    }, roomSk);
-    await publishEvent(localwritepool, kind1event, relaysToUse);
-    await sleep(100);
-    doneRelayPool(localwritepool);
+            ["p", scheduledByPubkey, "", "host"],
+        ]
+        const includedPubkeys = [scheduledByPubkey];
+        for (let moderatorid of moderatorids) {
+            const info = await get('identities/' + moderatorid);
+            if (info?.identities) {
+                for (let ident of info.identities) {
+                    if ('nostr' == (ident.type || '')) {
+                        try {
+                            let modNpub = ident.id || '';
+                            let modPubkey = nip19.decode(modNpub).data;
+                            if (!includedPubkeys.includes(modPubkey)) {
+                                includedPubkeys.push(modPubkey);
+                                tags.push(["p",modPubkey,"","moderator"]);
+                            }
+                        } catch(err) { /*ignore*/ }
+                    }
+                }
+            }
+        }
+        if (serverNsec.length > 0) {
+            const sk = nip19.decode(serverNsec).data;
+            const event = finalizeEvent({
+                created_at: Math.floor(Date.now() / 1000),
+                kind: 31923,
+                tags: tags,
+                content: content,
+            }, sk);
+            await publishEvent(localwritepool, event, relaysToUse);
+            await sleep(100);
+        }
+
+        // capture the scheduling as active
+        let scheduledRoomSet = await set(`scheduledRoom/${roomId}`, {repeat: schedule.repeat, start: schedule?.startUnixTime, end: schedule?.endUnixTime});
+        // inject into server/scheduledEvents
+        let injectedSchedule = await injectServerSchedule({startTime: schedule?.startUnixTime, endTime: schedule?.endUnixTime, image: logoURI, location: roomUrl, title: title});
+
+        console.log("[publishNostrSchedule] Preparing kind 1 to publish event from room");
+        let roomNsec = await getRoomNSEC(roomId, true);
+        let roomSk = nip19.decode(roomNsec).data;
+        let timeZoneName = "Europe/London"; // Intl.DateTimeFormat().resolvedOptions().timeZone; // Europe/London
+        let timeZoneOffset = 0;
+        let timeZoneAbbrev = 'UTC';
+        for(let r =0; r < rawTimeZones.length; r++) {
+            if(rawTimeZones[r].name == timeZoneName) {
+                timeZoneOffset = rawTimeZones[r].rawOffsetInMinutes * -60;
+                timeZoneAbbrev = rawTimeZones[r].abbreviation;
+            }
+        }
+        let edate = new Date(schedule?.startUnixTime * 1000);
+        let dateOptions = { weekday: 'long', month: 'long', day: 'numeric' }; 
+        let humanDate = new Intl.DateTimeFormat('en-us',dateOptions).format(edate);
+        let timeOptions = { timeStyle: 'short'};
+        let humanTime = new Intl.DateTimeFormat('en-us',timeOptions).format(edate);
+        let summary = schedule?.summary ?? '';
+        const kind1content = `The next scheduled event for this audiospace room is on ${humanDate} at ${humanTime} (${timeZoneAbbrev})\n\n${title}\n\n${summary}\n\nin\n${roomUrl}`;
+        const kind1event = finalizeEvent({
+            created_at: Math.floor(Date.now() / 1000),
+            kind: 1,
+            tags: [
+                ["L", labelNamespace],
+                ["l", jamHost, labelNamespace],
+                ["l", "audiospace", labelNamespace],
+                ["r", roomUrl],
+                ["t", "audiospace"],
+            ],
+            content: kind1content,
+        }, roomSk);
+        await publishEvent(localwritepool, kind1event, relaysToUse);
+        await sleep(100);
+        doneRelayPool(localwritepool);
+    } catch (e) {
+        console.log(`[publishNostrSchedule] Error ${e}`, roomId);
+    }
 }
 
 const injectServerSchedule = async(eventInfo) => {
@@ -570,83 +578,100 @@ const filterEventsByLocation = (events) => {
 
 const getRoomNSEC = async(roomId, create=false) => {
     let nostrroomkey = 'nostrroomkey/' + roomId;
-    let roomNsec = await get(nostrroomkey);
-    if (create && (roomNsec == undefined || roomNsec == null)) {
-        let roomSk = generateSecretKey();
-        roomNsec = nip19.nsecEncode(roomSk);
-        await set(nostrroomkey, roomNsec);
+    let roomNsec = undefined;
+    try {
+        roomNsec = await get(nostrroomkey);
+        if (create && (roomNsec == undefined || roomNsec == null)) {
+            let roomSk = generateSecretKey();
+            roomNsec = nip19.nsecEncode(roomSk);
+            await set(nostrroomkey, roomNsec);
+        }
+    } catch(e) {
+        console.log(`[getRoomNSEC] Error ${e}`);
     }
     return roomNsec;
 }
 
 const updateNostrProfile = async (roomId, name, description, logoURI, backgroundURI, lud16) => {
-    if (pmd) console.log("[updateNostrProfile] Updating room profile");
-    const localwritepool = getRelayPool();
-    let roomNsec = await getRoomNSEC(roomId, true);
-    let roomSk = nip19.decode(roomNsec).data;
-    let profileObj = {nip05: `${roomId}-room@${jamHost}`}
-    if ((name ?? '').length > 0) profileObj.name = name;
-    if ((description ?? '').length > 0) profileObj.about = description;
-    if ((logoURI ?? '').length > 0) profileObj.picture = logoURI;
-    if ((backgroundURI ?? '').length > 0) profileObj.banner = backgroundURI;
-    if ((lud16 ?? '').length > 0) profileObj.lud16 = lud16;
-    let content = JSON.stringify(profileObj);
-    const event = finalizeEvent({
-        created_at: Math.floor(Date.now() / 1000),
-        kind: 0,
-        tags: [],
-        content: content,
-    }, roomSk);
+    try {
+        if (pmd) console.log("[updateNostrProfile] Updating room profile");
+        const localwritepool = getRelayPool();
+        let roomNsec = await getRoomNSEC(roomId, true);
+        let roomSk = nip19.decode(roomNsec).data;
+        let profileObj = {nip05: `${roomId}-room@${jamHost}`}
+        if ((name ?? '').length > 0) profileObj.name = name;
+        if ((description ?? '').length > 0) profileObj.about = description;
+        if ((logoURI ?? '').length > 0) profileObj.picture = logoURI;
+        if ((backgroundURI ?? '').length > 0) profileObj.banner = backgroundURI;
+        if ((lud16 ?? '').length > 0) profileObj.lud16 = lud16;
+        let content = JSON.stringify(profileObj);
+        const event = finalizeEvent({
+            created_at: Math.floor(Date.now() / 1000),
+            kind: 0,
+            tags: [],
+            content: content,
+        }, roomSk);
 
-    await publishEvent(localwritepool, event, relaysToUse);
-    await sleep(100);
-    doneRelayPool(localwritepool);
+        await publishEvent(localwritepool, event, relaysToUse);
+        await sleep(100);
+        doneRelayPool(localwritepool);
+    } catch (e) {
+        console.log(`[updateNostrProfile] Error ${e}`);
+    }
 }
 
 const updateNostrProfileForServer = async (name, description, logoURI, backgroundURI, lud16, nip05) => {
-    if (serverNsec.length == 0) return;
-    if (pmd) console.log("[updateNostrProfileForServer] Updating server profile from env");
-    const localwritepool = getRelayPool();
-    const sk = nip19.decode(serverNsec).data;
-    let profileObj = {nip05: nip05}
-    if ((name ?? '').length > 0) profileObj.name = name;
-    if ((description ?? '').length > 0) profileObj.about = description;
-    if ((logoURI ?? '').length > 0) profileObj.picture = logoURI;
-    if ((backgroundURI ?? '').length > 0) profileObj.banner = backgroundURI;
-    if ((lud16 ?? '').length > 0) profileObj.lud16 = lud16;
-    let content = JSON.stringify(profileObj);
-    const event = finalizeEvent({
-        created_at: Math.floor(Date.now() / 1000),
-        kind: 0,
-        tags: [],
-        content: content,
-    }, sk);
-    await publishEvent(localwritepool, event, relaysToUse);
-    await sleep(100);
-    doneRelayPool(localwritepool);
+    try {
+        if (serverNsec.length == 0) return;
+        if (pmd) console.log("[updateNostrProfileForServer] Updating server profile from env");
+        const localwritepool = getRelayPool();
+        const sk = nip19.decode(serverNsec).data;
+        let profileObj = {nip05: nip05}
+        if ((name ?? '').length > 0) profileObj.name = name;
+        if ((description ?? '').length > 0) profileObj.about = description;
+        if ((logoURI ?? '').length > 0) profileObj.picture = logoURI;
+        if ((backgroundURI ?? '').length > 0) profileObj.banner = backgroundURI;
+        if ((lud16 ?? '').length > 0) profileObj.lud16 = lud16;
+        let content = JSON.stringify(profileObj);
+        const event = finalizeEvent({
+            created_at: Math.floor(Date.now() / 1000),
+            kind: 0,
+            tags: [],
+            content: content,
+        }, sk);
+        await publishEvent(localwritepool, event, relaysToUse);
+        await sleep(100);
+        doneRelayPool(localwritepool);
+    } catch (e) {
+        console.log(`[updateNostrProfileForServer] Error ${e}`);
+    }
 }
 
 const deleteLiveActivity = async (roomId, dtt, eventId) => {
-    if (pmd) console.log("[deleteLiveActivity] deleting known activity for room ", roomId);
-    const localwritepool = getRelayPool();
-    let roomNsec = await getRoomNSEC(roomId, true);
-    let roomSk = nip19.decode(roomNsec).data;
-    const kind = 30311;
-    const eventUUID = `${dtt}`;
-    const pk = getPublicKey(roomSk);
-    const grantReason = `${jamHost} room: ${roomId}`;
-    let g = await grantPubkeyToRelays(false, pk, grantReason);
-    const aTagValue = `${kind}:${pk}:${eventUUID}`;
-    const timestamp = Math.floor(Date.now() / 1000);
-    const deleteEvent = finalizeEvent({
-        created_at: timestamp,
-        kind: 5,
-        tags: [["a", aTagValue],["e", eventId],["k",`${kind}`]],
-        content: 'This event is no longer active',
-    }, roomSk);
-    await publishEvent(localwritepool, deleteEvent, relaysToUse);
-    await sleep(250);
-    doneRelayPool(localwritepool);
+    try {
+        if (pmd) console.log("[deleteLiveActivity] deleting known activity for room ", roomId);
+        const localwritepool = getRelayPool();
+        let roomNsec = await getRoomNSEC(roomId, true);
+        let roomSk = nip19.decode(roomNsec).data;
+        const kind = 30311;
+        const eventUUID = `${dtt}`;
+        const pk = getPublicKey(roomSk);
+        const grantReason = `${jamHost} room: ${roomId}`;
+        let g = await grantPubkeyToRelays(false, pk, grantReason);
+        const aTagValue = `${kind}:${pk}:${eventUUID}`;
+        const timestamp = Math.floor(Date.now() / 1000);
+        const deleteEvent = finalizeEvent({
+            created_at: timestamp,
+            kind: 5,
+            tags: [["a", aTagValue],["e", eventId],["k",`${kind}`]],
+            content: 'This event is no longer active',
+        }, roomSk);
+        await publishEvent(localwritepool, deleteEvent, relaysToUse);
+        await sleep(250);
+        doneRelayPool(localwritepool);
+    } catch (e) {
+        console.log(`[deleteLiveActivity] Error ${e}`);
+    }
 }
 
 const getLiveActivities = async() => {
@@ -683,186 +708,194 @@ const getLiveActivities = async() => {
 }
 
 const publishLiveActivity = async (roomId, dtt, roomInfo, userInfo, status, limitToRelays) => {
-    //if (pmd) console.log("in publishLiveActivity for ", roomId);
-    const localwritepool = getRelayPool();
-    let roomNsec = await getRoomNSEC(roomId, true);
-    let roomSk = nip19.decode(roomNsec).data;
-    let dt = new Date();
-    let et = dt.getTime();
-    if (status == 'live') et = et + (60 * 60 * 1000);       // 1 hour from now
-    const kind = 30311;
-    const eventUUID = `${dtt}`;
-    const pk = getPublicKey(roomSk);
-    const grantReason = `${jamHost} room: ${roomId}`;
-    let g = await grantPubkeyToRelays(false, pk, grantReason);
-    const aTagValue = `${kind}:${pk}:${dtt}`;
-    const roomUrl = `https://${jamHost}/${roomId}`;
-    const title = roomInfo?.name ?? `Corny Chat: ${roomId}`;
-    const summary = (roomInfo?.description ?? `This is a live event on Corny Chat in room: ${roomId}`);
-    // the image is either the logouri, or the current slide. if no image, then use a default
-    let defaultImage = `https://${jamHost}/img/cornychat-defaultroomlogo.png`;
-    let imageURI = roomInfo?.logoURI ?? defaultImage;
-    if (roomInfo?.currentSlide) {
-        if (Math.floor(roomInfo.currentSlide) > 0) {
-            let cs = roomInfo.currentSlide;
-            if (roomInfo?.slides?.length >= cs) {
-                let slideURI = roomInfo.slides[cs - 1][0];
-                if (slideURI.startsWith("https://")) imageURI = slideURI;
+    try {
+        //if (pmd) console.log("in publishLiveActivity for ", roomId);
+        const localwritepool = getRelayPool();
+        let roomNsec = await getRoomNSEC(roomId, true);
+        let roomSk = nip19.decode(roomNsec).data;
+        let dt = new Date();
+        let et = dt.getTime();
+        if (status == 'live') et = et + (60 * 60 * 1000);       // 1 hour from now
+        const kind = 30311;
+        const eventUUID = `${dtt}`;
+        const pk = getPublicKey(roomSk);
+        const grantReason = `${jamHost} room: ${roomId}`;
+        let g = await grantPubkeyToRelays(false, pk, grantReason);
+        const aTagValue = `${kind}:${pk}:${dtt}`;
+        const roomUrl = `https://${jamHost}/${roomId}`;
+        const title = roomInfo?.name ?? `Corny Chat: ${roomId}`;
+        const summary = (roomInfo?.description ?? `This is a live event on Corny Chat in room: ${roomId}`);
+        // the image is either the logouri, or the current slide. if no image, then use a default
+        let defaultImage = `https://${jamHost}/img/cornychat-defaultroomlogo.png`;
+        let imageURI = roomInfo?.logoURI ?? defaultImage;
+        if (roomInfo?.currentSlide) {
+            if (Math.floor(roomInfo.currentSlide) > 0) {
+                let cs = roomInfo.currentSlide;
+                if (roomInfo?.slides?.length >= cs) {
+                    let slideURI = roomInfo.slides[cs - 1][0];
+                    if (slideURI.startsWith("https://")) imageURI = slideURI;
+                }
             }
         }
-    }
-    if (imageURI.length == 0) imageURI = defaultImage;
-    if (!imageURI.startsWith('https://')) imageURI = defaultImage;
-    const labelNamespace = "com.cornychat";                 // Other instances SHOULD NOT change this
-    let tags = [
-        ["d", `${eventUUID}`],
-        ["title", `${title}`],
-        ["summary", `${summary}`],
-        ["image", `${imageURI}`],                           // uses slide if active, else logo, else default image
-        ["service", roomUrl],
-        ["streaming", `${roomUrl}`],
-        ["starts", `${Math.floor(dtt / 1000)}`],            // starts and ends needs to be in seconds, not milliseconds
-        ["ends", `${Math.floor(et / 1000)}`],
-        ["status", `${status}`],
-        ["current_participants", `${userInfo.length}`],     // TODO: set "total_participants", need to track it in liveeventUpdater
-        ["t", "talk"],
-        ["t", "talk show"],
-        ["L", labelNamespace],                              // Need to document all these tags for sanity
-        ["l", jamHost, labelNamespace],
-        ["l", "audiospace", labelNamespace],
-        ["r", roomUrl],
-        ["relays", ...relaysToUse],
-    ];
-    // This doesnt add tags for anonymous users since they don't have npubs
-    const includedPubkeys = [];
-    for (let user of userInfo) {
-        if (user.identities == undefined) continue;
-        for (let ident of user.identities) {
-            if (ident.type == undefined) continue;
-            if (ident.type != 'nostr') continue;
-            if (ident.id == undefined) continue;
-            let userNpub = ident.id || '';
-            let userPubkey = nip19.decode(userNpub).data;
-            if (!includedPubkeys.includes(userPubkey)) {
-                includedPubkeys.push(userPubkey);
-                let roleName = "Participant";
-                if (roomInfo.speakers.includes(user.id)) roleName = "Speaker";
-                if (roomInfo.speakers.includes(userNpub)) roleName = "Speaker";
-                if (roomInfo.moderators.includes(user.id)) roleName = "Moderator";
-                if (roomInfo.moderators.includes(userNpub)) roleName = "Moderator";
-                if (roomInfo.owners.includes(user.id)) roleName = "Room Owner";
-                if (roomInfo.owners.includes(userNpub)) roleName = "Room Owner";
-                tags.push(["p", userPubkey, "", roleName]);
+        if (imageURI.length == 0) imageURI = defaultImage;
+        if (!imageURI.startsWith('https://')) imageURI = defaultImage;
+        const labelNamespace = "com.cornychat";                 // Other instances SHOULD NOT change this
+        let tags = [
+            ["d", `${eventUUID}`],
+            ["title", `${title}`],
+            ["summary", `${summary}`],
+            ["image", `${imageURI}`],                           // uses slide if active, else logo, else default image
+            ["service", roomUrl],
+            ["streaming", `${roomUrl}`],
+            ["starts", `${Math.floor(dtt / 1000)}`],            // starts and ends needs to be in seconds, not milliseconds
+            ["ends", `${Math.floor(et / 1000)}`],
+            ["status", `${status}`],
+            ["current_participants", `${userInfo.length}`],     // TODO: set "total_participants", need to track it in liveeventUpdater
+            ["t", "talk"],
+            ["t", "talk show"],
+            ["L", labelNamespace],                              // Need to document all these tags for sanity
+            ["l", jamHost, labelNamespace],
+            ["l", "audiospace", labelNamespace],
+            ["r", roomUrl],
+            ["relays", ...relaysToUse],
+        ];
+        // This doesnt add tags for anonymous users since they don't have npubs
+        const includedPubkeys = [];
+        for (let user of userInfo) {
+            if (user.identities == undefined) continue;
+            for (let ident of user.identities) {
+                if (ident.type == undefined) continue;
+                if (ident.type != 'nostr') continue;
+                if (ident.id == undefined) continue;
+                let userNpub = ident.id || '';
+                let userPubkey = nip19.decode(userNpub).data;
+                if (!includedPubkeys.includes(userPubkey)) {
+                    includedPubkeys.push(userPubkey);
+                    let roleName = "Participant";
+                    if (roomInfo.speakers.includes(user.id)) roleName = "Speaker";
+                    if (roomInfo.speakers.includes(userNpub)) roleName = "Speaker";
+                    if (roomInfo.moderators.includes(user.id)) roleName = "Moderator";
+                    if (roomInfo.moderators.includes(userNpub)) roleName = "Moderator";
+                    if (roomInfo.owners.includes(user.id)) roleName = "Room Owner";
+                    if (roomInfo.owners.includes(userNpub)) roleName = "Room Owner";
+                    tags.push(["p", userPubkey, "", roleName]);
+                }
             }
         }
+        let event = finalizeEvent({
+            created_at: Math.floor(Date.now() / 1000),
+            kind: kind,
+            tags: tags,
+            content: "",
+        }, roomSk);
+        if (pmd) console.log('[publishLiveActivity] event to be published', JSON.stringify(event));
+        let publishToRelays = ((limitToRelays != undefined) ? limitToRelays : relaysToUse);
+        if (pmd) console.log('[publishLiveActivity] to relays', JSON.stringify(publishToRelays));
+        await publishEvent(localwritepool, event, publishToRelays);
+        await sleep(1250);
+        doneRelayPool(localwritepool);
+    } catch (e) {
+        console.log(`[publishLiveActivity] Error ${e}`);
     }
-    let event = finalizeEvent({
-        created_at: Math.floor(Date.now() / 1000),
-        kind: kind,
-        tags: tags,
-        content: "",
-    }, roomSk);
-    if (pmd) console.log('[publishLiveActivity] event to be published', JSON.stringify(event));
-    let publishToRelays = ((limitToRelays != undefined) ? limitToRelays : relaysToUse);
-    if (pmd) console.log('[publishLiveActivity] to relays', JSON.stringify(publishToRelays));
-    await publishEvent(localwritepool, event, publishToRelays);
-    await sleep(1250);
-    doneRelayPool(localwritepool);
 }
 
 const publishRoomActive = async (roomId, dtt, roomInfo, userInfo, isnew) => {
-    if (serverNsec.length == 0) return;
-    if (pmd) console.log("[publishRoomActive] publishing room with live activity for ", roomId);
-    const localwritepool = getRelayPool();
-    const kind = 1;
-    const roomUrl = `https://${jamHost}/${roomId}`;
-    const leadingText = `TALK TO LIVE NOSTRICHES NOW! \n 🚨Check out the open chat rooms on Cornychat.com 🚨\n https://${jamHost}/img/cornychat-letschat.png`;
-    const trailingText = `#plebchain #audiospace #grownostr`;
-    const sk = nip19.decode(serverNsec).data;
-    const pk = getPublicKey(sk);
-    const npub = nip19.npubEncode(pk);
-    if (pmd) console.log(`[publishRoomActive] publishing with ${npub}`);
-    const dt = new Date();
-    const et = dt.getTime();
-    const ct = Math.floor(dt/1000);
-    const userCount = userInfo.length;
-    let output = "";
-    if (isnew) {
-        output = `🌽 Audio Space started! 🌽\n\n${roomId}\n\n${roomUrl}?t=${ct}`;
-    } else {
-        output = `🌽 Join ${userCount} others chatting! 🌽\n\n${roomId}\n\n${roomUrl}?t=${ct}`;
-    }
-    output += `\n\n#cornychat #audiospace #grownostr`;
-    const title = roomInfo?.name ?? `Corny Chat: ${roomId}`;
-    const summary = (roomInfo?.description ?? `This is a live event on Corny Chat in room: ${roomId}`);
-    // the image is either the logouri, or the current slide. if no image, then use a default
-    let defaultImage = `https://${jamHost}/img/cornychat-defaultroomlogo.png`;
-    let imageURI = roomInfo?.logoURI ?? defaultImage;
-    if (roomInfo?.currentSlide) {
-        if (Math.floor(roomInfo.currentSlide) > 0) {
-            let cs = roomInfo.currentSlide;
-            if (roomInfo?.slides?.length >= cs) {
-                let slideURI = roomInfo.slides[cs - 1][0];
-                if (slideURI.startsWith("https://")) imageURI = slideURI;
+    try {
+        if (serverNsec.length == 0) return;
+        if (pmd) console.log("[publishRoomActive] publishing room with live activity for ", roomId);
+        const localwritepool = getRelayPool();
+        const kind = 1;
+        const roomUrl = `https://${jamHost}/${roomId}`;
+        const leadingText = `TALK TO LIVE NOSTRICHES NOW! \n 🚨Check out the open chat rooms on Cornychat.com 🚨\n https://${jamHost}/img/cornychat-letschat.png`;
+        const trailingText = `#plebchain #audiospace #grownostr`;
+        const sk = nip19.decode(serverNsec).data;
+        const pk = getPublicKey(sk);
+        const npub = nip19.npubEncode(pk);
+        if (pmd) console.log(`[publishRoomActive] publishing with ${npub}`);
+        const dt = new Date();
+        const et = dt.getTime();
+        const ct = Math.floor(dt/1000);
+        const userCount = userInfo.length;
+        let output = "";
+        if (isnew) {
+            output = `🌽 Audio Space started! 🌽\n\n${roomId}\n\n${roomUrl}?t=${ct}`;
+        } else {
+            output = `🌽 Join ${userCount} others chatting! 🌽\n\n${roomId}\n\n${roomUrl}?t=${ct}`;
+        }
+        output += `\n\n#cornychat #audiospace #grownostr`;
+        const title = roomInfo?.name ?? `Corny Chat: ${roomId}`;
+        const summary = (roomInfo?.description ?? `This is a live event on Corny Chat in room: ${roomId}`);
+        // the image is either the logouri, or the current slide. if no image, then use a default
+        let defaultImage = `https://${jamHost}/img/cornychat-defaultroomlogo.png`;
+        let imageURI = roomInfo?.logoURI ?? defaultImage;
+        if (roomInfo?.currentSlide) {
+            if (Math.floor(roomInfo.currentSlide) > 0) {
+                let cs = roomInfo.currentSlide;
+                if (roomInfo?.slides?.length >= cs) {
+                    let slideURI = roomInfo.slides[cs - 1][0];
+                    if (slideURI.startsWith("https://")) imageURI = slideURI;
+                }
             }
         }
-    }
-    if (imageURI.length == 0) imageURI = defaultImage;
-    if (!imageURI.startsWith('https://')) imageURI = defaultImage;
-    const labelNamespace = "com.cornychat";                 // Other instances SHOULD NOT change this
-    const tags = [
-        ["audioserver", jamHost],
-        ["title", `${title}`],
-        ["summary", `${summary}`],
-        ["image", `${imageURI}`],                           // uses slide if active, else logo, else default image
-        ["service", roomUrl],
-        ["streaming", `${roomUrl}`],
-        ["starts", `${Math.floor(dtt / 1000)}`],            // starts and ends needs to be in seconds, not milliseconds
-        ["ends", `${Math.floor(et / 1000)}`],
-        ["current_participants", `${userCount}`],           // TODO: set "total_participants", need to track it in liveeventUpdater
-        ["t", "talk"],
-        ["t", "talk show"],
-        ["t", "cornychat"],
-        ["t", "audiospace"],
-        ["t", "grownostr"],
-        ["L", labelNamespace],                              // Need to document all these tags for sanity
-        ["l", jamHost, labelNamespace],
-        ["l", "audiospace", labelNamespace],
-        ["r", roomUrl],
-    ];
-
-    const event = finalizeEvent({
-        created_at: Math.floor(Date.now() / 1000),
-        kind: kind,
-        tags: tags,
-        content: output,
-    }, sk);
-    await publishEvent(localwritepool, event, relaysToUse);
-    await sleep(250);
-
-    // have the server announce a live text message associated to the room's live activity if its new
-    if (isnew) {
-        let roomNsec = await getRoomNSEC(roomId, true);
-        let roomSk = nip19.decode(roomNsec).data;
-        const roomPk = getPublicKey(roomSk);
-        output = `🌽 Audio Space started! 🌽\n\nJoin the audio feed at ${roomUrl}\n\nIndividual participants can choose whether their text chat is sent to this live feed.`;
-        const liveTextKind = 1311;
-        const liveTextATag = `30311:${roomPk}:${dtt}`;
-        const liveTextTags = [
-            ["a", liveTextATag],
+        if (imageURI.length == 0) imageURI = defaultImage;
+        if (!imageURI.startsWith('https://')) imageURI = defaultImage;
+        const labelNamespace = "com.cornychat";                 // Other instances SHOULD NOT change this
+        const tags = [
+            ["audioserver", jamHost],
+            ["title", `${title}`],
+            ["summary", `${summary}`],
+            ["image", `${imageURI}`],                           // uses slide if active, else logo, else default image
+            ["service", roomUrl],
+            ["streaming", `${roomUrl}`],
+            ["starts", `${Math.floor(dtt / 1000)}`],            // starts and ends needs to be in seconds, not milliseconds
+            ["ends", `${Math.floor(et / 1000)}`],
+            ["current_participants", `${userCount}`],           // TODO: set "total_participants", need to track it in liveeventUpdater
+            ["t", "talk"],
+            ["t", "talk show"],
+            ["t", "cornychat"],
+            ["t", "audiospace"],
+            ["t", "grownostr"],
             ["L", labelNamespace],                              // Need to document all these tags for sanity
-            ["l", jamHost, labelNamespace],    
+            ["l", jamHost, labelNamespace],
+            ["l", "audiospace", labelNamespace],
+            ["r", roomUrl],
         ];
-        const liveTextEvent = finalizeEvent({
+
+        const event = finalizeEvent({
             created_at: Math.floor(Date.now() / 1000),
-            kind: liveTextKind,
-            tags: liveTextTags,
+            kind: kind,
+            tags: tags,
             content: output,
         }, sk);
-        await publishEvent(localwritepool, liveTextEvent, relaysToUse);
+        await publishEvent(localwritepool, event, relaysToUse);
         await sleep(250);
+
+        // have the server announce a live text message associated to the room's live activity if its new
+        if (isnew) {
+            let roomNsec = await getRoomNSEC(roomId, true);
+            let roomSk = nip19.decode(roomNsec).data;
+            const roomPk = getPublicKey(roomSk);
+            output = `🌽 Audio Space started! 🌽\n\nJoin the audio feed at ${roomUrl}\n\nIndividual participants can choose whether their text chat is sent to this live feed.`;
+            const liveTextKind = 1311;
+            const liveTextATag = `30311:${roomPk}:${dtt}`;
+            const liveTextTags = [
+                ["a", liveTextATag],
+                ["L", labelNamespace],                              // Need to document all these tags for sanity
+                ["l", jamHost, labelNamespace],    
+            ];
+            const liveTextEvent = finalizeEvent({
+                created_at: Math.floor(Date.now() / 1000),
+                kind: liveTextKind,
+                tags: liveTextTags,
+                content: output,
+            }, sk);
+            await publishEvent(localwritepool, liveTextEvent, relaysToUse);
+            await sleep(250);
+        }
+        doneRelayPool(localwritepool);
+    } catch (e) {
+        console.log(`[publishRoomActive] Error ${e}`);
     }
-    doneRelayPool(localwritepool);
 }
 
 const getZapGoals = async (pubkey) => {
@@ -918,44 +951,48 @@ const publishZapGoal = async (sk, content, amount, relays) => {
 }
 
 const deleteOldZapGoals = async (sk) => {
-    if (pmd) console.log("[deleteOldZapGoals] removing older zap goals");
-    const localwritepool = getRelayPool();
-    let pk = getPublicKey(sk);
-    const timestamp = Math.floor(Date.now() / 1000);
-    const event = {
-        created_at: timestamp,
-        kind: 5,
-        tags: [],
-        content: 'these posts were published by accident',
-    }
-    let zapgoals = [];
     try {
-        zapgoals = await getZapGoals(pk);
-    } catch(e) {
-        console.log(`[deleteOldZapGoals] error fetching zap goals: ${e}`);        
-    }
-    let newestGoal = {created_at: 0}
-    for (let zapgoal of zapgoals) {
-        if (zapgoal.created_at > newestGoal.created_at) {
-            newestGoal = zapgoal;
+        if (pmd) console.log("[deleteOldZapGoals] removing older zap goals");
+        const localwritepool = getRelayPool();
+        let pk = getPublicKey(sk);
+        const timestamp = Math.floor(Date.now() / 1000);
+        const event = {
+            created_at: timestamp,
+            kind: 5,
+            tags: [],
+            content: 'these posts were published by accident',
         }
-    }
-    for (let zapgoal of zapgoals) {
-        if (zapgoal.id != newestGoal.id) {
-            event.tags.push(["e", zapgoal.id]);
+        let zapgoals = [];
+        try {
+            zapgoals = await getZapGoals(pk);
+        } catch(e) {
+            console.log(`[deleteOldZapGoals] error fetching zap goals: ${e}`);        
         }
+        let newestGoal = {created_at: 0}
+        for (let zapgoal of zapgoals) {
+            if (zapgoal.created_at > newestGoal.created_at) {
+                newestGoal = zapgoal;
+            }
+        }
+        for (let zapgoal of zapgoals) {
+            if (zapgoal.id != newestGoal.id) {
+                event.tags.push(["e", zapgoal.id]);
+            }
+        }
+        let el = event.tags.length;
+        if (el > 0) {
+            if (pmd) console.log(`[deleteOldZapGoals] requesting deletion of ${el} zap goal events`);
+            event.tags.push(["k", "9041"]);
+            const deleteEvent = finalizeEvent(event, sk);
+            await publishEvent(localwritepool, deleteEvent, relaysToUse);
+            await sleep(250);
+        } else {
+            if (pmd) console.log(`[deleteOldZapGoals] no zap goal events need to be deleted`);
+        }
+        doneRelayPool(localwritepool);
+    } catch (err) {
+        console.log(`[deleteOldZapGoals] Error ${err}`)
     }
-    let el = event.tags.length;
-    if (el > 0) {
-        if (pmd) console.log(`[deleteOldZapGoals] requesting deletion of ${el} zap goal events`);
-        event.tags.push(["k", "9041"]);
-        const deleteEvent = finalizeEvent(event, sk);
-        await publishEvent(localwritepool, deleteEvent, relaysToUse);
-        await sleep(250);
-    } else {
-        if (pmd) console.log(`[deleteOldZapGoals] no zap goal events need to be deleted`);
-    }
-    doneRelayPool(localwritepool);
 }
 
 const isValidLoginSignature = function(id,pubkey,created_at,content,sig) {

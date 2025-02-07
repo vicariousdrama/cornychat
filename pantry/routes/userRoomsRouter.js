@@ -142,6 +142,7 @@ router.get('/:userId', async function (req, res) {
         rooms.sort((a,b) => (a > b) ? 1 : ((b > a) ? -1 : 0));
         for (let roomkey of rooms) {
             let roominfo = await get(roomkey);
+            if (roominfo == undefined) continue;
             let roomId = roomkey.split('/')[1];
             let n = roominfo.name ?? '';
             let isSpeaker = false;

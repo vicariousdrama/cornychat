@@ -339,7 +339,7 @@ export default function RoomChat({
             
             if (emoting) {
                 thetext = "*" + thetext.replace("/me","") + "*";
-                username = "*" + username + "*";                    
+                username = "*" + username + " *";                    
             }
             let textHTML = createLinksSanitized(thetext,'20rem',false);
             previousTimeString = groupTimeString;
