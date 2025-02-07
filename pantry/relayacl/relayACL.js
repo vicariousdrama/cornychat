@@ -131,6 +131,7 @@ const grantPubkeyToRelay = async(pubkey, relayConfig, reason) => {
 // ----------------------------------------------------------------------------------------------------------------
 // LIST
 
+// across all configs, unique
 const listAllAllowedPubkeys = async() => {
     let relayConfigs = getRelayConfigs();
     let pubkeys = [];
@@ -143,11 +144,12 @@ const listAllAllowedPubkeys = async() => {
     return pubkeys;
 }
 
+// for a given config
 const listAllowedPubkeys = async(relayConfig) => {
     let allowedPubkeys = [];
     // Determine base url
     let baseUrl = `https://${relayConfig.endpoint}`;
-    if (pmd) console.log(`[listAllowedPubkeys] listing pubkeys allowed for ${baseUrl}`);
+    if (pmd) console.log(`[listAllowedPubkeys] ${relayConfig.relay} listing pubkeys allowed for ${baseUrl}`);
     // Setup and perform request
     try {
         let url = `${baseUrl}/api/sconfig/relays/${relayConfig.id}`;
@@ -158,8 +160,20 @@ const listAllowedPubkeys = async(relayConfig) => {
                 "Content-Type": "application/json"
             }
         });
+        console.log(`[listAllowedPubkeys] ${relayConfig.relay} config received`);
+        let ret = await res.json();
+        if (ret.hasOwnProperty('allow_list')) {
+            if (ret.allow_list.hasOwnProperty('list_pubkeys')) {
+                for (let li of ret.allow_list.list_pubkeys) {
+                    if (!li.hasOwnProperty('pubkey')) continue;
+                    allowedPubkeys.push(li.pubkey);
+                }
+            }
+        }
+        console.log(`[listAllowedPubkeys] ${relayConfig.relay} allows ${allowedPubkeys.length} pubkeys`);
+        if (pmd) console.log(allowedPubkeys);
     } catch(error) {
-        console.log(`[listAllowedPubkeys] unable to list allowed pubkeys for ${relayConfig.id}`);
+        console.log(`[listAllowedPubkeys] ${relayConfig.relay} error listing allowed pubkeys`);
         console.log(error);
     }
     return allowedPubkeys;
@@ -328,6 +342,9 @@ const loginToRelay = async(relayConfig) => {
 }
 
 module.exports = {
+    key_relayusers,
+    key_relaynonusers,
+    getRelayConfigs,
     grantPubkeysForRoomsToRelays,
     grantPubkeyToRelays,
     grantPubkeyToRelay,
