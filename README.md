@@ -34,13 +34,13 @@ Roadmap
   - ✅ Verify nostr address
   - ✅ Follow User Action to adjust contact list (kind 3)
   - ✅ Unfollow User Action to adjust contact list (kind 3)
-- ⬜ Edit User Profile
-  - ⬜ Edit Personal Profile to set name, picture, about, lud16, nip05
-  - ⬜ Upload Banner image to common media uploaders
-  - ⬜ Upload Avatar image to common media uploaders
+- ✅ Edit User Profile
+  - ✅ Edit Personal Profile to set name, picture, about, lud16, nip05
+  - ✅ Upload Banner image to common media uploaders
+  - ✅ Upload Avatar image to common media uploaders
 - ☑️ Reaction Customizations
   - ✅ Update Default Emoji Reactions
-  - ⬜ Emoji sets (kind 30030)
+  - ✅ Emoji sets (kind 30030)
   - ⬜ Target user for sending reaction
   - ⬜ Animate reaction from sender to target
 - ☑️ Zapping other Users
@@ -48,7 +48,7 @@ Roadmap
   - ✅ Allow Alby Browser Extension to Pay Invoice
   - ⬜ Confirm Zap paid (kind 9735)
   - ⬜ Animate Zap from payer to receiver
-  - ⬜ Zap Default to target without confirmation (e.g. using Alby budget)
+  - ✅ Zap Default to target without confirmation (e.g. using Alby budget)
 - ✅ Nostr Scheduled Events
   - ✅ Allow rooms to schedule a future event
   - ✅ Publish Nostr Calendar Time Event (kind 31923 per NIP-52)
