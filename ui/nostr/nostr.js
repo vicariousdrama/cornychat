@@ -6,6 +6,56 @@ import {bech32} from 'bech32';
 import {Buffer} from 'buffer';
 import {addMissingEmojiTags, buildKnownEmojiTags} from './emojiText';
 
+const spammyDomains = [
+  'lifpay.me', // mega
+  'nostrcheck.me', // mega
+  'nostrich.house', // mega
+];
+const biglud16Domains = [
+  'coinos.io',
+  'getalby.com',
+  'primal.net',
+  'strike.me',
+  'walletofsatoshi.com',
+  'zaps.lol',
+];
+const bignip05Domains = [
+  '21million.fun',
+  'bitcoinnostr.com',
+  'censorship.rip',
+  'checkmark.club',
+  'cosanostr.com',
+  'easynostr.com',
+  'freedom.casa',
+  'getalby.com',
+  'getcurrent.io',
+  'iris.to',
+  'nip05.nostr.band',
+  'nip05.social',
+  'no.str.cr',
+  'nostr.com.au',
+  'nostr.directory',
+  'nostr-check.com',
+  'nostrich.cool',
+  'nostrplebs.com',
+  'nostrpurple.com',
+  'nostrverified.com',
+  'rogue.earth',
+  'stacker.news',
+  'unbanned.lol',
+  'verified-nostr.com',
+  'vida.page',
+  'zaps.lol',
+  'zbd.gg',
+];
+const nonReciprocalDomains = [
+  'nostrplebs.com', // mega, non-reciprocal
+  'zap.stream', // non-reciprocal
+];
+const harmfulNpubs = [
+  'npub180cvv07tjdrrgpa0j7j7tmnyl2yr6yr7l8j4s3evf6u64th6gkwsyjh6w6', // actively working against nostr developers
+  'npub12262qa4uhw7u8gdwlgmntqtv7aye8vdcmvszkqwgs0zchel6mz7s6cgrkj', // actively attacks other projects
+];
 const poolOptions = {autoReconnect: true};
 function unique(arr) {
   return [...new Set(arr)];
@@ -815,16 +865,12 @@ export async function followAllNpubsFromIds(inRoomPeerIds) {
   }
 }
 
-export function isNpubOK(userNpub) {
+export function getNpubStatus(userNpub) {
   if (userNpub == undefined) {
-    return true;
+    return 'anon';
   }
-  const harmfulNpubs = [
-    'npub180cvv07tjdrrgpa0j7j7tmnyl2yr6yr7l8j4s3evf6u64th6gkwsyjh6w6', // actively working against nostr developers
-    'npub12262qa4uhw7u8gdwlgmntqtv7aye8vdcmvszkqwgs0zchel6mz7s6cgrkj', // actively attacks other projects
-  ];
   if (harmfulNpubs.includes(userNpub)) {
-    return false;
+    return 'npubharmful';
   }
   try {
     let o = undefined;
@@ -833,95 +879,76 @@ export function isNpubOK(userNpub) {
     if (o) {
       o = JSON.parse(o);
       internetaddress = o.nip05?.nip05Address ?? '';
-      if (internetaddress.length > 0 && !isAddressOK(internetaddress))
-        return false;
+      if (internetaddress.length > 0) {
+        let nip05result = isNip05DomainOK(internetaddress);
+        if (nip05result.length > 0) return nip05result;
+      }
     }
     o = sessionStorage.getItem(`${userNpub}.kind0content`);
     if (o) {
       o = JSON.parse(o);
       internetaddress = o.nip05 ?? '';
-      if (internetaddress.length > 0 && !isAddressOK(internetaddress)) {
-        return false;
+      if (internetaddress.length > 0) {
+        let nip05result = isNip05DomainOK(internetaddress);
+        if (nip05result.length > 0) return nip05result;
       }
       internetaddress = o.lud16 ?? '';
-      if (internetaddress.length > 0 && !isAddressOK(internetaddress))
-        return false;
+      if (internetaddress.length > 0) {
+        let lud16result = isLud16DomainOK(internetaddress);
+        if (lud16result.length > 0) return lud16result;
+      }
     }
   } catch (e) {
-    console.log(`isNpubOK error: ${e}`);
+    console.log(`[getNpubStatus] error: ${e}`);
   }
-  return true;
+  return '';
 }
 
-export function isAddressOK(address) {
-  if (!address) {
-    return false;
-  }
-  if (address.length == 0) {
-    return false;
-  }
-  let url = address.split('@');
-  if (url.length >= 2) {
-    let domain = url[1];
-    if (!isDomainOK(domain)) {
-      return false;
-    } else {
-      return true;
-    }
-  } else {
-    return false;
-  }
+export function isLud16DomainOK(domain) {
+  if (domain == undefined) return '';
+  if (domain.length == 0) return '';
+  if (domain.indexOf('@') > 0) domain = domain.split('@').slice(-1)[0];
+  if (spammyDomains.includes(domain)) return 'lud16spammy';
+  if (nonReciprocalDomains.includes(domain)) return 'lud16unfriendly';
+  if (biglud16Domains.includes(domain)) return 'lud16centralized';
+  return '';
 }
-
-export function isDomainOK(domain) {
-  if (domain == undefined) {
-    return false;
-  }
-  const harmfulDomains = [
-    'getalby.com', // mega (they are a big custodian where anyone can claim to be the user)
-    'nip05.social', // mega
-    'nostr.directory', // mega
-    'nostr-check.com', // mega
-    'nostrcheck.me', // mega
-    'nostrich.house', // mega
-    'nostrplebs.com', // mega, non-reciprocal
-    'primal.net', // mega, nostr adjacent silo
-    'stacker.news', // mega, nostr adjacent silo
-    'verified-nostr.com', // mega
-    'zap.stream', // non-reciprocal
-    'zaps.lol', // mega
-    'zbd.gg',
-  ]; // mega, nostr adjacent silo
-  if (harmfulDomains.includes(domain)) {
-    return false;
-  }
-  return true;
+export function isNip05DomainOK(domain) {
+  if (domain == undefined) return '';
+  if (domain.length == 0) return '';
+  if (domain.indexOf('@') > 0) domain = domain.split('@').slice(-1)[0];
+  if (spammyDomains.includes(domain)) return 'nip05spammy';
+  if (nonReciprocalDomains.includes(domain)) return 'nip05unfriendly';
+  if (bignip05Domains.includes(domain)) return 'nip05centralized';
+  return '';
 }
 
 export async function verifyNip05(nip05, userNpub) {
   if (window.DEBUG) console.log('in verifyNip05');
   if (!nip05) return false;
-  if (nip05 !== '' && userNpub) {
-    if (!isNpubOK(userNpub)) return false;
-    const pubkey = nip19.decode(userNpub).data;
-    const url = nip05.split('@');
-    if (url.length != 2) return false;
-    const domain = url[1];
-    const name = url[0];
-    if (!isDomainOK(domain)) return false;
-    try {
-      const data = await (
-        await fetch(`https://${domain}/.well-known/nostr.json?name=${name}`)
-      ).json();
+  try {
+    if (nip05 !== '' && userNpub) {
+      const pubkey = nip19.decode(userNpub).data;
+      const url = nip05.split('@');
+      if (url.length != 2) return false;
+      const domain = url[1];
+      const name = url[0];
+      try {
+        const data = await (
+          await fetch(`https://${domain}/.well-known/nostr.json?name=${name}`)
+        ).json();
 
-      let userNamePubkey = data.names[`${name}`];
+        let userNamePubkey = data.names[`${name}`];
 
-      let isSamePubkey = pubkey === userNamePubkey;
-      if (isSamePubkey) return true;
-    } catch (error) {
-      console.log('There was a problem fetching nip05. Error: ', error);
-      return false;
+        let isSamePubkey = pubkey === userNamePubkey;
+        if (isSamePubkey) return true;
+      } catch (error) {
+        console.log('There was a problem fetching nip05. Error: ', error);
+        return false;
+      }
     }
+  } catch (e) {
+    console.log('There was a problem verifying nip05. Error: ', e);
   }
   return false;
 }
