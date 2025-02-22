@@ -4,7 +4,15 @@ This software provides an open source audio space for users of Nostr.
 
 Users can quickly login with existing Nostr accounts and have name and avatar image set from profile data used throughout Nostr.
 
-Roadmap
+## Table of Contents
+
+- [Roadmap](#roadmap)
+- [About Nostr](#about-nostr)
+- [About Jam](#about-jam)
+- [Host Your Own Server](#host-your-own-server)
+- [Contribution Guidelines](#contribution-guidelines)
+
+## Roadmap
 
 - ✅ Login Enhancements
   - ✅ Anon login
@@ -70,19 +78,41 @@ Roadmap
 
 ## About Nostr:
 
-NOSTR is an acronym meaning "Notes and Other Stuff Transmitted through Relays". It is an alternative and open protocol for exchanging simple structured information publicly through relays your client(s) are connected to.  With Nostr, you cannot be deplatformed, and you are not fed an algorithm by default.  You can move between clients that evolve over time. For more information, check out [Nostr.how](https://nostr.how/en/what-is-nostr)
+NOSTR is an acronym meaning "Notes and Other Stuff Transmitted through Relays". 
+
+Nostr is an open protocol for exchanging simple, structured information. This happens publicly through relays your client(s) are connected to. With Nostr, you cannot be de-platformed, and you are not fed an algorithm by default.
+
+You also have freedom to use whichever clients you prefer to interface with. 
+
+- For more information, check out [Nostr.how](https://nostr.how/en/what-is-nostr)
+- To find new NostrApps, try [Nostr.net](https://nostr.net/)
 
 ## About Jam:
 
-This software is built as a fork from [Diego's Jam](https://github.com/diamsa/jam) which was forked from [Jam](https://gitlab.com/jam-systems/jam.git) from [stable branch on gitlab from 2023-07-27](https://gitlab.com/jam-systems/jam/-/commit/578afaf1d34c0422c153b68f5e8eb09610872bb6). 🍓 Jam is an open source alternative to Clubhouse, Twitter Spaces and similar audio spaces. With Jam you can create audio rooms that can be used for panel discussions, jam sessions, free flowing conversations, debates, theatre plays, musicals and more. The only limit is your imagination. For more information, check out [Jam](https://gitlab.com/jam-systems/jam.git), the [Jam community on 🎧 Discord](https://discord.gg/BfakmCuXSX), [Jam on X](https://twitter.com/jam_systems), and [Jam on 😽 Product Hunt](https://www.producthunt.com/posts/jam-d17ff3cc-556c-4c17-8140-5211cb1cd81f). The original README for Jam is available [here](JAM-README.md)
+Jam is an open source alternative to Clubhouse, Twitter Spaces and similar audio spaces.
+
+With Jam you can create audio rooms that can be used for panel discussions, jam sessions, free flowing conversations, debates, theatre plays, musicals and more. The only limit is your imagination. 
+
+This software is built as a fork from [Diego's Jam](https://github.com/diamsa/jam) which was forked from [Jam](https://gitlab.com/jam-systems/jam.git) from [stable branch on gitlab from 2023-07-27](https://gitlab.com/jam-systems/jam/-/commit/578afaf1d34c0422c153b68f5e8eb09610872bb6). 🍓 
+
+For more information, check out:
+- [Jam](https://gitlab.com/jam-systems/jam.git)
+- [Jam community on 🎧 Discord](https://discord.gg/BfakmCuXSX)
+- [Jam on X](https://twitter.com/jam_systems)
+- [Jam on 😽 Product Hunt](https://www.producthunt.com/posts/jam-d17ff3cc-556c-4c17-8140-5211cb1cd81f).
+
+The original README for Jam is available [here](JAM-README.md)
 
 ## Host Your Own Server
 
-Hosting your own Instance is easy...
+Hosting your own instance is easy...
 
 Follow the [Install](INSTALL.md) guidance for setting up your server
 
 Periodically [Update](UPDATE.md) your install with changes
 
+## Contribution Guidelines
+
+Join us in [discussions](https://github.com/vicariousdrama/cornychat/discussions) if you have any new ideas for CornyChat!
 
 
