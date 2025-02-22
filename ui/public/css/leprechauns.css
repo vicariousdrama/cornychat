@@ -1,0 +1,38 @@
+@import url("./fonts/Coiny.css");
+
+@import url("./fonts/all.min.css");
+
+* {
+  box-sizing: border-box;
+}
+.cd__main{
+   background: darkolivegreen !important;
+   font-family: 'Coiny', cursive !important;
+   min-height: 450px;
+}
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Coiny', cursive;
+  margin: 0;
+  min-height: 100vh;
+}
+
+.leprechaun {
+  position: fixed;
+  font-size: 5vh;
+  top: -1vh;
+  transform: translateY(0);
+  animation: fall 6s linear forwards;
+  color: green;
+}
+
+@keyframes fall {
+  from {
+     transform: translateY(0vh) translateX(-10vw);
+  }
+  to {
+     transform: translateY(105vh) translateX(10vw);
+  }
+}

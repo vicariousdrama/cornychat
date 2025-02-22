@@ -81,30 +81,53 @@
     let animInterval = undefined;
     let animFlakes = undefined;
     function load_animation() {
+        let mn = thed.getMonth();
+        let dn = thed.getDate();
         // Valentines
-        if (thed.getDate() == 14 && thed.getMonth() == 1) {
+        if (dn == 14 && mn == 1) {
             linkCSS('/css/hearts.css');
             animInterval = setInterval(makeHearts, 1500);
             return;
         }
 
+        // Russia
+        if (dn == 24 && mn == 1) {
+            linkCSS('/css/corns.css');
+            animInterval = setInterval(makeRussia, 1550);
+            return;
+        }
+
+        // March 3s and 17
+        if (mn == 2 && [3,13,17,23].includes(dn)) {
+            linkCSS('/css/leprechauns.css');
+            animInterval = setInterval(makeLeprechaun, 1317);
+            return;
+        }
+
         // April First
-        if (thed.getDate() == 1 && thed.getMonth() == 3) {
+        if (dn == 1 && mn == 3) {
             if(Math.round(Math.random() * 10) > 7) {
                 flipit();
                 return;
             }
         }
 
+        // USA! USA!
+        if (dn == 4 && mn == 6) {
+            linkCSS('/css/corns.css');
+            animInterval = setInterval(makeUSA, 1976);
+            return;
+        }
+
         // Corn Days
-        if (thed.getDate() >= 12 && thed.getDate() <= 14) {
+        if ([12,13,14].includes(dn)) {
             linkCSS('/css/corns.css');
             animInterval = setInterval(makeCorn, 1388);
             return;
         }
 
         // Snow during December + January
-        if (thed.getMonth() == 11 || thed.getMonth() == 0) {
+        if ([0,11].includes(mn)) {
             animFlakes = new Snowflakes({color: "#d7c1f9",minOpacity: 0.4,maxOpacity: 0.8,maxSize:50,speed:3});
             return;
         }
@@ -129,19 +152,54 @@
         makeAnim('🌽', 'corn');
     }
     function makeHearts() {
-        const t = 'heart';
+        const className = 'heart';
         switch (Math.round(Math.random() * 3)) {
-            case 0: makeAnim(t, '🌹'); break;
-            case 1: makeAnim(t, '💗'); break;
-            case 2: makeAnim(t, 'Happy Valentines Day'); break;
+            case 0: makeAnim('🌹', className); break;
+            case 1: makeAnim('💗', className); break;
+            case 2: makeAnim('Happy Valentines Day', className); break;
         }
     }
-    function makeAnim(t, s) {
+    function makeLeprechaun(t, s) {
+        const className = 'leprechaun';
+        switch (Math.round(Math.random() * 4)) {
+            case 0: makeAnim('🍀', className); break;
+            case 1: makeAnimImage('/img/emojis/leprechaun.png', 'leprechaun'); break;
+            case 2: makeAnim('☘️', className); break;
+            case 3: makeAnim('🇮🇪', className); break;
+        }
+    }
+    function makeRussia() {
+        makeAnim('🇷🇺','corn');
+    }
+    function makeUSA() {
+        switch (Math.round(Math.random() * 3)) {
+            case 0: makeAnim('🇺🇸','corn'); break;
+            case 1: makeAnim('🗽','corn'); break;
+            case 2: makeAnim('💵','corn'); break;
+        }
+    }
+    function makeAnim(t, className) {
         const c = document.createElement('div');
-        c.classList.add(s);
+        c.classList.add(className);
         c.style.left = Math.random() * 100 + "vw";
         c.style.animationDuration = Math.random() * 2 + 3 + "s";
         c.innerText = t;
+        document.body.appendChild(c);
+        setTimeout(() => {c.remove();}, 5000);
+    }
+    function makeAnimImage(i, className) {
+        const c = document.createElement('div');
+        c.classList.add(className);
+        c.style.left = Math.random() * 100 + "vw";
+        c.style.animationDuration = Math.random() * 2 + 3 + "s";
+        const im = document.createElement('img');
+        let a1 = document.createAttribute('src');
+        a1.value = i;
+        im.setAttributeNode(a1);
+        let a2 = document.createAttribute('width');
+        a2.value = '64';
+        im.setAttributeNode(a2); 
+        c.appendChild(im);
         document.body.appendChild(c);
         setTimeout(() => {c.remove();}, 5000);
     }
