@@ -85,7 +85,7 @@ Nostr is an open protocol for exchanging simple, structured information. This ha
 You also have freedom to use whichever clients you prefer to interface with. 
 
 - For more information, check out [Nostr.how](https://nostr.how/en/what-is-nostr)
-- To find new NostrApps, try [Nostr.net](https://nostr.net/)
+- To find new Nostr apps, try [Nostr.net](https://nostr.net/)
 
 ## About Jam:
 
