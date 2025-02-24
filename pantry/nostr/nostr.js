@@ -3,6 +3,7 @@ const {
   serverNsec,
   relaysGeneral,
   relaysZapGoals,
+  relaysPoolPerWrite,
 } = require('../config');
 const {get, set} = require('../services/redis');
 const {
@@ -20,7 +21,7 @@ const {grantPubkeyToRelays} = require('../relayacl/relayACL');
 const pmd = true;
 const poolOptions = {autoReconnect: true};
 const writepool = new RelayPool(undefined, poolOptions);
-const newpoolPerWrite = false;
+const newpoolPerWrite = relaysPoolPerWrite;
 
 const relaysToUse = relaysGeneral.split(',');
 
