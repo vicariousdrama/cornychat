@@ -43,7 +43,17 @@ const publishEvent = async (pool, event, relays) => {
           relays
         )}\n${JSON.stringify(event)}`
       );
-    let publishEventResults = await pool.publish(event, relays);
+    // let publishEventResults = await pool.publish(event, relays);
+    (async function () {
+      try {
+        await pool.publish(event, relays);
+      } catch (error) {
+        console.log('[publishEvent] error publishing to pool.');
+        throw error;
+      }
+    })().catch(e => {
+      console.error(e);
+    });
     if (pool.errorsAndNotices && pool.errorsAndNotices.length > 0)
       console.log(
         `[publishEvent] pool errors and notices: ${JSON.stringify(
