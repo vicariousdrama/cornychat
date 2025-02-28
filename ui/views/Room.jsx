@@ -113,6 +113,16 @@ const nameSymbols = [
     symbol: ['☘️', '🇮🇪'],
     title: 'May the enemies of Ireland never meet a friend.',
   }, // Seimi
+  {
+    npub: 'npub12gu8c6uee3p243gez6cgk76362admlqe72aq3kp2fppjsjwmm7eqj9fle6',
+    symbol: '🇨',
+    title: "He's a good ",
+  }, // Bevo
+  {
+    npub: 'npub1dmahfent0mtlh8ahhzu0ztslhw470azcyw3n599vvrxfysfg25mqurhrpq',
+    symbol: ['🔪', '🔥', '💀'],
+    title: '',
+  }, // Chef
 ];
 
 export default function Room({room, roomId, uxConfig}) {
