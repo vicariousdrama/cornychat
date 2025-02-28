@@ -20,6 +20,7 @@ export {
   getGifs,
   getMOTD,
   getRoomList,
+  getPermanentRoomsList,
   getScheduledEvents,
   getStaticRoomsList,
   getStaticEventsList,
@@ -173,10 +174,13 @@ async function updateRoom(state, roomId, room) {
   // get id from state
   let {myId} = state;
   // check if legacy room
-  let islegacy = (!currentroom?.updateTime);
+  let islegacy = !currentroom?.updateTime;
   if (islegacy && !room?.owners) {
     // set owner to first moderator in list
-    console.log("Assigning first moderator id as room owner", currentroom.moderators[0]);
+    console.log(
+      'Assigning first moderator id as room owner',
+      currentroom.moderators[0]
+    );
     room.owners = [currentroom.moderators[0]];
   }
 
@@ -188,14 +192,17 @@ async function getRoom(roomId) {
   if (!roomId) return undefined;
   let currentroom = (await get(`/rooms/${roomId}`))[0];
   // check if legacy room
-  let islegacy = (!currentroom?.updateTime);
+  let islegacy = !currentroom?.updateTime;
   if (islegacy) {
     // Force update time to a consistent time
     currentroom.updateTime = 1702506180; // Corny Chat Creation Date
     if (!currentroom?.owners) {
       // set owner to first moderator in list
       let firstModerator = currentroom.moderators[0];
-      console.log("Assuming first moderator id is the room owner", firstModerator);
+      console.log(
+        'Assuming first moderator id is the room owner',
+        firstModerator
+      );
       currentroom.owners = [firstModerator];
     }
   }
@@ -228,6 +235,10 @@ async function getStaticEventsList() {
   return await get(`/staticevents/`);
 }
 
+async function getPermanentRoomsList() {
+  return await get(`/permanentrooms/`);
+}
+
 async function getGifs(phrase, cursor) {
   if (cursor) {
     return await get(`/imagepicker/${phrase}/next/${cursor}`);
@@ -241,7 +252,7 @@ async function getMyRoomList(userId) {
 }
 
 async function getRoomATag(roomId) {
-  if (!roomId) return "";
+  if (!roomId) return '';
   let aTag = (await get(`/rooms/${roomId}/nip53`))[0];
   return aTag;
 }

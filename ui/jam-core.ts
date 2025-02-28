@@ -38,6 +38,7 @@ import {
   getGifs,
   getMOTD,
   getRoomList,
+  getPermanentRoomsList,
   getScheduledEvents,
   getStaticRoomsList,
   getStaticEventsList,
@@ -48,7 +49,13 @@ import {
   getZapGoal,
   ZapGoal
 } from './nostr/zapgoal';
-import {addAdmin, removeAdmin} from './jam-core/admin';
+import {
+  addAdmin, 
+  addPermanentRoom,
+  deleteOldRooms,
+  removeAdmin, 
+  removePermanentRoom,
+} from './jam-core/admin';
 import AppState from './jam-core/AppState';
 
 /* THE JAM API */
@@ -116,6 +123,8 @@ function createApi<T extends StateType>(
       addModerator(state, roomId, peerId) as Promise<boolean>,
     addOwner: (roomId: string, peerId: string) =>
       addOwner(state, roomId, peerId) as Promise<boolean>,
+    addPermanentRoom: (roomId: string) =>
+      addPermanentRoom(state, roomId) as Promise<boolean>,
     addPresenter: (roomId: string, peerId: string) =>
       addPresenter(state, roomId, peerId) as Promise<boolean>,
     addSpeaker: (roomId: string, peerId: string) =>
@@ -127,6 +136,8 @@ function createApi<T extends StateType>(
       removeModerator(state, roomId, peerId) as Promise<boolean>,
     removeOwner: (roomId: string, peerId: string) =>
       removeOwner(state, roomId, peerId) as Promise<boolean>,
+    removePermanentRoom: (roomId: string) =>
+      removePermanentRoom(state, roomId) as Promise<boolean>,
     removePresenter: (roomId: string, peerId: string) =>
       removePresenter(state, roomId, peerId) as Promise<boolean>,
     removeSpeaker: (roomId: string, peerId: string) =>
@@ -140,10 +151,12 @@ function createApi<T extends StateType>(
     updateRoom: (roomId: string, room: RoomType) =>
       updateRoom(state, roomId, room) as Promise<boolean>,
 
+    deleteOldRooms: () => deleteOldRooms(state),
     listRooms: () => getRoomList(),
     listScheduledEvents: () => getScheduledEvents(),
     listGifs: (phrase: string, cursor: string) => getGifs(phrase, cursor),
     listMyRooms: (userId: string) => getMyRoomList(userId),
+    listPermanentRooms: () => getPermanentRoomsList(),
     listStaticRooms: () => getStaticRoomsList(),
     listStaticEvents: () => getStaticEventsList(),
     enterRoom: (roomId: string) => dispatch(actions.JOIN, roomId),

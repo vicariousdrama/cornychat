@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {Modal} from '../Modal';
 import {useJam} from '../../jam-core-react';
 import {colorThemes, isDark} from '../../lib/theme';
+import {PermanentRoomInfo} from './PermanentRoomInfo';
 import {BasicRoomInfo} from './BasicRoomInfo';
 import {DesignRoomInfo} from './DesignRoomInfo';
 import {UserList} from './UserList';
@@ -13,15 +14,22 @@ import {Schedule} from './Schedule';
 import {getCustomColor, getRgbaObj, getColorPallete} from './utils';
 import {use} from 'use-minimal-state';
 
-export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) {
+export function EditRoomModal({
+  roomId,
+  iOwn,
+  room,
+  roomColor,
+  close,
+  iAmAdmin,
+}) {
   const [state, api] = useJam();
-  const {
-    updateRoom
-  } = api;
+  const {updateRoom} = api;
   let submitUpdate = async partialRoom => {
     return updateRoom(roomId, {...room, ...partialRoom});
   };
-  const textColor = isDark(roomColor.buttons.primary) ? roomColor.text.light : roomColor.text.dark;
+  const textColor = isDark(roomColor.buttons.primary)
+    ? roomColor.text.light
+    : roomColor.text.dark;
   let [myId, myIdentity] = use(state, ['myId', 'myIdentity']);
   const info = myIdentity?.info;
   const nostrIdentity = info?.identities?.find(i => i.type === 'nostr');
@@ -32,8 +40,12 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
   let [logoURI, setLogoURI] = useState(room.logoURI || '');
   let [lud16, setLud16] = useState(room.lud16 || '');
   let [backgroundURI, setBackgroundURI] = useState(room.backgroundURI || '');
-  let [backgroundRepeat, setBackgroundRepeat] = useState(room.backgroundRepeat || 'repeat');
-  let [backgroundSize, setBackgroundSize] = useState(room.backgroundSize || '100%');
+  let [backgroundRepeat, setBackgroundRepeat] = useState(
+    room.backgroundRepeat || 'repeat'
+  );
+  let [backgroundSize, setBackgroundSize] = useState(
+    room.backgroundSize || '100%'
+  );
   let [roomLinks, setRoomLinks] = useState(room.roomLinks || []);
   let [owners, setOwners] = useState(room.owners || []);
   let [ownersDeleting, setOwnersDeleting] = useState([]);
@@ -46,10 +58,18 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
   let [closedBy, setClosedBy] = useState(room.closedBy || '');
   let [isPrivate, setIsPrivate] = useState(room.isPrivate || false);
   let [isProtected, setIsProtected] = useState(room.isProtected || false);
-  let [passphrasePlain, setPassphrasePlain] = useState(localStorage.getItem(`${roomId}.passphrase`) ?? (sessionStorage.getItem(`${roomId}.passphrase`) ?? ''));
+  let [passphrasePlain, setPassphrasePlain] = useState(
+    localStorage.getItem(`${roomId}.passphrase`) ??
+      sessionStorage.getItem(`${roomId}.passphrase`) ??
+      ''
+  );
   let [passphraseHash, setPassphraseHash] = useState(room.passphraseHash || '');
-  let [isRecordingAllowed, setIsRecordingAllowed] = useState(room.isRecordingAllowed || false);
-  let [isLiveActivityAnnounced, setIsLiveActivityAnnounced] = useState(room.isLiveActivityAnnounced || false);
+  let [isRecordingAllowed, setIsRecordingAllowed] = useState(
+    room.isRecordingAllowed || false
+  );
+  let [isLiveActivityAnnounced, setIsLiveActivityAnnounced] = useState(
+    room.isLiveActivityAnnounced || false
+  );
   let [stageOnly, setStageOnly] = useState(room.stageOnly || false);
   let [customEmojis, setCustomEmojis] = useState(room.customEmojis);
   let [roomSlides, setRoomSlides] = useState(room.roomSlides || []);
@@ -82,44 +102,44 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
   function decodeHTMLEncoded(v) {
     let o = v || '';
     let goagain = false;
-    while (o.indexOf("&amp;") > -1) {
-      o = o.replaceAll("&amp;", "&");
+    while (o.indexOf('&amp;') > -1) {
+      o = o.replaceAll('&amp;', '&');
       goagain = true;
     }
-    while (o.indexOf("&#38;") > -1) {
-      o = o.replaceAll("&#38;", "&");
+    while (o.indexOf('&#38;') > -1) {
+      o = o.replaceAll('&#38;', '&');
       goagain = true;
     }
-    while (o.indexOf("&lt;") > -1) {
-      o = o.replaceAll("&lt;", "<");
+    while (o.indexOf('&lt;') > -1) {
+      o = o.replaceAll('&lt;', '<');
       goagain = true;
     }
-    while (o.indexOf("&#60;") > -1) {
-      o = o.replaceAll("&#60;", "<");
+    while (o.indexOf('&#60;') > -1) {
+      o = o.replaceAll('&#60;', '<');
       goagain = true;
     }
-    while (o.indexOf("&gt;") > -1) {
-      o = o.replaceAll("&gt;", ">");
+    while (o.indexOf('&gt;') > -1) {
+      o = o.replaceAll('&gt;', '>');
       goagain = true;
     }
-    while (o.indexOf("&#62;") > -1) {
-      o = o.replaceAll("&#62;", ">");
+    while (o.indexOf('&#62;') > -1) {
+      o = o.replaceAll('&#62;', '>');
       goagain = true;
     }
-    while (o.indexOf("&apos;") > -1) {
-      o = o.replaceAll("&apos;", "'");
+    while (o.indexOf('&apos;') > -1) {
+      o = o.replaceAll('&apos;', "'");
       goagain = true;
     }
-    while (o.indexOf("&#39;") > -1) {
-      o = o.replaceAll("&#39;", "'");
+    while (o.indexOf('&#39;') > -1) {
+      o = o.replaceAll('&#39;', "'");
       goagain = true;
     }
-    while (o.indexOf("&quot;") > -1) {
-      o = o.replaceAll("&quot;", "\"");
+    while (o.indexOf('&quot;') > -1) {
+      o = o.replaceAll('&quot;', '"');
       goagain = true;
     }
-    while (o.indexOf("&#38;") > -1) {
-      o = o.replaceAll("&#38;", "\"");
+    while (o.indexOf('&#38;') > -1) {
+      o = o.replaceAll('&#38;', '"');
       goagain = true;
     }
     if (goagain) {
@@ -131,9 +151,9 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
   let submit = async e => {
     e.preventDefault();
 
-    name          = decodeHTMLEncoded(name);
-    description   = decodeHTMLEncoded(description);
-    logoURI       = decodeHTMLEncoded(logoURI);
+    name = decodeHTMLEncoded(name);
+    description = decodeHTMLEncoded(description);
+    logoURI = decodeHTMLEncoded(logoURI);
     backgroundURI = decodeHTMLEncoded(backgroundURI);
     let decodedRoomLinks = [];
     for (let roomLink of roomLinks) {
@@ -162,7 +182,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
     setKicked(cleankicked);
 
     // Store the new passphrase in my session
-    localStorage.setItem(`${roomId}.passphrase`, passphrasePlain); 
+    localStorage.setItem(`${roomId}.passphrase`, passphrasePlain);
 
     let ok = await submitUpdate({
       name,
@@ -193,7 +213,9 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
       zapGoal,
     });
     if (!ok) {
-      alert('An error occurred. Your changes were not saved. If another owner or moderator was making changes you will need to close and reopen the setttings to make your changes.');
+      alert(
+        'An error occurred. Your changes were not saved. If another owner or moderator was making changes you will need to close and reopen the setttings to make your changes.'
+      );
     } else {
       close();
     }
@@ -204,15 +226,23 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
       <h1 className="text-gray-200">Room Settings</h1>
 
       {(iOwn || iAmAdmin) && (
-      <div className="p-4 py-2 bg-gray-700 text-gray-200 rounded-lg my-3 text-md">
-        As a room owner you can modify all settings. Moderators that you set may only modify links and slides, speakers, and schedule next event.
-      </div>
+        <div className="p-4 py-2 bg-gray-700 text-gray-200 rounded-lg my-3 text-md">
+          As a room owner you can modify all settings. Moderators that you set
+          may only modify links and slides, speakers, and schedule next event.
+        </div>
       )}
 
       {!(iOwn || iAmAdmin) && (
-      <div className="p-4 py-2 bg-gray-700 text-gray-200 rounded-lg my-3 text-md">
-        As a room moderator you can manage speakers, view the room settings, make changes to the links and slides, and schedule the next event.
-      </div>
+        <div className="p-4 py-2 bg-gray-700 text-gray-200 rounded-lg my-3 text-md">
+          As a room moderator you can manage speakers, view the room settings,
+          make changes to the links and slides, and schedule the next event.
+        </div>
+      )}
+
+      {iAmAdmin && (
+        <div className="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg my-3">
+          <PermanentRoomInfo roomId={roomId} />
+        </div>
       )}
 
       <div className="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg my-3">
@@ -389,12 +419,16 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
           textColor={textColor}
           roomColor={roomColor}
         />
-      </div>      
+      </div>
 
       <div className="px-4 py-2 rounded-lg my-3">
-        <div style={{
-            bottom: '72px', zIndex: '5', backgroundColor: roomColor.avatarBg
-          }}>
+        <div
+          style={{
+            bottom: '72px',
+            zIndex: '5',
+            backgroundColor: roomColor.avatarBg,
+          }}
+        >
           <div className="flex p-4">
             <div className="flex flex-grow">
               <button
@@ -419,8 +453,7 @@ export function EditRoomModal({roomId, iOwn, room, roomColor, close, iAmAdmin}) 
           </div>
         </div>
         <div className="h-28"></div>
-      </div>     
-
+      </div>
     </Modal>
   );
 }
