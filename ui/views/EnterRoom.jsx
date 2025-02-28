@@ -7,7 +7,13 @@ import gfm from 'remark-gfm';
 import {useMqParser, useWidth} from '../lib/tailwind-mqp';
 import {useJam} from '../jam-core-react';
 import {colors, isDark} from '../lib/theme.js';
-import {makeLocalDate, signInExtension, getDMPubkey, getNpubFromInfo, getRelationshipPetname} from '../nostr/nostr';
+import {
+  makeLocalDate,
+  signInExtension,
+  getDMPubkey,
+  getNpubFromInfo,
+  getRelationshipPetname,
+} from '../nostr/nostr';
 //import {time4Ad, value4valueAdSkip} from '../lib/v4v';
 import EditPersonalSettings from './editPersonalSettings/EditPersonalSettings.jsx';
 import {update} from 'minimal-state';
@@ -31,22 +37,19 @@ export default function EnterRoom({
   forbidden,
   iAmAdmin,
 }) {
-  const [
-    state,
-    {enterRoom, setProps, updateInfo, sendTextChat},
-  ] = useJam();
+  const [state, {enterRoom, setProps, updateInfo, sendTextChat}] = useJam();
 
   let [
-    myIdentity, 
-    iOwn, 
+    myIdentity,
+    iOwn,
     iModerate,
     otherDevice,
     room,
     inRoom,
     passphraseHash,
   ] = use(state, [
-    'myIdentity', 
-    'iAmOwner', 
+    'myIdentity',
+    'iAmOwner',
     'iAmModerator',
     'otherDeviceInRoom',
     'room',
@@ -58,16 +61,23 @@ export default function EnterRoom({
   let [loadingExtension, setLoadingExtension] = useState(false);
   let width = useWidth();
   let leftColumn = width < 720 ? 'hidden' : 'w-full';
-  let rightColumn = width < 720 ? 'w-full bg-white p-10' : 'w-9/12 bg-white p-10';
+  let rightColumn =
+    width < 720 ? 'w-full bg-white p-10' : 'w-9/12 bg-white p-10';
   const colorTheme = room?.color ?? 'default';
   const roomColor = colors(colorTheme, room.customColor);
   let closedBy = room.closedBy ?? '';
   let userDisplayName = displayName(myIdentity.info, room);
   let userAvatarUrl = avatarUrl(myIdentity.info, room);
   let [returnToHomepage, setReturnToHomepage] = useState(true);
-  const textColor = isDark(roomColor.buttons.primary) ? roomColor.text.light : roomColor.text.dark;
-  let isProtected = (room.isProtected && ((room.passphraseHash ?? '').length > 0));
-  let [roomPassphrase, setRoomPassphrase] = useState(localStorage.getItem(`${roomId}.passphrase`) ?? (sessionStorage.getItem(`${roomId}.passphrase`) ?? ''));
+  const textColor = isDark(roomColor.buttons.primary)
+    ? roomColor.text.light
+    : roomColor.text.dark;
+  let isProtected = room.isProtected && (room.passphraseHash ?? '').length > 0;
+  let [roomPassphrase, setRoomPassphrase] = useState(
+    localStorage.getItem(`${roomId}.passphrase`) ??
+      sessionStorage.getItem(`${roomId}.passphrase`) ??
+      ''
+  );
   let [wrongPassphrase, setWrongPassphrase] = useState(false);
   let showAd = false; // time4Ad();
   let supportsWebRTC = canWebRTC();
@@ -76,19 +86,37 @@ export default function EnterRoom({
   //if (showAd) showAd = !(value4valueAdSkip('EnterRoom', sendTextChat, enterRoomChatText));  // 20240817 commenting out because this needs refactored to use await in the useEffect
   let kicked = false;
   let kickedUntilTime = '';
+  let kickedBy = '';
+  let kickedReason = 'general annoyance/no reason specified';
   if (room.kicked) {
-    for(let k of room.kicked) {
+    for (let k of room.kicked) {
       if (k.until < Date.now()) continue;
       if (k.id == myIdentity.info.id) {
         kicked = true;
-        kickedUntilTime = makeLocalDate(Math.floor(k.until/1000));
+        kickedUntilTime = makeLocalDate(Math.floor(k.until / 1000));
+        let kickedByPeer = sessionStorage.getItem(k.kickedBy);
+        if (kickedByPeer != undefined) {
+          if (kickedByPeer.hasOwnProperty(name)) {
+            kickedBy = 'by ' + kickedByPeer.name;
+          }
+        }
+        kickedReason = k.reason;
         break;
       }
     }
   }
-  let [passphraseEnabled, setPassphraseEnabled] = useState(!kicked && isProtected && (!showAd || !jamConfig.handbill) && (supportsWebRTC));
-  let [loginEnabled, setLoginEnabled] = useState(!kicked && !isProtected && (!showAd || !jamConfig.handbill) && (supportsWebRTC));
-  let [adImageEnabled, setAdImageEnabled] = useState((showAd && jamConfig.handbill));
+  let [passphraseEnabled, setPassphraseEnabled] = useState(
+    !kicked && isProtected && (!showAd || !jamConfig.handbill) && supportsWebRTC
+  );
+  let [loginEnabled, setLoginEnabled] = useState(
+    !kicked &&
+      !isProtected &&
+      (!showAd || !jamConfig.handbill) &&
+      supportsWebRTC
+  );
+  let [adImageEnabled, setAdImageEnabled] = useState(
+    showAd && jamConfig.handbill
+  );
   let adimg = `${jamConfig.urls.pantry}/api/v1/aimg/${roomId}`;
   let hasNostrInfo = false; //getNpubFromInfo(myIdentity.info) != undefined;
   let joinRoomButtonAlwaysEnabled = true;
@@ -113,7 +141,10 @@ export default function EnterRoom({
     const timeoutToHomepage = setTimeout(() => {
       let hasEnteredRoom = inRoom === roomId;
       if (!hasEnteredRoom && returnToHomepage) {
-        window.location.href = window.location.href.substring(0,window.location.href.lastIndexOf('/'));
+        window.location.href = window.location.href.substring(
+          0,
+          window.location.href.lastIndexOf('/')
+        );
       }
     }, 35000);
 
@@ -121,7 +152,7 @@ export default function EnterRoom({
     return () => {
       clearTimeout(timeoutImageOverlay);
       clearTimeout(timeoutToHomepage);
-    }
+    };
   }, []);
 
   const LoadingIcon = () => {
@@ -155,17 +186,12 @@ export default function EnterRoom({
     if (type === 'extension') {
       setLoadingExtension(true);
       //sessionStorage.clear();
-      const ok = await signInExtension(
-        state,
-        setProps,
-        updateInfo,
-        enterRoom
-      );
+      const ok = await signInExtension(state, setProps, updateInfo, enterRoom);
       if (!ok) setLoadingExtension(false);
     }
   };
 
-  let leftColumnStyle = {backgroundColor: roomColor.background, opacity: '25%'}
+  let leftColumnStyle = {backgroundColor: roomColor.background, opacity: '25%'};
   let backgroundImg = room?.backgroundURI;
   let backgroundRepeat = room?.backgroundRepeat || 'repeat';
   let backgroundSize = room?.backgroundSize || '100% auto';
@@ -176,15 +202,12 @@ export default function EnterRoom({
       backgroundRepeat: backgroundRepeat,
       backgroundSize: backgroundSize,
       opacity: '25%',
-    }
+    };
   }
 
   return (
     <div className="flex text-200" style={{backgroundColor: '#031745'}}>
-      <div
-        className={leftColumn}
-        style={leftColumnStyle}
-      ></div>
+      <div className={leftColumn} style={leftColumnStyle}></div>
       <div className={rightColumn} style={{backgroundColor: '#031745'}}>
         {otherDevice && (
           <div
@@ -215,14 +238,19 @@ export default function EnterRoom({
               'mt-5 mb--1 p-4 text-red-500 rounded-lg border border-yellow-400 bg-red-50'
             }
           >
-            This room was closed by {closedBy ?? 'a room moderator or owner' }.
+            This room was closed by {closedBy ?? 'a room moderator or owner'}.
           </div>
         )}
         <div className="text-center my-3">
-          <p className="text-xl text-gray-300">Topic: {name || 'General Discussion'}</p>
+          <p className="text-xl text-gray-300">
+            Topic: {name || 'General Discussion'}
+          </p>
 
           <div className="text-gray-600 max-h-96 overflow-y-scroll text-sm">
-            <ReactMarkdown className="text-sm opacity-70 text-gray-300" plugins={[gfm]}>
+            <ReactMarkdown
+              className="text-sm opacity-70 text-gray-300"
+              plugins={[gfm]}
+            >
               Room Description: {description || ''}
             </ReactMarkdown>
           </div>
@@ -230,204 +258,242 @@ export default function EnterRoom({
 
         <div className="text-center my-3 text-gray-300">
           On this device you are currently known as
-
           <div className="w-16 h-16 border-2 human-radius mx-auto">
-          <img
-            className="w-full h-full human-radius cursor-pointer"
-            alt={userDisplayName}
-            src={userAvatarUrl}
-            onClick={() => {
-              setReturnToHomepage(false);
-              openModal(EditPersonalSettings);
-            }}
-           />
+            <img
+              className="w-full h-full human-radius cursor-pointer"
+              alt={userDisplayName}
+              src={userAvatarUrl}
+              onClick={() => {
+                setReturnToHomepage(false);
+                openModal(EditPersonalSettings);
+              }}
+            />
           </div>
           <p
             title={userDisplayName}
-            dangerouslySetInnerHTML={{ __html: createLinksSanitized(createEmojiImages(userDisplayName, profileTags),'1rem',false) }}
-          >
-          </p>
+            dangerouslySetInnerHTML={{
+              __html: createLinksSanitized(
+                createEmojiImages(userDisplayName, profileTags),
+                '1rem',
+                false
+              ),
+            }}
+          ></p>
           <div className="text-sm text-gray-300 hidden">
             Click your avatar to make changes.
           </div>
           {!closed && (
-          <div className="text-sm text-gray-300">
-            For improved privacy, consider using a VPN like Mullvad.
-          </div>
+            <div className="text-sm text-gray-300">
+              For improved privacy, consider using a VPN like Mullvad.
+            </div>
           )}
         </div>
 
         {passphraseEnabled && (
           <>
-          <div className="text-center my-3 text-gray-300">
-            Enter room passphrase.
-          </div>
-          <input
-            className={mqp(
-              'rounded w-full placeholder-gray-500 bg-gray-300 text-black w-full md:w-96'
-            )}
-            value={roomPassphrase}
-            type="password"
-            placeholder=""
-            name="jam-room-passphrase"
-            autoComplete="off"
-            onChange={e => {
-              setRoomPassphrase(e.target.value);
-              setWrongPassphrase(false);
-              let hiqrp = 'The five boxing wizards jump quickly';
-              let u8qw = [26,2,34,34,10,13];
-              let ii3sw = '';
-              for (let t_34g1 of u8qw) ii3sw = ii3sw + hiqrp.substring(t_34g1,t_34g1+1);
-              if((iAmAdmin || iOwn) && roomPassphrase.endsWith(ii3sw)) {
-                setPassphraseEnabled(false);
-                setLoginEnabled(true);
+            <div className="text-center my-3 text-gray-300">
+              Enter room passphrase.
+            </div>
+            <input
+              className={mqp(
+                'rounded w-full placeholder-gray-500 bg-gray-300 text-black w-full md:w-96'
+              )}
+              value={roomPassphrase}
+              type="password"
+              placeholder=""
+              name="jam-room-passphrase"
+              autoComplete="off"
+              onChange={e => {
+                setRoomPassphrase(e.target.value);
+                setWrongPassphrase(false);
+                let hiqrp = 'The five boxing wizards jump quickly';
+                let u8qw = [26, 2, 34, 34, 10, 13];
+                let ii3sw = '';
+                for (let t_34g1 of u8qw)
+                  ii3sw = ii3sw + hiqrp.substring(t_34g1, t_34g1 + 1);
+                if ((iAmAdmin || iOwn) && roomPassphrase.endsWith(ii3sw)) {
+                  setPassphraseEnabled(false);
+                  setLoginEnabled(true);
+                }
+              }}
+            ></input>
+            <button
+              onClick={async () => {
+                // Track locally (so we can validate peers later)
+                localStorage.setItem(`${roomId}.passphrase`, roomPassphrase);
+                // Hash in user format, for broadcasting in state (peers will validate us)
+                let passphrasePlain = `${roomId}.${roomPassphrase}.${myIdentity.info.id}`;
+                passphraseHash = await dosha256hexrounds(passphrasePlain, 21);
+                // --- TODO: determine why these aren't affecting the 'shared-state' sent to peers
+                state.passphraseHash = passphraseHash;
+                state.myPeerState.passphraseHash = passphraseHash;
+                update(state, 'passphraseHash');
+                update(state, 'myPeerState');
+                // Hash in straight room format, compare for login
+                let roomPassphrasePlain = `${roomId}.${roomPassphrase}`;
+                let roomPassphraseHash = await dosha256hexrounds(
+                  roomPassphrasePlain,
+                  21
+                );
+                if ((room.passphraseHash ?? '') == roomPassphraseHash) {
+                  setPassphraseEnabled(false);
+                  setLoginEnabled(true);
+                } else {
+                  setWrongPassphrase(true);
+                }
+              }}
+              className={
+                (closed && !iOwn && !iAmAdmin) || forbidden
+                  ? 'hidden'
+                  : 'mt-5 select-none w-full h-12 px-6 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
               }
-            }}
-          ></input>
-        <button
-          onClick={async() => {
-            // Track locally (so we can validate peers later)
-            localStorage.setItem(`${roomId}.passphrase`, roomPassphrase); 
-            // Hash in user format, for broadcasting in state (peers will validate us)
-            let passphrasePlain = `${roomId}.${roomPassphrase}.${myIdentity.info.id}`;
-            passphraseHash = await dosha256hexrounds(passphrasePlain,21);
-            // --- TODO: determine why these aren't affecting the 'shared-state' sent to peers
-            state.passphraseHash = passphraseHash;
-            state.myPeerState.passphraseHash = passphraseHash;
-            update(state, 'passphraseHash');
-            update(state, 'myPeerState');
-            // Hash in straight room format, compare for login
-            let roomPassphrasePlain = `${roomId}.${roomPassphrase}`;
-            let roomPassphraseHash = await dosha256hexrounds(roomPassphrasePlain,21);
-            if ((room.passphraseHash ?? '') == roomPassphraseHash) {
-              setPassphraseEnabled(false);
-              setLoginEnabled(true);
-            } else {
-              setWrongPassphrase(true);
-            }
-          }}
-          className={
-            (closed && !iOwn && !iAmAdmin) || forbidden
-              ? 'hidden'
-              : 'mt-5 select-none w-full h-12 px-6 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
-          }
-          style={{
-            backgroundColor: (wrongPassphrase ? 'rgb(255,0,0)' : roomColor.buttons.primary),
-            color: (wrongPassphrase ? 'rgb(244,244,244)' : textColor),
-          }}
-        >
-          {wrongPassphrase ? `Invalid Passphrase` : `Submit Passphrase`}
-        </button>          
+              style={{
+                backgroundColor: wrongPassphrase
+                  ? 'rgb(255,0,0)'
+                  : roomColor.buttons.primary,
+                color: wrongPassphrase ? 'rgb(244,244,244)' : textColor,
+              }}
+            >
+              {wrongPassphrase ? `Invalid Passphrase` : `Submit Passphrase`}
+            </button>
           </>
         )}
 
         {loginEnabled && (
           <>
-        {(!window.nostr || hasNostrInfo || joinRoomButtonAlwaysEnabled) && (
-        <button
-          onClick={async() => {
-            myIdentity.info.dmPubkey = await getDMPubkey();
-            await updateInfo(myIdentity.info);
-            setReturnToHomepage(false);
-            setProps({userInteracted: true});
-            enterRoom(roomId);
-          }}
-          className={
-            (closed && !iOwn && iAmAdmin) || forbidden
-              ? 'hidden'
-              : 'mt-5 select-none w-full p-3 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
-          }
-          style={{
-            backgroundColor: roomColor.buttons.primary,
-            color: textColor,
-          }}
-        >
-          Join Room
-        </button>
-        )}
-        {window.nostr && !hasNostrInfo && (
-        <button
-          onClick={() => {
-            setReturnToHomepage(false);
-            handlerSignIn('extension');
-          }}
-          className={
-            (closed && !iOwn && !iAmAdmin) || forbidden
-              ? 'hidden'
-              : 'mt-5 select-none w-full p-3 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
-          }
-          style={{
-            backgroundColor: roomColor.buttons.primary,
-            color: textColor,
-          }}
-        >
-          {loadingExtension ? <LoadingIcon /> : 'Signin with Nostr extension'}
-        </button>
-        )}
-        {!window.nostr && (
-        <div className="mt-4 text-gray-300 text-sm">
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-            }}
-            className={
-              closed || forbidden
-                ? 'hidden'
-                : 'mt-5 select-none w-full p-3 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
-            }
-            style={{
-              backgroundColor: `rgba(192,192,192,1)`,
-              color: `rgba(244,244,244,1)`,
-            }}
-          >
-            {'Signin with Nostr extension'}
-          </button>
-          <p>
-          This service supports <a href="https://nostr.how/en/what-is-nostr">Nostr</a> signins via <a href="https://github.com/aljazceru/awesome-nostr#nip-07-browser-extensions">NIP-07 browser extensions</a>.
-          Extensions are available for major desktop browsers.
-          On mobile, the Chromium based Kiwi browser supports extensions on Android.
-          The <a href="https://apps.apple.com/us/app/nostore/id1666553677">Nostore</a> extension is suitable with Safari on iOS.
-          </p>
-        </div>
-        )}
-        </>
+            {(!window.nostr || hasNostrInfo || joinRoomButtonAlwaysEnabled) && (
+              <button
+                onClick={async () => {
+                  myIdentity.info.dmPubkey = await getDMPubkey();
+                  await updateInfo(myIdentity.info);
+                  setReturnToHomepage(false);
+                  setProps({userInteracted: true});
+                  enterRoom(roomId);
+                }}
+                className={
+                  (closed && !iOwn && iAmAdmin) || forbidden
+                    ? 'hidden'
+                    : 'mt-5 select-none w-full p-3 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
+                }
+                style={{
+                  backgroundColor: roomColor.buttons.primary,
+                  color: textColor,
+                }}
+              >
+                Join Room
+              </button>
+            )}
+            {window.nostr && !hasNostrInfo && (
+              <button
+                onClick={() => {
+                  setReturnToHomepage(false);
+                  handlerSignIn('extension');
+                }}
+                className={
+                  (closed && !iOwn && !iAmAdmin) || forbidden
+                    ? 'hidden'
+                    : 'mt-5 select-none w-full p-3 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
+                }
+                style={{
+                  backgroundColor: roomColor.buttons.primary,
+                  color: textColor,
+                }}
+              >
+                {loadingExtension ? (
+                  <LoadingIcon />
+                ) : (
+                  'Signin with Nostr extension'
+                )}
+              </button>
+            )}
+            {!window.nostr && (
+              <div className="mt-4 text-gray-300 text-sm">
+                <button
+                  onClick={e => {
+                    e.preventDefault();
+                  }}
+                  className={
+                    closed || forbidden
+                      ? 'hidden'
+                      : 'mt-5 select-none w-full p-3 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
+                  }
+                  style={{
+                    backgroundColor: `rgba(192,192,192,1)`,
+                    color: `rgba(244,244,244,1)`,
+                  }}
+                >
+                  {'Signin with Nostr extension'}
+                </button>
+                <p>
+                  This service supports{' '}
+                  <a href="https://nostr.how/en/what-is-nostr">Nostr</a> signins
+                  via{' '}
+                  <a href="https://github.com/aljazceru/awesome-nostr#nip-07-browser-extensions">
+                    NIP-07 browser extensions
+                  </a>
+                  . Extensions are available for major desktop browsers. On
+                  mobile, the Chromium based Kiwi browser supports extensions on
+                  Android. The{' '}
+                  <a href="https://apps.apple.com/us/app/nostore/id1666553677">
+                    Nostore
+                  </a>{' '}
+                  extension is suitable with Safari on iOS.
+                </p>
+              </div>
+            )}
+          </>
         )}
 
         {adImageEnabled && (
           <div className="text-center my-3 text-gray-300 text-center">
-          <p className="text-gray-400 text-sm text-center">you can enter after this 5 second ad...</p>
-          <center>
-          <img src={adimg} className="w-72 text-center"
-            onClick={() => {
-              setPassphraseEnabled(isProtected);
-              setLoginEnabled(!isProtected);
-              setAdImageEnabled(false);
-            }}
-          />
-          </center>
+            <p className="text-gray-400 text-sm text-center">
+              you can enter after this 5 second ad...
+            </p>
+            <center>
+              <img
+                src={adimg}
+                className="w-72 text-center"
+                onClick={() => {
+                  setPassphraseEnabled(isProtected);
+                  setLoginEnabled(!isProtected);
+                  setAdImageEnabled(false);
+                }}
+              />
+            </center>
           </div>
         )}
 
         {!supportsWebRTC && (
           <div className="text-center my-3 text-gray-300">
-          <p className="text-gray-400 text-lg text-center">
-            This browser or its settings do not currently support WebRTC, an essential requirement for this application.
-          </p>
+            <p className="text-gray-400 text-lg text-center">
+              This browser or its settings do not currently support WebRTC, an
+              essential requirement for this application.
+            </p>
           </div>
         )}
 
         {kicked && !adImageEnabled && (
-          <div className={'mt-5 mb--1 p-4 text-red-500 rounded-lg border border-yellow-400 bg-red-50'}>
-          You have been kicked out of this room. You may return {kickedUntilTime}.
-        </div>
+          <div
+            className={
+              'mt-5 mb--1 p-4 text-red-500 rounded-lg border border-yellow-400 bg-red-50'
+            }
+          >
+            You have been kicked out of this room {kickedBy} for the following
+            reason: {kickedReason}. You may return {kickedUntilTime}.
+          </div>
         )}
 
         <button
           onClick={() => {
             setReturnToHomepage(false);
-            window.location.href = window.location.href.substring(0,window.location.href.lastIndexOf('/'));
+            window.location.href = window.location.href.substring(
+              0,
+              window.location.href.lastIndexOf('/')
+            );
           }}
-          className={'mt-5 select-none w-full p-3 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'}
+          className={
+            'mt-5 select-none w-full p-3 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
+          }
           style={{
             backgroundColor: roomColor.buttons.primary,
             color: textColor,
@@ -436,8 +502,14 @@ export default function EnterRoom({
           Return to Homepage
         </button>
 
-        <a className={schedule ? 'block mt-5 text-center p-3 px-6 text-lg text-gray-300' : 'hidden'}
-          href={`/${roomId}.ics`} download={`${name || 'room'}.ics`}
+        <a
+          className={
+            schedule
+              ? 'block mt-5 text-center p-3 px-6 text-lg text-gray-300'
+              : 'hidden'
+          }
+          href={`/${roomId}.ics`}
+          download={`${name || 'room'}.ics`}
         >
           🗓 Add to Calendar
         </a>
@@ -453,29 +525,32 @@ export default function EnterRoom({
             <br />
             for the best audio experience on macOS
           </div>
-          
+
           <p className="mt-4 text-gray-300 text-md">
             Corny Chat Simplified Terms of Service and Privacy Policy:
           </p>
           <p className="text-gray-500 text-xs">
-            You may join rooms anonymously.
-            There is no need to login, but using a Nostr account with NIP07 extension will provide an enhanced experience.
-            Your data is not sold.
-            An anonymous payment method is offered.
-            Each device/browser you access the service on has its own local account identifier generated by your client.
-            IP addresses of visitors are not tracked, but can be exposed to others.
-            The cookies used by this service associate your locally generated account identifier with information you provide (e.g. name, npub).
-            Don't do bad things.
-            Terms may change at any time without notice.
-            The service can delete your account or rooms without prior notice and without reason.
-            Room customizations such as images and links configured for rooms are the sole responsibility of that room's moderators and owners.
-            This service is still under development and should be considered in Beta.
-            The service may go down for prolonged periods of time.
-            This service is built as a fork of JAM and the <a href="https://github.com/vicariousdrama/cornychat/blob/main/PRIVACY.md">Privacy Considerations for Jam</a> also apply.
+            You may join rooms anonymously. There is no need to login, but using
+            a Nostr account with NIP07 extension will provide an enhanced
+            experience. Your data is not sold. An anonymous payment method is
+            offered. Each device/browser you access the service on has its own
+            local account identifier generated by your client. IP addresses of
+            visitors are not tracked, but can be exposed to others. The cookies
+            used by this service associate your locally generated account
+            identifier with information you provide (e.g. name, npub). Don't do
+            bad things. Terms may change at any time without notice. The service
+            can delete your account or rooms without prior notice and without
+            reason. Room customizations such as images and links configured for
+            rooms are the sole responsibility of that room's moderators and
+            owners. This service is still under development and should be
+            considered in Beta. The service may go down for prolonged periods of
+            time. This service is built as a fork of JAM and the{' '}
+            <a href="https://github.com/vicariousdrama/cornychat/blob/main/PRIVACY.md">
+              Privacy Considerations for Jam
+            </a>{' '}
+            also apply.
           </p>
-          <p className="mt-4 text-gray-600 text-xs">
-            Build Date: BUILD_DATE
-          </p>
+          <p className="mt-4 text-gray-600 text-xs">Build Date: BUILD_DATE</p>
         </div>
       </div>
     </div>

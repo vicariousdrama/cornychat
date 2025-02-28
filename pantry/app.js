@@ -13,10 +13,14 @@ const adminRouter = require('./routes/admin');
 
 const {roomAuthenticator, identityAuthenticator} = require('./auth');
 const {controller} = require('./routes/controller');
-//const roomKeyRouter = require('./routes/roomKey');
 const liveRoomRouter = require('./routes/liveRoom');
 const recordingsRouter = require('./routes/recordings');
-const {adEnabled, gifSearchEnabled, hlsFileLocationPath, subscriptionsEnabled} = require('./config');
+const {
+  adEnabled,
+  gifSearchEnabled,
+  hlsFileLocationPath,
+  subscriptionsEnabled,
+} = require('./config');
 
 const adReportRouter = require('./routes/adReportRouter');
 const chatAdRouter = require('./routes/adRouterChat');
@@ -26,6 +30,7 @@ const nip05Router = require('./routes/nip05Router');
 const nip53Router = require('./routes/nip53Router');
 const oldRoomsRouter = require('./routes/oldRoomsRouter');
 const oldIdentitiesRouter = require('./routes/oldIdentitiesRouter');
+const permanentRoomsRouter = require('./routes/permanentRoomsRouter');
 const roomListRouter = require('./routes/roomListRouter');
 const roomModeratorsRouter = require('./routes/roomModerators');
 const scheduledEventsRouter = require('./routes/scheduledEventsRouter');
@@ -48,24 +53,28 @@ app.use('/activity', activityRouter);
 app.use('/metrics', metricsRouter);
 app.use('/stream/hls', express.static(hlsFileLocationPath));
 
-app.use('/api/v1/', controller('rooms', roomAuthenticator,
+app.use(
+  '/api/v1/',
+  controller(
+    'rooms',
+    roomAuthenticator,
     id => id,
     () => 'room-info'
   )
 );
 app.use('/api/v1/', controller('identities', identityAuthenticator));
 
-if(adEnabled) {
+if (adEnabled) {
   app.use('/api/v1/aimg/:id', squareAdRouter);
   app.use('/api/v1/cimg/', chatAdRouter);
   app.use('/api/v1/cimg/:roomId/:adId', chatAdRouter);
 }
 
-if(gifSearchEnabled) {
+if (gifSearchEnabled) {
   app.use('/api/v1/imagepicker/', imagePickerRouter);
 }
 
-if(subscriptionsEnabled) {
+if (subscriptionsEnabled) {
   app.use('/api/v1/subscription/', subscriptionRouter);
 }
 
@@ -74,8 +83,8 @@ app.use('/api/v1/adr/:year/:month', adReportRouter);
 app.use('/api/v1/motd/', motdRouter);
 app.use('/api/v1/oldidentities/', oldIdentitiesRouter);
 app.use('/api/v1/oldrooms/', oldRoomsRouter);
+app.use('/api/v1/permanentrooms/', permanentRoomsRouter);
 app.use('/api/v1/roomlist/', roomListRouter);
-//app.use('/api/v1/rooms/:id/roomKey', roomKeyRouter);
 app.use('/api/v1/rooms/:id/live', liveRoomRouter);
 app.use('/api/v1/rooms/:id/recordings.zip', recordingsRouter);
 app.use('/api/v1/rooms/:id/moderators', roomModeratorsRouter);
