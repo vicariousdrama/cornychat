@@ -55,6 +55,7 @@ import {
   deleteOldRooms,
   removeAdmin, 
   removePermanentRoom,
+  setMOTD,
 } from './jam-core/admin';
 import AppState from './jam-core/AppState';
 
@@ -108,6 +109,8 @@ function createApi<T extends StateType>(
       createRoom(state, roomId, partialRoom as any) as Promise<boolean>,
 
     getMOTD:  () => getMOTD(),
+    setMOTD: (motd: string) =>
+      setMOTD(state, motd) as Promise<boolean>,
     getRoom: (roomId: string) =>
       (getRoom(roomId) as unknown) as Promise<RoomType | undefined>,
     getRoomATag: (roomId: string) =>

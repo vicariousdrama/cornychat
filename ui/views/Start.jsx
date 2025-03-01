@@ -8,8 +8,10 @@ import StartRoomSimple from './StartRoomSimple';
 import StartScheduledEvent from './StartScheduledEvent';
 import StartMyRoomSimple from './StartMyRoomSimple';
 import ZapGoalBar from './ZapGoalBar';
+import {useMqParser} from '../lib/tailwind-mqp';
 
 export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
+  const [editingMOTD, setEditingMotd] = useState(false);
   const [loadingRooms, setLoadingRooms] = useState(false);
   const [roomList, setRoomList] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
@@ -31,6 +33,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
       listMyRooms,
       getZapGoal,
       getMOTD,
+      setMOTD,
     },
   ] = useJam();
   const [viewMode, setViewMode] = useState('liverooms');
@@ -53,8 +56,10 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
     },
   ];
   const [motd, setMotd] = useState(undefined);
+  let mqp = useMqParser();
   let myId = useJamState('myId');
   let iAmAdmin = (localStorage.getItem('iAmAdmin') || 'false') == 'true';
+  let motdCurrent = '';
   useEffect(() => {
     const loadZapGoal = async () => {
       setLoadingZapGoal(true);
@@ -107,8 +112,8 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
     const loadMOTD = async () => {
       let motdinfo = await getMOTD();
       if (motdinfo && motdinfo[1]) {
-        let motdtext = motdinfo[0].motd || 'No MOTD';
-        setMotd(motdtext);
+        motdCurrent = motdinfo[0].motd || 'No MOTD';
+        setMotd(motdCurrent);
       }
     };
     loadMOTD();
@@ -180,6 +185,21 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
     })();
   };
 
+  async function saveMotd(e) {
+    e.preventDefault();
+    (async () => {
+      let r = await setMOTD(motd);
+    })();
+    motdCurrent = motd;
+    setEditingMotd(false);
+  }
+
+  async function cancelMotd(e) {
+    e.preventDefault();
+    setMotd(motdCurrent);
+    setEditingMotd(false);
+  }
+
   const colorTheme = room?.color ?? 'default';
   const roomColors = colors(colorTheme, room.customColor);
 
@@ -250,7 +270,59 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
               backgroundColor: roomColors.background,
             }}
           >
-            MOTD: {motd}
+            {editingMOTD && (
+              <div className="flex">
+                <input
+                  className={mqp(
+                    'rounded placeholder-black bg-gray-400 text-black w-full mx-1 md:w-full'
+                  )}
+                  type="text"
+                  placeholder=""
+                  value={motd}
+                  autoComplete="off"
+                  style={{
+                    borderWidth: '0px',
+                    fontSize: '15px',
+                  }}
+                  onChange={e => {
+                    setMotd(e.target.value);
+                  }}
+                ></input>
+                <button
+                  className="px-2 mx-1 h-10 text-sm rounded-md"
+                  style={{
+                    color: 'rgb(204,204,204)',
+                    backgroundColor: 'rgb(10,104,0)',
+                  }}
+                  onClick={e => saveMotd(e)}
+                >
+                  Save
+                </button>
+                <button
+                  className="px-2 mx-1 h-10 text-sm rounded-md"
+                  style={{
+                    color: 'rgb(204,204,204)',
+                    backgroundColor: 'rgb(104,10,0)',
+                  }}
+                  onClick={e => cancelMotd(e)}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+            {!editingMOTD && (
+              <p
+                className="text-md mr-1 text-gray-200 cursor-pointer"
+                onClick={() => {
+                  if (iAmAdmin) {
+                    setEditingMotd(true);
+                  }
+                }}
+                style={{whiteSpace: 'pre-line'}}
+              >
+                {motd}
+              </p>
+            )}
           </div>
         )}
 
