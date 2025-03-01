@@ -19,3 +19,7 @@ export const addPermanentRoom = async (state, roomId) => {
 export const removePermanentRoom = async (state, roomId) => {
   return await deleteRequest(state, `/permanentrooms/${roomId}`, {});
 };
+
+export const setMOTD = async (state, motd) => {
+  return await post(state, `/motd/`, {motd: motd});
+};
