@@ -110,7 +110,7 @@ const nameSymbols = [
   }, // Tekkadan
   {
     npub: 'npub1rjwumr7j6tac08t0qttvc44walt549nc4eyyxjc0phn6yxzj7uzq0accc9',
-    symbol: ['☘️', '🇮🇪'],
+    symbol: '☘️',
     title: 'May the enemies of Ireland never meet a friend.',
   }, // Seimi
   {
@@ -121,7 +121,7 @@ const nameSymbols = [
   {
     npub: 'npub1dmahfent0mtlh8ahhzu0ztslhw470azcyw3n599vvrxfysfg25mqurhrpq',
     symbol: ['🔪', '🔥', '💀'],
-    title: '',
+    title: 'If you cant stand the heat STFU',
   }, // Chef
 ];
 
