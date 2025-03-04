@@ -312,13 +312,16 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
             )}
             {!editingMOTD && (
               <p
-                className="text-md mr-1 text-gray-200 cursor-pointer"
+                className="text-md mr-1 text-gray-200"
+                style={{
+                  cursor: iAmAdmin ? 'pointer' : 'default',
+                  whiteSpace: 'pre-line',
+                }}
                 onClick={() => {
                   if (iAmAdmin) {
                     setEditingMotd(true);
                   }
                 }}
-                style={{whiteSpace: 'pre-line'}}
               >
                 {motd}
               </p>

@@ -18,29 +18,47 @@ router.get('', async function (req, res) {
 });
 
 router.post('', async function (req, res) {
-  let motdkey = `motd`;
-  let motdinfo = undefined;
-  // Must be Admin
-  if (!(await isAdmin(req))) {
+  let pmd = 0;
+  try {
+    let motdkey = `motd`;
+    let motdinfo = undefined;
+    // Must be Admin
+    if (!(await isAdmin(req))) {
+      pmd = 1;
+      console.log(
+        `[motdRouter] attempt to set motd by a non admin. ssrIdentities is not in admin list`
+      );
+      console.log(JSON.stringify(req));
+      pmd = 2;
+      res.sendStatus(403);
+      return;
+    }
+
+    pmd = 3;
+    let b = req.body;
+    if (!b.hasOwnProperty('motd')) {
+      pmd = 4;
+      res.sendStatus(400);
+      return;
+    }
+    pmd = 5;
+    motdinfo = b.motd;
+    pmd = 6;
+    motdinfo = {motd: motdinfo};
+    pmd = 7;
+    await set(motdkey, motdinfo);
+    pmd = 8;
+
+    res.type('application/json');
+    res.send(motdinfo);
+  } catch (e) {
     console.log(
-      `[motdRouter] attempt to set motd by a non admin. ssrIdentities is not in admin list`
+      `[motdRouter] attempt to update motd failed due to error (pmd=${pmd})`
     );
-    console.log(JSON.stringify(req));
-    res.sendStatus(403);
+    console.log(JSON.stringify(e));
+    res.sendStatus(500);
     return;
   }
-
-  let b = req.body;
-  if (!b.hasOwnProperty('motd')) {
-    res.sendStatus(400);
-    return;
-  }
-  motdinfo = b.motd;
-  let o = {motd: motdinfo};
-  await set(motdkey, o);
-
-  res.type('application/json');
-  res.send(o);
 });
 
 module.exports = router;
