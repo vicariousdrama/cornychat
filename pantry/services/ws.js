@@ -113,7 +113,7 @@ async function handleMessage(connection, roomId, msg) {
               if (data.data.d != undefined && data.data.d.t != undefined) {
                 let t = data.data.d.t;
                 if (t.length > 0) {
-                  saveCSAR(senderId, roomId, "sendprivatemessage");
+                  saveCSAR(senderId, roomId, 'sendprivatemessage');
                 }
               }
             }
@@ -158,10 +158,10 @@ async function handleMessage(connection, roomId, msg) {
                   saveCSAR(senderId, roomId, 'tipdev');
                 }
                 if (t.indexOf('zapped ⚡') > -1) {
-                  if (t.indexOf("to the room goal") > -1) {
+                  if (t.indexOf('to the room goal') > -1) {
                     saveCSAR(senderId, roomId, 'zaproomgoal');
                   }
-                  if (t.indexOf("to the dev") > -1) {
+                  if (t.indexOf('to the dev') > -1) {
                     saveCSAR(senderId, roomId, 'zapservergoal');
                   }
                 }
@@ -213,21 +213,30 @@ function handleConnection(ws, req) {
   }
 
   // 20240410 - Check that build date is provided in the connection `bd` querystring. Older clients
-  // wont provide so we drop those connections instead of adding and publishing as a valid peer. 
+  // wont provide so we drop those connections instead of adding and publishing as a valid peer.
   // This prevents them from being counted as active in room, affecting counts and ghost users at
   // the door. They will however immediately attempt to reconnect.
   if (VERIFY_BUILDDATE_ONENTRY) {
     if (!bd) {
-      let errmsg = "client version not set. disconnecting";
-      console.log(`[handleConnection] killing ws as no build date provided`, roomId, peerId);
-      ws.send(JSON.stringify({"t":"error","d":errmsg}));
+      let errmsg = 'client version not set. disconnecting';
+      console.log(
+        `[handleConnection] killing ws as no build date provided`,
+        roomId,
+        peerId
+      );
+      ws.send(JSON.stringify({t: 'error', d: errmsg}));
       ws.close();
       return;
     }
-    if(bd != 'BUILD_DATE'.split('.')[0]) {
-      let errmsg = "client version contains unexpected value. disconnecting";
-      console.log(`[handleConnection] killing ws as ping build date was invalid`, roomId, peerId, bd);
-      ws.send(JSON.stringify({"t":"error","d":errmsg}));
+    if (bd != 'BUILD_DATE'.split('.')[0]) {
+      let errmsg = 'client version contains unexpected value. disconnecting';
+      console.log(
+        `[handleConnection] killing ws as ping build date was invalid`,
+        roomId,
+        peerId,
+        bd
+      );
+      ws.send(JSON.stringify({t: 'error', d: errmsg}));
       ws.close();
       return;
     }
@@ -241,22 +250,26 @@ function handleConnection(ws, req) {
     //console.log(`[handleConnection] timeSinceClientPing: ${timeSinceClientPing} from peer: ${peerId}`);
     if (timeSinceClientPing > PING_MAX_INTERVAL) {
       let errmsg = `client response time exceeds max time allowed (${timeSinceClientPing}ms > ${PING_MAX_INTERVAL} ms). disconnecting`;
-      console.log(`[handleConnection] killing ws after ${timeSinceClientPing}ms`, roomId, peerId);
-      ws.send(JSON.stringify({"t":"error","d":errmsg}));
+      console.log(
+        `[handleConnection] killing ws after ${timeSinceClientPing}ms`,
+        roomId,
+        peerId
+      );
+      ws.send(JSON.stringify({t: 'error', d: errmsg}));
       ws.close();
       closeWs();
     }
     const userId = peerId.split('.')[0];
     // 10 minutes in, track it
-    if ((pingCount % 120) == 119) {
-      saveCSAR(userId, roomId, "useroom");
+    if (pingCount % 120 == 119) {
+      saveCSAR(userId, roomId, 'useroom');
     }
     // 45 seconds in, track it
-    if ((pingCount % 60) == 9) {
+    if (pingCount % 60 == 9) {
       const recordTime = async () => {
         let dt = new Date();
         let dti = dt.toISOString();
-        let dts = dti.replaceAll('-','').replace('T','').slice(0,10);
+        let dts = dti.replaceAll('-', '').replace('T', '').slice(0, 10);
         // add to room
         let k = `usagetracking/${dts}/${roomId}`;
         let v = await get(k);
@@ -266,29 +279,31 @@ function handleConnection(ws, req) {
           v.push(userId);
           set(k, v);
         }
+        // track room accessed
+        set(`activity/rooms/${roomId}/last-accessed`, Date.now());
         // track for user
-        let dtm = dti.replaceAll('-','').replace('T','').slice(0,6);
-        let dtd = dti.replaceAll('-','').replace('T','').slice(6,8);
-        let dth = dti.replaceAll('-','').replace('T','').slice(8,10);
+        let dtm = dti.replaceAll('-', '').replace('T', '').slice(0, 6);
+        let dtd = dti.replaceAll('-', '').replace('T', '').slice(6, 8);
+        let dth = dti.replaceAll('-', '').replace('T', '').slice(8, 10);
         k = `usertracking/${userId}/${dtm}`;
         v = await get(k);
         if (v == undefined || v == null) {
           // not yet set for the month, initialize
           v = {};
           v[dtd] = [dth];
-          set(k,v);
+          set(k, v);
         } else {
           if (v.hasOwnProperty(dtd)) {
             // has day...
             if (!v[dtd].includes(dth)) {
               // but not the hour, add it
               v[dtd].push(dth);
-              set(k,v);
+              set(k, v);
             }
           } else {
             // does not have day
             v[dtd] = [dth];
-            set(k,v);
+            set(k, v);
           }
         }
       };
@@ -321,17 +336,27 @@ function handleConnection(ws, req) {
           // older clients wont do this and we want to drop those connections
           let b = msg.b;
           if (!b) {
-            let errmsg = "client version not set. disconnecting";
-            console.log(`[handleConnection] killing ws as no build date provided`, roomId, peerId);
-            ws.send(JSON.stringify({"t":"error","d":errmsg}));
+            let errmsg = 'client version not set. disconnecting';
+            console.log(
+              `[handleConnection] killing ws as no build date provided`,
+              roomId,
+              peerId
+            );
+            ws.send(JSON.stringify({t: 'error', d: errmsg}));
             ws.close();
             closeWs();
             return;
           } else {
-            if(b.split('.')[0] != 'BUILD_DATE'.split('.')[0]) {
-              let errmsg = "client version contains unexpected value. disconnecting";
-              console.log(`[handleConnection] killing ws as ping build date was invalid`, roomId, peerId, b);
-              ws.send(JSON.stringify({"t":"error","d":errmsg}));
+            if (b.split('.')[0] != 'BUILD_DATE'.split('.')[0]) {
+              let errmsg =
+                'client version contains unexpected value. disconnecting';
+              console.log(
+                `[handleConnection] killing ws as ping build date was invalid`,
+                roomId,
+                peerId,
+                b
+              );
+              ws.send(JSON.stringify({t: 'error', d: errmsg}));
               ws.close();
               closeWs();
               return;
@@ -366,7 +391,11 @@ function handleConnection(ws, req) {
 
 function handleForwardingConnection(ws, req) {
   let {peerId: serverId, subs: topics} = req;
-  console.log('[handleForwardingConnection] ws start forwarding', serverId, topics);
+  console.log(
+    '[handleForwardingConnection] ws start forwarding',
+    serverId,
+    topics
+  );
 
   const connection = {ws, serverId};
 
@@ -400,24 +429,26 @@ function activeUsersInRoom(roomId) {
 }
 function activeUsers() {
   let activeUsersList = [...roomConnections.keys()]
-  .map(roomId => activeUsersInRoom(roomId))
-  .reduce((peerList, currentRoomPeers) => {
-    for (let crp of currentRoomPeers) {
-      if(!peerList.includes(crp)) {
-        peerList.push(crp);
+    .map(roomId => activeUsersInRoom(roomId))
+    .reduce((peerList, currentRoomPeers) => {
+      for (let crp of currentRoomPeers) {
+        if (!peerList.includes(crp)) {
+          peerList.push(crp);
+        }
       }
-    }
-    return peerList;
-  }, []);
+      return peerList;
+    }, []);
   return activeUsersList;
 }
 
 // ws server, handles upgrade requests for http server
 
 function addWebsocket(server) {
-
-  if(VERIFY_BUILDDATE_ONSOCKET) {
-    console.log('[addWebSocket] ws socket server configuring to verify that clients connect with build date: ', 'BUILD_DATE'.split('.')[0]);
+  if (VERIFY_BUILDDATE_ONSOCKET) {
+    console.log(
+      '[addWebSocket] ws socket server configuring to verify that clients connect with build date: ',
+      'BUILD_DATE'.split('.')[0]
+    );
   }
 
   const wss = new WebSocket.Server({noServer: true});
@@ -445,9 +476,18 @@ function addWebsocket(server) {
         !internal) ||
       (roomInfo?.access?.identities &&
         !roomInfo.access.identities.includes(publicKey)) ||
-      (VERIFY_BUILDDATE_ONSOCKET && !internal && (bd === undefined || bd.split('.')[0] != 'BUILD_DATE'.split('.')[0]))
+      (VERIFY_BUILDDATE_ONSOCKET &&
+        !internal &&
+        (bd === undefined || bd.split('.')[0] != 'BUILD_DATE'.split('.')[0]))
     ) {
-      console.log('[addWebSocket] ws rejected!', req.url, 'room', roomId, 'peer', peerId);
+      console.log(
+        '[addWebSocket] ws rejected!',
+        req.url,
+        'room',
+        roomId,
+        'peer',
+        peerId
+      );
       socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
       socket.destroy();
       return;
@@ -460,13 +500,15 @@ function addWebsocket(server) {
     // Grant the user access to the relay
     try {
       let peerNpubs = await getNpubs(publicKey);
-      for(let peerNpub of peerNpubs) {
+      for (let peerNpub of peerNpubs) {
         let peerPubkey = nip19.decode(peerNpub).data;
         const grantReason = `${jamHost} npub: ${peerNpub}`;
         await grantPubkeyToRelays(true, peerPubkey, grantReason);
       }
-    } catch(err) {
-      console.log(`[addWebSocket] error granting pubkey access to relays when starting socket: ${err}`);
+    } catch (err) {
+      console.log(
+        `[addWebSocket] error granting pubkey access to relays when starting socket: ${err}`
+      );
     }
 
     wss.handleUpgrade(req, socket, head, ws => {

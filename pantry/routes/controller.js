@@ -23,15 +23,31 @@ const controller = (prefix, authenticator, broadcastRoom, broadcastChannel) => {
       await set(key, req.body);
       await set(`activity/${prefix}/last-created`, Date.now());
       await set(`activity/${prefix}/${req.params.id}/last-created`, Date.now());
+      await set(`activity/${prefix}/last-accessed`, Date.now());
+      await set(
+        `activity/${prefix}/${req.params.id}/last-accessed`,
+        Date.now()
+      );
       res.send(req.body);
     }
   });
   router.get(path, _authenticator.canGet, async function (req, res) {
-    const room = await get(redisKey(req));
-    if (room) {
+    const data = await get(redisKey(req));
+    if (data) {
       await set(`activity/${prefix}/last-accessed`, Date.now());
-      await set(`activity/${prefix}/${req.params.id}/last-accessed`, Date.now());
-      res.send(room);
+      if (prefix == 'identities') {
+        await set(
+          `activity/${prefix}/${req.params.id}/last-accessed`,
+          Date.now()
+        );
+      }
+      if (prefix == 'rooms') {
+        // Just a placeholder. We don't want to track last-accessed for simple room
+        // retrieval which would occur on users fetching room info from nostr clients
+        // Instead, we do this for users that are actively in the room (after 45 seconds)
+        // in ws.js :: handleConnection
+      }
+      res.send(data);
     } else {
       res.sendStatus(404);
     }
