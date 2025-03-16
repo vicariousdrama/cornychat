@@ -499,7 +499,7 @@ export async function getZapReceipts(eventId) {
         }
         localpool.close();
         res(eventZapReceipts[eventId]);
-      }, 2700);
+      }, 1200);
       let options = {unsubscribeOnEose: true, allowDuplicateEvents: false};
 
       localpool.subscribe(
@@ -655,7 +655,14 @@ async function saveFollowList(myFollowList) {
   const dTag = 'cornychat-follows';
   const nameTag = 'Corny Chat Follows';
   const kind = 30000;
-  const tags = [['d', dTag], ['name', nameTag], ...myFollowList];
+  const tags = [
+    ['d', dTag],
+    ['name', nameTag],
+  ];
+  for (let tag of myFollowList) {
+    if (tag.length < 2) continue;
+    if (tag[0] == 'p') tags.push(tag);
+  }
   const event = {
     id: null,
     pubkey: null,
@@ -714,7 +721,7 @@ export async function loadFollowList() {
         ...defaultRelays,
       ]);
       const filter = [{kinds: [kind], authors: [myPubkey]}];
-      filter[0]['#d'] = dTag;
+      filter[0]['#d'] = [dTag];
       let events = [];
 
       setTimeout(() => {
@@ -863,6 +870,184 @@ export async function followAllNpubsFromIds(inRoomPeerIds) {
   } else {
     alert('You are already following all nostr users in the room');
   }
+}
+
+export async function unfavoriteRoom(roomId) {
+  if (window.DEBUG) console.log('in unfavoriteRoom');
+  if (!window.nostr) {
+    alert('A nostr extension is required to unfavorite the room');
+    return;
+  }
+  let myFavoriteRooms = await loadFavoriteRooms();
+  let found = false;
+  let newFavoriteRooms = [];
+  for (let tag of myFavoriteRooms) {
+    if (tag[0] != 'r') continue;
+    if (tag[1] == roomId) found = true;
+    if (tag[1] != roomId) newFavoriteRooms.push(tag);
+  }
+  if (!found) {
+    alert('Room no longer marked as favorited');
+  } else {
+    const isOK = await saveFavoriteRooms(newFavoriteRooms);
+    if (!isOK) {
+      alert('An error was encountered while unfavoriting the room');
+    }
+  }
+}
+
+export async function favoriteRoom(roomId) {
+  if (window.DEBUG) console.log('in favoritRoom');
+  if (!window.nostr) {
+    alert('A nostr extension is required to favorite the room');
+    return;
+  }
+  let myFavoriteRooms = await loadFavoriteRooms();
+  let found = false;
+  for (let tag of myFavoriteRooms) {
+    if (tag[0] != 'r') continue;
+    if (tag[1] == roomId) found = true;
+  }
+  if (found) {
+    alert('You have already favorited this room');
+  } else {
+    myFavoriteRooms.push(['r', roomId, jamConfig.urls.jam + '/' + roomId]);
+    const isOK = await saveFavoriteRooms(myFavoriteRooms);
+    if (!isOK) {
+      alert('An error was encountered while favoriting the room');
+    }
+  }
+}
+
+async function saveFavoriteRooms(favoriteRoomList) {
+  if (window.DEBUG) console.log('in saveFavoriteRooms');
+  if (!window.nostr) return false;
+  const kind = 32388; // Corny Chat Room Favorites
+  const dTag = 'cornychat-room-favorites';
+  const nameTag = 'Corny Chat Room Favorites';
+  const tags = [
+    ['d', dTag],
+    ['name', nameTag],
+  ];
+  for (let tag of favoriteRoomList) {
+    if (tag.length < 2) continue;
+    if (tag[0] == 'r') tags.push(tag);
+  }
+  const event = {
+    id: null,
+    pubkey: null,
+    created_at: Math.floor(Date.now() / 1000),
+    kind: kind,
+    tags: tags,
+    content: '',
+    sig: null,
+  };
+  let r = await signAndSendEvent(event);
+  const currentTime = Math.floor(Date.now() / 1000);
+  sessionStorage.setItem('myRoomFavorites.retrievedTime', currentTime);
+  sessionStorage.setItem('myRoomFavorites', JSON.stringify(favoriteRoomList));
+  return r[0];
+}
+
+export async function loadFavoriteRooms() {
+  if (window.DEBUG) console.log('in loadFavoriteRooms');
+  return new Promise(async (res, rej) => {
+    // return from local cache if it has not aged out
+    const currentTime = Math.floor(Date.now() / 1000);
+    const timeToExpire = 3600; // 1 hour
+    const myRoomFavoritesRetrieved = sessionStorage.getItem(
+      'myRoomFavorites.retrievedTime'
+    );
+    const myRoomFavoritesExpired =
+      myRoomFavoritesRetrieved == undefined ||
+      myRoomFavoritesRetrieved + timeToExpire < currentTime;
+    let myRoomFavorites = sessionStorage.getItem('myRoomFavorites');
+    if (!myRoomFavoritesExpired && myRoomFavorites != undefined) {
+      try {
+        myRoomFavorites = JSON.parse(sessionStorage.getItem('myRoomFavorites'));
+        res(myRoomFavorites);
+        return;
+      } catch (e) {
+        rej(e);
+        return;
+      } finally {
+      }
+    }
+    // we will be building
+    const kind = 32388; // Corny Chat Room Favorites
+    const dTag = 'cornychat-room-favorites';
+    const localpool = new RelayPool(undefined, poolOptions);
+    try {
+      const defaultRelays = getDefaultOutboxRelays();
+      const myPubkey = await getPublicKey();
+      const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
+      let myOutboxRelays = [];
+      if (userRelays?.length == 0) {
+        const myNpub = nip19.npubEncode(myPubkey);
+        myOutboxRelays = await getOutboxRelays(myPubkey);
+        updateCacheOutboxRelays(myOutboxRelays, myNpub);
+      }
+      const relaysToUse = unique([
+        ...myOutboxRelays,
+        ...userRelays,
+        ...defaultRelays,
+      ]);
+      const filter = [{kinds: [kind], authors: [myPubkey]}];
+      filter[0]['#d'] = [dTag];
+      let events = [];
+      setTimeout(() => {
+        localpool.close();
+        // Find newest
+        let fd = 0;
+        let fi = -1;
+        for (let i = 0; i < events.length; i++) {
+          if (events[i].created_at > fd) {
+            fd = events[i].created_at;
+            fi = i;
+          }
+        }
+        if (fi == -1) {
+          res([]);
+          return;
+        }
+        // populate favorite room list from tags of newest
+        const newestEvent = events[fi];
+        const favoriteRoomList = [];
+        for (let tag of newestEvent.tags) {
+          if (tag.length < 2) continue;
+          if (tag[0] != 'r') continue;
+          favoriteRoomList.push(tag);
+        }
+        sessionStorage.setItem('myRoomFavorites.retrievedTime', currentTime);
+        sessionStorage.setItem(
+          'myRoomFavorites',
+          JSON.stringify(favoriteRoomList)
+        );
+        res(favoriteRoomList);
+      }, 1100);
+      localpool.subscribe(
+        filter,
+        relaysToUse,
+        (event, onEose, url) => {
+          events.push(event);
+        },
+        undefined,
+        undefined,
+        {
+          unsubscribeOnEose: true,
+          allowDuplicateEvents: false,
+          allowOlderEvents: false,
+        }
+      );
+    } catch (error) {
+      console.log(
+        'There was an error while fetching favorite room list: ',
+        error
+      );
+      localpool.close();
+      rej(undefined);
+    }
+  });
 }
 
 export function getNpubStatus(userNpub) {
@@ -1787,11 +1972,17 @@ export async function getCBadgeConfigsForPubkey(pubkey) {
   });
 }
 
-export async function sendLiveChat(roomATag, textchat) {
+export async function sendLiveChat(roomATag, roomHashTag, textchat) {
   if (!window.nostr)
     return [false, 'A nostr extension is required to send live chat'];
   let kind = 1311;
   let tags = [['a', roomATag]];
+  if (roomHashTag) {
+    let _hashtag = roomHashTag.replaceAll('#', '');
+    if (_hashtag.length > 0) {
+      tags.push(['t', _hashtag]);
+    }
+  }
 
   // Check if including a custom emoji reference
   buildKnownEmojiTags();

@@ -1,7 +1,13 @@
 import React from 'react';
 import {useJam} from '../jam-core-react';
+import {unfavoriteRoom} from '../nostr/nostr';
 
-export default function StartMyRoomSimple({roomInfo, index, myId}) {
+export default function StartMyRoomSimple({
+  roomInfo,
+  index,
+  myId,
+  myFavoritedRooms,
+}) {
   const [state, api] = useJam();
   const {removeSelfFromRoom} = api;
   const roomId = roomInfo?.roomId ?? 'unknown-room';
@@ -20,6 +26,14 @@ export default function StartMyRoomSimple({roomInfo, index, myId}) {
   const isProtected = roomInfo?.isProtected ?? false;
   const isPermanent = roomInfo?.isPermanent ?? false;
   const lastAccessed = roomInfo?.lastAccessed ?? 0;
+  let isFavorited = false;
+  for (let tag of myFavoritedRooms) {
+    if (tag.length < 2) continue;
+    if (tag[0] != 'r') continue;
+    if (tag[1] != roomId) continue;
+    isFavorited = true;
+    break;
+  }
 
   // time constraint
   let now = Date.now();
@@ -35,6 +49,11 @@ export default function StartMyRoomSimple({roomInfo, index, myId}) {
     color: 'rgb(255,255,255)',
     display: 'inline-block',
   };
+  if (isFavorited) {
+    coloringStyle.backgroundImage =
+      'url(/img/favoritestar.png), ' + coloringStyle.backgroundImage;
+    coloringStyle.backgroundBlendMode = 'multiply';
+  }
   if (isPermanent) {
     coloringStyle.border = '2px solid rgb(240,240,0)';
   }
