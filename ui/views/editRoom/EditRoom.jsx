@@ -90,6 +90,7 @@ export function EditRoomModal({
   let styleAvatar = `rgba(${customAvatar.r},${customAvatar.g},${customAvatar.b},${customAvatar.a})`;
   let styleButtons = `rgba(${customButtons.r},${customButtons.g},${customButtons.b},${customButtons.a})`;
   let customColor = getCustomColor(styleBg, styleAvatar, styleButtons);
+  let [hashTag, setHashTag] = useState(room.hashTag || '');
   let paletteColors = getColorPallete({
     ...colorThemes,
     customColor,
@@ -211,6 +212,7 @@ export function EditRoomModal({
       lud16,
       passphraseHash,
       zapGoal,
+      hashTag,
     });
     if (!ok) {
       alert(
@@ -278,6 +280,8 @@ export function EditRoomModal({
           setLud16={setLud16}
           zapGoal={zapGoal}
           setZapGoal={setZapGoal}
+          hashTag={hashTag}
+          setHashTag={setHashTag}
           textColor={textColor}
           roomColor={roomColor}
         />

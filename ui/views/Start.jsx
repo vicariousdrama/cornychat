@@ -9,6 +9,7 @@ import StartScheduledEvent from './StartScheduledEvent';
 import StartMyRoomSimple from './StartMyRoomSimple';
 import ZapGoalBar from './ZapGoalBar';
 import {useMqParser} from '../lib/tailwind-mqp';
+import {loadFavoriteRooms} from '../nostr/nostr';
 
 export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
   const [editingMOTD, setEditingMotd] = useState(false);
@@ -18,6 +19,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
   const [eventList, setEventList] = useState([]);
   const [loadingMyRooms, setLoadingMyRooms] = useState(false);
   const [myRoomList, setMyRoomList] = useState([]);
+  const [myFavoritedRooms, setMyFavoritedRooms] = useState([]);
   const [loadingZapGoal, setLoadingZapGoal] = useState(false);
   const [showDeleteOldRooms, setShowDeleteOldRooms] = useState(true);
   const [zapGoal, setZapGoal] = useState({});
@@ -120,6 +122,13 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
     if (roomList.length == 0 && myRoomList.length != 0) {
       setViewMode('myrooms');
     }
+    const loadMyFavoritedRooms = async () => {
+      let myFavoritedRooms = await loadFavoriteRooms();
+      if (myFavoritedRooms) {
+        setMyFavoritedRooms(myFavoritedRooms);
+      }
+    };
+    loadMyFavoritedRooms();
   }, []);
 
   let submit = e => {
@@ -418,7 +427,12 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
                 {roomList.length > 0 &&
                   roomList.map((roomInfo, i) => {
                     return (
-                      <StartRoomSimple roomInfo={roomInfo} index={i} key={i} />
+                      <StartRoomSimple
+                        roomInfo={roomInfo}
+                        index={i}
+                        key={i}
+                        myFavoritedRooms={myFavoritedRooms}
+                      />
                     );
                   })}
               </>
@@ -442,6 +456,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
                         index={i}
                         myId={myId}
                         key={i}
+                        myFavoritedRooms={myFavoritedRooms}
                       />
                     );
                   })}
