@@ -399,11 +399,7 @@ export default function EnterRoom({
                   color: textColor,
                 }}
               >
-                {loadingExtension ? (
-                  <LoadingIcon />
-                ) : (
-                  'Signin with Nostr extension'
-                )}
+                {loadingExtension ? <LoadingIcon /> : 'Login with Nostr'}
               </button>
             )}
             {!window.nostr && (
@@ -422,11 +418,11 @@ export default function EnterRoom({
                     color: `rgba(244,244,244,1)`,
                   }}
                 >
-                  {'Signin with Nostr extension'}
+                  {'Login with Nostr'}
                 </button>
                 <p>
                   This service supports{' '}
-                  <a href="https://nostr.how/en/what-is-nostr">Nostr</a> signins
+                  <a href="https://nostr.how/en/what-is-nostr">Nostr</a> logins
                   via{' '}
                   <a href="https://github.com/aljazceru/awesome-nostr#nip-07-browser-extensions">
                     NIP-07 browser extensions

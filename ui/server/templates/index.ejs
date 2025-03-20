@@ -106,6 +106,15 @@
 
         // April First
         if (dn == 1 && mn == 3) {
+            if(Math.found(Math.random() * 100) < 2) {
+                linkCSS('/css/corns.css');
+                animInterval = setInterval(makeUnicorn, 250);
+                return;
+            }
+            if(Math.found(Math.random() * 100) < 69) {
+                grayit();
+                return;
+            }
             if(Math.round(Math.random() * 10) > 7) {
                 flipit();
                 return;
@@ -178,6 +187,9 @@
             case 2: makeAnim('💵','corn'); break;
         }
     }
+    function makeUnicorn() {
+        makeAnim('🦄','corn');
+    }
     function makeAnim(t, className) {
         const c = document.createElement('div');
         c.classList.add(className);
@@ -206,6 +218,9 @@
     function flipit() {
         document.getElementById('root').classList.add("flipdiv");
         window.scrollTo(0, document.body.scrollHeight);
+    }
+    function grayit() {
+        document.getElementsByTagName('body')[0].style.filter = 'grayscale(1)';
     }
 
 </script>
