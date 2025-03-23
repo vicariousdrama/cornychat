@@ -437,6 +437,130 @@ export default function EnterRoom({
                 </p>
               </div>
             )}
+            {(false ||
+              (new Date().getMonth() + 1 == 4 && new Date().getDate() == 1)) &&
+              !closed &&
+              !forbidden && (
+                <>
+                  <button
+                    onClick={() => {
+                      alert(
+                        'This feature requires an annual subscription fee of $329.00'
+                      );
+                    }}
+                    className={
+                      'mt-5 select-none w-full p-3 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
+                    }
+                    style={{
+                      backgroundColor: 'rgb(24,119,242)',
+                      color: 'rgb(254,254,254)',
+                    }}
+                  >
+                    <center>
+                      <table>
+                        <tr>
+                          <td valign="middle">
+                            <img
+                              src="/img/sm/facebook.png"
+                              height="44"
+                              width="44"
+                            />
+                          </td>
+                          <td valign="middle">Continue with Facebook</td>
+                        </tr>
+                      </table>
+                    </center>
+                  </button>
+                  <button
+                    onClick={() => {
+                      alert(
+                        'This feature requires an annual subscription fee of $429.00'
+                      );
+                    }}
+                    className={
+                      'mt-5 select-none w-full p-3 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
+                    }
+                    style={{
+                      backgroundColor: 'rgb(252,221,136)',
+                      color: 'rgb(0,0,0)',
+                    }}
+                  >
+                    <center>
+                      <table>
+                        <tr>
+                          <td valign="middle">
+                            <img
+                              src="/img/sm/amazon.png"
+                              height="44"
+                              width="44"
+                            />
+                          </td>
+                          <td valign="middle">Login with Amazon</td>
+                        </tr>
+                      </table>
+                    </center>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      alert(
+                        'This feature requires an annual subscription fee of $529.00'
+                      );
+                    }}
+                    className={
+                      'mt-5 select-none w-full p-3 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
+                    }
+                    style={{
+                      backgroundColor: 'rgb(255,255,255)',
+                      color: 'rgb(0, 0, 0)',
+                    }}
+                  >
+                    <center>
+                      <table>
+                        <tr>
+                          <td valign="middle">
+                            <img
+                              src="/img/sm/google.png"
+                              height="44"
+                              width="44"
+                            />
+                          </td>
+                          <td valign="middle">Sign in with Google</td>
+                        </tr>
+                      </table>
+                    </center>
+                  </button>
+                  <button
+                    onClick={() => {
+                      alert(
+                        'This feature requires an annual subscription fee of $629.00'
+                      );
+                    }}
+                    className={
+                      'mt-5 select-none w-full p-3 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
+                    }
+                    style={{
+                      backgroundColor: 'rgb(0,0,0)',
+                      color: 'rgb(255,255,255)',
+                    }}
+                  >
+                    <center>
+                      <table>
+                        <tr>
+                          <td valign="middle">
+                            <img
+                              src="/img/sm/apple.png"
+                              height="44"
+                              width="44"
+                            />
+                          </td>
+                          <td valign="middle">Access with Apple</td>
+                        </tr>
+                      </table>
+                    </center>
+                  </button>
+                </>
+              )}
           </>
         )}
 
