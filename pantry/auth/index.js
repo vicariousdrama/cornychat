@@ -1,12 +1,22 @@
-const {nip19, getPublicKey } = require('nostr-tools');
+const {nip19, getPublicKey} = require('nostr-tools');
 const {get, set} = require('../services/redis');
 const {activeUsersInRoom} = require('../services/ws');
 const {permitAllAuthenticator} = require('../routes/controller');
 const verifyIdentities = require('../verifications');
 const {restrictRoomCreation, jamHost} = require('../config');
-const {getRoomNSEC, publishNostrSchedule, deleteNostrSchedule, updateNostrProfile, isValidLoginSignature, getNpubs} = require('../nostr/nostr');
-const { saveCSAR } = require('../nostr/csar');
-const {grantPubkeyToRelays, revokePubkeyFromRelays} = require('../relayacl/relayACL');
+const {
+  getRoomNSEC,
+  publishNostrSchedule,
+  deleteNostrSchedule,
+  updateNostrProfile,
+  isValidLoginSignature,
+  getNpubs,
+} = require('../nostr/nostr');
+const {saveCSAR} = require('../nostr/csar');
+const {
+  grantPubkeyToRelays,
+  revokePubkeyFromRelays,
+} = require('../relayacl/relayACL');
 
 const isAnyInList = (tokens, publicKeys) => {
   return tokens.some(token => publicKeys.includes(token));
@@ -21,7 +31,7 @@ const hasAccessToRoom = async (req, roomId) => {
       req.ssrIdentities,
       (roomInfo.access && roomInfo.access.identities) || []
     );
-  } catch(error) {
+  } catch (error) {
     console.log(`[hasAccessToRoom] error: ${error}`);
     return [];
   }
@@ -46,7 +56,7 @@ const asNpubs = async identityKeys => {
         let i = ident.loginId || '';
         let s = ident.loginSig || '';
         let p = nip19.decode(n).data;
-        let r = isValidLoginSignature(i,p,c,identityKey,s);
+        let r = isValidLoginSignature(i, p, c, identityKey, s);
         if (r) npubs.push(n);
       }
     } catch (error) {
@@ -54,7 +64,7 @@ const asNpubs = async identityKeys => {
     }
   }
   return npubs;
-}
+};
 
 const isOwner = async (req, roomId) => {
   console.log('[isOwner] checking', req.ssrIdentities);
@@ -67,7 +77,7 @@ const isOwner = async (req, roomId) => {
     let npubs = await asNpubs(req.ssrIdentities);
     if (!o) o = isAnyInList(npubs, roomInfo.owners);
     return o;
-  } catch(error) {
+  } catch (error) {
     console.log(`[isOwner] error: ${error}`);
     return false;
   }
@@ -98,7 +108,7 @@ const isModerator = async (req, roomId) => {
       m = isAnyInList(npubs, roomInfo.moderators);
       if (m) return m;
     }
-  } catch(error) {
+  } catch (error) {
     console.log(`[isModerator] error: ${error}`);
   }
   return false;
@@ -108,7 +118,7 @@ const identityIsAdmin = async identityKeys => {
   try {
     const adminKeys = await get('server/admins');
     return isAnyInList(identityKeys, adminKeys);
-  } catch(error) {
+  } catch (error) {
     console.log(`[identityIsAdmin] error: ${error}`);
   }
   return false;
@@ -128,7 +138,7 @@ const addAdmin = async serverAdminId => {
     } else {
       await set('server/admins', [serverAdminId]);
     }
-  } catch(error) {
+  } catch (error) {
     console.log(`[addAdmin] error: ${error}`);
   }
 };
@@ -136,9 +146,11 @@ const addAdmin = async serverAdminId => {
 const removeAdmin = async serverAdminId => {
   try {
     const currentServerAdmins = await get('server/admins');
-    const newServerAdmins = currentServerAdmins.filter(e => e !== serverAdminId);
+    const newServerAdmins = currentServerAdmins.filter(
+      e => e !== serverAdminId
+    );
     await set('server/admins', newServerAdmins);
-  } catch(error) {
+  } catch (error) {
     console.log(`[removeAdmin] error: ${error}`);
   }
 };
@@ -149,7 +161,7 @@ const initializeServerAdminIfNecessary = async req => {
     if (!admins || admins.length === 0) {
       await set('server/admins', [req.params.id]);
     }
-  } catch(error) {
+  } catch (error) {
     console.log(`[initializeServerAdminIfNecessary] error: ${error}`);
   }
 };
@@ -162,7 +174,7 @@ const getHeaderValue = (headers, key) => {
       v = h;
       break;
     }
-    f = (h == key)
+    f = h == key;
   }
   return v;
 };
@@ -187,38 +199,54 @@ const roomAuthenticator = {
       // - initial length must be < 2048
       let cl = getHeaderValue(req.rawHeaders, 'Content-Length');
       if (!cl || cl.length == 0) {
-        console.log(`Room ${roomId} being created does not provide Content-Length header`);
+        console.log(
+          `Room ${roomId} being created does not provide Content-Length header`
+        );
         res.sendStatus(411);
         return;
       }
-      if (Math.floor(cl) > 2100) {  // current default room size near 2048 depending on roomid generated
-        console.log(`Room ${roomId} being created exceeds maximum allowed data size`);
+      if (Math.floor(cl) > 2100) {
+        // current default room size near 2048 depending on roomid generated
+        console.log(
+          `Room ${roomId} being created exceeds maximum allowed data size`
+        );
         res.sendStatus(413);
         return;
-      }    
+      }
       // - must be json
       let ct = getHeaderValue(req.rawHeaders, 'Content-Type');
       if (!ct || ct != 'application/json') {
-        console.log(`Room ${roomId} being created does not provide Content-Type header, or value is not application/json`);
+        console.log(
+          `Room ${roomId} being created does not provide Content-Type header, or value is not application/json`
+        );
         res.sendStatus(400);
         return;
       }
       // - must contain fields: name, description, owners, moderators, speakers, customEmojis
-      if (req.body.name == undefined || 
-          req.body.description == undefined ||
-          req.body.owners == undefined ||
-          req.body.moderators == undefined ||
-          req.body.speakers == undefined ||
-          req.body.customEmojis == undefined) {
-        console.log(`Room ${roomId} being created does not have required fields`);
+      if (
+        req.body.name == undefined ||
+        req.body.description == undefined ||
+        req.body.owners == undefined ||
+        req.body.moderators == undefined ||
+        req.body.speakers == undefined ||
+        req.body.customEmojis == undefined
+      ) {
+        console.log(
+          `Room ${roomId} being created does not have required fields`
+        );
         res.sendStatus(400);
-        return;    
+        return;
       }
       // - the first customEmoji in the array must be "🌽"
-      if (req.body.customEmojis.length == 0 || req.body.customEmojis[0] != "🌽") {
-        console.log(`Room ${roomId} being created does not have 🌽 emoji in first slot`);
+      if (
+        req.body.customEmojis.length == 0 ||
+        req.body.customEmojis[0] != '🌽'
+      ) {
+        console.log(
+          `Room ${roomId} being created does not have 🌽 emoji in first slot`
+        );
         res.sendStatus(400);
-        return;    
+        return;
       }
       // - force set createdTime and updateTime
       let theTime = Date.now();
@@ -231,11 +259,11 @@ const roomAuthenticator = {
 
       // achievement
       const senderId = req.body.owners[0];
-      saveCSAR(senderId, roomId, "makeroom");
+      saveCSAR(senderId, roomId, 'makeroom');
 
       // if we got this far, the authorization checks succeeded and ok to write
       next();
-    } catch(error) {
+    } catch (error) {
       console.log(`[roomAuthenticator.canPost] error: ${error}`);
       res.sendStatus(500);
       return;
@@ -254,24 +282,31 @@ const roomAuthenticator = {
       let postingRoom = req.body;
       // room must exist to be updated
       if (!roomInfo) {
-        console.log("unable to update room: roomInfo does not exist");
+        console.log('unable to update room: roomInfo does not exist');
         res.sendStatus(403);
         return;
       }
       // add first moderator as owner if not yet set
-      if(roomInfo.owners == undefined) {
-        console.log("adding first moderator as room owner");
+      if (roomInfo.owners == undefined) {
+        console.log('adding first moderator as room owner');
         roomInfo.owners = [roomInfo.moderators[0]];
       }
       // check if legacy room (one without timestamp checks)
-      let islegacy = (!roomInfo?.updateTime);
+      let islegacy = !roomInfo?.updateTime;
       if (islegacy) {
         roomInfo.updateTime = Date.now();
         postingRoom.updateTime = roomInfo.updateTime;
       }
       // check update time against existing to avoid last in wins overwrites or updating with old state
       if (postingRoom.updateTime != roomInfo.updateTime) {
-        console.log("Room ", roomId, "provided update time: ", postingRoom.updateTime, " does not match most recent update time: ", roomInfo.updateTime);
+        console.log(
+          'Room ',
+          roomId,
+          'provided update time: ',
+          postingRoom.updateTime,
+          ' does not match most recent update time: ',
+          roomInfo.updateTime
+        );
         res.sendStatus(428);
         return;
       }
@@ -281,7 +316,10 @@ const roomAuthenticator = {
       let connectedOwners = [];
       let connectedUsers = activeUsersInRoom(roomId);
       for (let connectedUser of connectedUsers) {
-        if (roomInfo.owners.includes(connectedUser) && !connectedOwners.includes(connectedUser)) {
+        if (
+          roomInfo.owners.includes(connectedUser) &&
+          !connectedOwners.includes(connectedUser)
+        ) {
           connectedOwners.push(connectedUser);
         }
       }
@@ -296,36 +334,57 @@ const roomAuthenticator = {
         m = isAnyInList(req.ssrIdentities, roomInfo.moderators);
         if (!m) m = isAnyInList(npubs, roomInfo.moderators);
       }
+      let s = false;
+      if (roomInfo.speakers) {
+        s = isAnyInList(req.ssrIdentities, roomInfo.speakers);
+        if (!s) s = isAnyInList(npubs, roomInfo.speakers);
+      }
+      // special edge case for rooms with a talking stick, current speaker can set the new tsID
+      if (
+        (roomInfo.isTS ?? false) &&
+        (roomInfo.tsID ?? '') != postingRoom.tsID
+      ) {
+        if (o || m || s || roomInfo.speakers.length == 0) {
+          roomInfo.tsID = postingRoom.tsID;
+          roomInfo.speakers = postingRoom.speakers;
+          req.body = roomInfo;
+          next();
+          return;
+        }
+      }
+
       // must be an admin, owner or moderator to update the room
-      if(!(a || o || m)) {
+      if (!(a || o || m)) {
         res.sendStatus(403);
         return;
       }
       // track scheduling
-      let hadSchedule = (roomInfo.schedule != undefined);
-      let hasSchedule = (postingRoom.schedule != undefined);
-      let scheduleChanged = (
-          hadSchedule && hasSchedule &&
-          roomInfo.schedule.setOn &&
-          roomInfo.schedule.setOn != postingRoom.schedule.setOn
-        );
+      let hadSchedule = roomInfo.schedule != undefined;
+      let hasSchedule = postingRoom.schedule != undefined;
+      let scheduleChanged =
+        hadSchedule &&
+        hasSchedule &&
+        roomInfo.schedule.setOn &&
+        roomInfo.schedule.setOn != postingRoom.schedule.setOn;
       let oldScheduleStart = roomInfo.schedule?.start;
       let newScheduleStart = postingRoom.schedule?.start;
       // track room profile changes for updating nostr metadata record for room
       let profileChanged = false;
-      profileChanged ||= (roomInfo.name != postingRoom.name);
-      profileChanged ||= (roomInfo.description != postingRoom.description);
-      profileChanged ||= (roomInfo.logoURI != postingRoom.logoURI);
-      profileChanged ||= (roomInfo.backgroundURI != postingRoom.backgroundURI);
-      profileChanged ||= (roomInfo.lud16 != postingRoom.lud16);
-      profileChanged ||= (roomInfo.isPrivate != postingRoom.isPrivate);
+      profileChanged ||= roomInfo.name != postingRoom.name;
+      profileChanged ||= roomInfo.description != postingRoom.description;
+      profileChanged ||= roomInfo.logoURI != postingRoom.logoURI;
+      profileChanged ||= roomInfo.backgroundURI != postingRoom.backgroundURI;
+      profileChanged ||= roomInfo.lud16 != postingRoom.lud16;
+      profileChanged ||= roomInfo.isPrivate != postingRoom.isPrivate;
       // if not an owner or admin, only allow changing specific fields
-      if(!(a || o)) {
+      if (!(a || o)) {
         // if not admin or owner, moderators are restricted to only updating specific fields
         roomInfo.currentSlide = postingRoom.currentSlide ?? 0;
         roomInfo.roomLinks = postingRoom.roomLinks ?? [];
         roomInfo.roomSlides = postingRoom.roomSlides ?? [];
-        roomInfo.schedule = (postingRoom.schedule) ? postingRoom.schedule : undefined;
+        roomInfo.schedule = postingRoom.schedule
+          ? postingRoom.schedule
+          : undefined;
         roomInfo.speakers = postingRoom.speakers ?? roomInfo.moderators;
         roomInfo.kicked = postingRoom.kicked ?? [];
         req.body = roomInfo;
@@ -336,7 +395,7 @@ const roomAuthenticator = {
       // rule: for a room to be public, user must have an npub
       // OR at least one other owner currently connected must have an npub
       if (npubs.length == 0 && connectedOwnerNpubs.length == 0) {
-        console.log("forcing room to private");
+        console.log('forcing room to private');
         roomInfo.isPrivate = true;
         postingRoom.isPrivate = true;
       }
@@ -353,11 +412,16 @@ const roomAuthenticator = {
       let deleteNostrScheduledEvent = false;
       if (oldScheduleStart) {
         // delete if old start time is in the future
-        if (oldScheduleStart > Math.floor(Date.now() / 1000)) deleteNostrScheduledEvent = true;
+        if (oldScheduleStart > Math.floor(Date.now() / 1000))
+          deleteNostrScheduledEvent = true;
       }
-      if (hasSchedule && scheduleChanged && 
-        oldScheduleStart && newScheduleStart &&
-        newScheduleStart < oldScheduleStart && newScheduleStart + 86400 > oldScheduleStart
+      if (
+        hasSchedule &&
+        scheduleChanged &&
+        oldScheduleStart &&
+        newScheduleStart &&
+        newScheduleStart < oldScheduleStart &&
+        newScheduleStart + 86400 > oldScheduleStart
       ) {
         deleteNostrScheduledEvent = true;
       }
@@ -366,25 +430,37 @@ const roomAuthenticator = {
       }
       if (hasSchedule && scheduleChanged) {
         // now publish
-        let n = await publishNostrSchedule(roomId, roomInfo.schedule, roomInfo.moderators, roomInfo.logoURI);
+        let n = await publishNostrSchedule(
+          roomId,
+          roomInfo.schedule,
+          roomInfo.moderators,
+          roomInfo.logoURI
+        );
       }
 
       // admin or owner and room is not private
-      if ((a||o) && !(roomInfo.isPrivate ?? true)) {
+      if ((a || o) && !(roomInfo.isPrivate ?? true)) {
         // set room npub from nsec (is this really necessary?)
         req.body.npub = nip19.npubEncode(pk);
         // update profile if changed
         if (profileChanged) {
-          let n = await updateNostrProfile(roomId, roomInfo.name, roomInfo.description, roomInfo.logoURI, roomInfo.backgroundURI, roomInfo.lud16);
+          let n = await updateNostrProfile(
+            roomId,
+            roomInfo.name,
+            roomInfo.description,
+            roomInfo.logoURI,
+            roomInfo.backgroundURI,
+            roomInfo.lud16
+          );
         }
       }
 
       // ok
       next();
-    } catch(error) {
+    } catch (error) {
       console.log(`[roomAuthenticator.canPut] error: ${error}`);
       res.sendStatus(500);
-      return;      
+      return;
     }
   },
 };
@@ -401,7 +477,7 @@ const identityAuthenticator = {
       req.body.updateTime = theTime;
 
       next();
-    } catch(error) {
+    } catch (error) {
       console.log(`[identityAuthenticator.canPost] error: ${error}`);
       res.sendStatus(500);
       return;
@@ -420,7 +496,10 @@ const identityAuthenticator = {
           // TODO: Modify ../nostr/nostr.js:verify to support a new verificationInfo type for validating the signature given
           let isok = await verifyIdentities(req.body.identities, req.params.id);
         } catch (error) {
-          console.log("[identityAuthenticator.canPut] error calling verifyIdentities: ", error.message);
+          console.log(
+            '[identityAuthenticator.canPut] error calling verifyIdentities: ',
+            error.message
+          );
           res.status(400).json({
             success: false,
             error: {
@@ -454,7 +533,7 @@ const identityAuthenticator = {
             let i = ident.loginId || '';
             let s = ident.loginSig || '';
             let p = nip19.decode(n).data;
-            let r = isValidLoginSignature(i,p,c,publicKey,s);
+            let r = isValidLoginSignature(i, p, c, publicKey, s);
             if (r) newNpubs.push(n);
           }
         }
@@ -488,11 +567,15 @@ const identityAuthenticator = {
           await revokePubkeyFromRelays(true, removePubkey);
         }
         for (let grantPubkey of grantPubkeys) {
-          const grantReason = `${jamHost} npub: ${nip19.npubEncode(grantPubkey)}`;
+          const grantReason = `${jamHost} npub: ${nip19.npubEncode(
+            grantPubkey
+          )}`;
           await grantPubkeyToRelays(true, grantPubkey, grantReason);
         }
-      } catch(err) {
-        console.log(`Error granting pubkey access to relays when updating identity: ${err}`);
+      } catch (err) {
+        console.log(
+          `Error granting pubkey access to relays when updating identity: ${err}`
+        );
       }
 
       // - force set updateTime
@@ -500,7 +583,7 @@ const identityAuthenticator = {
       req.body.updateTime = theTime;
 
       next();
-    } catch(error) {
+    } catch (error) {
       console.log(`[identityAuthenticator.canPut] error: ${error}`);
       res.sendStatus(500);
       return;

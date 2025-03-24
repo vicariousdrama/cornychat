@@ -39,6 +39,10 @@ export function BasicRoomInfo({
   setStageOnly,
   isLiveActivityAnnounced,
   setIsLiveActivityAnnounced,
+  isTS,
+  setIsTS,
+  tsID,
+  setTsID,
   lud16,
   setLud16,
   zapGoal,
@@ -617,6 +621,10 @@ export function BasicRoomInfo({
                 id="jam-room-stageonly"
                 onChange={() => {
                   setStageOnly(!stageOnly);
+                  if (stageOnly && isTS) {
+                    alert('Disabling Talking Stick mode');
+                    setIsTS(!isTS);
+                  }
                 }}
                 defaultChecked={stageOnly}
               />
@@ -643,6 +651,57 @@ export function BasicRoomInfo({
             <p className="text-gray-300 text-sm">
               <span className="font-medium text-gray-300">Stage Only room</span>{' '}
               - Users will be placed on the stage and may speak freely.
+            </p>
+          )}
+        </div>
+
+        <div className="mt-2">
+          {iOwn && (
+            <>
+              <input
+                className="ml-2"
+                type="checkbox"
+                name="jam-room-istalkingstick"
+                id="jam-room-istalkingstick"
+                onChange={() => {
+                  setIsTS(!isTS);
+                  if (stageOnly && isTS) {
+                    alert('Disabling Stage Only mode');
+                    setStageOnly(!stageOnly);
+                  }
+                }}
+                defaultChecked={isTS}
+              />
+              <label
+                className="pl-3 ml-0.5 text-sm font-medium text-gray-300 p-2"
+                htmlFor="jam-room-istalkingstick"
+              >
+                Use Talking Stick
+                <div className="p-2 pl-9 text-gray-300 text-sm">
+                  Rooms that use a talking stick only permit one person to talk
+                  at a time. The person speaking must hand off the microphone to
+                  the next person to be allowed to speak. A room owner can
+                  always take the talking stick.
+                </div>
+              </label>
+            </>
+          )}
+          {!iOwn && isTS && (
+            <p className="text-gray-300 text-sm">
+              <span className="font-medium text-gray-300">
+                Talking Stick Enabled
+              </span>{' '}
+              - Only one user may speak at a time. The person with the talking
+              stick must hand it off to the next user to be able to talk.
+              Speakers should raise their hand to signify they want to speak.
+            </p>
+          )}
+          {!iOwn && !isTS && (
+            <p className="text-gray-300 text-sm">
+              <span className="font-medium text-gray-300">
+                Talking Stick Disabled
+              </span>{' '}
+              - Anyone with speaker privileges may talk at any time.
             </p>
           )}
         </div>

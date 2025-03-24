@@ -28,6 +28,15 @@ const iOS =
 
 const macOS = /^Mac/.test(navigator.platform) && navigator.maxTouchPoints === 0;
 
+function isJsonString(str) {
+  try {
+    JSON.parse(str);
+  } catch (e) {
+    return false;
+  }
+  return true;
+}
+
 export default function EnterRoom({
   roomId,
   name,
@@ -79,6 +88,30 @@ export default function EnterRoom({
       ''
   );
   let [wrongPassphrase, setWrongPassphrase] = useState(false);
+  let ownedBy = '';
+  if (room.passphraseHash) {
+    for (let ownerid of room.owners) {
+      let ownedByPeer = sessionStorage.getItem(ownerid);
+      if (ownedByPeer != undefined) {
+        if (isJsonString(ownedByPeer)) ownedByPeer = JSON.parse(ownedByPeer);
+        if (ownedByPeer.hasOwnProperty('name')) {
+          ownedBy = 'This room is owned by: ' + ownedByPeer.name;
+          break;
+        }
+        if (ownedByPeer.hasOwnProperty('jamId')) {
+          ownedByPeer = sessionStorage.getItem(ownedByPeer.jamId);
+          if (ownedByPeer != undefined) {
+            if (isJsonString(ownedByPeer))
+              ownedByPeer = JSON.parse(ownedByPeer);
+            if (ownedByPeer.hasOwnProperty('name')) {
+              ownedBy = 'This room is owned by: ' + ownedByPeer.name;
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
   let showAd = false; // time4Ad();
   let supportsWebRTC = canWebRTC();
   if (!supportsWebRTC) showAd = false;
@@ -93,14 +126,26 @@ export default function EnterRoom({
       if (k.until < Date.now()) continue;
       if (k.id == myIdentity.info.id) {
         kicked = true;
+        kickedReason = k.reason;
         kickedUntilTime = makeLocalDate(Math.floor(k.until / 1000));
         let kickedByPeer = sessionStorage.getItem(k.kickedBy);
         if (kickedByPeer != undefined) {
-          if (kickedByPeer.hasOwnProperty(name)) {
+          if (isJsonString(kickedByPeer))
+            kickedByPeer = JSON.parse(kickedByPeer);
+          if (kickedByPeer.hasOwnProperty('name')) {
             kickedBy = 'by ' + kickedByPeer.name;
           }
+          if (kickedByPeer.hasOwnProperty('jamId')) {
+            kickedByPeer = sessionStorage.getItem(kickedByPeer.jamId);
+            if (kickedByPeer != undefined) {
+              if (isJsonString(kickedByPeer))
+                kickedByPeer = JSON.parse(kickedByPeer);
+              if (kickedByPeer.hasOwnProperty('name')) {
+                kickedBy = 'by ' + kickedByPeer.name;
+              }
+            }
+          }
         }
-        kickedReason = k.reason;
         break;
       }
     }
@@ -292,7 +337,7 @@ export default function EnterRoom({
         {passphraseEnabled && (
           <>
             <div className="text-center my-3 text-gray-300">
-              Enter room passphrase.
+              Enter room passphrase. {ownedBy}
             </div>
             <input
               className={mqp(

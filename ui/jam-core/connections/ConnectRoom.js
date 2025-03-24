@@ -13,6 +13,8 @@ import {staticConfig} from '../config';
 import {actions} from '../state';
 import {DISCONNECTED, INITIAL} from '../../lib/swarm-health';
 import {useStableObject} from '../../lib/state-diff';
+import {StoredState} from '../../lib/local-storage.js';
+import {useJam} from '../../jam-core-react';
 
 export default function ConnectRoom({myIdentity, swarm}) {
   let connectedRoomId = null;
@@ -87,9 +89,31 @@ export default function ConnectRoom({myIdentity, swarm}) {
     // merge in real-time room info
     let [isRoomUpdate, room] = useEvent(serverEvent, 'room-info');
     if (isRoomUpdate) {
-      log('new room info', room);
+      if (window.DEBUG) log('new room info', room);
       if (connectedRoomId !== null) {
         populateApiCache(`/rooms/${connectedRoomId}`, room);
+        // 20250323-stick
+        if ((room.isTS ?? false) && room.tsID != myId) {
+          if (window.DEBUG)
+            log(
+              'room has a talking stick, and im not the current one holding it. mute me!'
+            );
+          const selectedMicrophoneState = StoredState('jam.selectedMicrophone');
+          if (window.DEBUG) log(selectedMicrophoneState);
+          const constraints = !!selectedMicrophoneState.deviceId
+            ? {audio: {deviceId: {exact: selectedMicrophoneState.deviceId}}}
+            : {video: false, audio: true};
+          (async () => {
+            let stream = await navigator.mediaDevices.getUserMedia(constraints);
+            if (window.DEBUG) log(stream);
+            stream.getTracks().forEach(track => track.stop());
+            // const [state, {setProps}] = useJam();
+            // setProps('micMuted', true);
+            let dispatch = useDispatch();
+            // dispatch(actions.RETRY_MIC);
+            // dispatch(actions.RETRY_AUDIO);
+          })();
+        }
       }
     }
 
@@ -149,7 +173,7 @@ function configSwarm(swarm, staticConfig) {
       iceTransportPolicy: 'all',
       iceServers: [
         // {urls: `stun:stun.jam.systems:3478`},
-        {urls: [`${staticConfig.urls.stun}`]},  //, `stun:coturn.jam.systems:3478`]},
+        {urls: [`${staticConfig.urls.stun}`]}, //, `stun:coturn.jam.systems:3478`]},
         {
           ...staticConfig.urls.turnCredentials,
           urls: `${staticConfig.urls.turn}`,
