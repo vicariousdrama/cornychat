@@ -20,6 +20,7 @@ import {
   addOwner,
   addPresenter,
   addSpeaker,
+  assignTalkingStick,
   removeModerator,
   removeOwner,
   removePresenter,
@@ -132,6 +133,8 @@ function createApi<T extends StateType>(
       addPresenter(state, roomId, peerId) as Promise<boolean>,
     addSpeaker: (roomId: string, peerId: string) =>
       addSpeaker(state, roomId, peerId) as Promise<boolean>,
+    assignTalkingStick: (roomId: string, peerId: string) =>
+      assignTalkingStick(state, roomId, peerId) as Promise<boolean>,
 
     removeAdmin: (peerId: string) =>
       removeAdmin(state, peerId) as Promise<boolean>,

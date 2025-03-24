@@ -58,6 +58,8 @@ export function EditRoomModal({
   let [closedBy, setClosedBy] = useState(room.closedBy || '');
   let [isPrivate, setIsPrivate] = useState(room.isPrivate || false);
   let [isProtected, setIsProtected] = useState(room.isProtected || false);
+  let [isTS, setIsTS] = useState(room.isTS || false);
+  let [tsID, setTsID] = useState(room.tsID || '');
   let [passphrasePlain, setPassphrasePlain] = useState(
     localStorage.getItem(`${roomId}.passphrase`) ??
       sessionStorage.getItem(`${roomId}.passphrase`) ??
@@ -202,6 +204,8 @@ export function EditRoomModal({
       isProtected,
       isRecordingAllowed,
       isLiveActivityAnnounced,
+      isTS,
+      tsID,
       stageOnly,
       owners,
       moderators,
@@ -274,6 +278,10 @@ export function EditRoomModal({
           setIsRecordingAllowed={setIsRecordingAllowed}
           isLiveActivityAnnounced={isLiveActivityAnnounced}
           setIsLiveActivityAnnounced={setIsLiveActivityAnnounced}
+          isTS={isTS}
+          setIsTS={setIsTS}
+          tsID={tsID}
+          setTsID={setTsID}
           stageOnly={stageOnly}
           setStageOnly={setStageOnly}
           lud16={lud16}

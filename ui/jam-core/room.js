@@ -15,6 +15,7 @@ export {
   addOwner,
   removeOwner,
   removeSelfFromRoom,
+  assignTalkingStick,
 };
 export {addSpeaker, removeSpeaker} from './room/Speakers';
 export {addPresenter, removePresenter} from './room/Presenters';
@@ -24,7 +25,14 @@ function RoomState({roomId, myIdentity, peerState, myPeerState}) {
   let {data, isLoading} = use(GetRequest, {path});
   let hasRoom = !!data;
   let room = data ?? emptyRoom;
-  let {moderators, owners, presenters, stageOnly, videoCall, videoEnabled} = room;
+  let {
+    moderators,
+    owners,
+    presenters,
+    stageOnly,
+    videoCall,
+    videoEnabled,
+  } = room;
   let myId = myIdentity.publicKey;
   let accessRestricted = !!room.access?.identities;
 
@@ -40,11 +48,26 @@ function RoomState({roomId, myIdentity, peerState, myPeerState}) {
   room = useStableObject({...room, speakers});
 
   let userNpub = getNpubFromInfo(myIdentity.info);
-  let iAmModerator = moderators.includes(myId) || (userNpub != undefined && moderators?.includes(userNpub));
-  let iAmOwner = owners?.includes(myId) || (userNpub != undefined && owners?.includes(userNpub)) || false;
-  let iAmSpeaker = !!stageOnly || speakers.includes(myId) || (userNpub != undefined && speakers?.includes(userNpub));
-  let iAmPresenter = !!videoCall || (presenters && presenters.includes(myId)) || (videoEnabled && iAmSpeaker) || (userNpub != undefined && presenters?.includes(userNpub));
-  let iAmAuthorized = !accessRestricted || room.access?.identities.includes(myId) || (userNpub != undefined && room.access?.identities.includes(userNpub));
+  let iAmModerator =
+    moderators.includes(myId) ||
+    (userNpub != undefined && moderators?.includes(userNpub));
+  let iAmOwner =
+    owners?.includes(myId) ||
+    (userNpub != undefined && owners?.includes(userNpub)) ||
+    false;
+  let iAmSpeaker =
+    !!stageOnly ||
+    speakers.includes(myId) ||
+    (userNpub != undefined && speakers?.includes(userNpub));
+  let iAmPresenter =
+    !!videoCall ||
+    (presenters && presenters.includes(myId)) ||
+    (videoEnabled && iAmSpeaker) ||
+    (userNpub != undefined && presenters?.includes(userNpub));
+  let iAmAuthorized =
+    !accessRestricted ||
+    room.access?.identities.includes(myId) ||
+    (userNpub != undefined && room.access?.identities.includes(userNpub));
 
   return {
     roomId,
@@ -82,7 +105,7 @@ async function addModerator(state, roomId, peerId) {
   if (room === null) return false;
   let {moderators = []} = room;
   let a = false;
-  if(peerId.length == 43) {
+  if (peerId.length == 43) {
     let userNpub = getNpubFromInfo(sessionStorage.getItem(peerId));
     if (userNpub != undefined && !moderators.includes(userNpub)) {
       moderators = [...moderators, userNpub];
@@ -115,7 +138,7 @@ async function removeModerator(state, roomId, peerId) {
     r = true;
   }
   // peerid can be jamid or npub, but if jamid and user has npub, remove both
-  if(peerId.length == 43) {
+  if (peerId.length == 43) {
     let userNpub = getNpubFromInfo(sessionStorage.getItem(peerId));
     if (userNpub != undefined) {
       moderators = moderators.filter(id => id !== userNpub);
@@ -137,7 +160,7 @@ async function addOwner(state, roomId, peerId) {
   if (room === null) return false;
   let {owners = []} = room;
   let a = false;
-  if(peerId.length == 43) {
+  if (peerId.length == 43) {
     let userNpub = getNpubFromInfo(sessionStorage.getItem(peerId));
     if (userNpub != undefined && !owners.includes(userNpub)) {
       owners = [...owners, userNpub];
@@ -164,10 +187,10 @@ async function removeOwner(state, roomId, peerId) {
   console.log('in removeOwner');
   console.log(`roomid = ${roomId}`);
   let room = getCachedRoom(roomId);
-  console.log(`removeOwner room: ${room}`)
+  console.log(`removeOwner room: ${room}`);
   if (room === null) return false;
   let {owners = []} = room;
-  console.log(`removeOwner owners before: ${owners}`)
+  console.log(`removeOwner owners before: ${owners}`);
   let r = false;
   if (owners.includes(peerId)) {
     console.log(`removeOwner removing peerId from owners`);
@@ -177,7 +200,7 @@ async function removeOwner(state, roomId, peerId) {
     r = true;
   }
   // peerid can be jamid or npub, but if jamid and user has npub, remove both
-  if(peerId.length == 43) {
+  if (peerId.length == 43) {
     console.log(`removeOwner checking for npub`);
     let userNpub = getNpubFromInfo(sessionStorage.getItem(peerId));
     if (userNpub != undefined) {
@@ -198,6 +221,16 @@ async function removeOwner(state, roomId, peerId) {
     console.log(`removeOwner .. ${peerId} was not present`);
     return true;
   }
+}
+
+async function assignTalkingStick(state, roomId, peerId) {
+  let room = getCachedRoom(roomId);
+  if (room === null) return false;
+  let {tsID} = room;
+  tsID = peerId;
+  let speakers = [peerId];
+  let newRoom = {...room, tsID, speakers};
+  return await put(state, `/rooms/${roomId}`, newRoom);
 }
 
 async function removeSelfFromRoom(state, roomId, userId) {

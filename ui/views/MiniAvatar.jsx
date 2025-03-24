@@ -5,6 +5,7 @@ import animateEmoji from '../lib/animate-emoji';
 import {useMqParser} from '../lib/tailwind-mqp';
 import {colors, isDark} from '../lib/theme';
 import {useApiQuery} from '../jam-core-react';
+import {MicMuted, MicStick} from './Svg';
 
 export function StageAvatar({
   room,
@@ -20,19 +21,20 @@ export function StageAvatar({
   iAmAdmin,
 }) {
   return (
-    <Avatar {...{
-      room,
-      moderators,
-      owners,
-      speaking,
-      canSpeak,    
-      peerId,
-      peerState,
-      reactions,
-      info,
-      onClick,
-      iAmAdmin,
-    }}
+    <Avatar
+      {...{
+        room,
+        moderators,
+        owners,
+        speaking,
+        canSpeak,
+        peerId,
+        peerState,
+        reactions,
+        info,
+        onClick,
+        iAmAdmin,
+      }}
     />
   );
 }
@@ -51,19 +53,20 @@ export function AudienceAvatar({
   let speaking = undefined;
   let canSpeak = false;
   return (
-    <Avatar {...{
-      room,
-      moderators,
-      owners,
-      speaking,
-      canSpeak,    
-      peerId,
-      peerState,
-      reactions,
-      info,
-      onClick,
-      iAmAdmin,
-    }}
+    <Avatar
+      {...{
+        room,
+        moderators,
+        owners,
+        speaking,
+        canSpeak,
+        peerId,
+        peerState,
+        reactions,
+        info,
+        onClick,
+        iAmAdmin,
+      }}
     />
   );
 }
@@ -94,37 +97,53 @@ function Avatar({
   info = info || {id: peerId};
   let userNpub = getNpubFromInfo(info);
 
-  let isModerator = moderators?.includes(peerId) || (userNpub != undefined && moderators?.includes(userNpub)) || false;
-  let isOwner = owners?.includes(peerId) || (userNpub != undefined && owners?.includes(userNpub)) || false;
+  let isModerator =
+    moderators?.includes(peerId) ||
+    (userNpub != undefined && moderators?.includes(userNpub)) ||
+    false;
+  let isOwner =
+    owners?.includes(peerId) ||
+    (userNpub != undefined && owners?.includes(userNpub)) ||
+    false;
   let isAdmin = false;
   if (iAmAdmin) {
-    let [peerAdminStatus] = useApiQuery(`/admin/${peerId}`, {fetchOnMount: true});
+    let [peerAdminStatus] = useApiQuery(`/admin/${peerId}`, {
+      fetchOnMount: true,
+    });
     isAdmin = peerAdminStatus?.admin ?? false;
-  } 
+  }
+  let hasTalkingStick = (room?.isTS ?? false) && (room?.tsID ?? '') == peerId;
 
   const colorTheme = room?.color ?? 'default';
   const roomColor = colors(colorTheme, room.customColor);
-  const iconColor = isDark(roomColor.background) ? roomColor.icons.light : roomColor.icons.dark;
-  const avatarCardBG = !inRoom ? 'rgba(21,21,21,.5)' : (isSpeaking ? roomColor.buttons.primary : roomColor.avatarBg);
-  const avatarCardFG = !inRoom ? 'rgba(69,69,69,.75)' : (isDark(avatarCardBG) ? roomColor.text.light : roomColor.text.dark);
+  const iconColor = isDark(roomColor.background)
+    ? roomColor.icons.light
+    : roomColor.icons.dark;
+  const avatarCardBG = !inRoom
+    ? 'rgba(21,21,21,.5)'
+    : isSpeaking
+    ? roomColor.buttons.primary
+    : roomColor.avatarBg;
+  const avatarCardFG = !inRoom
+    ? 'rgba(69,69,69,.75)'
+    : isDark(avatarCardBG)
+    ? roomColor.text.light
+    : roomColor.text.dark;
 
-  let ghostsEnabled = ((localStorage.getItem('ghostsEnabled') ?? 'false') == 'true');
+  let ghostsEnabled =
+    (localStorage.getItem('ghostsEnabled') ?? 'false') == 'true';
   if (!inRoom && !ghostsEnabled) {
-    return (
-      <></>
-    );
+    return <></>;
   }
 
   return (
-    (
-      <div
-        className="py-0 w-12 mr-1 mb-1 rounded-lg cursor-pointer"
-        style={{backgroundColor: avatarCardBG, color: avatarCardFG}}
-        onClick={onClick}
-      >
-        <div className="relative flex flex-col items-center">
-
-          {inRoom && (
+    <div
+      className="py-0 w-12 mr-1 mb-1 rounded-lg cursor-pointer"
+      style={{backgroundColor: avatarCardBG, color: avatarCardFG}}
+      onClick={onClick}
+    >
+      <div className="relative flex flex-col items-center">
+        {inRoom && (
           <Reactions
             reactions={reactions_}
             className={mqp(
@@ -133,145 +152,182 @@ function Avatar({
             emojis={room.customEmojis}
             style={{backgroundColor: roomColor.buttons.primary, zIndex: '15'}}
           />
-          )}
+        )}
 
-          <table><tbody><tr><td width="75%" style={{borderWidth: '0px', textAlign:'center'}}>
-            <div className="w-12 h-8 human-radius mx-auto flex" style={{marginTop: '0px'}}>
-              <div className="w-4 h-8" />
-              <img
-                className="w-8 h-8 human-radius"
-                src={avatarUrl(info, room)}
-                style={{opacity: inRoom ? 1 : .15}}
-              />
-            </div>
+        <table>
+          <tbody>
+            <tr>
+              <td width="75%" style={{borderWidth: '0px', textAlign: 'center'}}>
+                <div
+                  className="w-12 h-8 human-radius mx-auto flex"
+                  style={{marginTop: '0px'}}
+                >
+                  <div className="w-4 h-8" />
+                  <img
+                    className="w-8 h-8 human-radius"
+                    src={avatarUrl(info, room)}
+                    style={{opacity: inRoom ? 1 : 0.15}}
+                  />
+                </div>
 
-            {inRoom && canSpeak && micMuted /*(!!micMuted || !canSpeak)*/ && (
-            <div
-              className="absolute mt-0 rounded-full p-1"
-              style={{backgroundColor: roomColor.background, top: '0px', left: '0px'}}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="1.5"
-                stroke="currentColor"
-                className="w-3 h-3"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  stroke={iconColor}
-                  d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"
-                />
-                <line
-                  y1="4.5"
-                  x2="40"
-                  y2="25"
-                  stroke={iconColor}
-                  strokeWidth="1"
-                />
-              </svg>
-            </div>
-            )}
+                {inRoom &&
+                  canSpeak &&
+                  !(room?.isTS ?? false) &&
+                  micMuted /*(!!micMuted || !canSpeak)*/ && (
+                    <div
+                      className="absolute mt-0 rounded-full p-1"
+                      style={{
+                        backgroundColor: roomColor.background,
+                        top: '0px',
+                        left: '0px',
+                      }}
+                    >
+                      <MicMuted
+                        className="w-3 h-3"
+                        color={iconColor}
+                        strokeWidth="1"
+                      />
+                    </div>
+                  )}
 
-            {inRoom && (
-            <StickyHand 
-              {...{roomColor, handType}}
-            />
-            )}
-          </td></tr></tbody></table>
-        </div>
+                {inRoom && canSpeak && hasTalkingStick && (
+                  <div
+                    className="absolute mt-0 rounded-full p-1"
+                    style={{
+                      backgroundColor: roomColor.background,
+                      top: '0px',
+                      left: '0px',
+                    }}
+                  >
+                    <MicStick
+                      className="w-3 h-3"
+                      color={iconColor}
+                      strokeWidth="1"
+                    />
+                  </div>
+                )}
 
+                {inRoom && <StickyHand {...{roomColor, handType}} />}
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-    )
+    </div>
   );
 }
 
-function StickyHand({
-  handType,
-  roomColor,
-}) {
+function StickyHand({handType, roomColor}) {
   let mqp = useMqParser();
-  let isHandRH = (handType == 'RH');
-  let isHandTU = (handType == 'TU');
-  let isHandTD = (handType == 'TD');
-  let isHandOther = (handType.length > 0 && !isHandRH && !isHandTU && !isHandTD);
+  let isHandRH = handType == 'RH';
+  let isHandTU = handType == 'TU';
+  let isHandTD = handType == 'TD';
+  let isHandOther = handType.length > 0 && !isHandRH && !isHandTU && !isHandTD;
 
   return (
     <>
       {isHandRH && (
-      <div className={'relative'}>
-        <div
-          className={mqp(
-            'absolute w-6 h-6 rounded-full bg-white text-xl border-1 border-gray-400 flex items-center justify-center'
-          )}
-          style={{backgroundColor: roomColor.background, bottom: '0px', left: '0px'}}
-        >
-          ✋
+        <div className={'relative'}>
+          <div
+            className={mqp(
+              'absolute w-6 h-6 rounded-full bg-white text-xl border-1 border-gray-400 flex items-center justify-center'
+            )}
+            style={{
+              backgroundColor: roomColor.background,
+              bottom: '0px',
+              left: '0px',
+            }}
+          >
+            ✋
+          </div>
         </div>
-      </div>
       )}
       {isHandTU && (
-      <div className={'relative'}>
-        <div
-          className={mqp(
-            'absolute w-6 h-6 rounded-full bg-white text-xl border-1 border-gray-400 flex items-center justify-center'
-          )}
-          style={{backgroundColor: `rgba(17,170,17,1)`, bottom: '0px', left: '0px'}}
-        >
-          👍
+        <div className={'relative'}>
+          <div
+            className={mqp(
+              'absolute w-6 h-6 rounded-full bg-white text-xl border-1 border-gray-400 flex items-center justify-center'
+            )}
+            style={{
+              backgroundColor: `rgba(17,170,17,1)`,
+              bottom: '0px',
+              left: '0px',
+            }}
+          >
+            👍
+          </div>
         </div>
-      </div>
       )}
       {isHandTD && (
-      <div className={'relative'}>
-        <div
-          className={mqp(
-            'absolute w-6 h-6 rounded-full bg-white text-xl border-1 border-gray-400 flex items-center justify-center'
-          )}
-          style={{backgroundColor: `rgba(170,17,17,1)`, bottom: '0px', left: '0px'}}
-        >
-          👎
+        <div className={'relative'}>
+          <div
+            className={mqp(
+              'absolute w-6 h-6 rounded-full bg-white text-xl border-1 border-gray-400 flex items-center justify-center'
+            )}
+            style={{
+              backgroundColor: `rgba(170,17,17,1)`,
+              bottom: '0px',
+              left: '0px',
+            }}
+          >
+            👎
+          </div>
         </div>
-      </div>
       )}
       {isHandOther && (
-      <div className={'relative'}>
-        <div
-          className={mqp(
-            'absolute w-6 h-6 rounded-full bg-white border-1 border-gray-400 flex items-center justify-center'
-          )}
-          style={{backgroundColor: `rgb(217,217,217)`, color: 'red', bottom: '0px', left: '0px'}}
-        >
-          {handType.toString().toUpperCase().startsWith('E') ? (
-          <img
-            src={`/img/emojis/emoji-${handType.toString().toUpperCase()}.png`}
+        <div className={'relative'}>
+          <div
+            className={mqp(
+              'absolute w-6 h-6 rounded-full bg-white border-1 border-gray-400 flex items-center justify-center'
+            )}
             style={{
-              width: '24px',
-              height: 'auto',
-              border: '0px',
-              display: 'inline',
+              backgroundColor: `rgb(217,217,217)`,
+              color: 'red',
+              bottom: '0px',
+              left: '0px',
             }}
-          />
-          ) : (
-            handType.toString().startsWith('https://') ? (
+          >
+            {handType.toString().toUpperCase().startsWith('E') ? (
               <img
-              src={handType.toString()}
-              style={{
-                width: '24px',
-                height: 'auto',
-                border: '0px',
-                display: 'inline',
-              }}
-            />
+                src={`/img/emojis/emoji-${handType
+                  .toString()
+                  .toUpperCase()}.png`}
+                style={{
+                  width: '24px',
+                  height: 'auto',
+                  border: '0px',
+                  display: 'inline',
+                }}
+              />
+            ) : handType.toString().startsWith('https://') ? (
+              <img
+                src={handType.toString()}
+                style={{
+                  width: '24px',
+                  height: 'auto',
+                  border: '0px',
+                  display: 'inline',
+                }}
+              />
             ) : (
-            <span className={mqp(handType.toString().charCodeAt(0) < 255 ? 'text-xs' : 'text-md')}
-              style={{textShadow: handType.toString().charCodeAt(0) > 255 ? '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000': ''}}
-            >{handType}</span>
-          ))}
+              <span
+                className={mqp(
+                  handType.toString().charCodeAt(0) < 255
+                    ? 'text-xs'
+                    : 'text-md'
+                )}
+                style={{
+                  textShadow:
+                    handType.toString().charCodeAt(0) > 255
+                      ? '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'
+                      : '',
+                }}
+              >
+                {handType}
+              </span>
+            )}
+          </div>
         </div>
-      </div>
       )}
     </>
   );
@@ -352,22 +408,32 @@ function AnimatedEmoji({emoji, ...props}) {
   } else {
     if (emoji.charCodeAt(0) > 255) {
       return (
-        <div ref={setElement} {...props} style={{
-          zIndex: '15',
-          color: 'yellow',
-          textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'
-        }} >
+        <div
+          ref={setElement}
+          {...props}
+          style={{
+            zIndex: '15',
+            color: 'yellow',
+            textShadow:
+              '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000',
+          }}
+        >
           {emoji}
         </div>
       );
     } else {
       return (
-        <div ref={setElement} {...props} style={{
-          zIndex: '15',
-          color: 'yellow',
-          fontSize: '2em',
-          textShadow: '-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000'
-        }} >
+        <div
+          ref={setElement}
+          {...props}
+          style={{
+            zIndex: '15',
+            color: 'yellow',
+            fontSize: '2em',
+            textShadow:
+              '-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000',
+          }}
+        >
           {emoji}
         </div>
       );

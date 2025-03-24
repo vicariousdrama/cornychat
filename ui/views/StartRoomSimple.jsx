@@ -15,6 +15,7 @@ export default function StartRoomSimple({roomInfo, index, myFavoritedRooms}) {
   const isProtected = roomInfo?.isProtected ?? false;
   const isStageOnly = roomInfo?.isStageOnly ?? false;
   const isLiveActivity = roomInfo?.isLiveActivity ?? false;
+  const isTalkingStick = roomInfo?.isTS ?? false;
 
   var coloringStyle = {
     backgroundColor: 'rgb(1,111,210)',
@@ -76,7 +77,7 @@ export default function StartRoomSimple({roomInfo, index, myFavoritedRooms}) {
                       NOSTRLIVE!
                     </div>
                   )}
-                  {!isStageOnly && (
+                  {!isStageOnly && !isTalkingStick && (
                     <div
                       className="text-xs text-blue-500"
                       title="Must be invited to stage to speak"
@@ -87,6 +88,19 @@ export default function StartRoomSimple({roomInfo, index, myFavoritedRooms}) {
                       }}
                     >
                       AUDIENCE
+                    </div>
+                  )}
+                  {!isStageOnly && isTalkingStick && (
+                    <div
+                      className="text-xs text-blue-500"
+                      title="Must have talking stick to speak"
+                      style={{
+                        margin: '3px',
+                        display: 'inline-block',
+                        backgroundColor: 'rgba(0,0,0,.63)',
+                      }}
+                    >
+                      TALKING STICK
                     </div>
                   )}
                 </div>

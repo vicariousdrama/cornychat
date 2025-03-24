@@ -12,6 +12,7 @@ import {colors, isDark} from '../lib/theme';
 import {useApiQuery} from '../jam-core-react';
 import {createLinksSanitized} from '../lib/sanitizedText';
 import {createEmojiImages} from '../nostr/emojiText';
+import {MicMuted, MicStick} from './Svg';
 
 export function StageAvatar({
   room,
@@ -145,6 +146,7 @@ function Avatar({
     });
     isAdmin = peerAdminStatus?.admin ?? false;
   }
+  let hasTalkingStick = (room?.isTS ?? false) && (room?.tsID ?? '') == peerId;
 
   const bShowAdmin = Math.floor(Date.now() / 1000) % 10 > 5;
   const colorTheme = room?.color ?? 'default';
@@ -321,7 +323,26 @@ function Avatar({
                   />
                 </div>
 
-                {inRoom && canSpeak && micMuted /*(!!micMuted || !canSpeak)*/ && (
+                {inRoom &&
+                  canSpeak &&
+                  !(room?.isTS ?? false) &&
+                  micMuted /*(!!micMuted || !canSpeak)*/ && (
+                    <div
+                      className="absolute mt-0 rounded-full p-1"
+                      style={{
+                        backgroundColor: roomColor.background,
+                        top: '0px',
+                        right: '0px',
+                      }}
+                    >
+                      <MicMuted
+                        className="w-4 h-4"
+                        color={iconColor}
+                        strokeWidth="2"
+                      />
+                    </div>
+                  )}
+                {inRoom && canSpeak && hasTalkingStick && (
                   <div
                     className="absolute mt-0 rounded-full p-1"
                     style={{
@@ -330,28 +351,11 @@ function Avatar({
                       right: '0px',
                     }}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth="1.5"
-                      stroke="currentColor"
+                    <MicStick
                       className="w-4 h-4"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        stroke={iconColor}
-                        d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"
-                      />
-                      <line
-                        y1="4.5"
-                        x2="40"
-                        y2="25"
-                        stroke={iconColor}
-                        strokeWidth="2"
-                      />
-                    </svg>
+                      color={iconColor}
+                      strokeWidth="2"
+                    />
                   </div>
                 )}
 
