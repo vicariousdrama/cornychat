@@ -620,10 +620,15 @@ export function BasicRoomInfo({
                 name="jam-room-stageonly"
                 id="jam-room-stageonly"
                 onChange={() => {
-                  setStageOnly(!stageOnly);
-                  if (stageOnly && isTS) {
-                    alert('Disabling Talking Stick mode');
-                    setIsTS(!isTS);
+                  if (stageOnly) {
+                    setStageOnly(false);
+                  } else {
+                    if (isTS) alert('Disabling Talking Stick mode');
+                    setStageOnly(true);
+                    setIsTS(false);
+                    document.getElementById(
+                      'jam-room-istalkingstick'
+                    ).checked = false;
                   }
                 }}
                 defaultChecked={stageOnly}
@@ -664,10 +669,15 @@ export function BasicRoomInfo({
                 name="jam-room-istalkingstick"
                 id="jam-room-istalkingstick"
                 onChange={() => {
-                  setIsTS(!isTS);
-                  if (stageOnly && isTS) {
-                    alert('Disabling Stage Only mode');
-                    setStageOnly(!stageOnly);
+                  if (isTS) {
+                    setIsTS(false);
+                  } else {
+                    if (stageOnly) alert('Disabling Stage Only mode');
+                    setStageOnly(false);
+                    setIsTS(true);
+                    document.getElementById(
+                      'jam-room-stageonly'
+                    ).checked = false;
                   }
                 }}
                 defaultChecked={isTS}
