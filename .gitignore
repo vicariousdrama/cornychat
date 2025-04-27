@@ -14,3 +14,4 @@ jam-config
 __pycache__
 *.macaroon
 tls.crt
+*.bak
