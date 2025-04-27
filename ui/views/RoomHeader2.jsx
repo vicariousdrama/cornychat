@@ -17,7 +17,9 @@ import {
 } from '../lib/v4v';
 import {
   getCustomEmojis,
+  getPublicKey,
   getUncachedPeerMetadata,
+  loadList,
   publishStatus,
 } from '../nostr/nostr';
 import ZapGoalBar from './ZapGoalBar';
@@ -293,6 +295,45 @@ export default function RoomHeader2({
       })();
     }, 5000);
 
+    // User Lists
+    let timeoutUserLists = setTimeout(() => {
+      let r = (async () => {
+        let pubkey = await getPublicKey();
+        let listtime = sessionStorage.getItem(`${pubkey}.kind30000timestamp`);
+        if (!listtime) listtime = 0;
+        let lists = sessionStorage.getItem(`${pubkey}.kind30000events`);
+        if (lists) lists = JSON.parse(lists);
+        let listDTags = sessionStorage.getItem(`${pubkey}.kind30000dtags`);
+        if (listDTags) listDTags = JSON.parse(listDTags);
+        if (listtime < Date.now() - 5 * 60 * 1000) {
+          const loadLists = async () => {
+            let pubkey = sessionStorage.getItem('pubkey');
+            lists = await loadList(30000, pubkey);
+            sessionStorage.setItem(
+              `${pubkey}.kind30000events`,
+              JSON.stringify(lists)
+            );
+            listDTags = [];
+            for (let ev of lists) {
+              for (let t of ev.tags) {
+                if (t.length < 2) continue;
+                if (t[0] == 'd') {
+                  if (t[1].length > 0) listDTags.push(t[1]);
+                  break;
+                }
+              }
+            }
+            sessionStorage.setItem(
+              `${pubkey}.kind30000dtags`,
+              JSON.stringify(listDTags)
+            );
+            sessionStorage.setItem(`${pubkey}.kind30000timestamp`, Date.now());
+          };
+          loadLists();
+        }
+      })();
+    }, 8765);
+
     // This function is called when component unmounts
     return () => {
       clearTimeout(timeoutEntered);
@@ -303,6 +344,7 @@ export default function RoomHeader2({
       clearTimeout(timeoutATagUpdate);
       clearTimeout(timeoutCustomEmojis);
       clearTimeout(intervalFetchPeerMetadata);
+      clearTimeout(timeoutUserLists);
     };
   }, []);
 
@@ -412,6 +454,10 @@ export default function RoomHeader2({
             <br />
             {room.isLiveActivityAnnounced
               ? 'Live Activity - an event will be published to nostr and updated periodically with room information.'
+              : ''}
+            <br />
+            {(room.memberATag ?? '').length > 0
+              ? 'Members Only - only owners, moderators, and those on the room membership list will be allowed entry.'
               : ''}
           </div>
         </div>
@@ -678,6 +724,18 @@ export default function RoomHeader2({
               title={`Live activity info is periodically published to nostr`}
             >
               LIVE!
+            </div>
+          )}
+
+          {(room.memberATag ?? '').length > 0 && (
+            <div
+              className="flex items-center justify-center w-24 h-6 text-xs mx-0 text-gray-300"
+              style={{
+                backgroundColor: 'rgb(0,0,0)',
+              }}
+              title={`Members Only rooms only permit entrants that are owners, moderators or on the list of members`}
+            >
+              MEMBERS ONLY
             </div>
           )}
 

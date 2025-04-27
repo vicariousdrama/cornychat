@@ -324,7 +324,7 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
                   className="text-md ml-1 cursor-pointer"
                   style={{color: textColor}}
                 >
-                  Follow everyone
+                  Add all to contacts
                 </p>
               </div>
             )}

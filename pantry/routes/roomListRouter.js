@@ -62,6 +62,7 @@ router.get('', async function (req, res) {
       let isStageOnly = roomInfo?.stageOnly ?? false;
       let isLiveActivity = roomInfo?.isLiveActivityAnnounced ?? false;
       let isTS = roomInfo?.isTS ?? false;
+      let memberATag = roomInfo?.memberATag ?? '';
       rooms.push({
         roomId: roomId,
         name: roomInfo.name,
@@ -71,6 +72,8 @@ router.get('', async function (req, res) {
         isStageOnly: isStageOnly,
         isLiveActivity: isLiveActivity,
         isTS: isTS,
+        isMembersOnly: memberATag.length > 0,
+        memberATag: memberATag,
         userCount: userCount,
         userInfo: userInfo,
       });

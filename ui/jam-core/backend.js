@@ -26,6 +26,7 @@ export {
   getStaticEventsList,
   getMyRoomList,
   getRoomATag,
+  isRoomMember,
 };
 
 let API = `${staticConfig.urls.pantry}/api/v1`;
@@ -255,4 +256,9 @@ async function getRoomATag(roomId) {
   if (!roomId) return '';
   let aTag = (await get(`/rooms/${roomId}/nip53`))[0];
   return aTag;
+}
+
+async function isRoomMember(state, roomId) {
+  if (!roomId) return false;
+  return await authedGet(state, `/rooms/${roomId}/member`);
 }

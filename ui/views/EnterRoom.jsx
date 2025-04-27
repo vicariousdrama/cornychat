@@ -46,7 +46,10 @@ export default function EnterRoom({
   forbidden,
   iAmAdmin,
 }) {
-  const [state, {enterRoom, setProps, updateInfo, sendTextChat}] = useJam();
+  const [
+    state,
+    {enterRoom, setProps, updateInfo, sendTextChat, isRoomMember},
+  ] = useJam();
 
   let [
     myIdentity,
@@ -88,6 +91,17 @@ export default function EnterRoom({
       ''
   );
   let [wrongPassphrase, setWrongPassphrase] = useState(false);
+  let isMembershipRequired = (room.memberATag ?? '').length > 0;
+  let isMembershipChecked = false;
+  let myRoomMembership = false;
+  let iAmInMemberList = false;
+  Object.keys(sessionStorage).forEach(function (key) {
+    if (key == `${roomId}.member`) {
+      isMembershipChecked = true;
+      myRoomMembership = sessionStorage.getItem(key);
+      iAmInMemberList = String(myRoomMembership) == 'true';
+    }
+  });
   let ownedBy = '';
   if (room.passphraseHash) {
     for (let ownerid of room.owners) {
@@ -155,6 +169,7 @@ export default function EnterRoom({
   );
   let [loginEnabled, setLoginEnabled] = useState(
     !kicked &&
+      iAmInMemberList == true &&
       !isProtected &&
       (!showAd || !jamConfig.handbill) &&
       supportsWebRTC
@@ -177,10 +192,35 @@ export default function EnterRoom({
   useEffect(() => {
     // Setup a timeout to hide the image
     const timeoutImageOverlay = setTimeout(() => {
-      setPassphraseEnabled(!kicked && isProtected && supportsWebRTC);
-      setLoginEnabled(!kicked && !isProtected && supportsWebRTC);
+      setPassphraseEnabled(
+        !kicked && iAmInMemberList && isProtected && supportsWebRTC
+      );
+      setLoginEnabled(
+        !kicked && iAmInMemberList && !isProtected && supportsWebRTC
+      );
       setAdImageEnabled(false);
     }, 5000);
+
+    const timeoutCheckMembership = setTimeout(() => {
+      if (isMembershipRequired && !isMembershipChecked) {
+        (async () => {
+          isMembershipChecked = true;
+          let i = await isRoomMember(roomId);
+          let v = false;
+          if (i[2] == 200) {
+            v = String(i[0].isMember) == 'true';
+          }
+          sessionStorage.setItem(`${roomId}.member`, v);
+          iAmInMemberList = v == true;
+          setPassphraseEnabled(
+            !kicked && v == true && isProtected && supportsWebRTC
+          );
+          setLoginEnabled(
+            !kicked && v == true && !isProtected && supportsWebRTC
+          );
+        })();
+      }
+    }, 500);
 
     // Setup a timeout to check if the user is still here after 30 seconds
     const timeoutToHomepage = setTimeout(() => {
@@ -196,6 +236,7 @@ export default function EnterRoom({
     // This function is called when component unmounts
     return () => {
       clearTimeout(timeoutImageOverlay);
+      clearTimeout(timeoutCheckMembership);
       clearTimeout(timeoutToHomepage);
     };
   }, []);
@@ -333,6 +374,18 @@ export default function EnterRoom({
             </div>
           )}
         </div>
+
+        {isMembershipRequired && !iAmInMemberList && (
+          <div className="text-center my-3 text-gray-300">
+            <div className="text-sm text-gray-700 bg-red-50">
+              This room requires membership in the list set by the owner.
+              <br />
+              {isMembershipChecked && !iAmInMemberList && (
+                <p>You are not on the list</p>
+              )}
+            </div>
+          </div>
+        )}
 
         {passphraseEnabled && (
           <>
