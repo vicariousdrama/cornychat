@@ -15,9 +15,8 @@ Users can quickly login with existing Nostr accounts and have name and avatar im
 ## Roadmap
 
 - ✅ Login Enhancements
-  - ✅ Anon login
+  - ✅ Anonymous user access
   - ✅ Nostr Login with NIP-07 extension
-  - ~~✅ Nostr Login with user provided NSEC~~
 - ✅ Recognition of User Profile (kind 0)
   - ✅ Fetch and display Name (kind 0)
   - ✅ Fetch and display Avatar Image from picture (kind 0)
@@ -40,8 +39,8 @@ Users can quickly login with existing Nostr accounts and have name and avatar im
 - ✅ View User Profile
   - ✅ Display name, about, avatar, nostr address on popup
   - ✅ Verify nostr address
-  - ✅ Follow User Action to adjust contact list (kind 3)
-  - ✅ Unfollow User Action to adjust contact list (kind 3)
+  - ✅ Add User to Contact List action to adjust contact follow set (kind 30000)
+  - ✅ Remove User from Contact List action to adjust contact follow set (kind 30000)
 - ✅ Edit User Profile
   - ✅ Edit Personal Profile to set name, picture, about, lud16, nip05
   - ✅ Upload Banner image to common media uploaders
@@ -65,12 +64,14 @@ Users can quickly login with existing Nostr accounts and have name and avatar im
 - ☑️ Nostr Live Activity + Chat
   - ✅ Create and Publish Nostr Live Activity for Rooms (kind 30311 per NIP-53)
   - ✅ Live Chat Message tied to the Live Activity (kind 1311)
+  - ✅ Render emoji images from shortcodes referenced from emoji sets
+  - ✅ Render cashu tokens with a clickable summary depicting mint, amount and unit
   - ⬜ Ability for user to react to chat message
   - ⬜ Ability for user to zap a chat message
 - ☑️ Landing Page
   - ✅ Show list of all Nostr Scheduled Audio Spaces across instances
   - ✅ Show list of all Nostr Live Audio Spaces across instances
-  - ⬜ Server Message of the Day when user accesses first time during day
+  - ✅ Server Message of the Day
 - ✅ About Page
   - ✅ Link to this git repository for source code
   - ✅ List of code contributors, supporters, producers.. contact and links

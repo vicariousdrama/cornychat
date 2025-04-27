@@ -214,6 +214,10 @@ function renderEvent(event) {
         renderTitle(`HTTP Auth`);
         renderText(`Corny Chat prepares HTTP Auth requests for file uploads to media servers like nostr.build.`);
     }
+    else if (event.kind === 30000) {
+        renderTitle(`Follow Set`);
+        renderText(`Corny Chat supports updating follow set for a user defined contact list.`);
+    }
     else if (event.kind === 30030) {
         renderGeneric = false;
         renderTitle(`Custom Emoji Pack: ${dTag}`);

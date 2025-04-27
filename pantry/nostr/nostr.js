@@ -1166,6 +1166,8 @@ const publishRoomActive = async (roomId, dtt, roomInfo, userInfo, isnew) => {
       output = `🌽 Join ${userCount} others chatting! 🌽\n\n${roomId}\n\n${roomUrl}?t=${ct}`;
     }
     output += `\n\n#cornychat #audiospace #grownostr`;
+    let membersOnly = (roomInfo.memberATag ?? '').length > 0;
+    if (membersOnly) output += ' #membersonly';
     const title = roomInfo?.name ?? `Corny Chat: ${roomId}`;
     const summary =
       roomInfo?.description ??
@@ -1195,8 +1197,6 @@ const publishRoomActive = async (roomId, dtt, roomInfo, userInfo, isnew) => {
       ['starts', `${Math.floor(dtt / 1000)}`], // starts and ends needs to be in seconds, not milliseconds
       ['ends', `${Math.floor(et / 1000)}`],
       ['current_participants', `${userCount}`], // TODO: set "total_participants", need to track it in liveeventUpdater
-      ['t', 'talk'],
-      ['t', 'talk show'],
       ['t', 'cornychat'],
       ['t', 'audiospace'],
       ['t', 'grownostr'],
@@ -1205,6 +1205,7 @@ const publishRoomActive = async (roomId, dtt, roomInfo, userInfo, isnew) => {
       ['l', 'audiospace', labelNamespace],
       ['r', roomUrl],
     ];
+    if (membersOnly) tags.push(['t', 'membersonly']);
 
     const event = finalizeEvent(
       {
@@ -1371,6 +1372,53 @@ const deleteOldZapGoals = async sk => {
   }
 };
 
+const getEventByATag = async atag => {
+  console.log('[getEventByATag] retrieving event for atag: ', atag);
+  return new Promise(async (res, rej) => {
+    try {
+      const localpool = new RelayPool(undefined, poolOptions);
+      const aTagParts = atag.split(':');
+      try {
+        let filter = {kinds: [aTagParts[0]], authors: [aTagParts[1]], limit: 1};
+        filter['#d'] = aTagParts[2];
+        let waitForEvents = 800; // .8 seconds
+        let matchedEvents = [];
+        let options = {
+          unsubscribeOnEose: true,
+          allowDuplicateEvents: false,
+          allowOlderEvents: false,
+        };
+        setTimeout(() => {
+          localpool.close();
+          res(matchedEvents);
+        }, waitForEvents);
+        localpool.subscribe(
+          [filter],
+          relaysToUse,
+          (event, onEose, url) => {
+            matchedEvents.push(event);
+          },
+          undefined,
+          undefined,
+          options
+        );
+      } catch (error) {
+        localpool.close();
+        rej(undefined);
+        console.log(
+          '[getEventByATag] error while fetching atag event: ',
+          error
+        );
+      }
+    } catch (localpoolerror) {
+      console.log(
+        '[getEventByATag] error creating relay pool: ',
+        localpoolerror
+      );
+    }
+  });
+};
+
 const isValidLoginSignature = function (id, pubkey, created_at, content, sig) {
   let e = {
     id: id,
@@ -1449,6 +1497,7 @@ module.exports = {
   getZapGoals,
   publishZapGoal,
   deleteOldZapGoals,
+  getEventByATag,
   isValidLoginSignature,
   getNpubs,
 };

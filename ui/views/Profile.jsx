@@ -29,6 +29,7 @@ import {KickBanModal} from './KickBanModal';
 import {createLinksSanitized} from '../lib/sanitizedText';
 import {createEmojiImages} from '../nostr/emojiText';
 import EditNostrProfile from './editProfile/EditNostrProfile';
+import EditNostrLists from './editLists/editNostrLists';
 
 export function Profile({
   info,
@@ -612,6 +613,21 @@ export function Profile({
                 Edit your profile
               </button>
             )}
+            {true && isSameId && window.nostr && (
+              <button
+                className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
+                style={{
+                  backgroundColor: 'rgb(21,21,210)',
+                  color: 'rgb(255,255,255)',
+                }}
+                onClick={() => {
+                  close();
+                  openModal(EditNostrLists);
+                }}
+              >
+                Edit your lists
+              </button>
+            )}
 
             {iAmAdmin && (
               <div>
@@ -736,7 +752,7 @@ export function Profile({
                 {window.nostr ? (
                   loadingFollows ? (
                     <h4 className="text-sm text-gray-400">
-                      Loading Follow List...
+                      Loading Contact List...
                     </h4>
                   ) : (
                     <>
@@ -747,15 +763,15 @@ export function Profile({
                             handleFollowBtn(userNpub, state);
                           }}
                         >
-                          Follow
+                          Add to contact list
                         </button>
                       )}
                       {showUnfollowBtn && (
                         <button
-                          className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-black text-xs"
+                          className="rounded-lg px-3 py-2 mx-1 my-1 text-xs bg-red-500 text-gray-300"
                           onClick={() => {
                             let result = confirm(
-                              'Are you sure you want to unfollow this user?'
+                              'Are you sure you want to remove this user from contact list?'
                             );
                             if (result != true) {
                               return;
@@ -763,14 +779,14 @@ export function Profile({
                             handleUnfollowBtn(userNpub, state);
                           }}
                         >
-                          ❌ Unfollow
+                          ❌ Remove from Contact List
                         </button>
                       )}
                     </>
                   )
                 ) : (
                   <div className="h-12 mx-2 text-sm rounded-md border-2 border-gray-300 w-full text-center text-gray-200">
-                    Use a nostr extension to follow/unfollow participants
+                    Use a nostr extension to modify contact list
                   </div>
                 )}
               </>

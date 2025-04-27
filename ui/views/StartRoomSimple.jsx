@@ -16,6 +16,8 @@ export default function StartRoomSimple({roomInfo, index, myFavoritedRooms}) {
   const isStageOnly = roomInfo?.isStageOnly ?? false;
   const isLiveActivity = roomInfo?.isLiveActivity ?? false;
   const isTalkingStick = roomInfo?.isTS ?? false;
+  const isMembersOnly = roomInfo?.isMembersOnly ?? false;
+  const memberATag = roomInfo?.memberATag ?? '';
 
   var coloringStyle = {
     backgroundColor: 'rgb(1,111,210)',
@@ -101,6 +103,19 @@ export default function StartRoomSimple({roomInfo, index, myFavoritedRooms}) {
                       }}
                     >
                       TALKING STICK
+                    </div>
+                  )}
+                  {isMembersOnly && (
+                    <div
+                      className="text-xs text-gray-300"
+                      title="Must be a member to join"
+                      style={{
+                        margin: '3px',
+                        display: 'inline-block',
+                        backgroundColor: 'rgba(0,0,0,.63)',
+                      }}
+                    >
+                      MEMBERS ONLY
                     </div>
                   )}
                 </div>

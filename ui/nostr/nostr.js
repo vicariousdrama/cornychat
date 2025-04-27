@@ -648,16 +648,18 @@ export async function openLNExtension(LNInvoice) {
   }
 }
 
-async function saveFollowList(myFollowList) {
+const followListDTag = 'cornychat-follows';
+const followListNameTag = 'Corny Chat Follows';
+
+async function saveFollowList(followListDTag, followListNameTag, myFollowList) {
   // kind 3 is deprecated, now using kind 30000 as d=cornychat-follows
-  if (window.DEBUG) console.log('in saveFollowList');
+  if (window.DEBUG) console.log('in saveFollowList for ' + followListDTag);
   if (!window.nostr) return false;
-  const dTag = 'cornychat-follows';
-  const nameTag = 'Corny Chat Follows';
   const kind = 30000;
   const tags = [
-    ['d', dTag],
-    ['name', nameTag],
+    ['d', followListDTag],
+    ['name', followListNameTag],
+    ['title', followListNameTag],
   ];
   for (let tag of myFollowList) {
     if (tag.length < 2) continue;
@@ -676,9 +678,9 @@ async function saveFollowList(myFollowList) {
   return r[0];
 }
 
-export async function loadFollowList() {
+export async function loadFollowList(followListDTag) {
   // kind 3 is deprecated, now using kind 30000 as d=cornychat-follows
-  if (window.DEBUG) console.log('in loadFollowList');
+  if (window.DEBUG) console.log('in loadFollowList for ' + followListDTag);
   return new Promise(async (res, rej) => {
     // return from local cache if it has not aged out
     const currentTime = Math.floor(Date.now() / 1000);
@@ -705,7 +707,6 @@ export async function loadFollowList() {
     const localpool = new RelayPool(undefined, poolOptions);
     try {
       const kind = 30000;
-      const dTag = 'cornychat-follows';
       const defaultRelays = getDefaultOutboxRelays();
       const myPubkey = await getPublicKey();
       const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
@@ -721,7 +722,7 @@ export async function loadFollowList() {
         ...defaultRelays,
       ]);
       const filter = [{kinds: [kind], authors: [myPubkey]}];
-      filter[0]['#d'] = [dTag];
+      filter[0]['#d'] = [followListDTag];
       let events = [];
 
       setTimeout(() => {
@@ -772,7 +773,7 @@ export async function loadFollowList() {
 export async function unFollowUser(npubToUnfollow, myFollowList) {
   if (window.DEBUG) console.log('in unFollowUser for ' + npubToUnfollow);
   if (!window.nostr) {
-    return [null, 'A nostr extension is required to unfollow a user'];
+    return [null, 'A nostr extension is required to modify contact list'];
   }
   const pubkeyToUnfollow = nip19.decode(npubToUnfollow).data;
   const indexToRemove = myFollowList.findIndex(childArray =>
@@ -785,7 +786,11 @@ export async function unFollowUser(npubToUnfollow, myFollowList) {
   // remove it
   myFollowList.splice(indexToRemove, 1);
   // save changes to follow list
-  const isOK = await saveFollowList(myFollowList);
+  const isOK = await saveFollowList(
+    followListDTag,
+    followListNameTag,
+    myFollowList
+  );
   updateCacheFollowing(false, npubToUnfollow, myFollowList);
   return [true];
 }
@@ -793,7 +798,7 @@ export async function unFollowUser(npubToUnfollow, myFollowList) {
 export async function followUser(npubToFollow, myFollowList) {
   if (window.DEBUG) console.log('in followUser for ' + npubToFollow);
   if (!window.nostr) {
-    return [null, 'A nostr extension is required to follow a user'];
+    return [null, 'A nostr extension is required to modify contact list'];
   }
   const pubkeyToFollow = nip19.decode(npubToFollow).data;
   const indexOfPubkey = myFollowList.findIndex(childArray =>
@@ -801,12 +806,16 @@ export async function followUser(npubToFollow, myFollowList) {
   );
   if (indexOfPubkey != -1) {
     // already exists, our job is done here
-    if (window.DEBUG) console.log('already following');
+    if (window.DEBUG) console.log('User already on contact list');
     return [true];
   }
   // add it
   myFollowList.push(['p', pubkeyToFollow]);
-  const isOK = await saveFollowList(myFollowList);
+  const isOK = await saveFollowList(
+    followListDTag,
+    followListNameTag,
+    myFollowList
+  );
   updateCacheFollowing(true, npubToFollow, myFollowList);
   return [true];
 }
@@ -814,15 +823,15 @@ export async function followUser(npubToFollow, myFollowList) {
 export async function followAllNpubsFromIds(inRoomPeerIds) {
   if (window.DEBUG) console.log('in followAllNpubsFromIds');
   if (!window.nostr) {
-    alert('A nostr extension is required to follow users');
+    alert('A nostr extension is required to modify contact list');
     return;
   }
   if (!inRoomPeerIds) {
-    alert('Nobody to follow');
+    alert('Nobody to add to Contact List');
     return;
   }
   inRoomPeerIds = JSON.parse(inRoomPeerIds);
-  let myFollowList = await loadFollowList();
+  let myFollowList = await loadFollowList(followListDTag);
 
   // tracking
   let numberOfAddedPubkeys = 0;
@@ -860,15 +869,19 @@ export async function followAllNpubsFromIds(inRoomPeerIds) {
 
   if (numberOfAddedPubkeys > 0) {
     sessionStorage.setItem('myFollowList', JSON.stringify(myFollowList));
-    const isOK = await saveFollowList(myFollowList);
+    const isOK = await saveFollowList(
+      followListDTag,
+      followListNameTag,
+      myFollowList
+    );
     alert(
-      'Followed ' +
+      'Added ' +
         numberOfAddedPubkeys +
         ' new nostr users\n\n- ' +
         namesAdded.join('\n- ')
     );
   } else {
-    alert('You are already following all nostr users in the room');
+    alert('All nostr users in the room are already on your Contact List');
   }
 }
 
@@ -1410,6 +1423,7 @@ export async function loadList(kind, pubkey) {
       const defaultRelays = getDefaultOutboxRelays();
       const myPubkey = await getPublicKey();
       const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
+      const cornychatkind = String(kind).slice(-3) == '388';
       let myOutboxRelays = [];
       if (userRelays?.length == 0) {
         const myNpub = nip19.npubEncode(myPubkey);
@@ -1448,20 +1462,24 @@ export async function loadList(kind, pubkey) {
                   continue;
                 }
               }
-              if (k == 'L') {
-                if (v == 'com.cornychat') {
-                  foundNamespace = true;
+              if (cornychatkind) {
+                if (k == 'L') {
+                  if (v == 'com.cornychat') {
+                    foundNamespace = true;
+                  }
                 }
-              }
-              if (k == 'l') {
-                if (v == getLabelForKind(kind)) {
-                  foundLabel = true;
+                if (k == 'l') {
+                  if (v == getLabelForKind(kind)) {
+                    foundLabel = true;
+                  }
                 }
               }
             }
           }
-          if (!foundLabel) continue;
-          if (!foundNamespace) continue;
+          if (cornychatkind) {
+            if (!foundLabel) continue;
+            if (!foundNamespace) continue;
+          }
           // if we got here, the event is valid
           validEvents.push(event);
         }
@@ -1503,6 +1521,44 @@ export async function requestDeletionById(id) {
   };
   let r = await signAndSendEvent(event);
   return r[0];
+}
+
+export function sortByTag(theList, tagName) {
+  theList.sort((a, b) => {
+    if (!a.hasOwnProperty('tags')) return 0;
+    if (!b.hasOwnProperty('tags')) return 0;
+    let aT = '';
+    for (let t of a.tags) {
+      if (t[0] == tagName) {
+        aT = t[1];
+        break;
+      }
+    }
+    if (aT.length == 0) {
+      for (let t of a.tags) {
+        if (t[0] == 'd') {
+          aT = t[1];
+          break;
+        }
+      }
+    }
+    let bT = '';
+    for (let t of b.tags) {
+      if (t[0] == tagName) {
+        bT = t[1];
+        break;
+      }
+    }
+    if (bT.length == 0) {
+      for (let t of a.tags) {
+        if (t[0] == 'd') {
+          bT = t[1];
+          break;
+        }
+      }
+    }
+    return aT > bT ? 1 : bT > aT ? -1 : 0;
+  });
 }
 
 export function makeLocalDate(timestamp) {
@@ -2134,6 +2190,48 @@ function normalizeRelays(relays) {
   return o;
 }
 
+export async function publishEvent(eventSigned) {
+  // event is assumed to already be signed
+  // push to relays
+  const defaultRelays = getDefaultOutboxRelays();
+  const myPubkey = await await getPublicKey();
+  const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
+  let myOutboxRelays = [];
+  if (userRelays?.length == 0) {
+    const myNpub = nip19.npubEncode(myPubkey);
+    myOutboxRelays = await getOutboxRelays(myPubkey); // (async() => {await getOutboxRelays(myPubkey)})();
+    updateCacheOutboxRelays(myOutboxRelays, myNpub);
+  }
+  myOutboxRelays = normalizeRelays(myOutboxRelays);
+  const relaysToUse = unique([
+    ...myOutboxRelays,
+    ...userRelays,
+    ...defaultRelays,
+  ]);
+  if (window.DEBUG) console.log('eventSigned: ', JSON.stringify(eventSigned));
+  if (window.DEBUG)
+    console.log('publish to relays: ', JSON.stringify(relaysToUse));
+  try {
+    let pool = new RelayPool(undefined, poolOptions);
+    let publishEventResults = await pool.publish(eventSigned, relaysToUse);
+    if (window.DEBUG)
+      console.log('publishEventResults: ', JSON.stringify(publishEventResults));
+    if (pool.errorsAndNotices && pool.errorsAndNotices.length > 0) {
+      console.log(
+        `[signAndSendEvent] pool errors and notices: ${JSON.stringify(
+          pool.errorsAndNotices
+        )}`
+      );
+    }
+    const sleeping1 = await sleep(1000);
+    pool.close();
+    const sleeping2 = await sleep(100);
+  } catch (e) {
+    return [false, 'error talking to relays: ' + e];
+  }
+  return [true, eventSigned.id];
+}
+
 export async function signAndSendEvent(event) {
   if (!window.nostr)
     return [false, 'A nostr extension is required to sign events'];
@@ -2149,47 +2247,7 @@ export async function signAndSendEvent(event) {
   if (!eventSigned) {
     return [false, 'There was an error with your nostr extension'];
   } else {
-    // push to relays
-    const defaultRelays = getDefaultOutboxRelays();
-    const myPubkey = await await getPublicKey();
-    const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
-    let myOutboxRelays = [];
-    if (userRelays?.length == 0) {
-      const myNpub = nip19.npubEncode(myPubkey);
-      myOutboxRelays = await getOutboxRelays(myPubkey); // (async() => {await getOutboxRelays(myPubkey)})();
-      updateCacheOutboxRelays(myOutboxRelays, myNpub);
-    }
-    myOutboxRelays = normalizeRelays(myOutboxRelays);
-    const relaysToUse = unique([
-      ...myOutboxRelays,
-      ...userRelays,
-      ...defaultRelays,
-    ]);
-    if (window.DEBUG) console.log('eventSigned: ', JSON.stringify(eventSigned));
-    if (window.DEBUG)
-      console.log('publish to relays: ', JSON.stringify(relaysToUse));
-    try {
-      let pool = new RelayPool(undefined, poolOptions);
-      let publishEventResults = await pool.publish(eventSigned, relaysToUse);
-      if (window.DEBUG)
-        console.log(
-          'publishEventResults: ',
-          JSON.stringify(publishEventResults)
-        );
-      if (pool.errorsAndNotices && pool.errorsAndNotices.length > 0) {
-        console.log(
-          `[signAndSendEvent] pool errors and notices: ${JSON.stringify(
-            pool.errorsAndNotices
-          )}`
-        );
-      }
-      const sleeping1 = await sleep(1000);
-      pool.close();
-      const sleeping2 = await sleep(100);
-    } catch (e) {
-      return [false, 'error talking to relays: ' + e];
-    }
-    return [true, eventSigned.id];
+    return publishEvent(eventSigned);
   }
 }
 
@@ -2205,7 +2263,7 @@ export async function getUncachedPeerMetadata(inRoomPeerIds) {
   // Get the follow list
   let myFollowList = [];
   if (window.nostr) {
-    myFollowList = await loadFollowList();
+    myFollowList = await loadFollowList(followListDTag);
   }
   return new Promise((res, rej) => {
     // return from local cache if it has not aged out

@@ -43,6 +43,8 @@ export function BasicRoomInfo({
   setIsTS,
   tsID,
   setTsID,
+  memberATag,
+  setMemberATag,
   lud16,
   setLud16,
   zapGoal,
@@ -57,6 +59,13 @@ export function BasicRoomInfo({
 
   let mqp = useMqParser();
   let [expanded, setExpanded] = useState(false);
+  let pubkey = sessionStorage.getItem('pubkey');
+  let lists = [];
+  if (pubkey != undefined)
+    lists = sessionStorage.getItem(`${pubkey}.kind30000events`);
+  if (lists) lists = JSON.parse(lists);
+  if (!lists || lists == undefined) lists = [];
+  let [isMembersOnly, setIsMembersOnly] = useState(memberATag.length > 0);
 
   let showUploadFile =
     (localStorage.getItem(`fileUpload.auth`) ?? 'false') == 'true' &&
@@ -715,6 +724,77 @@ export function BasicRoomInfo({
             </p>
           )}
         </div>
+
+        {iOwn && window.nostr && (
+          <div className="mt-2">
+            <input
+              className="ml-2"
+              type="checkbox"
+              name="jam-room-membersonly"
+              id="jam-room-membersonly"
+              onChange={() => {
+                if (isMembersOnly) {
+                  setIsMembersOnly(false);
+                  setMemberATag('');
+                  document.getElementById(
+                    'jam-room-memberlist'
+                  ).selectedIndex = 0;
+                } else {
+                  setIsMembersOnly(true);
+                }
+              }}
+              defaultChecked={memberATag.length > 0}
+            />
+            <label
+              className="pl-3 ml-0.5 text-sm font-medium text-gray-300 p-2"
+              htmlFor="jam-room-istalkingstick"
+            >
+              Members Only List
+              <div className="p-2 pl-9 text-gray-300 text-sm">
+                If a list is selected, only users that are on the list
+                identified by their pubkey, room owners, or moderators will be
+                allowed in.
+              </div>
+              <select
+                name="listEntries"
+                id="jam-room-memberlist"
+                defaultValue={memberATag}
+                onChange={e => {
+                  setMemberATag(e.target.value);
+                  document.getElementById('jam-room-membersonly').checked =
+                    e.target.value.length > 0;
+                }}
+                className={
+                  'border mt-3 ml-2 p-2 bg-gray-300 text-black rounded w-full'
+                }
+              >
+                <option value="">No Members List Selected</option>
+                {lists.map((listitem, i) => {
+                  let itemPubkey = listitem.pubkey;
+                  let itemD = '';
+                  let itemTitle = '';
+                  if (!listitem.hasOwnProperty('tags')) {
+                    return <></>;
+                  }
+                  for (let t of listitem.tags) {
+                    if (t.length < 2) continue;
+                    if (t[0] == 'd') itemD = t[1];
+                    if (t[0] == 'title') itemTitle = t[1];
+                  }
+                  let itemValue = `30000:${itemPubkey}:${itemD}`;
+                  let itemKey = itemD;
+                  let itemText = itemTitle;
+                  if (itemText.length == 0) itemText = itemKey;
+                  return (
+                    <option key={itemKey} value={itemValue}>
+                      {itemText}
+                    </option>
+                  );
+                })}
+              </select>
+            </label>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -572,17 +572,27 @@ export default function DataTypes() {
 
       <a name="kind30000followset"></a>
       <h2 style={{backgroundColor: '#ff0000'}}>Kind 30000 - Follow Set</h2>
+      <h3>Follow Set Lists</h3>
+      <p>
+        If a user has a nostr extension, they will be presented with options
+        allow them to Edit their lists when viewing their profile page. This is
+        restricted to kind 30000 follow sets, and allows for creating and
+        modifying existing lists, permitting to addition and removal of npub
+        values. These lists can in turn be used to restrict access to a room to
+        only those that are present in the list.
+      </p>
+      <h3>Corny Chat Follows Contact List</h3>
       <p>
         If a user has a nostr extension, they will also be presented with
-        options to Follow or Unfollow a participant when viewing their profile.
-        A user can view another's profile by clicking on their avatar image
-        while in a Corny Chat audio room. For the first time during the browsing
-        session, the client will fetch the contact list and check if they are
-        following the user whose profile they are viewing. The current contact
-        list is stored in session storage and updated based on follow/unfollow
-        actions performed. When a change is made to who a user is following
-        through the app, it will publish an updated follow list as kind 30000 as
-        defined in{' '}
+        options to Add or Remove a participant to/from their Contact List when
+        viewing their profile. A user can view another's profile by clicking on
+        their avatar image while in a Corny Chat audio room. For the first time
+        during the browsing session, the client will fetch the contact list and
+        check if the user whose profile they are viewing is on it. The current
+        contact list is stored in session storage and updated based on
+        Add/Remove actions performed. When a change is made to who a user has on
+        their list through the app, it will publish an updated contact list as
+        kind 30000 as defined in{' '}
         <a href="https://github.com/nostr-protocol/nips/blob/master/51.md">
           NIP-51
         </a>
@@ -611,7 +621,11 @@ export default function DataTypes() {
         </tr>
         <tr>
           <td style={{width: '50px'}}></td>
-          <td>["p", "pubkey of user being followed"], // repeated</td>
+          <td>["title", "Corny Chat Follows"],</td>
+        </tr>
+        <tr>
+          <td style={{width: '50px'}}></td>
+          <td>["p", "pubkey of user included in list"], // repeated</td>
         </tr>
         <tr>
           <td colspan="2">]</td>
