@@ -165,11 +165,15 @@ export default function EnterRoom({
     }
   }
   let [passphraseEnabled, setPassphraseEnabled] = useState(
-    !kicked && isProtected && (!showAd || !jamConfig.handbill) && supportsWebRTC
+    !kicked &&
+      (!isMembershipRequired || iAmInMemberList == true) &&
+      isProtected &&
+      (!showAd || !jamConfig.handbill) &&
+      supportsWebRTC
   );
   let [loginEnabled, setLoginEnabled] = useState(
     !kicked &&
-      iAmInMemberList == true &&
+      (!isMembershipRequired || iAmInMemberList == true) &&
       !isProtected &&
       (!showAd || !jamConfig.handbill) &&
       supportsWebRTC
@@ -193,10 +197,16 @@ export default function EnterRoom({
     // Setup a timeout to hide the image
     const timeoutImageOverlay = setTimeout(() => {
       setPassphraseEnabled(
-        !kicked && iAmInMemberList && isProtected && supportsWebRTC
+        !kicked &&
+          (!isMembershipRequired || iAmInMemberList) &&
+          isProtected &&
+          supportsWebRTC
       );
       setLoginEnabled(
-        !kicked && iAmInMemberList && !isProtected && supportsWebRTC
+        !kicked &&
+          (!isMembershipRequired || iAmInMemberList) &&
+          !isProtected &&
+          supportsWebRTC
       );
       setAdImageEnabled(false);
     }, 5000);
@@ -213,10 +223,16 @@ export default function EnterRoom({
           sessionStorage.setItem(`${roomId}.member`, v);
           iAmInMemberList = v == true;
           setPassphraseEnabled(
-            !kicked && v == true && isProtected && supportsWebRTC
+            !kicked &&
+              (!isMembershipRequired || iAmInMemberList) &&
+              isProtected &&
+              supportsWebRTC
           );
           setLoginEnabled(
-            !kicked && v == true && !isProtected && supportsWebRTC
+            !kicked &&
+              (!isMembershipRequired || iAmInMemberList) &&
+              !isProtected &&
+              supportsWebRTC
           );
         })();
       }
