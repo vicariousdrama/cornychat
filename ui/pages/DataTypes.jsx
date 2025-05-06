@@ -107,6 +107,9 @@ export default function DataTypes() {
             Kind 31990 - Handler Information
           </a>
         </li>
+        <li>
+          <a href="#kind32388roomfavorites">Kind 32388 - Room Favorites</a>
+        </li>
       </ul>
 
       <h2>Supported NIPS</h2>
@@ -1055,6 +1058,45 @@ export default function DataTypes() {
           Home
         </a>
       </p>
+
+      <a name="kind32388roomfavorites"></a>
+      <h2 style={{backgroundColor: '#ff0000'}}>Kind 32388 - Room Favorites</h2>
+      <p>
+        Room Favorites track those rooms for which a user has marked as a
+        favorite. Favorited rooms appear with star backgrouns on the My Rooms
+        tab to draw attention to them. As a replaceable event, a `d` tag is
+        assigned with a consistent value. The expected tags for this structure
+        are as follows:
+      </p>
+
+      <table
+        style={{
+          borderCollapse: 'collapse',
+          border: '1px solid #FF0000',
+          margin: '20px',
+          fontFamily: 'courier',
+          fontSize: '.8em',
+        }}
+      >
+        <tr>
+          <td colspan="2">tags: [</td>
+        </tr>
+        <tr>
+          <td style={{width: '50px'}}></td>
+          <td>["d", "cornychat-room-favorites"],</td>
+        </tr>
+        <tr>
+          <td style={{width: '50px'}}></td>
+          <td>["name", "Corny Chat Room Favorites"],</td>
+        </tr>
+        <tr>
+          <td style={{width: '50px'}}></td>
+          <td>["r", "roomId", "URI of the room"], // repeated</td>
+        </tr>
+        <tr>
+          <td colspan="2">]</td>
+        </tr>
+      </table>
     </div>
   );
 }
