@@ -148,9 +148,7 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
                 {isRoomFavorited ? (
                   <>
                     <StarUnFavorite color={iconColor} />
-                    <p className="text-md ml-1 cursor-pointer">
-                      Remove from Favorites
-                    </p>
+                    <p className="text-md ml-1 cursor-pointer">Unstar Room</p>
                   </>
                 ) : (
                   <>
@@ -324,7 +322,7 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
                   className="text-md ml-1 cursor-pointer"
                   style={{color: textColor}}
                 >
-                  Add all to contacts
+                  Save all contacts
                 </p>
               </div>
             )}
