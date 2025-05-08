@@ -331,8 +331,26 @@ export default function RoomChat({
                   if (!kind0) {
                     // Fetch from relays
                     const pubkey = nip19.decode(npub).data;
-                    const usermetadata = await getUserMetadata(pubkey, id);
-                    kind0 = sessionStorage.getItem(npub + kind0content);
+                    let inRoomPeerIds = sessionStorage.getItem(
+                      roomId + '.peerIds'
+                    );
+                    if (inRoomPeerIds) {
+                      inRoomPeerIds = JSON.parse(inRoomPeerIds);
+                      for (let peerId of inRoomPeerIds) {
+                        const peerValue = sessionStorage.getItem(peerId);
+                        if (peerValue == undefined) continue;
+                        const peerObj = JSON.parse(peerValue);
+                        const peerNpub = getNpubFromInfo(peerObj);
+                        if (npub == peerNpub) {
+                          const usermetadata = await getUserMetadata(
+                            pubkey,
+                            peerId
+                          );
+                          kind0 = sessionStorage.getItem(npub + kind0content);
+                          break;
+                        }
+                      }
+                    }
                   }
                   if (kind0) {
                     kind0 = JSON.parse(kind0);
