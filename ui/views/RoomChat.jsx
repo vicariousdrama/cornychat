@@ -18,6 +18,7 @@ import {Send, Upload} from './Svg';
 import {UploadFileModal} from './UploadFileModal';
 import {createLinksSanitized} from '../lib/sanitizedText';
 import {webln} from '@getalby/sdk';
+import {nip19} from 'nostr-tools';
 
 export default function RoomChat({
   room,
