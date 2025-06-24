@@ -280,6 +280,6 @@ export default function RoomSlides({
     }
   } else {
     setSlide('', '', 0, 0);
-    return null;
   }
+  return null;
 }
