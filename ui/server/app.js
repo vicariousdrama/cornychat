@@ -19,8 +19,12 @@ app.use(express.static(process.env.STATIC_FILES_DIR || 'public'));
 
 const jamHost = process.env.JAM_HOST || 'beta.jam.systems';
 const jamSchema = process.env.JAM_SCHEMA || 'https://';
-const relaysGeneral = process.env.RELAYS_GENERAL || 'wss://relay.damus.io,wss://nos.lol,wss://nostr-pub.wellorder.net,wss://relay.snort.social';
-const relaysZapGoals = process.env.RELAYS_ZAPGOALS || 'wss://relay.damus.io,wss://nos.lol,wss://nostr-pub.wellorder.net,wss://relay.snort.social';
+const relaysGeneral =
+  process.env.RELAYS_GENERAL ||
+  'wss://relay.damus.io,wss://nos.lol,wss://nostr-pub.wellorder.net,wss://relay.snort.social';
+const relaysZapGoals =
+  process.env.RELAYS_ZAPGOALS ||
+  'wss://relay.damus.io,wss://nos.lol,wss://nostr-pub.wellorder.net,wss://relay.snort.social';
 
 const urls = {
   jam: process.env.JAM_URL || `${jamSchema}${jamHost}`,
@@ -34,11 +38,13 @@ const urls = {
 };
 
 const jamServerName = process.env.SERVER_NAME || 'Jam';
-const jamServerLogo = process.env.SERVER_LOGO || `${urls.jam}/img/cornychat-app-icon.jpg`;
+const jamServerLogo =
+  process.env.SERVER_LOGO || `${urls.jam}/img/cornychat-app-icon.jpg`;
 const jamServerImage = process.env.SERVER_IMAGE || jamServerLogo;
 const jamServerFavicon = process.env.SERVER_FAVICON || jamServerLogo;
 const jamServerOperator = process.env.SERVER_OPERATOR || 'a Friendly Nostrich';
-const serverLightningAddress = process.env.SERVER_PROFILE_LUD16 || 'cornychatdev@satsilo.com';
+const serverLightningAddress =
+  process.env.SERVER_PROFILE_LUD16 || 'cornychatdev@satsilo.com';
 console.log(`jamServerName: ${jamServerName}`);
 console.log(`jamServerLogo: ${jamServerLogo}`);
 console.log(`jamServerOperator: ${jamServerOperator}`);
@@ -53,13 +59,14 @@ const jamConfig = {
   development: !!process.env.DEVELOPMENT,
   sfu: ['true', '1'].includes(process.env.JAM_SFU),
   broadcast: ['true', '1'].includes(process.env.JAM_BROADCAST),
-  gifs: ['true','1'].includes(process.env.GIF_SEARCH_ENABLED),
+  gifs: ['true', '1'].includes(process.env.GIF_SEARCH_ENABLED),
   hideJamInfo: ['true', '1'].includes(process.env.JAM_HIDE_JAM_INFO),
   handbill: ['true', '1'].includes(process.env.ADS),
   relaysGeneral: relaysGeneral.split(','),
   relaysZapGoals: relaysZapGoals.split(','),
-  subs: ['true','1'].includes(process.env.SUBSCRIPTIONS_ENABLED),
+  subs: ['true', '1'].includes(process.env.SUBSCRIPTIONS_ENABLED),
   v4vLN: serverLightningAddress,
+  game: ['true', '1'].includes(process.env.GAME),
 };
 console.log(jamConfig);
 app.use('/config.json', (_, res) => {
@@ -79,10 +86,12 @@ app.use(async (req, res) => {
   if (req.path.startsWith('/_/integrations/nostr/')) {
     let parts = req.path.split('/');
     let lastpart = parts.slice(-1)[0];
-    if (lastpart.startsWith("n")) {
+    if (lastpart.startsWith('n')) {
       res.send(
         ejs.render(
-          fs.readFileSync('server/templates/nostrhandler.ejs').toString('utf-8'),
+          fs
+            .readFileSync('server/templates/nostrhandler.ejs')
+            .toString('utf-8'),
           {
             bech32encoded: lastpart,
           }
@@ -130,10 +139,14 @@ app.use(async (req, res) => {
     let apiResponse = await result.json();
     if (apiResponse.ok) {
       console.log(apiResponse);
-      return res.send(jamServerName + ' was successfully added to your workspace.');
+      return res.send(
+        jamServerName + ' was successfully added to your workspace.'
+      );
     } else {
       console.log(apiResponse);
-      return res.send(jamServerName + ' was not added to your workspace, please try again later.'
+      return res.send(
+        jamServerName +
+          ' was not added to your workspace, please try again later.'
       );
     }
   }
@@ -242,7 +255,7 @@ const defaultMetaInfo = {
   ogTitle: jamServerName,
   ogDescription: 'Join this audio room',
   ogUrl: urls.jam,
-  ogImage: `${jamServerImage}?t=${Math.floor(new Date().getTime()/1000)}`,
+  ogImage: `${jamServerImage}?t=${Math.floor(new Date().getTime() / 1000)}`,
   favIcon: jamServerFavicon,
 };
 const reservedRoutes = ['me', null];
@@ -256,23 +269,26 @@ async function getRoomMetaInfo(route) {
     const [roomIdCaseSensitive] = route.split('.');
     const roomId = roomIdCaseSensitive.toLowerCase();
     //roomUrl = `${pantryApiPrefix}/${roomId}`;
-    roomUrl = `http://pantry:3001/api/v1/rooms/${roomId}`;  // This is a hack calling pantry directly as a workaround for localhost in dev
+    roomUrl = `http://pantry:3001/api/v1/rooms/${roomId}`; // This is a hack calling pantry directly as a workaround for localhost in dev
     pmdl = 236;
-    const response = await fetch(roomUrl, {method: "GET", headers: {"Accept":"application/json"}} ); 
+    const response = await fetch(roomUrl, {
+      method: 'GET',
+      headers: {Accept: 'application/json'},
+    });
     pmdl = 238;
     const roomInfo = await response.json();
     pmdl = 240;
-    const t = Math.floor(new Date().getTime()/1000);    
+    const t = Math.floor(new Date().getTime() / 1000);
     return {
       metaInfo: {
         ...defaultMetaInfo,
         ogTitle: roomInfo.name,
         ogDescription: roomInfo.description,
         ogUrl: `${urls.jam}/${roomId}`,
-        ogImage: `${(roomInfo.logoURI || jamServerImage)}?t=${t}` ,
+        ogImage: `${roomInfo.logoURI || jamServerImage}?t=${t}`,
         color: roomInfo.color || '',
         id: roomId || '',
-        favIcon: `${(roomInfo.logoURI || jamServerFavicon)}?t=${t}`,
+        favIcon: `${roomInfo.logoURI || jamServerFavicon}?t=${t}`,
         schedule: roomInfo.schedule,
       },
       roomInfo,
@@ -280,7 +296,9 @@ async function getRoomMetaInfo(route) {
     };
   } catch (e) {
     console.log(JSON.stringify(e));
-    console.log(`Unable to retrieve info for ${route} [pmdl=${pmdl}, roomUrl=${roomUrl}] : ${e.toString()}`);
+    console.log(
+      `Unable to retrieve info for ${route} [pmdl=${pmdl}, roomUrl=${roomUrl}] : ${e.toString()}`
+    );
     return {metaInfo: defaultMetaInfo};
   }
 }

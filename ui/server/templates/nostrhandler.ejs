@@ -276,6 +276,14 @@ function renderEvent(event) {
         renderTitle(`Scheduled Events`);
         renderText(`Corny Chat supports recurring scheduled events for rooms to announce future activities`);
     }
+    else if (event.kind === 32388) {
+        renderTitle(`Corny Chat Room Favorites`);
+        renderText(`Corny Chat rooms may be favorited by users and this kind tracks those rooms which are their favorite.`);
+    }
+    else if (event.kind === 33388) {
+        renderTitle(`Corny Chat High Scores`);
+        renderText(`Corny Chat points may be awarded for various actions by users. This kind tracks the current score for referenced pubkeys.`);
+    }
     else {
         renderTitle(`Kind ${event.kind}`);
     }

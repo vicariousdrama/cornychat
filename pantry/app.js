@@ -24,6 +24,9 @@ const {
 
 const adReportRouter = require('./routes/adReportRouter');
 const chatAdRouter = require('./routes/adRouterChat');
+const clickyPointsRouter = require('./routes/clickyPointsRouter');
+const envRouter = require('./routes/envRouter');
+const highScoresRouter = require('./routes/highScoresRouter');
 const imagePickerRouter = require('./routes/imagePickerRouter');
 const motdRouter = require('./routes/motdRouter');
 const nip05Router = require('./routes/nip05Router');
@@ -81,6 +84,9 @@ if (subscriptionsEnabled) {
 
 app.use('/api/v1/admin/', adminRouter);
 app.use('/api/v1/adr/:year/:month', adReportRouter);
+app.use('/api/v1/clickypts/', clickyPointsRouter);
+//app.use('/api/v1/env/:n/:v', envRouter);
+app.use('/api/v1/highscores/', highScoresRouter);
 app.use('/api/v1/motd/', motdRouter);
 app.use('/api/v1/oldidentities/', oldIdentitiesRouter);
 app.use('/api/v1/oldrooms/', oldRoomsRouter);

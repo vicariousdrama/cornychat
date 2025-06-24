@@ -23,6 +23,8 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
   const [loadingZapGoal, setLoadingZapGoal] = useState(false);
   const [showDeleteOldRooms, setShowDeleteOldRooms] = useState(true);
   const [zapGoal, setZapGoal] = useState({});
+  const [loadingScores, setLoadingScores] = useState(false);
+  const [highScores, setHighScores] = useState([]);
   const [
     {room},
     {
@@ -33,6 +35,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
       listRooms,
       listScheduledEvents,
       listMyRooms,
+      listHighScores,
       getZapGoal,
       getMOTD,
       setMOTD,
@@ -63,6 +66,15 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
   let iAmAdmin = (localStorage.getItem('iAmAdmin') || 'false') == 'true';
   let motdCurrent = '';
   useEffect(() => {
+    const loadHighScores = async () => {
+      if (!loadingScores) {
+        setLoadingScores(true);
+        let hs = await loadHighScores();
+        localStorage.setItem('scores' + hs.week, JSON.stringify(hs.scores));
+        setLoadingScores(false);
+        if (window.DEBUG) console.log(hs);
+      }
+    };
     const loadZapGoal = async () => {
       setLoadingZapGoal(true);
       let zg = await getZapGoal('🌽');

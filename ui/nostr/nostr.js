@@ -1369,7 +1369,9 @@ function getLabelForKind(kind) {
     case 32388:
       return 'Corny Chat Room Favorites';
     case 33388:
-      return 'Corny Chat Playlist';
+      return 'Corny Chat High Scores';
+    case 33488:
+      return 'Corny Chat Sound Board';
     default:
       return 'Unlabeled Kind';
   }
