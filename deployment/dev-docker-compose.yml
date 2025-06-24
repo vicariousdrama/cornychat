@@ -64,6 +64,7 @@ services:
     environment:
       - ADS
       - DEFAULT_AVATAR
+      - GAME
       - GIF_SEARCH_ENABLED
       - JAM_BROADCAST
       - JAM_HOST
@@ -153,6 +154,8 @@ services:
     environment:
       - ADS
       - CHAT_AD_FILE_LOCATION_PATH
+      - GAME
+      - GAME_SCORE_UPDATE_INTERVAL
       - GIF_SEARCH_ENABLED
       - GIF_SEARCH_ENDPOINT
       - GIF_SEARCH_APIKEY

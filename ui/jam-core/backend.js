@@ -18,6 +18,7 @@ export {
   getRoom,
   recordingsDownloadLink,
   getGifs,
+  getHighScores,
   getMOTD,
   getRoomList,
   getPermanentRoomsList,
@@ -214,6 +215,10 @@ async function recordingsDownloadLink({myIdentity}, roomId) {
   return `${API}/rooms/${roomId}/recordings.zip?token=${await signedToken(
     myIdentity
   )}`;
+}
+
+async function getHighScores() {
+  return await get(`/highscores/`);
 }
 
 async function getMOTD() {

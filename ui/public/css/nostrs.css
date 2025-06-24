@@ -1,0 +1,29 @@
+@import url("./fonts/Coiny.css");
+
+@import url("./fonts/all.min.css");
+
+* {
+  box-sizing: border-box;
+}
+.cd__main{
+   background: rgb(32, 1, 17) !important;
+   font-family: 'Coiny', cursive !important;
+   min-height: 450px;
+}
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Coiny', cursive;
+  margin: 0;
+  min-height: 100vh;
+}
+
+.corn {
+  position: fixed;
+  font-size: 5vh;
+  top: -1vh;
+  transform: translateY(0);
+  animation: fall 6s linear forwards;
+  color: rgb(218, 19, 112);
+}

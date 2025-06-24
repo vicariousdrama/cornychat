@@ -46,7 +46,8 @@ const publishEvent = async (pool, event, relays) => {
     // let publishEventResults = await pool.publish(event, relays);
     (async function () {
       try {
-        await pool.publish(event, relays);
+        let x = await pool.publish(event, relays); // no return value
+        console.log('[publishEvent] published event with id ' + event.id);
       } catch (error) {
         console.log('[publishEvent] error publishing to pool.');
         throw error;
@@ -923,6 +924,8 @@ const updateSupportedKinds = async () => {
           ['k', '30388'],
           ['k', '31388'],
           ['k', '31923'],
+          ['k', '32388'],
+          ['k', '33388'],
           ['web', 'https://cornychat.com/_/integrations/nostr/bech32'],
         ],
         content: '',
@@ -1250,6 +1253,53 @@ const publishRoomActive = async (roomId, dtt, roomInfo, userInfo, isnew) => {
   }
 };
 
+const publishWeeklyScores = async (dts, wv) => {
+  try {
+    if (serverNsec.length == 0) return;
+    if (pmd)
+      console.log(
+        '[publishWeeklyScores] publishing weekly high scores for ',
+        dts
+      );
+    const localwritepool = getRelayPool();
+    const kind = 33388;
+    const sk = nip19.decode(serverNsec).data;
+    let output = `High scores on ${jamHost} for ${dts}`;
+    const title = `High scores on ${jamHost} for ${dts}`;
+    const labelNamespace = 'com.cornychat'; // Other instances SHOULD NOT change this
+    const tags = [
+      ['d', `${jamHost}-highscore-${dts}`],
+      ['audioserver', jamHost],
+      ['title', `${title}`],
+      ['t', 'cornychat'],
+      ['t', 'scores'],
+      ['L', labelNamespace], // Need to document all these tags for sanity
+      ['l', jamHost, labelNamespace],
+      ['l', 'audiospace', labelNamespace],
+    ];
+    for (let wi of wv) {
+      let usernpub = wi.npub;
+      let userpoints = wi.points;
+      let userpubkey = nip19.decode(usernpub).data;
+      tags.push(['p', userpubkey, `${userpoints}`]);
+    }
+    const event = finalizeEvent(
+      {
+        created_at: Math.floor(Date.now() / 1000),
+        kind: kind,
+        tags: tags,
+        content: output,
+      },
+      sk
+    );
+    await publishEvent(localwritepool, event, relaysToUse);
+    await sleep(250);
+    doneRelayPool(localwritepool);
+  } catch (e) {
+    console.log(`[publishWeeklyScores] Error ${e}`);
+  }
+};
+
 const getZapGoals = async pubkey => {
   console.log('[getZapGoals] retrieving zap goals for pubkey: ', pubkey);
   return new Promise(async (res, rej) => {
@@ -1494,6 +1544,7 @@ module.exports = {
   getLiveActivities,
   publishLiveActivity,
   publishRoomActive,
+  publishWeeklyScores,
   getZapGoals,
   publishZapGoal,
   deleteOldZapGoals,

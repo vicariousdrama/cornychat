@@ -24,14 +24,17 @@
     <title><%= metaInfo.ogTitle %></title>
 </head>
 <body>
-<div id="slide"></div>
+<div id="slide" style="position:absolute;top:0px;z-index:15;width:100%;"></div>
 <div id="root"></div>
 <script>
     const thed = new Date();
     const sleep = ms => new Promise(r => setTimeout(r, ms));
+    const gametime = 1752624000; // 2025-07-16
+    const gameok = gametime < Math.floor(thed.getTime()/1000);
     window.jamConfig = <%- jamConfigString %>;
     window.existingRoomInfo = <%- roomInfoString %>;
     window.existingRoomId = <%- roomIdString %>;
+    window.gameEnabled = gameok;
 
     const animationsEnabled = localStorage.getItem('animationsEnabled') ?? 'true';
 
@@ -65,6 +68,23 @@
         script_app.src = "/js/App.js?bd=" + builddate;
         script_app.type = "module";
         document.head.appendChild(script_app);
+
+        var script_slide = document.createElement('script');
+        script_slide.id = "script_slide";
+        script_slide.src = "/slide.js?bd=" + builddate;
+        script_slide.type = "text/javascript";
+        document.head.appendChild(script_slide);
+
+        var script_points = document.createElement('script');
+        script_points.id = "script_slide";
+        script_points.src = "/points.js?bd=" + builddate;
+        script_points.type = "text/javascript";
+        document.head.appendChild(script_points);
+        
+        var script_jquery = document.createElement('script');
+        script_jquery.id = "script_jquery";
+        script_jquery.src = "https://code.jquery.com/jquery-3.6.0.min.js";
+        document.head.appendChild(script_jquery);
     }
     
     if (thed.getMonth() == 11 || thed.getMonth() == 0) {
@@ -81,8 +101,14 @@
     let animInterval = undefined;
     let animFlakes = undefined;
     function load_animation() {
+        let yr = thed.getFullYear();
         let mn = thed.getMonth();
         let dn = thed.getDate();
+
+        try {
+            setInterval(reportPoints, 62498);
+        } catch(e) {/*ignore*/}
+
         // Valentines
         if (dn == 14 && mn == 1) {
             linkCSS('/css/hearts.css');
@@ -121,10 +147,24 @@
             }
         }
 
+        // Pizza day
+        if (dn == 22 && mn == 4) {
+            linkCSS('/css/corns.css');
+            animInterval = setInterval(makePizza, 2100);
+            return;            
+        }
+
         // USA! USA!
         if (dn == 4 && mn == 6) {
             linkCSS('/css/corns.css');
             animInterval = setInterval(makeUSA, 1976);
+            return;
+        }
+
+        // Nostrbama
+        if (dn >= 14 && dn <= 17 && mn == 6 && yr == 2025) {
+            linkCSS('/css/nostrs.css');
+            animInterval = setInterval(makeNostrbama, 1714);
             return;
         }
 
@@ -140,6 +180,14 @@
             animFlakes = new Snowflakes({color: "#d7c1f9",minOpacity: 0.4,maxOpacity: 0.8,maxSize:50,speed:3});
             return;
         }
+
+        // At all other times .. make food 
+        if (gameok && window.jamConfig.game) {
+            linkCSS('/css/corns.css');
+            animInterval = setInterval(makeFood, 3888);
+            return;
+        }
+
     }
     function stop_animation() {
         try {
@@ -160,6 +208,19 @@
     function makeCorn() {
         makeAnim('🌽', 'corn');
     }
+    function makeFood() {
+        const className = 'corn';
+        switch (Math.round(Math.random() * 8)) {
+            case 0: makeAnim('🥨', className); break;
+            case 1: makeAnim('🍿', className); break;
+            case 2: makeAnim('🍟', className); break;
+            case 3: makeAnim('🍕', className); break;
+            case 4: makeAnim('🌭', className); break;
+            case 5: makeAnim('🌮', className); break;
+            case 6: makeAnim('🍭', className); break;
+            case 7: makeAnim('🍫', className); break;
+        }
+    }
     function makeHearts() {
         const className = 'heart';
         switch (Math.round(Math.random() * 3)) {
@@ -175,6 +236,22 @@
             case 1: makeAnimImage('/img/emojis/leprechaun.png', 'leprechaun'); break;
             case 2: makeAnim('☘️', className); break;
             case 3: makeAnim('🇮🇪', className); break;
+        }
+    }
+    function makeNostrbama() {
+        const className = 'nostr';
+        switch (Math.round(Math.random() * 2)) {
+            case 0: makeAnim('🍷', className); break;
+            case 1: makeAnim('𓅦', className); break;
+            case 2: makeAnim('🎉', className); break;
+            case 3: makeAnim('NOSTRBAMA!!!', className); break;
+        }
+    }
+    function makePizza() {
+        const className = 'pizza';
+        switch (Math.round(Math.random() * 2)) {
+            case 0: makeAnim('🍕', className); break;
+            case 1: makeAnim('Bitcoin Pizza Day', className); break;
         }
     }
     function makeRussia() {
@@ -196,8 +273,11 @@
         c.style.left = Math.random() * 100 + "vw";
         c.style.animationDuration = Math.random() * 2 + 3 + "s";
         c.innerText = t;
+        if(gameok && window.jamConfig.game) {
+            makeAnimOnClick(c);
+        }
         document.body.appendChild(c);
-        setTimeout(() => {c.remove();}, 5000);
+        setTimeout(() => {if (c) c.remove();}, 5000);
     }
     function makeAnimImage(i, className) {
         const c = document.createElement('div');
@@ -212,8 +292,9 @@
         a2.value = '64';
         im.setAttributeNode(a2); 
         c.appendChild(im);
+        //makeAnimOnClick(c);
         document.body.appendChild(c);
-        setTimeout(() => {c.remove();}, 5000);
+        setTimeout(() => {if (c) c.remove();}, 5000);
     }
     function flipit() {
         document.getElementById('root').classList.add("flipdiv");

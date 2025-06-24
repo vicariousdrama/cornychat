@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {use} from 'use-minimal-state';
 import {openModal} from './Modal';
 import EditPersonalSettings from './editPersonalSettings/EditPersonalSettings';
+import {HighScoreModal} from './HighScoreModal';
 import {PostNoteModal} from './PostNoteModal';
 import StreamingModal from './StreamingModal';
 import {isDark} from '../lib/theme';
@@ -23,6 +24,7 @@ import {
   Profile,
   StarFavorite,
   StarUnFavorite,
+  HighScore,
 } from './Svg';
 import {
   followAllNpubsFromIds,
@@ -109,7 +111,7 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
               className="p-2 flex items-center"
             >
               <Profile color={iconColor} />
-              <p className="text-md ml-1 cursor-pointer">Personal Settings</p>
+              <p className="text-md ml-1 cursor-pointer">Personal settings</p>
             </div>
 
             {(iModerate || iOwn || iAmAdmin) && (
@@ -148,7 +150,7 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
                 {isRoomFavorited ? (
                   <>
                     <StarUnFavorite color={iconColor} />
-                    <p className="text-md ml-1 cursor-pointer">Unstar Room</p>
+                    <p className="text-md ml-1 cursor-pointer">Unstar room</p>
                   </>
                 ) : (
                   <>
@@ -170,7 +172,7 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
                 className="p-2 flex items-center"
               >
                 <WriteNote color={iconColor} />
-                <p className="text-md ml-1 cursor-pointer">Note to Nostr</p>
+                <p className="text-md ml-1 cursor-pointer">Note to nostr</p>
               </div>
             )}
 
@@ -322,7 +324,25 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
                   className="text-md ml-1 cursor-pointer"
                   style={{color: textColor}}
                 >
-                  Save all contacts
+                  Add all contacts
+                </p>
+              </div>
+            )}
+
+            {window.jamConfig.game && window.gameEnabled && (
+              <div
+                onClick={async () => {
+                  openModal(HighScoreModal, {room, roomColor});
+                  close(false);
+                }}
+                className="p-2 flex items-center"
+              >
+                <HighScore color={iconColor} />
+                <p
+                  className="text-md ml-1 cursor-pointer"
+                  style={{color: textColor}}
+                >
+                  View high scores
                 </p>
               </div>
             )}

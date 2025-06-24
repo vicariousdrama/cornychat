@@ -58,9 +58,17 @@ const gifSearchEndpoint =
   process.env.GIF_SEARCH_ENDPOINT ?? 'https://gifbuddy.lol/api/search_gifs';
 const gifSearchApiKey = process.env.GIF_SEARCH_APIKEY ?? '';
 
+// GAMES AND HIGHSCORE
+const gameEnabled = process.env.GAME ?? false;
+const gameScoreUpdateInterval = process.env.GAME_SCORE_UPDATE_INTERVAL
+  ? parseInt(process.env.GAME_SCORE_UPDATE_INTERVAL)
+  : 1; // hours
+
 module.exports = {
   adEnabled,
   chatAdFileLocationPath,
+  gameEnabled,
+  gameScoreUpdateInterval,
   gifSearchApiKey,
   gifSearchEnabled,
   gifSearchEndpoint,

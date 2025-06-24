@@ -27,12 +27,3 @@ body {
   animation: fall 6s linear forwards;
   color: green;
 }
-
-@keyframes fall {
-  from {
-     transform: translateY(0vh) translateX(-10vw);
-  }
-  to {
-     transform: translateY(105vh) translateX(10vw);
-  }
-}

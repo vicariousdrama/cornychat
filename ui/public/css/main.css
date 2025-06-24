@@ -406,3 +406,47 @@ div.emojiText {
   background: transparent;
   color: inherit;
 }
+
+@keyframes fall {
+  from {
+     transform: translateY(0vh) translateX(-10vw);
+  }
+  to {
+     transform: translateY(105vh) translateX(10vw);
+  }
+}
+@keyframes points {
+  0% {
+    transform: translateY(20vh) translateX(0%);
+  }
+  10% {
+    transform: translateY(18vh) translateX(0%) skew(-0.10turn, 30deg);
+  }
+  20% {
+    transform: translateY(16vh) translateX(0%) skew(0.10turn, -30deg);
+  }
+  30% {
+    transform: translateY(14vh) translateX(0%) skew(-0.10turn, 30deg);
+  }
+  40% {
+    transform: translateY(12vh) translateX(0%) skew(0.10turn, -30deg);
+  }
+  50% {
+    transform: translateY(10vh) translateX(0%) skew(-0.10turn, 30deg);
+  }
+  60% {
+    transform: translateY(8vh) translateX(0%) skew(0.10turn, -30deg);
+  }
+  70% {
+    transform: translateY(6vh) translateX(0%) skew(-0.10turn, 30deg);
+  }
+  80% {
+    transform: translateY(4vh) translateX(0%) skew(0.10turn, -30deg);
+  }
+  90% {
+    transform: translateY(2vh) translateX(0%) skew(-0.10turn, 30deg);
+  }
+  100% {
+    transform: translateY(0vh) translateX(0%) skew(0.10turn, -30deg);
+  }
+}

@@ -88,10 +88,11 @@ export default function RoomChat({
         //try to maximize height of chat
         let nt = n.getClientRects()[0].top;
         let ct = c.getClientRects()[0].top;
-        let nh1 = document.body.clientHeight - 232 - ct;
+        let bh = document.getElementById('root').getClientRects()[0].height;
+        let nh1 = bh - 232 - ct;
         if (nh1 < mh0) nh1 = mh0; // minimum height for chat lines
         if (ct + nh1 > nt) nh1 = nt - ct; // but not under navbar
-        let nh2 = document.body.clientHeight - 176 - ct;
+        let nh2 = bh - 176 - ct;
         if (nh2 < mh0 + nh0) nh2 = mh0 + nh0; // minimum height for chat lines + entry
         if (ct + nh2 > nt) {
           // but not under navbar

@@ -241,6 +241,8 @@ nano .env
 
 11. To enable gif searches from the text chat in a room, set the value of `GIF_SEARCH_ENABLED` to `true`, as well as specifying your API Key for accessing the service in `GIF_SEARCH_APIKEY`.  The current implementation uses gifbuddy.lol, written by [lemon](nostr:npub1hee433872q2gen90cqh2ypwcq9z7y5ugn23etrd2l2rrwpruss8qwmrsv6). 
 
+12. To enable the game scoring mode, set the value of `GAME` to `true`.  When enabled, clicking on falling animations will reward points that are tallied on a per npub basis, and resets weekly.  The navigation menu also has an option to view the high scores.  You may also set the `GAME_SCORE_UPDATE_INTERVAL` to change how frequently weekly high scores are published to nostr.
+
 Press CTRL+O, CTRL+X to save and exit
 
 **Edit the turnserver.conf file**

@@ -110,6 +110,9 @@ export default function DataTypes() {
         <li>
           <a href="#kind32388roomfavorites">Kind 32388 - Room Favorites</a>
         </li>
+        <li>
+          <a href="#kind33388highscores">Kind 33388 - High Scores</a>
+        </li>
       </ul>
 
       <h2>Supported NIPS</h2>
@@ -1092,6 +1095,40 @@ export default function DataTypes() {
         <tr>
           <td style={{width: '50px'}}></td>
           <td>["r", "roomId", "URI of the room"], // repeated</td>
+        </tr>
+        <tr>
+          <td colspan="2">]</td>
+        </tr>
+      </table>
+
+      <a name="kind33388highscores"></a>
+      <h2 style={{backgroundColor: '#ff0000'}}>Kind 33388 - High Scores</h2>
+      <p>
+        High Scores track the current scores for pubkeys for each week. Users
+        can increase their score by completing various actions. As a replaceable
+        event, a `d` tag is assigned with a consistent value. The expected tags
+        for this structure are as follows:
+      </p>
+
+      <table
+        style={{
+          borderCollapse: 'collapse',
+          border: '1px solid #FF0000',
+          margin: '20px',
+          fontFamily: 'courier',
+          fontSize: '.8em',
+        }}
+      >
+        <tr>
+          <td colspan="2">tags: [</td>
+        </tr>
+        <tr>
+          <td style={{width: '50px'}}></td>
+          <td>["d", "cornychat-highscore-2025w23"],</td>
+        </tr>
+        <tr>
+          <td style={{width: '50px'}}></td>
+          <td>["p", "pubkey", "score"], // repeated</td>
         </tr>
         <tr>
           <td colspan="2">]</td>
