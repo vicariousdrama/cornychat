@@ -885,6 +885,58 @@ export async function followAllNpubsFromIds(inRoomPeerIds) {
   }
 }
 
+export async function recommendCornyChat() {
+  if (window.DEBUG) console.lg('in recommendCornyChat');
+  if (!window.nostr) {
+    alert('A nostr extension is required to recommend the app');
+    return;
+  }
+  const serverPubkey = sessionStorage.getItem('serverPubkey');
+  if (!serverPubkey) {
+    alert(
+      'Server pubkey not identified. Unable to perform recommendation at this time'
+    );
+    return;
+  }
+  const rl = window.jamConfig.relaysGeneral.length;
+  if (rl <= 0) {
+    alert('No relays set. Unable to perform recommendation at this time');
+    return;
+  }
+  const kind = 31989; // Recommendation
+  const kinds = [
+    0,
+    1,
+    30000,
+    30030,
+    30311,
+    30382,
+    30388,
+    31388,
+    31923,
+    32388,
+    33388,
+  ];
+  for (let dkind of kinds) {
+    let serverRelay =
+      window.jamConfig.relaysGeneral[Math.floor(Math.random() * rl)];
+    const tags = [
+      ['d', String(dkind)],
+      ['a', '31990:' + serverPubkey + ':nostrhandler', serverRelay, 'web'],
+    ];
+    const event = {
+      id: null,
+      pubkey: null,
+      created_at: Math.floor(Date.now() / 1000),
+      kind: kind,
+      tags: tags,
+      content: '',
+      sig: null,
+    };
+    let r = await signAndSendEvent(event);
+  }
+}
+
 export async function unfavoriteRoom(roomId) {
   if (window.DEBUG) console.log('in unfavoriteRoom');
   if (!window.nostr) {
@@ -2245,6 +2297,14 @@ export async function signAndSendEvent(event) {
   if (!event.hasOwnProperty('pubkey')) event['pubkey'] = null;
   if (!event.hasOwnProperty('sig')) event['sig'] = null;
   if (!event.hasOwnProperty('tags')) event['tags'] = [];
+  let sp = sessionStorage.getItem('serverPubkey');
+  if (sp) {
+    event['tags'].push([
+      'client',
+      'Corny Chat',
+      '31990:' + sp + ':nostrhandler',
+    ]);
+  }
   const eventSigned = await window.nostr.signEvent(event);
   if (!eventSigned) {
     return [false, 'There was an error with your nostr extension'];

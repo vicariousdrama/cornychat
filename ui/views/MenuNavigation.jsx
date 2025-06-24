@@ -25,12 +25,14 @@ import {
   StarFavorite,
   StarUnFavorite,
   HighScore,
+  Recommend,
 } from './Svg';
 import {
   followAllNpubsFromIds,
   favoriteRoom,
   unfavoriteRoom,
   loadFavoriteRooms,
+  recommendCornyChat,
 } from '../nostr/nostr';
 
 export function MyNavMenu({close, roomColor, iAmAdmin}) {
@@ -87,6 +89,10 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
   }
   checkRoomFavorites();
 
+  let [recommended, setRecommended] = useState(
+    (localStorage.getItem('appRecommended') ?? 0) >
+      Math.floor(Date.now() / 1000) - 3 * 24 * 60 * 60
+  );
   let [currentSlide, setCurrentSlide] = useState(room?.currentSlide ?? -1);
   let hasSlides = false;
   if (room.roomSlides != null) {
@@ -343,6 +349,30 @@ export function MyNavMenu({close, roomColor, iAmAdmin}) {
                   style={{color: textColor}}
                 >
                   View high scores
+                </p>
+              </div>
+            )}
+
+            {window.nostr && !recommended && (
+              <div
+                onClick={async () => {
+                  recommendCornyChat();
+                  localStorage.setItem(
+                    'appRecommended',
+                    Math.floor(Date.now() / 1000)
+                  );
+                  setRecommended(true);
+                  alert('Thank you for recommending Corny Chat!');
+                  close(false);
+                }}
+                className="p-2 flex items-center"
+              >
+                <Recommend color={iconColor} />
+                <p
+                  className="text-md ml-1 cursor-pointer"
+                  style={{color: textColor}}
+                >
+                  Recommend app
                 </p>
               </div>
             )}
