@@ -81,6 +81,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
       zg = zg[0];
       if (zg.created_at > 0) {
         setZapGoal(zg);
+        sessionStorage.setItem('serverPubkey', zg.pubkey);
       }
       setLoadingZapGoal(false);
       if (window.DEBUG) console.log(zapGoal);
