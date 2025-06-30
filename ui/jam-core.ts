@@ -174,7 +174,7 @@ function createApi<T extends StateType>(
     enterRoom: (roomId: string) => dispatch(actions.JOIN, roomId),
     leaveRoom: () => dispatch(actions.JOIN, null),
     leaveStage: () => dispatch(actions.LEAVE_STAGE),
-    sendReaction: (reaction: string) => dispatch(actions.REACTION, reaction),
+    sendReaction: (reaction: string, peerId: string) => dispatch(actions.REACTION, {reaction:reaction, peerId:peerId}),
     sendTextChat: (textchat: string, peerId: string) => dispatch(actions.TEXT_CHAT, {textchat:textchat, peerId:peerId}),
     sendCSAR: (csar: string) => dispatch(actions.CSAR, {csar:csar}),
     retryMic: () => dispatch(actions.RETRY_MIC),

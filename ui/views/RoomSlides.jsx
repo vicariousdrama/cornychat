@@ -46,7 +46,13 @@ export default function RoomSlides({
     if (isNaN(sn)) {
       sn = -2;
     }
-    if (roomSlides && sn > -1 && sn < rsl && (iOwn || iModerate || iAmAdmin)) {
+    if (
+      roomSlides &&
+      sn > -1 &&
+      sn < rsl &&
+      rsl > 1 &&
+      (iOwn || iModerate || iAmAdmin)
+    ) {
       return (
         <div
           className="mb-2"

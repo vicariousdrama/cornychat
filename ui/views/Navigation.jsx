@@ -17,32 +17,40 @@ import {dosha256hexrounds} from '../lib/sha256rounds.js';
 import {openModal} from './Modal';
 import {PassphraseModal} from './PassphraseModal';
 
-export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, setShowChat, iAmAdmin}) {
+export default function Navigation({
+  showMyNavMenu,
+  setShowMyNavMenu,
+  showChat,
+  setShowChat,
+  iAmAdmin,
+}) {
   let mqp = useMqParser();
   const [state, {leaveRoom, sendReaction, retryMic, setProps}] = useJam();
-  let [room, roomId, myId] = use(state, ['room','roomId','myId']);
+  let [room, roomId, myId] = use(state, ['room', 'roomId', 'myId']);
   let [myAudio, micMuted, handRaised, handType, iSpeak, iOwn] = use(state, [
     'myAudio',
     'micMuted',
     'handRaised',
     'handType',
     'iAmSpeaker',
-    'iAmOwner', 
+    'iAmOwner',
   ]);
-  
+
   const [time, setTime] = useState(Date.now());
   const colorTheme = state.room?.color ?? 'default';
   const roomColor = colors(colorTheme, state.room.customColor);
-  const iconColor = isDark(roomColor.buttons.primary) ? roomColor.icons.light : roomColor.icons.dark;
+  const iconColor = isDark(roomColor.buttons.primary)
+    ? roomColor.icons.light
+    : roomColor.icons.dark;
   const iconColorBad = `rgba(240,40,40,.80)`;
   let [showUnreadIndicator, setShowUnreadIndicator] = useState(false);
   let [unreadCount, setUnreadCount] = useState(0);
   useEffect(() => {
     const textchatInterval = setInterval(() => {
-      setTime(Date.now());    // forces update ?
+      setTime(Date.now()); // forces update ?
       let n = Math.floor(sessionStorage.getItem(`${roomId}.textchat.unread`));
       setUnreadCount(n);
-      setShowUnreadIndicator(n>0);
+      setShowUnreadIndicator(n > 0);
     }, 1000);
     let checkcount = 0;
     // This interval periodically checks if the room is protected with a passphrase, and if the user has
@@ -50,46 +58,59 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
     // be ejected after about a minute.
     const passphraseInterval = setInterval(() => {
       let temp_room2 = {...room};
-      if(room.passphraseHash != temp_room2.passwordHash) {
+      if (room.passphraseHash != temp_room2.passwordHash) {
       }
       //console.log(`protected: ${room.isProtected} - ${room.passphraseHash}`);
-      if (room.isProtected && ((room.passphraseHash ?? '').length > 0)) {
-        let roomPassphrase = localStorage.getItem(`${roomId}.passphrase`) ?? (sessionStorage.getItem(`${roomId}.passphrase`) ?? '');
+      if (room.isProtected && (room.passphraseHash ?? '').length > 0) {
+        let roomPassphrase =
+          localStorage.getItem(`${roomId}.passphrase`) ??
+          sessionStorage.getItem(`${roomId}.passphrase`) ??
+          '';
         let roomPassphrasePlain = `${roomId}.${roomPassphrase}`;
         let roomPassphraseHash = '';
         (async () => {
-          let r = await dosha256hexrounds(roomPassphrasePlain,21); 
+          let r = await dosha256hexrounds(roomPassphrasePlain, 21);
           roomPassphraseHash = r;
           if (room.passphraseHash != roomPassphraseHash && !iAmAdmin) {
             checkcount += 1;
-            console.log('room passphrase required. time remaining: ', (60 - ((checkcount-1) * 5)));
+            console.log(
+              'room passphrase required. time remaining: ',
+              60 - (checkcount - 1) * 5
+            );
             if (checkcount == 13 && !(iAmAdmin || iOwn)) leaveRoom();
-            if (checkcount == 1) openModal(PassphraseModal, {roomId: roomId, roomPassphraseHash: room.passphraseHash, roomColor: roomColor, checkcount: checkcount});
+            if (checkcount == 1)
+              openModal(PassphraseModal, {
+                roomId: roomId,
+                roomPassphraseHash: room.passphraseHash,
+                roomColor: roomColor,
+                checkcount: checkcount,
+              });
           } else {
             // reset check counter
             checkcount = 0;
-          }  
+          }
         })();
       }
     }, 5000);
     const kickInterval = setInterval(() => {
       let temp_room3 = {...room};
-      if(!iAmAdmin && temp_room3.kicked) {
+      if (!iAmAdmin && temp_room3.kicked) {
         for (let k of temp_room3.kicked) {
           if (k.until < Date.now()) continue;
           if (k.id == myId) leaveRoom();
         }
       }
-    },2000);
+    }, 2000);
     return () => {
       clearInterval(textchatInterval);
       clearInterval(passphraseInterval);
       clearInterval(kickInterval);
     };
-  }, [room]);  
+  }, [room]);
 
   // OnlyZaps don't like reactions or special stickies
-  let onlyZapsMode = ((localStorage.getItem('onlyZapsEnabled') ?? 'false') == 'true');
+  let onlyZapsMode =
+    (localStorage.getItem('onlyZapsEnabled') ?? 'false') == 'true';
   let reactionsEnabled = !onlyZapsMode;
   let stickiesEnabled = !onlyZapsMode;
   let talk = () => {
@@ -103,15 +124,22 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
   let limitReactions = false;
   let reactionQueue = [];
   function queueReaction(r) {
-    if (!reactionsEnabled) { r = "⚡" };
-    if (!limitReactions) { sendReaction(r); return }
+    if (!reactionsEnabled) {
+      r = '⚡';
+    }
+    if (!limitReactions) {
+      sendReaction(r, sessionStorage.getItem('peerSelected'));
+      return;
+    }
     if (limitReactions && reactionQueue.length < 10) reactionQueue.push(r);
   }
   function sendReactions() {
     let r = reactionQueue.shift();
-    if (r) sendReaction(r);
+    if (r) sendReaction(r, sessionStorage.getItem('peerSelected'));
   }
-  if (limitReactions) { setInterval(sendReactions, 250); }
+  if (limitReactions) {
+    setInterval(sendReactions, 250);
+  }
 
   function ReactionsEmojis() {
     return (
@@ -139,7 +167,7 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
                     display: 'inline',
                   }}
                 />
-              ) : (r.toString().startsWith('https://') ? (
+              ) : r.toString().startsWith('https://') ? (
                 <img
                   src={r}
                   style={{
@@ -151,7 +179,7 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
                 />
               ) : (
                 r
-              ))}
+              )}
             </button>
           ))
         ) : (
@@ -174,8 +202,15 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
     let noSticky = '💩';
     return (
       <div className="flex">
-        <button className="human-radius text-xs select-none"
-          style={{width:'48px',height:'48px',backgroundColor:`rgb(17,17,17)`,color:'yellow',lineHeight: '.95'}}
+        <button
+          className="human-radius text-xs select-none"
+          style={{
+            width: '48px',
+            height: '48px',
+            backgroundColor: `rgb(17,17,17)`,
+            color: 'yellow',
+            lineHeight: '.95',
+          }}
           onClick={() => {
             handRaised = false;
             handType = '';
@@ -183,9 +218,17 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
             setProps('handType', handType);
             setShowStickies(s => !s);
           }}
-        >Lower Hand</button>
-        <button className="human-radius text-xl select-none"
-          style={{width:'48px',height:'48px',backgroundColor:`rgb(17,17,17)`,color:'yellow'}}
+        >
+          Lower Hand
+        </button>
+        <button
+          className="human-radius text-xl select-none"
+          style={{
+            width: '48px',
+            height: '48px',
+            backgroundColor: `rgb(17,17,17)`,
+            color: 'yellow',
+          }}
           onClick={() => {
             handRaised = true;
             handType = 'RH';
@@ -193,9 +236,17 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
             setProps('handType', handType);
             setShowStickies(s => !s);
           }}
-        >✋</button>
-        <button className="human-radius text-xl select-none"
-          style={{width:'48px',height:'48px',backgroundColor:`rgb(17,170,17)`,color:'yellow'}}
+        >
+          ✋
+        </button>
+        <button
+          className="human-radius text-xl select-none"
+          style={{
+            width: '48px',
+            height: '48px',
+            backgroundColor: `rgb(17,170,17)`,
+            color: 'yellow',
+          }}
           onClick={() => {
             handRaised = true;
             handType = 'TU';
@@ -203,9 +254,17 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
             setProps('handType', handType);
             setShowStickies(s => !s);
           }}
-        >👍</button>
-        <button className="human-radius text-xl select-none"
-          style={{width:'48px',height:'48px',backgroundColor:`rgb(170,17,17)`,color:'yellow'}}
+        >
+          👍
+        </button>
+        <button
+          className="human-radius text-xl select-none"
+          style={{
+            width: '48px',
+            height: '48px',
+            backgroundColor: `rgb(170,17,17)`,
+            color: 'yellow',
+          }}
           onClick={() => {
             handRaised = true;
             handType = 'TD';
@@ -213,9 +272,17 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
             setProps('handType', handType);
             setShowStickies(s => !s);
           }}
-        >👎</button>
-        <button className="human-radius text-xl select-none"
-          style={{width:'48px',height:'48px',backgroundColor:`rgb(17,17,170)`,color:'yellow'}}
+        >
+          👎
+        </button>
+        <button
+          className="human-radius text-xl select-none"
+          style={{
+            width: '48px',
+            height: '48px',
+            backgroundColor: `rgb(17,17,170)`,
+            color: 'yellow',
+          }}
           onClick={() => {
             handRaised = true;
             handType = 'BRB';
@@ -223,53 +290,37 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
             setProps('handType', handType);
             setShowStickies(s => !s);
           }}
-        >BRB</button>
-        <button className="human-radius text-xl select-none"
-          style={{width:'48px',height:'48px',backgroundColor:`rgb(17,17,170)`,color:'yellow'}}
+        >
+          BRB
+        </button>
+        <button
+          className="human-radius text-xl select-none"
+          style={{
+            width: '48px',
+            height: '48px',
+            backgroundColor: `rgb(17,17,170)`,
+            color: 'yellow',
+          }}
           onClick={() => {
             handRaised = true;
-            handType = stickiesEnabled ? (localStorage.getItem('stickyEmoji1') ?? '☕') : noSticky;
+            handType = stickiesEnabled
+              ? localStorage.getItem('stickyEmoji1') ?? '☕'
+              : noSticky;
             setProps('handRaised', handRaised);
             setProps('handType', handType);
             setShowStickies(s => !s);
           }}
-        >{(localStorage.getItem('stickyEmoji1') ?? '☕').toString().toUpperCase().startsWith('E') ? (
-          <img
-            src={`/img/emojis/emoji-${(localStorage.getItem('stickyEmoji1') ?? '☕').toString().toUpperCase()}.png`}
-            style={{
-              width: '100%',
-              height: 'auto',
-              border: '0px',
-              display: 'inline',
-            }}
-          />
-        ) : (
-          (localStorage.getItem('stickyEmoji1') ?? '☕').toString().startsWith('https://') ? (
+        >
+          {(localStorage.getItem('stickyEmoji1') ?? '☕')
+            .toString()
+            .toUpperCase()
+            .startsWith('E') ? (
             <img
-            src={localStorage.getItem('stickyEmoji1').toString()}
-            style={{
-              width: '90%',
-              height: 'auto',
-              border: '0px',
-              display: 'inline',
-            }}
-          />
-          ) : (
-          localStorage.getItem('stickyEmoji1') ?? '☕'
-          )
-        )}</button>
-        <button className="human-radius text-xl select-none"
-          style={{width:'48px',height:'48px',backgroundColor:`rgb(17,17,170)`,color:'yellow'}}
-          onClick={() => {
-            handRaised = true;
-            handType = stickiesEnabled ? (localStorage.getItem('stickyEmoji2') ?? '🌽') : noSticky;
-            setProps('handRaised', handRaised);
-            setProps('handType', handType);
-            setShowStickies(s => !s);
-          }}
-        >{(localStorage.getItem('stickyEmoji2') ?? '🌽').toString().toUpperCase().startsWith('E') ? (
-            <img
-              src={`/img/emojis/emoji-${(localStorage.getItem('stickyEmoji2') ?? '🌽').toString().toUpperCase()}.png`}
+              src={`/img/emojis/emoji-${(
+                localStorage.getItem('stickyEmoji1') ?? '☕'
+              )
+                .toString()
+                .toUpperCase()}.png`}
               style={{
                 width: '100%',
                 height: 'auto',
@@ -277,9 +328,61 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
                 display: 'inline',
               }}
             />
+          ) : (localStorage.getItem('stickyEmoji1') ?? '☕')
+              .toString()
+              .startsWith('https://') ? (
+            <img
+              src={localStorage.getItem('stickyEmoji1').toString()}
+              style={{
+                width: '90%',
+                height: 'auto',
+                border: '0px',
+                display: 'inline',
+              }}
+            />
           ) : (
-            (localStorage.getItem('stickyEmoji2') ?? '🌽').toString().startsWith('https://') ? (
-              <img
+            localStorage.getItem('stickyEmoji1') ?? '☕'
+          )}
+        </button>
+        <button
+          className="human-radius text-xl select-none"
+          style={{
+            width: '48px',
+            height: '48px',
+            backgroundColor: `rgb(17,17,170)`,
+            color: 'yellow',
+          }}
+          onClick={() => {
+            handRaised = true;
+            handType = stickiesEnabled
+              ? localStorage.getItem('stickyEmoji2') ?? '🌽'
+              : noSticky;
+            setProps('handRaised', handRaised);
+            setProps('handType', handType);
+            setShowStickies(s => !s);
+          }}
+        >
+          {(localStorage.getItem('stickyEmoji2') ?? '🌽')
+            .toString()
+            .toUpperCase()
+            .startsWith('E') ? (
+            <img
+              src={`/img/emojis/emoji-${(
+                localStorage.getItem('stickyEmoji2') ?? '🌽'
+              )
+                .toString()
+                .toUpperCase()}.png`}
+              style={{
+                width: '100%',
+                height: 'auto',
+                border: '0px',
+                display: 'inline',
+              }}
+            />
+          ) : (localStorage.getItem('stickyEmoji2') ?? '🌽')
+              .toString()
+              .startsWith('https://') ? (
+            <img
               src={localStorage.getItem('stickyEmoji2').toString()}
               style={{
                 width: '90%',
@@ -288,16 +391,16 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
                 display: 'inline',
               }}
             />
-            ) : (
+          ) : (
             localStorage.getItem('stickyEmoji2') ?? '🌽'
-            )
-        )}</button>
+          )}
+        </button>
       </div>
     );
   }
 
   let [leaving, setLeaving] = useState(false);
-  const splitEmoji = (string) => [...string];
+  const splitEmoji = string => [...string];
   //const splitEmoji = (string) => [...new Intl.Segmenter().segment(string)].map(x => x.segment);
 
   async function byeEmojiExit() {
@@ -321,14 +424,15 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
           byeAmount = 20;
         }
         let byeEmojiParts = [];
-        let byeEmojiSplit = (byeEmoji.length > 0) ? splitEmoji(byeEmoji) : [];
+        let byeEmojiSplit = byeEmoji.length > 0 ? splitEmoji(byeEmoji) : [];
         if (!doexit) {
-          byeEmojiSplit = (byeEmoji.length > 1) ? splitEmoji(byeEmoji.substr(1)) : [];
+          byeEmojiSplit =
+            byeEmoji.length > 1 ? splitEmoji(byeEmoji.substr(1)) : [];
         }
         let besl = byeEmojiSplit.length;
         let ce = false;
         let cen = '';
-        for (let besi = 0; besi < besl; besi ++) {
+        for (let besi = 0; besi < besl; besi++) {
           let cc = byeEmojiSplit[besi];
           if (cc == 'E') {
             ce = true;
@@ -362,8 +466,8 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
         }
         let bepl = byeEmojiParts.length;
         let bec = 0;
-        for (let er = 0; (er < byeAmount); er ++) {
-          for (let bepi = 0; (bepi < bepl); bepi ++) {
+        for (let er = 0; er < byeAmount; er++) {
+          for (let bepi = 0; bepi < bepl; bepi++) {
             let bepr = byeEmojiParts[bepi];
             if (!leaving) {
               break;
@@ -375,22 +479,22 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
               continue;
             }
             bec = bec + 1;
-            let st = (bepr.length > 1) ? 100 : 250;
+            let st = bepr.length > 1 ? 100 : 250;
             if (bepr == ' ') {
               st = 500;
             } else {
               queueReaction(bepr);
             }
-            await new Promise((resolve,reject) => setTimeout(resolve, st));
+            await new Promise((resolve, reject) => setTimeout(resolve, st));
           }
         }
         if (bec > 1) {
-          await new Promise((resolve,reject) => setTimeout(resolve, 2000));
+          await new Promise((resolve, reject) => setTimeout(resolve, 2000));
         }
       }
       if (leaving) {
         setLeaving(false);
-        leaving=false;
+        leaving = false;
         if (doexit) {
           leaveRoom();
         }
@@ -407,7 +511,16 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
   let [showStickies, setShowStickies] = useState(false);
 
   return (
-    <div id="navbar" style={{zIndex: '5',position:'absolute',bottom:'72px',width:'100%',backgroundColor:roomColor.avatarBg}}>
+    <div
+      id="navbar"
+      style={{
+        zIndex: '5',
+        position: 'absolute',
+        bottom: '72px',
+        width: '100%',
+        backgroundColor: roomColor.avatarBg,
+      }}
+    >
       <div className="flex justify-center mx-2">
         {showStickies && (
           <div
@@ -427,9 +540,9 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
         )}
         {showMyNavMenu && (
           <div>
-            <MyNavMenu 
-              close={setShowMyNavMenu} 
-              roomColor={roomColor} 
+            <MyNavMenu
+              close={setShowMyNavMenu}
+              roomColor={roomColor}
               iAmAdmin={iAmAdmin}
             />
           </div>
@@ -457,7 +570,7 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
             style={{backgroundColor: roomColor.buttons.primary}}
             onClick={() => {
               setShowChat(!showChat);
-              if(showChat) {
+              if (showChat) {
                 sessionStorage.setItem(`${roomId}.textchat.unread`, 0);
                 setShowUnreadIndicator(false);
                 setUnreadCount(0);
@@ -468,15 +581,22 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
             }}
           >
             <ChatBubbles color={iconColor} />
-            {showUnreadIndicator && (unreadCount > 0) && (
-            <div className={'relative'}>
-              <div
-                className={mqp(
-                  'absolute rounded-full bg-white text-xs border-1 border-gray-400 px-1 flex items-center justify-center'
-                )}
-                style={{backgroundColor: `rgb(217,17,17)`, color: `rgb(255,255,255)`, top: '-28px', right: '-6px'}}
-              >{unreadCount}</div>
-            </div>
+            {showUnreadIndicator && unreadCount > 0 && (
+              <div className={'relative'}>
+                <div
+                  className={mqp(
+                    'absolute rounded-full bg-white text-xs border-1 border-gray-400 px-1 flex items-center justify-center'
+                  )}
+                  style={{
+                    backgroundColor: `rgb(217,17,17)`,
+                    color: `rgb(255,255,255)`,
+                    top: '-28px',
+                    right: '-6px',
+                  }}
+                >
+                  {unreadCount}
+                </div>
+              </div>
             )}
           </button>
         </div>
@@ -485,44 +605,85 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
           <div className="mx-1">
             <button
               className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
-              style={{backgroundColor: roomColor.buttons.primary, color:iconColor}}
+              style={{
+                backgroundColor: roomColor.buttons.primary,
+                color: iconColor,
+              }}
               onClick={() => {
                 setShowMyNavMenu(false);
                 setShowReactions(false);
                 setShowStickies(s => !s);
               }}
             >
-            {handType === 'RH' ? (
-              <span className="text-lg" style={{textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'}}>✋</span>
-            ):( handType === 'TU' ? (
-              <span className="text-lg" style={{textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'}}>👍</span>
-            ):( handType === 'TD' ? ( 
-              <span className="text-lg" style={{textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'}}>👎</span>
-            ):( handType.toString().toUpperCase().startsWith('E') ? (
-              <img
-                src={`/img/emojis/emoji-${handType.toString().toUpperCase()}.png`}
-                style={{
-                  width: '100%',
-                  height: 'auto',
-                  border: '0px',
-                  display: 'inline',
-                }}
-              />
-            ):( handType.toString().startsWith('https://') ? (
+              {handType === 'RH' ? (
+                <span
+                  className="text-lg"
+                  style={{
+                    textShadow:
+                      '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000',
+                  }}
+                >
+                  ✋
+                </span>
+              ) : handType === 'TU' ? (
+                <span
+                  className="text-lg"
+                  style={{
+                    textShadow:
+                      '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000',
+                  }}
+                >
+                  👍
+                </span>
+              ) : handType === 'TD' ? (
+                <span
+                  className="text-lg"
+                  style={{
+                    textShadow:
+                      '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000',
+                  }}
+                >
+                  👎
+                </span>
+              ) : handType.toString().toUpperCase().startsWith('E') ? (
                 <img
-                src={handType.toString()}
-                style={{
-                  width: '90%',
-                  height: 'auto',
-                  border: '0px',
-                  display: 'inline',
-                }}
-              />
-            ) : (              
-              <span className={mqp(handType.toString().charCodeAt(0) < 255 ? 'text-xs' : 'text-lg')}
-                style={{textShadow: handType.toString().charCodeAt(0) > 255 ? '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000': ''}}
-              >{handType}</span>
-            )))))}
+                  src={`/img/emojis/emoji-${handType
+                    .toString()
+                    .toUpperCase()}.png`}
+                  style={{
+                    width: '100%',
+                    height: 'auto',
+                    border: '0px',
+                    display: 'inline',
+                  }}
+                />
+              ) : handType.toString().startsWith('https://') ? (
+                <img
+                  src={handType.toString()}
+                  style={{
+                    width: '90%',
+                    height: 'auto',
+                    border: '0px',
+                    display: 'inline',
+                  }}
+                />
+              ) : (
+                <span
+                  className={mqp(
+                    handType.toString().charCodeAt(0) < 255
+                      ? 'text-xs'
+                      : 'text-lg'
+                  )}
+                  style={{
+                    textShadow:
+                      handType.toString().charCodeAt(0) > 255
+                        ? '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'
+                        : '',
+                  }}
+                >
+                  {handType}
+                </span>
+              )}
             </button>
           </div>
         ) : (
@@ -607,7 +768,7 @@ export default function Navigation({showMyNavMenu, setShowMyNavMenu, showChat, s
         <div className="mx-1">
           <button
             className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center transition-all hover:opacity-80"
-            onClick={async() => {
+            onClick={async () => {
               byeEmojiExit();
             }}
           >

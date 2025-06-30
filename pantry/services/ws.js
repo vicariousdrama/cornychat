@@ -144,7 +144,20 @@ async function handleMessage(connection, roomId, msg) {
         if (data.type == 'peer-event') {
           if (data.data != undefined && data.data.t != undefined) {
             if (data.data.t == 'reaction') {
-              if (data.data.d != undefined && data.data.d == '🌽') {
+              if (
+                data.data.d != undefined &&
+                typeof data.data.d == 'string' &&
+                data.data.d == '🌽'
+              ) {
+                saveCSAR(senderId, roomId, 'sendcorn');
+              }
+              if (
+                data.data.d != undefined &&
+                typeof data.data.d == 'object' &&
+                data.data.d.reaction != undefined &&
+                typeof data.data.d.reaction == 'string' &&
+                data.data.d.reaction == '🌽'
+              ) {
                 saveCSAR(senderId, roomId, 'sendcorn');
               }
             }

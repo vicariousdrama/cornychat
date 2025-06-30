@@ -45,11 +45,11 @@ Users can quickly login with existing Nostr accounts and have name and avatar im
   - ✅ Edit Personal Profile to set name, picture, about, lud16, nip05
   - ✅ Upload Banner image to common media uploaders
   - ✅ Upload Avatar image to common media uploaders
-- ☑️ Reaction Customizations
+- ✅ Reaction Customizations
   - ✅ Update Default Emoji Reactions
   - ✅ Emoji sets (kind 30030)
-  - ⬜ Target user for sending reaction
-  - ⬜ Animate reaction from sender to target
+  - ✅ Target user for sending reaction
+  - ✅ Animate reaction from sender to target
 - ☑️ Zapping other Users
   - ✅ Prepare Zap based Invoice
   - ✅ Allow Alby Browser Extension to Pay Invoice
@@ -68,7 +68,7 @@ Users can quickly login with existing Nostr accounts and have name and avatar im
   - ✅ Render cashu tokens with a clickable summary depicting mint, amount and unit
   - ⬜ Ability for user to react to chat message
   - ⬜ Ability for user to zap a chat message
-- ☑️ Landing Page
+- ✅ Landing Page
   - ✅ Show list of all Nostr Scheduled Audio Spaces across instances
   - ✅ Show list of all Nostr Live Audio Spaces across instances
   - ✅ Server Message of the Day
@@ -86,7 +86,7 @@ Nostr is an open protocol for exchanging simple, structured information. This ha
 You also have freedom to use whichever clients you prefer to interface with. 
 
 - For more information, check out [Nostr.how](https://nostr.how/en/what-is-nostr)
-- To find new NostrApps, try [Nostr.net](https://nostr.net/)
+- To find new Nostr apps, try [Nostr.net](https://nostr.net/)
 
 ## About Jam:
 
