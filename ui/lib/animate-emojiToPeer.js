@@ -1,7 +1,7 @@
 export default function animateEmojiToPeer(element, peerElement) {
-  let emojiStyle = element.style;
+  if (!element) return;
+  if (!peerElement) return;
   element.style.zIndex = 30;
-
   let pr = peerElement.getClientRects();
   pr = pr[0];
   let peerXcenter = Math.floor(pr.left) + Math.floor(pr.width / 2);
