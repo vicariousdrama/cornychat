@@ -612,7 +612,11 @@ function AnimatedEmoji({emojiO, ...props}) {
     if (element && !targetPeerId) animateEmoji(element);
     if (element && targetPeerId) {
       let peerElement = document.getElementById('div_' + targetPeerId);
-      animateEmojiToPeer(element, peerElement);
+      if (peerElement) {
+        animateEmojiToPeer(element, peerElement);
+      } else {
+        animateEmoji(element);
+      }
     }
   }, [element]);
   if (emoji.toUpperCase().startsWith('E') && emoji.length > 1) {
