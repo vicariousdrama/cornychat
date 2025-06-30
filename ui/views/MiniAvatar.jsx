@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {avatarUrl} from '../lib/avatar';
 import {getNpubFromInfo} from '../nostr/nostr';
 import animateEmoji from '../lib/animate-emoji';
+import animateEmojiToPeer from '../lib/animate-emojiToPeer';
 import {useMqParser} from '../lib/tailwind-mqp';
 import {colors, isDark} from '../lib/theme';
 import {useApiQuery} from '../jam-core-react';
@@ -342,7 +343,7 @@ function Reactions({reactions, className, emojis}) {
           (true || emojis.includes(r)) && (
             <AnimatedEmoji
               key={id}
-              emoji={r}
+              emojiO={r}
               className={className}
               style={{
                 alignSelf: 'center',
@@ -354,10 +355,24 @@ function Reactions({reactions, className, emojis}) {
   );
 }
 
-function AnimatedEmoji({emoji, ...props}) {
+function AnimatedEmoji({emojiO, ...props}) {
   let [element, setElement] = useState(null);
+  // 20250629 - emojis can be a string or an object. if an object, the emoji is the reaction property
+  let emoji = '';
+  let targetPeerId = undefined;
+  if (typeof emojiO == 'object') {
+    emoji = emojiO.reaction;
+    targetPeerId = emojiO.peerId;
+  }
+  if (typeof emojiO == 'string') {
+    emoji = emojiO;
+  }
   useEffect(() => {
-    if (element) animateEmoji(element);
+    if (element && !targetPeerId) animateEmoji(element);
+    if (element && targetPeerId) {
+      let peerElement = document.getElementById('div_' + targetPeerId);
+      animateEmojiToPeer(element, peerElement);
+    }
   }, [element]);
   if (emoji.toUpperCase().startsWith('E') && emoji.length > 1) {
     return (

@@ -35,7 +35,7 @@ const nameSymbols = [
   }, // Marie
   {
     npub: 'npub1ymt2j3n8tesrlr0yhaheem6yyqmmwrr7actslurw6annls6vnrcslapxnz',
-    symbol: '🕳️',
+    symbol: ['💩', '🕳️'],
     title: 'Hole among holes',
   }, // Noshole
   {
@@ -99,6 +99,11 @@ const nameSymbols = [
     title: 'MR. E-K-S-O',
   }, // MRE Cheese
   {
+    npub: 'npub106pw9gffevqqvkyntwm3zkg50drfl5gv2f3wpnpfntrdjj0ggxps8pfar7',
+    symbol: ['🧀', '🧶'],
+    title: 'Tasty Fabric',
+  }, // MREYarn
+  {
     npub: 'npub1y3arg4886u5helmr9yxxp4drud5lcy2k0ekqnzujnxku0g9q9uwsd5nany',
     symbol: '🍁',
     title: 'Eh',
@@ -123,6 +128,11 @@ const nameSymbols = [
     symbol: ['🔪', '🔥', '💀'],
     title: 'If you cant stand the heat STFU',
   }, // Chef
+  {
+    npub: 'npub16e3vzr7dk2uepjcnl85nfare3kdapxge08gr42s99n9kg7xs8xhs90y9v6',
+    symbol: '🥒',
+    title: 'Naturally Ribbed',
+  }, // Pickle Dan
 ];
 
 export default function Room({room, roomId, uxConfig}) {

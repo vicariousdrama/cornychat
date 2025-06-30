@@ -777,12 +777,11 @@ export default function EnterRoom({
             reason. Room customizations such as images and links configured for
             rooms are the sole responsibility of that room's moderators and
             owners. This service is still under development and should be
-            considered in Beta. The service may go down for prolonged periods of
-            time. This service is built as a fork of JAM and the{' '}
+            considered in Beta. You may want to review{' '}
             <a href="https://github.com/vicariousdrama/cornychat/blob/main/PRIVACY.md">
-              Privacy Considerations for Jam
+              privacy information
             </a>{' '}
-            also apply.
+            .
           </p>
           <p className="mt-4 text-gray-600 text-xs">Build Date: BUILD_DATE</p>
         </div>

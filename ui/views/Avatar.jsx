@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import {avatarUrl, displayName} from '../lib/avatar';
 import {
   getNpubStatus,
@@ -7,12 +7,37 @@ import {
   getRelationshipPetname,
 } from '../nostr/nostr';
 import animateEmoji from '../lib/animate-emoji';
+import animateEmojiToPeer from '../lib/animate-emojiToPeer';
 import {useMqParser} from '../lib/tailwind-mqp';
 import {colors, isDark} from '../lib/theme';
 import {useApiQuery} from '../jam-core-react';
 import {createLinksSanitized} from '../lib/sanitizedText';
 import {createEmojiImages} from '../nostr/emojiText';
 import {MicMuted, MicStick} from './Svg';
+
+function startPressTimer(timerRef, isLongPress, peerId) {
+  isLongPress.current = false;
+  timerRef.current = setTimeout(() => {
+    isLongPress.current = true;
+    let ps = sessionStorage.getItem('peerSelected');
+    if (ps && ps.length > 0) {
+      document.getElementById('div_' + ps).style.border = '0px';
+    }
+    sessionStorage.setItem('peerSelected', peerId);
+  }, 500);
+}
+function handleOnMouseDown(timerRef, isLongPress, peerId) {
+  startPressTimer(timerRef, isLongPress, peerId);
+}
+function handleOnMouseUp(timerRef, peerId) {
+  clearTimeout(timerRef.current);
+}
+function handleOnTouchStart(timerRef, isLongPress, peerId) {
+  startPressTimer(timerRef, isLongPress, peerId);
+}
+function handleOnTouchEnd(timerRef, peerId) {
+  clearTimeout(timerRef.current);
+}
 
 export function StageAvatar({
   room,
@@ -28,6 +53,8 @@ export function StageAvatar({
   iAmAdmin,
   nameSymbols,
 }) {
+  const timerRef = useRef();
+  const isLongPress = useRef();
   return (
     <Avatar
       {...{
@@ -43,6 +70,8 @@ export function StageAvatar({
         onClick,
         iAmAdmin,
         nameSymbols,
+        timerRef,
+        isLongPress,
       }}
     />
   );
@@ -62,6 +91,8 @@ export function AudienceAvatar({
 }) {
   let speaking = undefined;
   let canSpeak = false;
+  const timerRef = useRef();
+  const isLongPress = useRef();
   return (
     <Avatar
       {...{
@@ -77,6 +108,8 @@ export function AudienceAvatar({
         onClick,
         iAmAdmin,
         nameSymbols,
+        timerRef,
+        isLongPress,
       }}
     />
   );
@@ -95,6 +128,8 @@ function Avatar({
   onClick,
   iAmAdmin,
   nameSymbols,
+  timerRef,
+  isLongPress,
 }) {
   let isSpeaking = false;
   if (speaking) {
@@ -234,9 +269,45 @@ function Avatar({
 
   return (
     <div
+      id={`div_${peerId}`}
       className="py-0 w-24 mr-2 mb-2 rounded-lg cursor-pointer"
-      style={{backgroundColor: avatarCardBG, color: avatarCardFG}}
-      onClick={onClick}
+      style={{
+        backgroundColor: avatarCardBG,
+        color: avatarCardFG,
+        border:
+          sessionStorage.getItem('peerSelected') == peerId
+            ? '2px solid ' + roomColor.buttons.primary
+            : '0px',
+      }}
+      onClick={e => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!isLongPress.current) {
+          sessionStorage.setItem('peerSelected', '');
+          onClick();
+          document.getElementById('div_' + peerId).style.border = '0px';
+        } else {
+          sessionStorage.setItem('peerSelected', peerId);
+          document.getElementById('div_' + peerId).style.border =
+            '2px solid ' + roomColor.buttons.primary;
+        }
+      }}
+      onMouseDown={e => {
+        e.preventDefault();
+        handleOnMouseDown(timerRef, isLongPress, peerId);
+      }}
+      onMouseUp={e => {
+        e.preventDefault();
+        handleOnMouseUp(timerRef, peerId);
+      }}
+      onTouchStart={e => {
+        e.preventDefault();
+        handleOnTouchStart(timerRef, isLongPress, peerId);
+      }}
+      onTouchEnd={e => {
+        e.preventDefault();
+        handleOnTouchEnd(timerRef, peerId);
+      }}
     >
       <div className="relative flex flex-col items-center">
         {inRoom && (
@@ -513,7 +584,7 @@ function Reactions({reactions, className, emojis}) {
           (true || emojis.includes(r)) && (
             <AnimatedEmoji
               key={id}
-              emoji={r}
+              emojiO={r}
               className={className}
               style={{
                 alignSelf: 'center',
@@ -525,10 +596,24 @@ function Reactions({reactions, className, emojis}) {
   );
 }
 
-function AnimatedEmoji({emoji, ...props}) {
+function AnimatedEmoji({emojiO, ...props}) {
   let [element, setElement] = useState(null);
+  // 20250629 - emojis can be a string or an object. if an object, the emoji is the reaction property
+  let emoji = '';
+  let targetPeerId = undefined;
+  if (typeof emojiO == 'object') {
+    emoji = emojiO.reaction;
+    targetPeerId = emojiO.peerId;
+  }
+  if (typeof emojiO == 'string') {
+    emoji = emojiO;
+  }
   useEffect(() => {
-    if (element) animateEmoji(element);
+    if (element && !targetPeerId) animateEmoji(element);
+    if (element && targetPeerId) {
+      let peerElement = document.getElementById('div_' + targetPeerId);
+      animateEmojiToPeer(element, peerElement);
+    }
   }, [element]);
   if (emoji.toUpperCase().startsWith('E') && emoji.length > 1) {
     return (

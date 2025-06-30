@@ -5,7 +5,6 @@ import {userAgent} from '../lib/user-agent';
 import {openModal} from './Modal';
 import {Profile} from './Profile';
 
-
 export default function MiniRoomMembers({
   audienceBarBG,
   audienceBarFG,
@@ -30,70 +29,84 @@ export default function MiniRoomMembers({
   stagePeers,
   state,
 }) {
-
-  const nJoinedAudiencePeers = audiencePeers.filter(id => peerState[id]?.inRoom).length;
+  const nJoinedAudiencePeers = audiencePeers.filter(id => peerState[id]?.inRoom)
+    .length;
 
   return (
-    <div>
+    <div
+      onClick={e => {
+        e.preventDefault();
+        let ps = sessionStorage.getItem('peerSelected');
+        if (ps && ps.length > 0) {
+          document.getElementById('div_' + ps).style.border = '0px';
+        }
+        sessionStorage.setItem('peerSelected', '');
+      }}
+    >
+      {/* Main Area */}
+      <div className="h-full rounded-lg mx-4">
+        {/* Stage */}
+        <div className="">
+          <ol className="flex flex-wrap justify-center">
+            {iSpeak && (
+              <StageAvatar
+                key={myPeerId}
+                peerId={myPeerId}
+                {...{speaking, moderators, owners, reactions, room}}
+                canSpeak={!hasMicFailed}
+                peerState={myPeerState}
+                info={myInfo}
+                iAmAdmin={iAmAdmin}
+                onClick={() => {
+                  openModal(Profile, {
+                    info: state.myIdentity.info,
+                    room,
+                    peerId: myPeerId,
+                    iOwn,
+                    iModerate,
+                    actorIdentity: myIdentity,
+                    iAmAdmin,
+                  });
+                }}
+              />
+            )}
+            {stagePeers.map(peerId => (
+              <StageAvatar
+                key={peerId}
+                {...{speaking, moderators, owners, room}}
+                {...{peerId, peerState, reactions}}
+                canSpeak={true}
+                peerState={peerState[peerId]}
+                info={identities[peerId]}
+                iAmAdmin={iAmAdmin}
+                onClick={() => {
+                  openModal(Profile, {
+                    info: identities[peerId],
+                    room,
+                    peerId,
+                    iOwn,
+                    iModerate,
+                    actorIdentity: myIdentity,
+                    iAmAdmin,
+                  });
+                }}
+              />
+            ))}
+          </ol>
+        </div>
 
-        {/* Main Area */}
-        <div className="h-full rounded-lg mx-4">
-          {/* Stage */}
-          <div className="">
-            <ol className="flex flex-wrap justify-center">
-              {iSpeak && (
-                <StageAvatar
-                  key={myPeerId}
-                  peerId={myPeerId}
-                  {...{speaking, moderators, owners, reactions, room}}
-                  canSpeak={!hasMicFailed}
-                  peerState={myPeerState}
-                  info={myInfo}
-                  iAmAdmin={iAmAdmin}
-                  onClick={() => {
-                    openModal(Profile, {
-                      info: state.myIdentity.info,
-                      room,
-                      peerId: myPeerId,
-                      iOwn,
-                      iModerate,
-                      actorIdentity: myIdentity,
-                      iAmAdmin,
-                    });
-                  }}
-                />
-              )}
-              {stagePeers.map(peerId => (
-                <StageAvatar
-                  key={peerId}
-                  {...{speaking, moderators, owners, room}}
-                  {...{peerId, peerState, reactions}}
-                  canSpeak={true}
-                  peerState={peerState[peerId]}
-                  info={identities[peerId]}
-                  iAmAdmin={iAmAdmin}
-                  onClick={() => {
-                    openModal(Profile, {
-                      info: identities[peerId],
-                      room,
-                      peerId,
-                      iOwn,
-                      iModerate,
-                      actorIdentity: myIdentity,
-                      iAmAdmin,
-                    });
-                  }}
-                />
-              ))}
-            </ol>
-          </div>
-
-          {/* Audience */}
-          {!stageOnly &&  (!iSpeak || nJoinedAudiencePeers > 0 || (audiencePeers.length > 0 && (iOwn || iModerate))) && (
+        {/* Audience */}
+        {!stageOnly &&
+          (!iSpeak ||
+            nJoinedAudiencePeers > 0 ||
+            (audiencePeers.length > 0 && (iOwn || iModerate))) && (
             <>
-          <div className="rounded-md m-0 p-0 mt-2 mb-4" style={{backgroundColor: audienceBarBG, color: audienceBarFG}}>
-            Audience
-          </div>
+              <div
+                className="rounded-md m-0 p-0 mt-2 mb-4"
+                style={{backgroundColor: audienceBarBG, color: audienceBarFG}}
+              >
+                Audience
+              </div>
 
               <ol className="flex flex-wrap justify-center">
                 {!iSpeak && (
@@ -120,7 +133,14 @@ export default function MiniRoomMembers({
                 {audiencePeers.map(peerId => (
                   <AudienceAvatar
                     key={peerId}
-                    {...{peerId, peerState, moderators, owners, reactions, room}}
+                    {...{
+                      peerId,
+                      peerState,
+                      moderators,
+                      owners,
+                      reactions,
+                      room,
+                    }}
                     canSpeak={false}
                     peerState={peerState[peerId]}
                     info={identities[peerId]}
@@ -141,8 +161,7 @@ export default function MiniRoomMembers({
               </ol>
             </>
           )}
-        </div>
-
+      </div>
     </div>
   );
 }
