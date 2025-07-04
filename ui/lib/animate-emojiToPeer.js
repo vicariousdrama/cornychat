@@ -21,7 +21,7 @@ export default function animateEmojiToPeer(element, peerElement) {
       Math.floor(diffX) +
       'px) translateY(' +
       Math.floor(diffY) +
-      'px)',
+      'px) scale(0.25)',
   });
-  element.animate(transforms, {duration: 500, iterations: 10});
+  element.animate(transforms, {duration: 715, iterations: 7});
 }

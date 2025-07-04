@@ -161,6 +161,13 @@ export default function RoomChat({
     }
     if (chatText.startsWith('/clear')) {
       localStorage.setItem(`${roomId}.textchat`, JSON.stringify([]));
+    } else if (chatText.startsWith('/gif') && jamConfig.gifs) {
+      let gifPhrase = chatText.replace('/gif ', '');
+      openModal(GifChooser, {
+        chatTarget,
+        room,
+        phrase: gifPhrase,
+      });
     } else if (chatText.startsWith('/help')) {
       textchats.push([myId, 'Supported markdown', false, null, textTime]);
       textchats.push([
@@ -235,13 +242,15 @@ export default function RoomChat({
         ]);
       }
       localStorage.setItem(`${roomId}.textchat`, JSON.stringify(textchats));
-    } else if (jamConfig.gifs && chatText.startsWith('/gif')) {
-      let gifPhrase = chatText.replace('/gif ', '');
-      openModal(GifChooser, {
-        chatTarget,
-        room,
-        phrase: gifPhrase,
-      });
+    } else if (chatText.startsWith('/target')) {
+      if (chatTarget != '0') {
+        sessionStorage.setItem('peerSelected', chatTarget);
+      } else {
+        sessionStorage.setItem(
+          'peerSelected',
+          JSON.parse(sessionStorage.getItem(roomId + '.peerIds')).join(',')
+        );
+      }
     } else if (chatText.startsWith('/zap')) {
       (async () => {
         let ctp = chatText.split(' ');
