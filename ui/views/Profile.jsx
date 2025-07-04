@@ -629,6 +629,20 @@ export function Profile({
               </button>
             )}
 
+            <button
+              className="rounded-lg bg-gray-300 px-3 py-2 mx-1 my-1 text-xs"
+              style={{
+                backgroundColor: 'rgb(21,21,210)',
+                color: 'rgb(255,255,255)',
+              }}
+              onClick={() => {
+                sessionStorage.setItem('peerSelected', peerId);
+                close();
+              }}
+            >
+              Target for Reactions
+            </button>
+
             {iAmAdmin && (
               <div>
                 {(isPeerAdmin && (

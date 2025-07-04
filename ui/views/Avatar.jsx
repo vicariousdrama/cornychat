@@ -611,10 +611,16 @@ function AnimatedEmoji({emojiO, ...props}) {
   useEffect(() => {
     if (element && !targetPeerId) animateEmoji(element);
     if (element && targetPeerId) {
-      let peerElement = document.getElementById('div_' + targetPeerId);
-      if (peerElement) {
-        animateEmojiToPeer(element, peerElement);
-      } else {
+      let f = false;
+      let ps = targetPeerId.split(',');
+      for (let t of ps) {
+        let peerElement = document.getElementById('div_' + t);
+        if (peerElement) {
+          f = true;
+          animateEmojiToPeer(element, peerElement);
+        }
+      }
+      if (!f) {
         animateEmoji(element);
       }
     }
