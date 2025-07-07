@@ -347,7 +347,7 @@ function Reactions({reactions, className, emojis}) {
     if (typeof r == 'string') {
       emoji = r;
     }
-    if (targetPeerId && targetPeerId.indexOf(',') > -1) {
+    if (targetPeerId) {
       let ps = targetPeerId.split(',');
       let j = 0;
       for (let t of ps) {
