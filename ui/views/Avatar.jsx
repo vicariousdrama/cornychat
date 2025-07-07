@@ -280,7 +280,6 @@ function Avatar({
             : '0px',
       }}
       onClick={e => {
-        e.preventDefault();
         e.stopPropagation();
         if (!isLongPress.current) {
           sessionStorage.setItem('peerSelected', '');
@@ -293,19 +292,15 @@ function Avatar({
         }
       }}
       onMouseDown={e => {
-        e.preventDefault();
         handleOnMouseDown(timerRef, isLongPress, peerId);
       }}
       onMouseUp={e => {
-        e.preventDefault();
         handleOnMouseUp(timerRef, peerId);
       }}
       onTouchStart={e => {
-        e.preventDefault();
         handleOnTouchStart(timerRef, isLongPress, peerId);
       }}
       onTouchEnd={e => {
-        e.preventDefault();
         handleOnTouchEnd(timerRef, peerId);
       }}
     >
@@ -577,9 +572,31 @@ function StickyHand({handType, roomColor}) {
 
 function Reactions({reactions, className, emojis}) {
   if (!reactions) return null;
+  let newreactions = [];
+  reactions.map(([r, id]) => {
+    let emoji = '';
+    let targetPeerId = undefined;
+    if (typeof r == 'object') {
+      emoji = r.reaction;
+      targetPeerId = r.peerId;
+    }
+    if (typeof r == 'string') {
+      emoji = r;
+    }
+    if (targetPeerId && targetPeerId.indexOf(',') > -1) {
+      let ps = targetPeerId.split(',');
+      let j = 0;
+      for (let t of ps) {
+        j += 1;
+        newreactions.push([{reaction: emoji, peerId: t}, id + j]);
+      }
+    } else {
+      newreactions.push([{reaction: emoji}, id]);
+    }
+  });
   return (
     <>
-      {reactions.map(
+      {newreactions.map(
         ([r, id]) =>
           (true || emojis.includes(r)) && (
             <AnimatedEmoji
@@ -611,16 +628,10 @@ function AnimatedEmoji({emojiO, ...props}) {
   useEffect(() => {
     if (element && !targetPeerId) animateEmoji(element);
     if (element && targetPeerId) {
-      let f = false;
-      let ps = targetPeerId.split(',');
-      for (let t of ps) {
-        let peerElement = document.getElementById('div_' + t);
-        if (peerElement) {
-          f = true;
-          animateEmojiToPeer(element, peerElement);
-        }
-      }
-      if (!f) {
+      let peerElement = document.getElementById('div_' + targetPeerId);
+      if (peerElement) {
+        animateEmojiToPeer(element, peerElement);
+      } else {
         animateEmoji(element);
       }
     }
