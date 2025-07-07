@@ -246,10 +246,10 @@ export default function RoomChat({
       if (chatTarget != '0') {
         sessionStorage.setItem('peerSelected', chatTarget);
       } else {
-        sessionStorage.setItem(
-          'peerSelected',
-          JSON.parse(sessionStorage.getItem(roomId + '.peerIds')).join(',')
-        );
+        let pd = sessionStorage.getItem(roomId + '.peerIds');
+        pd = JSON.parse(pd);
+        pd.push(myId);
+        sessionStorage.setItem('peerSelected', pd.join(','));
       }
     } else if (chatText.startsWith('/zap')) {
       (async () => {
