@@ -267,10 +267,32 @@ function Avatar({
     return <></>;
   }
 
+  const avatarWidths = [
+    [24, 16, 24],
+    [32, 21, 32],
+    [48, 32, 48],
+    [72, 48, 72],
+    [96, 64, 96],
+  ];
+  let widthOfAvatar =
+    localStorage.getItem('widthOfAvatars') ?? avatarWidths[0][0];
+  let widthOfPFP = avatarWidths[0][1];
+  let widthOfImage = avatarWidths[0][2];
+  let widthOK = false;
+  for (let aw of avatarWidths) {
+    if (Math.floor(aw[0]) + 0 == Math.floor(widthOfAvatar) + 0) {
+      widthOK = true;
+      widthOfPFP = aw[1];
+      widthOfImage = aw[2];
+      break;
+    }
+  }
+  if (!widthOK) widthOfAvatar = avatarWidths[0][0];
+
   return (
     <div
       id={`div_${peerId}`}
-      className="py-0 w-24 mr-2 mb-2 rounded-lg cursor-pointer"
+      className={`py-0 w-${widthOfAvatar} mr-2 mb-2 rounded-lg cursor-pointer`}
       style={{
         backgroundColor: avatarCardBG,
         color: avatarCardFG,
@@ -326,6 +348,7 @@ function Avatar({
                     marginTop: '1px',
                     textShadow:
                       '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000',
+                    fontSize: `${Math.floor(widthOfImage / 2)}pt`,
                   }}
                 >
                   {roleSymbol}
@@ -334,8 +357,8 @@ function Avatar({
                   <div title={npubStatusText} style={{marginTop: '-2px'}}>
                     <img
                       style={{
-                        width: '22px',
-                        height: '22px',
+                        width: widthOfImage - 2 + 'px',
+                        height: widthOfImage - 2 + 'px',
                         opacity: inRoom ? 1 : 0.15,
                       }}
                       alt={npubStatusText}
@@ -349,8 +372,8 @@ function Avatar({
                   >
                     <img
                       style={{
-                        width: '24px',
-                        height: '24px',
+                        width: widthOfImage + 'px',
+                        height: widthOfImage + 'px',
                         opacity: inRoom ? 1 : 0.15,
                       }}
                       alt={'Verified Signature by Nostr Pubkey'}
@@ -361,8 +384,8 @@ function Avatar({
                   <div title={'Anonymous'} style={{marginTop: '-2px'}}>
                     <img
                       style={{
-                        width: '24px',
-                        height: '24px',
+                        width: widthOfImage + 'px',
+                        height: widthOfImage + 'px',
                         opacity: inRoom ? 1 : 0.15,
                       }}
                       alt={'Anonymous'}
@@ -371,14 +394,20 @@ function Avatar({
                   </div>
                 )}
                 {hasNameSymbol && (
-                  <div title={userSymbolTitle} style={{marginTop: '-2px'}}>
+                  <div
+                    title={userSymbolTitle}
+                    style={{
+                      marginTop: '-2px',
+                      fontSize: `${Math.floor(widthOfImage / 2)}pt`,
+                    }}
+                  >
                     {userSymbol}
                   </div>
                 )}
               </td>
               <td width="75%" style={{borderWidth: '0px', textAlign: 'center'}}>
                 <div
-                  className="w-16 h-16 human-radius mx-auto"
+                  className={`w-${widthOfPFP} h-${widthOfPFP} human-radius mx-auto`}
                   style={{marginTop: '3px'}}
                 >
                   <img
@@ -433,7 +462,7 @@ function Avatar({
       </div>
 
       <div
-        className="overflow-hidden whitespace-nowrap text-s mt-0 w-24"
+        className={`overflow-hidden whitespace-nowrap text-s mt-0 w-${widthOfAvatar}`}
         style={{
           color: avatarCardFG,
           width: '95px',
@@ -583,7 +612,7 @@ function Reactions({reactions, className, emojis}) {
     if (typeof r == 'string') {
       emoji = r;
     }
-    if (targetPeerId && targetPeerId.indexOf(',') > -1) {
+    if (targetPeerId) {
       let ps = targetPeerId.split(',');
       let j = 0;
       for (let t of ps) {
