@@ -465,7 +465,7 @@ function Avatar({
         className={`overflow-hidden whitespace-nowrap text-s mt-0 w-${widthOfAvatar}`}
         style={{
           color: avatarCardFG,
-          width: '95px',
+          width: String(widthOfImage * 4 - 1) + 'px',
           overflow: 'hidden',
           paddingLeft: '2px',
           paddingRight: '2px',
