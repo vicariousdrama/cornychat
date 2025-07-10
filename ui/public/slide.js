@@ -21,7 +21,16 @@ function getVideoType(u) {
   }
   return 'video/mp4';
 }
-function setSlide(u, t, c, m) {
+function fadeOpactity(obj, startOpacity, endOpacity, stepTiming) {
+  if (startOpacity <= endOpacity) return;
+  let nextOpacity = startOpacity - 3;
+  if (nextOpacity < 0) return;
+  obj.style.opacity = String(nextOpacity) + '%';
+  setTimeout(() => {
+    fadeOpactity(obj, nextOpacity, endOpacity);
+  }, stepTiming);
+}
+function setSlide(u, t, c, m, sc) {
   let r = document.getElementById('root');
   let s = document.getElementById('slide');
   if (s == undefined) return;
@@ -141,23 +150,31 @@ function setSlide(u, t, c, m) {
   // Positioning for root
   r.style.position = 'absolute';
   // Caption
-  let d = s.lastChild;
-  if (d.tagName != 'DIV') {
-    d = document.createElement('div');
-    s.appendChild(d);
+  if (sc) {
+    let d = s.lastChild;
+    if (d.tagName != 'DIV') {
+      d = document.createElement('div');
+      s.appendChild(d);
+    }
+    d.style.position = 'absolute';
+    d.style.top = String(h - 48) + 'px';
+    d.style.bottom = '0px';
+    d.style.paddingLeft = '48px';
+    d.style.paddingRight = '48px';
+    d.style.width = '100%'; //String(w - 48 - 48) + 'px';
+    d.style.textAlign = 'center';
+    d.style.zIndex = '20';
+    d.style.opacity = '50%';
+    let nb = document.getElementById('navbar');
+    if (nb) {
+      //d.style.color = ....style.color;
+      d.style.backgroundColor = nb.style.backgroundColor;
+    }
+    d.innerText = '[' + String(c + 1) + '/' + String(m) + '] ' + t;
+    if ((localStorage.getItem('animationsEnabled') ?? 'true') == 'true') {
+      setTimeout(() => {
+        fadeOpactity(d, 100, 30);
+      }, 500);
+    }
   }
-  d.style.position = 'absolute';
-  d.style.top = String(h - 48) + 'px';
-  d.style.bottom = '0px';
-  d.style.paddingLeft = '48px';
-  d.style.paddingRight = '48px';
-  d.style.width = '100%'; //String(w - 48 - 48) + 'px';
-  d.style.textAlign = 'center';
-  d.style.zIndex = '20';
-  let tsn = document.getElementById('slideNext');
-  if (tsn) {
-    d.style.color = tsn.parentElement.parentElement.style.color;
-    d.style.backgroundColor = tsn.style.backgroundColor;
-  }
-  d.innerText = '[' + String(c + 1) + '/' + String(m) + '] ' + t;
 }

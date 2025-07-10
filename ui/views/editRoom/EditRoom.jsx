@@ -76,6 +76,8 @@ export function EditRoomModal({
   let [stageOnly, setStageOnly] = useState(room.stageOnly || false);
   let [customEmojis, setCustomEmojis] = useState(room.customEmojis);
   let [roomSlides, setRoomSlides] = useState(room.roomSlides || []);
+  let [slideTime, setSlideTime] = useState(room.slideTime || 0);
+  let [showCaption, setShowCaption] = useState(room.showCaption || true);
   let [zapGoal, setZapGoal] = useState(room.zapGoal || {});
   let [colorPickerBg, setColorPickerBg] = useState(false);
   let [colorPickerAvatar, setColorPickerAvatar] = useState(false);
@@ -214,6 +216,8 @@ export function EditRoomModal({
       speakers,
       kicked,
       roomSlides,
+      slideTime,
+      showCaption,
       schedule,
       lud16,
       passphraseHash,
@@ -350,6 +354,10 @@ export function EditRoomModal({
           roomId={roomId}
           roomSlides={roomSlides}
           setRoomSlides={setRoomSlides}
+          slideTime={slideTime}
+          setSlideTime={setSlideTime}
+          showCaption={showCaption}
+          setShowCaption={setShowCaption}
           textColor={textColor}
           roomColor={roomColor}
         />

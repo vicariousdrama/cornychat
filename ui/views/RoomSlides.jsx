@@ -10,6 +10,8 @@ export default function RoomSlides({
   colors,
   roomSlides,
   currentSlide,
+  slideTime,
+  showCaption,
   iAmAdmin,
 }) {
   const [state, {updateRoom}] = useJam();
@@ -51,6 +53,7 @@ export default function RoomSlides({
       sn > -1 &&
       sn < rsl &&
       rsl > 1 &&
+      Math.floor(slideTime ?? '0') == 0 &&
       (iOwn || iModerate || iAmAdmin)
     ) {
       return (
@@ -120,150 +123,150 @@ export default function RoomSlides({
     }
   }
 
-  function OldRoomSlide() {
-    let sn = parseInt(currentSlide, 10) - 1;
-    if (sn < 0) {
-      sn = 0;
-    }
-    if (isNaN(sn)) {
-      sn = -2;
-    }
-    if (roomSlides && sn > -1 && sn < rsl) {
-      let slideUrl = roomSlides[sn][0];
-      let slideText = roomSlides[sn][1];
-      let isImage = false;
-      let isVideo = false;
-      let isIFrame = false;
-      let videoType = '';
-      for (let vt of videoTypes) {
-        if (slideUrl.toLowerCase().endsWith(vt)) {
-          videoType = vt.replace('.', 'video/');
-          isVideo = true;
-        }
-      }
-      for (let imt of imageTypes) {
-        if (slideUrl.toLowerCase().endsWith(imt)) isImage = true;
-      }
-      isIFrame = !(isVideo || isImage);
-      return (
-        <div
-          className="mb-2"
-          style={{color: textColor, backgroundColor: colors.avatarBg}}
-        >
-          {isImage && (
-            <img
-              src={slideUrl}
-              style={{
-                maxHeight: '320px',
-                width: 'auto',
-                maxWidth: '100%',
-                margin: 'auto',
-                align: 'center',
-              }}
-            />
-          )}
-          {isVideo && (
-            <video
-              controls
-              style={{
-                maxHeight: '320px',
-                width: 'auto',
-                maxWidth: '100%',
-                margin: 'auto',
-                align: 'center',
-              }}
-            >
-              <source src={slideUrl} type={videoType}></source>
-            </video>
-          )}
-          {isIFrame && false && (
-            <iframe
-              width={document.body.clientWidth}
-              height={Math.floor(document.body.clientHeight / 2)}
-              src={slideUrl}
-            ></iframe>
-          )}
-          {isIFrame && (
-            <p>Arbitrary IFrames will not be enabled for {slideUrl}</p>
-          )}
-          <div
-            className="flex"
-            style={{color: textColor, backgroundColor: colors.avatarBg}}
-          >
-            {(iOwn || iModerate || iAmAdmin) && (
-              <div className="flex-none">
-                <button
-                  className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
-                  onClick={async () => {
-                    currentSlide -= 1;
-                    if (currentSlide < 1) {
-                      currentSlide = rsl;
-                    }
-                    await submitUpdate({currentSlide});
-                  }}
-                  style={{backgroundColor: colors.buttons.primary}}
-                >
-                  <Previous color={iconColor} />
-                </button>
-              </div>
-            )}
-            <div
-              className="text-sm flex-grow"
-              style={{color: textColor, backgroundColor: colors.avatarBg}}
-            >
-              [{sn + 1}/{rsl}]{slideText}
-            </div>
-            {(iOwn || iModerate || iAmAdmin) && (
-              <div className="flex-none">
-                <button
-                  className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
-                  onClick={async () => {
-                    currentSlide += 1;
-                    if (currentSlide > rsl) {
-                      currentSlide = 1;
-                    }
-                    await submitUpdate({currentSlide});
-                  }}
-                  style={{backgroundColor: colors.buttons.primary}}
-                >
-                  <Next color={iconColor} />
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    } else {
-      return <div className="hidden"></div>;
-    }
-  }
+  // function OldRoomSlide() {
+  //   let sn = parseInt(currentSlide, 10) - 1;
+  //   if (sn < 0) {
+  //     sn = 0;
+  //   }
+  //   if (isNaN(sn)) {
+  //     sn = -2;
+  //   }
+  //   if (roomSlides && sn > -1 && sn < rsl) {
+  //     let slideUrl = roomSlides[sn][0];
+  //     let slideText = roomSlides[sn][1];
+  //     let isImage = false;
+  //     let isVideo = false;
+  //     let isIFrame = false;
+  //     let videoType = '';
+  //     for (let vt of videoTypes) {
+  //       if (slideUrl.toLowerCase().endsWith(vt)) {
+  //         videoType = vt.replace('.', 'video/');
+  //         isVideo = true;
+  //       }
+  //     }
+  //     for (let imt of imageTypes) {
+  //       if (slideUrl.toLowerCase().endsWith(imt)) isImage = true;
+  //     }
+  //     isIFrame = !(isVideo || isImage);
+  //     return (
+  //       <div
+  //         className="mb-2"
+  //         style={{color: textColor, backgroundColor: colors.avatarBg}}
+  //       >
+  //         {isImage && (
+  //           <img
+  //             src={slideUrl}
+  //             style={{
+  //               maxHeight: '320px',
+  //               width: 'auto',
+  //               maxWidth: '100%',
+  //               margin: 'auto',
+  //               align: 'center',
+  //             }}
+  //           />
+  //         )}
+  //         {isVideo && (
+  //           <video
+  //             controls
+  //             style={{
+  //               maxHeight: '320px',
+  //               width: 'auto',
+  //               maxWidth: '100%',
+  //               margin: 'auto',
+  //               align: 'center',
+  //             }}
+  //           >
+  //             <source src={slideUrl} type={videoType}></source>
+  //           </video>
+  //         )}
+  //         {isIFrame && false && (
+  //           <iframe
+  //             width={document.body.clientWidth}
+  //             height={Math.floor(document.body.clientHeight / 2)}
+  //             src={slideUrl}
+  //           ></iframe>
+  //         )}
+  //         {isIFrame && (
+  //           <p>Arbitrary IFrames will not be enabled for {slideUrl}</p>
+  //         )}
+  //         <div
+  //           className="flex"
+  //           style={{color: textColor, backgroundColor: colors.avatarBg}}
+  //         >
+  //           {(iOwn || iModerate || iAmAdmin) && (
+  //             <div className="flex-none">
+  //               <button
+  //                 className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
+  //                 onClick={async () => {
+  //                   currentSlide -= 1;
+  //                   if (currentSlide < 1) {
+  //                     currentSlide = rsl;
+  //                   }
+  //                   await submitUpdate({currentSlide});
+  //                 }}
+  //                 style={{backgroundColor: colors.buttons.primary}}
+  //               >
+  //                 <Previous color={iconColor} />
+  //               </button>
+  //             </div>
+  //           )}
+  //           <div
+  //             className="text-sm flex-grow"
+  //             style={{color: textColor, backgroundColor: colors.avatarBg}}
+  //           >
+  //             [{sn + 1}/{rsl}]{slideText}
+  //           </div>
+  //           {(iOwn || iModerate || iAmAdmin) && (
+  //             <div className="flex-none">
+  //               <button
+  //                 className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:opacity-80"
+  //                 onClick={async () => {
+  //                   currentSlide += 1;
+  //                   if (currentSlide > rsl) {
+  //                     currentSlide = 1;
+  //                   }
+  //                   await submitUpdate({currentSlide});
+  //                 }}
+  //                 style={{backgroundColor: colors.buttons.primary}}
+  //               >
+  //                 <Next color={iconColor} />
+  //               </button>
+  //             </div>
+  //           )}
+  //         </div>
+  //       </div>
+  //     );
+  //   } else {
+  //     return <div className="hidden"></div>;
+  //   }
+  // }
 
-  const spanStyle = {
-    padding: '20px',
-    background: '#efefef',
-    color: '#000000',
-  };
+  // const spanStyle = {
+  //   padding: '20px',
+  //   background: '#efefef',
+  //   color: '#000000',
+  // };
 
-  const divStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundSize: 'cover',
-    height: '350px',
-  };
+  // const divStyle = {
+  //   display: 'flex',
+  //   alignItems: 'center',
+  //   justifyContent: 'center',
+  //   backgroundSize: 'cover',
+  //   height: '350px',
+  // };
 
-  const isold = false;
-  if (isold) {
-    if (rsl > 0 && parseInt(currentSlide, 10) > 0) {
-      return (
-        <div key={currentSlide} className="justify-center">
-          <OldRoomSlide />
-        </div>
-      );
-    } else {
-      return <></>;
-    }
-  }
+  // const isold = false;
+  // if (isold) {
+  //   if (rsl > 0 && parseInt(currentSlide, 10) > 0) {
+  //     return (
+  //       <div key={currentSlide} className="justify-center">
+  //         <OldRoomSlide />
+  //       </div>
+  //     );
+  //   } else {
+  //     return <></>;
+  //   }
+  // }
 
   // new render method
   if (rsl > 0 && parseInt(currentSlide, 10) > 0) {
@@ -277,7 +280,28 @@ export default function RoomSlides({
     if (roomSlides && sn > -1 && sn < rsl) {
       let slideUrl = roomSlides[sn][0];
       let slideText = roomSlides[sn][1];
-      setSlide(slideUrl, slideText, sn, rsl);
+      setSlide(slideUrl, slideText, sn, rsl, showCaption);
+      if (window.intervalForSlidesTime != undefined) {
+        if (Math.floor(slideTime ?? '0') != window.intervalForSlidesTime) {
+          window.intervalForSlidesTime = undefined;
+          if (window.intervalForSlides != undefined) {
+            clearInterval(window.intervalForSlides);
+          }
+        }
+      }
+      if (Math.floor(slideTime ?? '0') > 0) {
+        window.intervalForSlidesTime = slideTime;
+        if (window.intervalForSlides != undefined) {
+          clearInterval(window.intervalForSlides);
+        }
+        window.intervalForSlides = setInterval(() => {
+          sn = sn + 1;
+          if (sn >= rsl) sn = 0;
+          let slideUrl = roomSlides[sn][0];
+          let slideText = roomSlides[sn][1];
+          setSlide(slideUrl, slideText, sn, rsl, showCaption);
+        }, Math.floor(slideTime ?? '0') * 1000);
+      }
       return (
         <div key={currentSlide} className="justify-center">
           <NewRoomSlide />
