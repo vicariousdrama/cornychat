@@ -216,6 +216,8 @@ export default function Room({room, roomId, uxConfig}) {
     roomLinks,
     roomSlides,
     currentSlide,
+    slideTime,
+    showCaption,
     speakers,
     moderators,
     owners,
@@ -438,7 +440,6 @@ export default function Room({room, roomId, uxConfig}) {
             roomLinks,
             showLinks,
             setShowLinks,
-            currentSlide,
             closed,
             lud16,
             room,
@@ -467,6 +468,8 @@ export default function Room({room, roomId, uxConfig}) {
             {...{
               roomSlides,
               currentSlide,
+              slideTime,
+              showCaption,
               iAmAdmin,
             }}
           />
