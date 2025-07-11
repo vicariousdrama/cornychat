@@ -13,6 +13,7 @@ import {CustomEmojis} from './CustomEmojis';
 import {Schedule} from './Schedule';
 import {getCustomColor, getRgbaObj, getColorPallete} from './utils';
 import {use} from 'use-minimal-state';
+import {setCurrentSlide} from '../../jam-core/room';
 
 export function EditRoomModal({
   roomId,
@@ -76,6 +77,7 @@ export function EditRoomModal({
   let [stageOnly, setStageOnly] = useState(room.stageOnly || false);
   let [customEmojis, setCustomEmojis] = useState(room.customEmojis);
   let [roomSlides, setRoomSlides] = useState(room.roomSlides || []);
+  let [currentSlide, setCurrentSlide] = useState(room.currentSlide || -1);
   let [slideTime, setSlideTime] = useState(room.slideTime || 0);
   let [showCaption, setShowCaption] = useState(room.showCaption || true);
   let [zapGoal, setZapGoal] = useState(room.zapGoal || {});
@@ -216,6 +218,7 @@ export function EditRoomModal({
       speakers,
       kicked,
       roomSlides,
+      currentSlide,
       slideTime,
       showCaption,
       schedule,
@@ -356,6 +359,8 @@ export function EditRoomModal({
           setRoomSlides={setRoomSlides}
           slideTime={slideTime}
           setSlideTime={setSlideTime}
+          currentSlide={currentSlide}
+          setCurrentSlide={setCurrentSlide}
           showCaption={showCaption}
           setShowCaption={setShowCaption}
           textColor={textColor}
