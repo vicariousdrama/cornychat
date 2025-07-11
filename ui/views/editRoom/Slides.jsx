@@ -13,6 +13,8 @@ export function Slides({
   setRoomSlides,
   slideTime,
   setSlideTime,
+  currentSlide,
+  setCurrentSlide,
   showCaption,
   setShowCaption,
   textColor,
@@ -53,12 +55,12 @@ export function Slides({
 
   function removeSlide(indexSlide) {
     let result = confirm('Are you sure you want to remove this slide?');
-    if (result != true) {
-      return;
-    }
+    if (result != true) return;
     let newRoomSlides = roomSlides.filter((slide, index) =>
       index != indexSlide ? slide : null
     );
+    if (currentSlide > 0 && currentSlide > indexSlide)
+      setCurrentSlide(currentSlide - 1);
     setRoomSlides(newRoomSlides);
   }
   function swapSlides(indexSlide, indexSlide2) {
@@ -172,6 +174,7 @@ export function Slides({
                 );
                 if (result != true) return;
                 setRoomSlides([]);
+                setCurrentSlide(0);
               }}
             >
               Clear all slides
