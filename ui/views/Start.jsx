@@ -29,6 +29,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
     {room},
     {
       enterRoom,
+      getRoom,
       setProps,
       createRoom,
       deleteOldRooms,
@@ -165,6 +166,11 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
     }
     roomId = match[0];
     (async () => {
+      let currentroom = await getRoom(roomId);
+      if (currentroom?.owners) {
+        alert('The room id specified already exists');
+        return;
+      }
       let theTime = Date.now();
       let addTutorialSlides = false;
       let tutorialSlides = [
@@ -194,6 +200,9 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
       if (ok) {
         if (urlRoomId !== roomId) navigate('/' + roomId);
         enterRoom(roomId);
+      }
+      if (!ok) {
+        alert('An error occurred creating a room with this id.');
       }
     })();
   };
