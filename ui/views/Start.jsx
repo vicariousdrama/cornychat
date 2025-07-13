@@ -166,10 +166,14 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
     }
     roomId = match[0];
     (async () => {
-      let currentroom = await getRoom(roomId);
-      if (currentroom?.owners) {
-        alert('The room id specified already exists');
-        return;
+      try {
+        let currentroom = await getRoom(roomId);
+        if (currentroom?.owners) {
+          alert('The room id specified already exists');
+          return;
+        }
+      } catch (e) {
+        // room probably doesnt exist
       }
       let theTime = Date.now();
       let addTutorialSlides = false;
