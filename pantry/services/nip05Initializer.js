@@ -11,6 +11,7 @@ const nip05Initializer = async () => {
         set("nip05user/vicariousdrama", "21b419102da8fc0ba90484aec934bf55b7abcf75eedb39124e8d75e491f41a5e");
         set("nip05user/tortuga", "cc76679480a4504b963a3809cba60b458ebf068c62713621dda94b527860447d");
         set("nip05user/revhodl", "4d023ce9dfd75a7f3075b8e8e084008be17a1f750c63b5de721e6ef883adc765");
+        set("nip05user/tigs", "079d727bee3d805e24758861ea4d028b2e6a37805f8db45bf8045bf900099650");
     } catch(error) {
         console.log(`[nip05Initializer] error: ${error}`);
     }
