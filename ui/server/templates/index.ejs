@@ -29,7 +29,7 @@
 <script>
     const thed = new Date();
     const sleep = ms => new Promise(r => setTimeout(r, ms));
-    const gametime = 1752624000; // 2025-07-16
+    const gametime = 1752613200; // 2025-07-15 9:00:00 PM GMT / 4PM CDT
     const gameok = gametime < Math.floor(thed.getTime()/1000);
     window.jamConfig = <%- jamConfigString %>;
     window.existingRoomInfo = <%- roomInfoString %>;
