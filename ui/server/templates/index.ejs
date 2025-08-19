@@ -100,33 +100,60 @@
     }
     let animInterval = undefined;
     let animFlakes = undefined;
+    let pointsInterval = undefined;
     function load_animation() {
         let yr = thed.getFullYear();
         let mn = thed.getMonth();
         let dn = thed.getDate();
 
         try {
-            setInterval(reportPoints, 62498);
-        } catch(e) {/*ignore*/}
+            setTimeout(() => {pointsInterval = setInterval(reportPoints, 62498);}, 5000);           
+        } catch(e) {
+            console.log('error starting points reporter');
+            console.log(e);
+        }
+
+        // Nostrbama
+        if (dn >= 14 && dn <= 17 && mn == 6 && yr == 2025) {
+            linkCSS('/css/nostrs.css');
+            setTimeout(() => {animInterval = setInterval(makeNostrbama, 1714);}, 5000);
+            return;
+        }
+        // VV
+        if (yr == 2025 && mn == 8 && dn >= 5 && dn <= 10) {
+            linkCSS('/css/corns.css');
+            setTimeout(() => {animInterval = setInterval(makeMermaid, 4567);}, 5000);
+            return;
+        }
+        if (yr == 2026 && mn == 0 && dn >= 24 && dn <= 30) {
+            linkCSS('/css/corns.css');
+            setTimeout(() => {animInterval = setInterval(makeMermaid, 4567);}, 5000);
+            return;
+        }
+        if (yr == 2026 && mn == 7 && dn >= 6 && dn <= 30) {
+            linkCSS('/css/corns.css');
+            setTimeout(() => {animInterval = setInterval(makeMermaid, 4567);}, 5000);
+            return;
+        }
 
         // Valentines
         if (dn == 14 && mn == 1) {
             linkCSS('/css/hearts.css');
-            animInterval = setInterval(makeHearts, 1500);
+            setTimeout(() => {animInterval = setInterval(makeHearts, 1500);}, 5000);
             return;
         }
 
         // Russia
         if (dn == 24 && mn == 1) {
             linkCSS('/css/corns.css');
-            animInterval = setInterval(makeRussia, 1550);
+            setTimeout(() => {animInterval = setInterval(makeRussia, 1550);}, 5000);
             return;
         }
 
         // March 3s and 17
         if (mn == 2 && [3,13,17,23].includes(dn)) {
             linkCSS('/css/leprechauns.css');
-            animInterval = setInterval(makeLeprechaun, 1317);
+            setTimeout(() => {animInterval = setInterval(makeLeprechaun, 1317);}, 5000);
             return;
         }
 
@@ -134,7 +161,7 @@
         if (dn == 1 && mn == 3) {
             if(Math.found(Math.random() * 100) < 2) {
                 linkCSS('/css/corns.css');
-                animInterval = setInterval(makeUnicorn, 250);
+                setTimeout(() => {animInterval = setInterval(makeUnicorn, 250);}, 5000);
                 return;
             }
             if(Math.found(Math.random() * 100) < 69) {
@@ -147,44 +174,52 @@
             }
         }
 
+        // Konami Code (April 26, 1986 origination in Gradius)
+        if (dn == 26 && mn == 3) {
+            linkCSS('/css/hearts.css');
+            setTimeout(() => {animInterval = setInterval(makeKonami, 2600);}, 5000);
+            return;
+        }
+
         // Pizza day
         if (dn == 22 && mn == 4) {
             linkCSS('/css/corns.css');
-            animInterval = setInterval(makePizza, 2100);
+            setTimeout(() => {animInterval = setInterval(makePizza, 2100);}, 5000);
             return;            
         }
 
         // USA! USA!
         if (dn == 4 && mn == 6) {
             linkCSS('/css/corns.css');
-            animInterval = setInterval(makeUSA, 1976);
-            return;
-        }
-
-        // Nostrbama
-        if (dn >= 14 && dn <= 17 && mn == 6 && yr == 2025) {
-            linkCSS('/css/nostrs.css');
-            animInterval = setInterval(makeNostrbama, 1714);
+            setTimeout(() => {animInterval = setInterval(makeUSA, 1976);}, 5000);
             return;
         }
 
         // Corn Days
         if ([12,13,14].includes(dn)) {
             linkCSS('/css/corns.css');
-            animInterval = setInterval(makeCorn, 1388);
+            setTimeout(() => {animInterval = setInterval(makeCorn, 1388);}, 5000);
+            return;
+        }
+
+        // Satoshi Days
+        if (dn == 21) {
+            linkCSS('/css/hearts.css');
+            setTimeout(() => {animInterval = setInterval(makeSatoshi, 2100);}, 5000);
             return;
         }
 
         // Snow during December + January
         if ([0,11].includes(mn)) {
             animFlakes = new Snowflakes({color: "#d7c1f9",minOpacity: 0.4,maxOpacity: 0.8,maxSize:50,speed:3});
+            setTimeout(() => {animInterval = setInterval(makeSnow, 6161);}, 5000);
             return;
         }
 
         // At all other times .. make food 
         if (gameok && window.jamConfig.game) {
             linkCSS('/css/corns.css');
-            animInterval = setInterval(makeFood, 3888);
+            setTimeout(() => {animInterval = setInterval(makeFood, 3888);}, 5000);
             return;
         }
 
@@ -229,13 +264,36 @@
             case 2: makeAnim('Happy Valentines Day', className); break;
         }
     }
-    function makeLeprechaun(t, s) {
+    function makeKonami() {
+        const className = 'heart';
+        switch (Math.round(Math.random() * 7)) {
+            case 0: makeAnim('⬆️', className); break;
+            case 1: makeAnim('⬇️', className); break;
+            case 2: makeAnim('⬅️', className); break;
+            case 3: makeAnim('➡️', className); break;
+            case 4: makeAnim('🅰️', className); break;
+            case 5: makeAnim('🅱️', className); break;
+            case 6: makeAnim('Konami', className); break;
+        }
+    }
+    function makeLeprechaun() {
         const className = 'leprechaun';
         switch (Math.round(Math.random() * 4)) {
             case 0: makeAnim('🍀', className); break;
             case 1: makeAnimImage('/img/emojis/leprechaun.png', 'leprechaun'); break;
             case 2: makeAnim('☘️', className); break;
             case 3: makeAnim('🇮🇪', className); break;
+        }
+    }
+    function makeMermaid() {
+        const className = 'corn';
+        switch (Math.round(Math.random() * 6)) {
+            case 0: makeAnim('🧜‍♀️', className); break;
+            case 1: makeAnim('🚢', className); break;
+            case 2: makeAnim('🍸', className); break;
+            case 3: makeAnim('🍋‍🟩', className); break;
+            case 4: makeAnim('🐙', className); break;
+            case 5: makeAnim('🌊', className); break;
         }
     }
     function makeNostrbama() {
@@ -256,6 +314,17 @@
     }
     function makeRussia() {
         makeAnim('🇷🇺','corn');
+    }
+    function makeSatoshi() {
+        makeAnim('🪙', 'heart');
+    }
+    function makeSnow() {
+        const className = 'corn';
+        switch (Math.round(Math.random() * 3)) {
+            case 0: makeAnim('❄️', className); break;
+            case 1: makeAnim('⛄', className); break;
+            case 2: makeAnim('🏒', className); break;
+        }
     }
     function makeUSA() {
         switch (Math.round(Math.random() * 3)) {

@@ -217,8 +217,8 @@ async function recordingsDownloadLink({myIdentity}, roomId) {
   )}`;
 }
 
-async function getHighScores() {
-  return await get(`/highscores/`);
+async function getHighScores(dts) {
+  return await get(`/highscores/?dts=${dts}`);
 }
 
 async function getMOTD() {

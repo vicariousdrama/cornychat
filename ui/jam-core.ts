@@ -166,7 +166,7 @@ function createApi<T extends StateType>(
     listRooms: () => getRoomList(),
     listScheduledEvents: () => getScheduledEvents(),
     listGifs: (phrase: string, cursor: string) => getGifs(phrase, cursor),
-    listHighScores: () => getHighScores(),
+    listHighScores: (dts: string) => getHighScores(dts),
     listMyRooms: (userId: string) => getMyRoomList(userId),
     listPermanentRooms: () => getPermanentRoomsList(),
     listStaticRooms: () => getStaticRoomsList(),

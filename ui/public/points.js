@@ -1,3 +1,19 @@
+let epts = [];
+epts['🍕'] = [3, '#fe7004', '#e62129'];
+epts['💗'] = [14, '#fd455e', '#813bdb'];
+epts['💵'] = [2, '#27a402', '#cdee71'];
+epts['🍟'] = [7, '#e62129', '#ffd601'];
+epts['🍷'] = [18, '#e62129', '#ffd601'];
+epts['𓅦'] = [21, '#e62129', '#ffd601'];
+epts['🎉'] = [13, '#e62129', '#ffd601'];
+epts['🍀'] = [4, '#27a402', '#cdee71'];
+epts['🍿'] = [8, '#e62129', '#ffffff'];
+epts['🎁'] = [21, '#e62129', '#fe7004'];
+epts['❄️'] = [16, '#212188', '#ffffff'];
+epts['🧜‍♀️'] = [11, '#e62129', '#ffffff'];
+epts['🐙'] = [18, '#000000', '#ffffff'];
+epts['🪙'] = [21, '#ffd601', '#fe7004'];
+let spts = [];
 function makeAnimOnClick(c) {
   if (!gameok || !window.jamConfig.game || !window.nostr) return;
   c.style.cursor = 'pointer';
@@ -7,41 +23,26 @@ function makeAnimOnClick(c) {
         let p = 3;
         let cm = '#09532a';
         let co = '#2dad02';
-        if (c.innerText == '🍕') {
-          p = 10;
-          cm = '#fe7004';
-          co = '#e62129';
+        if (epts.hasOwnProperty(c.innerText)) {
+          let ep = epts[c.innerText];
+          p = ep[0];
+          if (ep.length > 1) cm = ep[1];
+          if (ep.length > 2) co = ep[2];
+          if (spts.length > 0) {
+            let tpts = spts;
+            while (tpts.length > 0 && tpts.slice(-1) == c.innerText) {
+              p += ep[0];
+              tpts = tpts.slice(0, tpts.length - 1);
+            }
+          }
+          spts.push(c.innerText);
+          spts = spts.slice(-21);
+          if (spts.join('').indexOf('⬆️⬆️⬇️⬇️⬅️➡️⬅️➡️🅱️🅰️') > -1) {
+            p = 250;
+          }
         }
-        if (c.innerText == '💗') {
-          p = 14;
-          cm = '#fd455e';
-          co = '#813bdb';
-        }
-        if (c.innerText == '💵') {
-          p = 2;
-          cm = '#27a402';
-          co = '#cdee71';
-        }
-        if (c.innerText == '🍟') {
-          p = 21;
-          cm = '#e62129';
-          co = '#ffd601';
-        }
-        if (c.innerText == '🍷') {
-          p = 18;
-          cm = '#e62129';
-          co = '#ffd601';
-        }
-        if (c.innerText == '𓅦') {
-          p = 21;
-          cm = '#e62129';
-          co = '#ffd601';
-        }
-        if (c.innerText == '🎉') {
-          p = 13;
-          cm = '#e62129';
-          co = '#ffd601';
-        }
+        p += new Date().getSeconds() % 3;
+
         let rewardText = p + ' pts';
         c.style.animation = 'points 1.5s linear forwards';
         c.innerText = rewardText;
@@ -91,7 +92,9 @@ function reportPoints() {
         localStorage.setItem('scores' + data.week, JSON.stringify(data.scores));
         console.log(data);
       },
-      error: function () {},
+      error: function () {
+        pendingPoints = 0;
+      },
     });
   }
 }
