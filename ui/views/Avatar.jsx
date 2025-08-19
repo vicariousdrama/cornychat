@@ -288,6 +288,7 @@ function Avatar({
     }
   }
   if (!widthOK) widthOfAvatar = avatarWidths[0][0];
+  let widthOfPFPPixels = widthOfPFP * 4;
 
   return (
     <div
@@ -408,7 +409,11 @@ function Avatar({
               <td width="75%" style={{borderWidth: '0px', textAlign: 'center'}}>
                 <div
                   className={`w-${widthOfPFP} h-${widthOfPFP} human-radius mx-auto`}
-                  style={{marginTop: '3px'}}
+                  style={{
+                    marginTop: '3px',
+                    width: String(widthOfPFPPixels) + 'px',
+                    height: String(widthOfPFPPixels) + 'px',
+                  }}
                 >
                   <img
                     className="w-full h-full human-radius cursor-pointer"

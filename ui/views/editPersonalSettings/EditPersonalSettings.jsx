@@ -832,12 +832,14 @@ export default function EditPersonalSettings({close}) {
                     setAnimEnabled(e.target.checked ? 'true' : 'false');
                   }}
                 />
-                Enable Seasonal Animations
+                Enable Falling Emojis (The Game)
               </div>
               <div className="p-2 text-gray-200 italic">
-                Throughout the year, animations appear for winter, valentine's
-                day, and corn days. Animations may cause flickering on some
-                devices. Uncheck this option to disable them
+                Falling emojis can be clicked on for points! View the weekly
+                high score list from the menu. The emojis may change based on
+                seasonal themes. If animations cause flickering on your device,
+                or you have no interest in the game, you can uncheck this option
+                to disable them.
                 <span className="text-gray-300"> (optional)</span>
               </div>
             </div>

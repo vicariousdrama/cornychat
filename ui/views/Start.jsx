@@ -70,12 +70,22 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
     const loadHighScores = async () => {
       if (!loadingScores) {
         setLoadingScores(true);
-        let hs = await loadHighScores();
+        let dt = new Date();
+        let dt2 = new Date(dt.getFullYear(), 0, 1);
+        let w = Math.ceil((dt - dt2) / 86400000 / 7);
+        let dts = `${dt.getFullYear()}w${w}`;
+        let hs = await listHighScores(dts);
+        if (hs[0] != undefined) {
+          hs = hs[0];
+        } else {
+          hs = {week: dts, scores: []};
+        }
         localStorage.setItem('scores' + hs.week, JSON.stringify(hs.scores));
         setLoadingScores(false);
         if (window.DEBUG) console.log(hs);
       }
     };
+    loadHighScores();
     const loadZapGoal = async () => {
       setLoadingZapGoal(true);
       let zg = await getZapGoal('🌽');
@@ -244,28 +254,30 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
 
   return (
     <div className="p-2 max-w-s flex flex-col justify-evenly m-auto text-center items-center">
-      <div
-        className={
-          roomFromURIError
-            ? 'mb-12 p-4 text-gray-700 rounded-lg border border-yellow-100 bg-yellow-50'
-            : 'hidden'
-        }
-      >
-        The Room ID{' '}
-        <code className="text-gray-900 bg-yellow-200">{urlRoomId}</code> is not
-        valid.
-        <br />
-        {(urlRoomId ?? '').length < 4 && (
-          <>
-            The Room ID must be at least 4 characters.
-            <br />
-          </>
-        )}
-        You can use the button below to start a new room.
-      </div>
+      {roomFromURIError && (
+        <div
+          className={
+            roomFromURIError
+              ? 'mb-12 p-4 text-gray-700 rounded-lg border border-yellow-100 bg-yellow-50'
+              : 'hidden'
+          }
+        >
+          The Room ID{' '}
+          <code className="text-gray-900 bg-yellow-200">{urlRoomId}</code> is
+          not valid.
+          <br />
+          {(urlRoomId ?? '').length < 4 && (
+            <>
+              The Room ID must be at least 4 characters.
+              <br />
+            </>
+          )}
+          You can use the button below to start a new room.
+        </div>
+      )}
 
       <br />
-      <img src="/img/homepage-header.png" />
+      <img src="/img/homepage-header.png" className={'w-9/12'} />
 
       <div>
         <div style={{color: textColor}} className="jam">

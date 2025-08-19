@@ -39,7 +39,7 @@ router.post('/:userId/:points', async function (req, res) {
     res.sendStatus(403);
     return;
   }
-  let ok = parseInt(points) == points && points > 0 && points < 123;
+  let ok = parseInt(points) == points && points > 0 && points < 388;
   if (!ok) {
     res.sendStatus(403);
     return;
