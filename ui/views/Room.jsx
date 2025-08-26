@@ -419,6 +419,13 @@ export default function Room({room, roomId, uxConfig}) {
     srfm = sessionStorage.getItem(`${roomId}.srfm`);
   }
 
+  let mainHeightOffset = 56; // title 24 + member stuff 24 + pad 8
+  if (room?.zapGoal?.id != undefined) mainHeightOffset += 34; // zap goal
+  //if (sessionStorage.getItem('animationsClicked')) mainHeightOffset += 32; // clickedAnimations
+  if (localStorage.getItem('animationsEnabled')) mainHeightOffset += 32; // animations will be clicked
+  if (isRecording) mainHeightOffset += 32; // recording
+  if (srfm && srfm.length > 0) mainHeightOffset += 32;
+
   return (
     <div className="h-screen w-screen flex flex-col justify-between overflow-y-scroll">
       <audio
@@ -461,7 +468,15 @@ export default function Room({room, roomId, uxConfig}) {
       </div>
 
       <div>
-        <div style={{height: isRecording ? '156px' : '104px'}}></div>
+        <div
+          style={{
+            height: true
+              ? `${mainHeightOffset}px`
+              : isRecording
+              ? '148px'
+              : '128px',
+          }}
+        ></div>
         <div className="w-full">
           <RoomSlides
             colors={roomColor}

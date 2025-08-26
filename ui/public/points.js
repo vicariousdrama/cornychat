@@ -13,6 +13,8 @@ epts['❄️'] = [16, '#212188', '#ffffff'];
 epts['🧜‍♀️'] = [11, '#e62129', '#ffffff'];
 epts['🐙'] = [18, '#000000', '#ffffff'];
 epts['🪙'] = [21, '#ffd601', '#fe7004'];
+epts['🌭'] = [6, '#ffd601', '#fe7004'];
+epts['🌮'] = [9, '#ffd601', '#fe7004'];
 let spts = [];
 function makeAnimOnClick(c) {
   if (!gameok || !window.jamConfig.game || !window.nostr) return;
@@ -35,12 +37,16 @@ function makeAnimOnClick(c) {
               tpts = tpts.slice(0, tpts.length - 1);
             }
           }
-          spts.push(c.innerText);
-          spts = spts.slice(-21);
-          if (spts.join('').indexOf('⬆️⬆️⬇️⬇️⬅️➡️⬅️➡️🅱️🅰️') > -1) {
-            p = 250;
-          }
         }
+        spts.push(c.innerText);
+        spts = spts.slice(-21);
+        if (spts.join('').endsWith('⬆️⬆️⬇️⬇️⬅️➡️⬅️➡️🅱️🅰️')) {
+          p = 250;
+        }
+        if (spts.join('').endsWith('🌭🌮🌭🌮🌭🌮')) {
+          p = 191;
+        }
+        sessionStorage.setItem('animationsClicked', JSON.stringify(spts));
         p += new Date().getSeconds() % 3;
 
         let rewardText = p + ' pts';
@@ -71,14 +77,7 @@ function reportPoints() {
   if (!gameok || !window.jamConfig.game) return;
   if (objID.hasOwnProperty('_default') && pendingPoints > 0) {
     let myID = objID._default.publicKey;
-    let URL =
-      location.protocol +
-      '//' +
-      location.host +
-      '/_/pantry/api/v1/clickypts/' +
-      myID +
-      '/' +
-      pendingPoints;
+    let URL = `${window.jamConfig.urls.pantry}/api/v1/clickypts/${myID}/${pendingPoints}`;
     console.log('adding points: ', pendingPoints);
     $.ajax({
       type: 'POST',

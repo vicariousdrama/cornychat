@@ -1,0 +1,65 @@
+@import url("./fonts/Coiny.css");
+
+@import url("./fonts/all.min.css");
+
+* {
+  box-sizing: border-box;
+}
+.cd__main{
+   background: rgb(245, 217, 57) !important;
+   font-family: 'Coiny', cursive !important;
+   min-height: 450px;
+}
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Coiny', cursive;
+  margin: 0;
+  min-height: 100vh;
+}
+
+.satoshi {
+  position: fixed;
+  font-size: 2.5rem;
+  top: -1vh;
+  transform: translateY(0);
+  animation: satoshifall 21s linear forwards;
+  color: rgb(245, 217, 57);
+}
+
+@keyframes satoshifall {
+  0% {
+     transform: translateY(0vh) translateX(-5vw);
+  }
+  10% {
+     transform: translateY(10vh) translateX(0vw);
+  }
+  20% {
+     transform: translateY(20vh) translateX(5vw);
+  }
+  30% {
+     transform: translateY(30vh) translateX(0vw);
+  }
+  40% {
+     transform: translateY(40vh) translateX(-5vw);
+  }
+  50% {
+     transform: translateY(50vh) translateX(0vw);
+  }
+  60% {
+     transform: translateY(60vh) translateX(5vw);
+  }
+  70% {
+     transform: translateY(70vh) translateX(0vw);
+  }
+  80% {
+     transform: translateY(80vh) translateX(-5vw);
+  }
+  90% {
+     transform: translateY(90vh) translateX(0vw);
+  }
+  100% {
+     transform: translateY(105vh) translateX(5vw);
+  }
+}
