@@ -25,6 +25,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
   const [zapGoal, setZapGoal] = useState({});
   const [loadingScores, setLoadingScores] = useState(false);
   const [highScores, setHighScores] = useState([]);
+  const [highScoresLastWeek, setHighScoresLastWeek] = useState([]);
   const [
     {room},
     {
@@ -42,7 +43,8 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
       setMOTD,
     },
   ] = useJam();
-  const [viewMode, setViewMode] = useState('liverooms');
+  const [viewMode, setViewMode] = useState('liverooms'); // liverooms,  myrooms,    scheduled
+  const [infoMode, setInfoMode] = useState('motd'); // motd,       highscore,  zapgoal
   const colorGroupLive = `rgba(1,111,210,1)`;
   const colorGroupMyRooms = `rgba(110,47,210,1)`;
   const colorGroupScheduled = `rgba(7,74,40,1)`;
@@ -67,6 +69,12 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
   let iAmAdmin = (localStorage.getItem('iAmAdmin') || 'false') == 'true';
   let motdCurrent = '';
   useEffect(() => {
+    function getMaxWeek(y) {
+      let beginDate = new Date(y, 0, 1);
+      let endDate = new Date(y, 11, 31);
+      let maxWeek = Math.ceil((endDate - beginDate) / 86400000 / 7);
+      return maxWeek;
+    }
     const loadHighScores = async () => {
       if (!loadingScores) {
         setLoadingScores(true);
@@ -80,9 +88,31 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
         } else {
           hs = {week: dts, scores: []};
         }
+        hs.scores.sort((a, b) =>
+          a.points > b.points ? -1 : b.points > a.points ? 1 : 0
+        );
+        setHighScores(hs.scores);
         localStorage.setItem('scores' + hs.week, JSON.stringify(hs.scores));
-        setLoadingScores(false);
         if (window.DEBUG) console.log(hs);
+        // previous week for winner
+        if (w > 1) {
+          w -= 1;
+          dts = `${dt.getFullYear()}w${w}`;
+        } else {
+          w = getMaxWeek(dt.getFullYear() - 1);
+          dts = `${dt.getFullYear() - 1}w${w}`;
+        }
+        hs = await listHighScores(dts);
+        if (hs[0] != undefined) {
+          hs = hs[0];
+        } else {
+          hs = {week: dts, scores: []};
+        }
+        hs.scores.sort((a, b) =>
+          a.points > b.points ? -1 : b.points > a.points ? 1 : 0
+        );
+        setHighScoresLastWeek(hs.scores);
+        setLoadingScores(false);
       }
     };
     loadHighScores();
@@ -153,6 +183,37 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
       }
     };
     loadMyFavoritedRooms();
+
+    // cycle info mode
+    // let infoInterval = 5 * 1000; // 5 seconds
+    // let intervalInfo = setInterval(() => {
+    //   let im = infoMode;
+    //     if (im == 'motd') {
+    //       console.log('infoMode is motd, setting to higscores');
+    //       if (!editingMOTD) {
+    //         im = 'highscores';
+    //         setInfoMode('highscores');
+    //       }
+    //       return;
+    //     }
+    //     if (im == 'highscores') {
+    //       console.log('infoMode is highscores, setting to zapgoal');
+    //       im = 'zapgoal';
+    //       setInfoMode('zapgoal');
+    //       return;
+    //     }
+    //     if (im == 'zapgoal') {
+    //       console.log('infoMode is zapgoal, setting to motd');
+    //       im = 'motd';
+    //       setInfoMode('motd');
+    //       return;
+    //     }
+    // }, infoInterval);
+
+    // This function is called when component unmounts
+    return () => {
+      //      clearInterval(intervalInfo);
+    };
   }, []);
 
   let submit = e => {
@@ -289,27 +350,56 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
           </p>
         </div>
 
-        {zapGoal.hasOwnProperty('content') && (
-          <center>
-            <div style={{width: '320px'}}>
-              <center>
-                <ZapGoalBar
-                  zapgoal={zapGoal}
-                  textColorTitle={textColor}
-                  backgroundColorTitle={'rgb(1,111,210)'}
-                  textColorFilled={textColor}
-                  backgroundColorFilled={'rgb(24,128,24)'}
-                  textColorUnfilled={textColor}
-                  backgroundColorUnfilled={'rgb(64,32,0)'}
-                  borderColorUnfilled={'rgb(255,128,0)'}
-                />
-              </center>
-            </div>
-          </center>
-        )}
+        {
+          /*infoMode == 'zapgoal' && */ zapGoal.hasOwnProperty('content') && (
+            <center>
+              <div style={{width: '320px'}}>
+                <center>
+                  <ZapGoalBar
+                    zapgoal={zapGoal}
+                    textColorTitle={textColor}
+                    backgroundColorTitle={'rgb(1,111,210)'}
+                    textColorFilled={textColor}
+                    backgroundColorFilled={'rgb(24,128,24)'}
+                    textColorUnfilled={textColor}
+                    backgroundColorUnfilled={'rgb(64,32,0)'}
+                    borderColorUnfilled={'rgb(255,128,0)'}
+                  />
+                </center>
+              </div>
+            </center>
+          )
+        }
 
-        {motd && (
-          <div
+        {
+          /*infoMode == 'highscore' && */ highScoresLastWeek &&
+            highScoresLastWeek.length > 0 && (
+              <center>
+                <div
+                  className="text-white p-2 mt-2 mr-1 ml-1 rounded-md"
+                  style={{
+                    border: '1px solid rgba(240, 35, 154, 1)',
+                    width: '320px',
+                    backgroundColor: roomColors.background,
+                  }}
+                >
+                  <center>
+                    Last Week's High Score by
+                    <br />
+                    <img
+                      src={highScoresLastWeek[0].avatar}
+                      className="h-12 w-12 rounded-md"
+                    />
+                    {highScoresLastWeek[0].name} with{' '}
+                    {highScoresLastWeek[0].points} points!
+                  </center>
+                </div>
+              </center>
+            )
+        }
+
+        {
+          /*infoMode == 'motd' &&*/ <div
             className="text-white p-2 mt-2 mr-1 ml-1 rounded-md"
             style={{
               border: '1px solid rgb(210, 84, 0)',
@@ -374,7 +464,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
               </p>
             )}
           </div>
-        )}
+        }
 
         <div className="flex flex-wrap justify-center">
           <div

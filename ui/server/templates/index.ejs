@@ -204,8 +204,8 @@
 
         // Satoshi Days
         if (dn == 21) {
-            linkCSS('/css/hearts.css');
-            setTimeout(() => {animInterval = setInterval(makeSatoshi, 2100);}, 5000);
+            linkCSS('/css/satoshis.css');
+            setTimeout(() => {animInterval = setInterval(makeSatoshi, 8888);}, 5000);
             return;
         }
 
@@ -316,7 +316,11 @@
         makeAnim('🇷🇺','corn');
     }
     function makeSatoshi() {
-        makeAnim('🪙', 'heart');
+        switch (Math.round(Math.random() * 3)) {
+            case 0:
+            case 1: makeAnim('⚡', 'satoshi', 10); break;
+            case 2: makeAnim('🪙', 'satoshi', 10); break;
+        }
     }
     function makeSnow() {
         const className = 'corn';
@@ -336,7 +340,7 @@
     function makeUnicorn() {
         makeAnim('🦄','corn');
     }
-    function makeAnim(t, className) {
+    function makeAnim(t, className, d) {
         const c = document.createElement('div');
         c.classList.add(className);
         c.style.left = Math.random() * 100 + "vw";
@@ -346,9 +350,9 @@
             makeAnimOnClick(c);
         }
         document.body.appendChild(c);
-        setTimeout(() => {if (c) c.remove();}, 5000);
+        setTimeout(() => {if (c) c.remove();}, (d ? d*1000 : 5000));
     }
-    function makeAnimImage(i, className) {
+    function makeAnimImage(i, className, d) {
         const c = document.createElement('div');
         c.classList.add(className);
         c.style.left = Math.random() * 100 + "vw";
@@ -363,7 +367,7 @@
         c.appendChild(im);
         //makeAnimOnClick(c);
         document.body.appendChild(c);
-        setTimeout(() => {if (c) c.remove();}, 5000);
+        setTimeout(() => {if (c) c.remove();}, (d ? d*1000 : 5000));
     }
     function flipit() {
         document.getElementById('root').classList.add("flipdiv");

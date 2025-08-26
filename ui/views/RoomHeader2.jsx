@@ -57,6 +57,7 @@ export default function RoomHeader2({
     (localStorage.getItem(`roomtip-${roomId}.enabled`) ?? 'false') == 'true'
   );
   const [state, {sendTextChat, sendCSAR, getRoomATag, getZapGoal}] = useJam();
+  const [clickedAnimations, setClickedAnimations] = useState([]);
 
   let textchats = JSON.parse(
     localStorage.getItem(`${roomId}.textchat`) || '[]'
@@ -334,6 +335,17 @@ export default function RoomHeader2({
       })();
     }, 8765);
 
+    // Clicked Animations
+    let clickedAnimationsInterval = 1 * 1000; // once a second
+    let intervalClickedAnimations = setInterval(() => {
+      let r = (async () => {
+        let ac = sessionStorage.getItem('animationsClicked');
+        if (ac) {
+          setClickedAnimations(JSON.parse(ac));
+        }
+      })();
+    }, clickedAnimationsInterval);
+
     // This function is called when component unmounts
     return () => {
       clearTimeout(timeoutEntered);
@@ -345,6 +357,7 @@ export default function RoomHeader2({
       clearTimeout(timeoutCustomEmojis);
       clearTimeout(intervalFetchPeerMetadata);
       clearTimeout(timeoutUserLists);
+      clearInterval(intervalClickedAnimations);
     };
   }, []);
 
@@ -752,6 +765,27 @@ export default function RoomHeader2({
           )}
         </div>
       </div>
+      {clickedAnimations.length > 0 && (
+        <div
+          className="flex justify-between m-0 flex-grow w-full"
+          style={{
+            backgroundColor: colors.avatarBg,
+            width: `${document.documentElement.clientWidth}px`,
+            direction: 'rtl',
+            overflow: 'hidden',
+          }}
+        >
+          <div className="flex">
+            {clickedAnimations.toReversed().map((l, i) => {
+              return (
+                <div className="h-8 w-8" style={{fontSize: '1.5em'}}>
+                  {l}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </>
   );
 }
