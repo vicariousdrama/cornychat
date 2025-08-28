@@ -13,61 +13,83 @@ export function ShowAudioPlayerToast() {
 }
 
 function AudioPlayerToast({close}) {
-  const [state, {sendCSAR}] = useJam();
-  //const [state] = useJam();
+  const [state, {sendCSAR, sendTextChat}] = useJam();
   let {name} = use(state, 'audioFile') ?? {};
+  if (name && name != 'undefined')
+    (async () => {
+      await sendTextChat(`/me playing audio file: ${name}`);
+    })();
   let audio = use(state, 'audioFileElement');
   let [element, setElement] = useState();
   let [loopAudio, setLoopAudio] = useState(false);
   useEffect(() => {
     if (element && audio) {
-
       function humanTimeFromSeconds(s) {
-        let t = new Date(s * 1000).toISOString().substring(11,19);
-        while (t.startsWith("00:")) t = t.substring(3);
-        if (t.startsWith("0")) t = t.substring(1);
-        if (t.length == 1) t = "0:0" + t;
-        if (t.length == 2) t = "0:" + t;
-        if (t.length == 3) t = "0" + t;
+        let t = new Date(s * 1000).toISOString().substring(11, 19);
+        while (t.startsWith('00:')) t = t.substring(3);
+        if (t.startsWith('0')) t = t.substring(1);
+        if (t.length == 1) t = '0:0' + t;
+        if (t.length == 2) t = '0:' + t;
+        if (t.length == 3) t = '0' + t;
         return t;
       }
 
       let volslide = document.createElement('input');
-      volslide.setAttribute("type", "range");
-      volslide.setAttribute("min", "1");
-      volslide.setAttribute("max", "100");
-      volslide.setAttribute("value", String(Number(localStorage.getItem('audio.volume') || '.5') * 100));
-      volslide.setAttribute("class", "slider w-full h-8 mb-2");
-      volslide.setAttribute("id", "volslide");
+      volslide.setAttribute('type', 'range');
+      volslide.setAttribute('min', '1');
+      volslide.setAttribute('max', '100');
+      volslide.setAttribute(
+        'value',
+        String(Number(localStorage.getItem('audio.volume') || '.5') * 100)
+      );
+      volslide.setAttribute('class', 'slider w-full h-8 mb-2');
+      volslide.setAttribute('id', 'volslide');
       //volslide.setAttribute("orient", "vertical");
-      volslide.setAttribute("oninput", "audio.volume = (this.value / 100); vollabel.innerText = 'Volume: ' + String(Math.floor(this.value)) + '%'; localStorage.setItem('audio.volume', String(audio.volume));");
+      volslide.setAttribute(
+        'oninput',
+        "audio.volume = (this.value / 100); vollabel.innerText = 'Volume: ' + String(Math.floor(this.value)) + '%'; localStorage.setItem('audio.volume', String(audio.volume));"
+      );
       let vollabel = document.createElement('span');
-      vollabel.setAttribute("id", "vollabel");
-      vollabel.setAttribute("class", "text-xs");
-      vollabel.setAttribute("style", "position:absolute; bottom:10px; right:15px");
-      vollabel.innerText = "Volume: " + String(Math.floor(Number(localStorage.getItem('audio.volume') || '.5') * 100)) + "%";
+      vollabel.setAttribute('id', 'vollabel');
+      vollabel.setAttribute('class', 'text-xs');
+      vollabel.setAttribute(
+        'style',
+        'position:absolute; bottom:10px; right:15px'
+      );
+      vollabel.innerText =
+        'Volume: ' +
+        String(
+          Math.floor(Number(localStorage.getItem('audio.volume') || '.5') * 100)
+        ) +
+        '%';
       let seekslide = document.createElement('input');
-      seekslide.setAttribute("type", "range");
-      seekslide.setAttribute("min", "0");
-      seekslide.setAttribute("max", audio.duration);
-      seekslide.setAttribute("value", "0");
-      seekslide.setAttribute("class", "slider w-full h-8 mb-2");
-      seekslide.setAttribute("id", "seekslide");
-      seekslide.setAttribute("oninput", "try{audio.currentTime = this.value; seeklabel.innerText = 'Seeking: ' + humanTimeFromSeconds(this.value);}catch(ignore){}");
+      seekslide.setAttribute('type', 'range');
+      seekslide.setAttribute('min', '0');
+      seekslide.setAttribute('max', audio.duration);
+      seekslide.setAttribute('value', '0');
+      seekslide.setAttribute('class', 'slider w-full h-8 mb-2');
+      seekslide.setAttribute('id', 'seekslide');
+      seekslide.setAttribute(
+        'oninput',
+        "try{audio.currentTime = this.value; seeklabel.innerText = 'Seeking: ' + humanTimeFromSeconds(this.value);}catch(ignore){}"
+      );
       let seeklabel = document.createElement('span');
-      seeklabel.setAttribute("id", "seeklabel");
-      seeklabel.setAttribute("class", "text-xs");
-      seeklabel.setAttribute("style", "position:absolute; bottom:10px; left:15px");
-      seeklabel.innerText = "0:00";
+      seeklabel.setAttribute('id', 'seeklabel');
+      seeklabel.setAttribute('class', 'text-xs');
+      seeklabel.setAttribute(
+        'style',
+        'position:absolute; bottom:10px; left:15px'
+      );
+      seeklabel.innerText = '0:00';
       let audiotable = document.createElement('table');
-      audiotable.setAttribute("class", "w-full");
+      audiotable.setAttribute('class', 'w-full');
       let audiotablerow1 = document.createElement('tr');
       let audiotablecellA1 = document.createElement('td');
       let audiotablecellB1 = document.createElement('td');
-      audiotablecellA1.setAttribute("class", "h-6");
-      audiotablecellA1.setAttribute("style", "width:60%");
-      audiotablecellB1.setAttribute("class", "h-6");
-      audiotablecellB1.setAttribute("style", "width:40%");
+      audiotablecellA1.setAttribute('class', 'h-6');
+      audiotablecellA1.setAttribute('style', 'width:60%');
+      audiotablecellB1.setAttribute('class', 'h-6');
+      audiotablecellB1.setAttribute('style', 'width:40%');
       audiotablecellA1.appendChild(seekslide);
       audiotablecellA1.appendChild(seeklabel);
       audiotablecellB1.appendChild(volslide);
@@ -82,7 +104,7 @@ function AudioPlayerToast({close}) {
       audio.style.width = '100%';
       element.appendChild(audio);
       element.appendChild(audiotable);
-      sendCSAR("playaudio");
+      sendCSAR('playaudio');
 
       const seekInterval = setInterval(() => {
         try {
@@ -94,19 +116,23 @@ function AudioPlayerToast({close}) {
               ss.value = ca.currentTime;
               let sl = document.getElementById('seeklabel');
               if (sl) {
-                sl.innerText = 'Time: ' + humanTimeFromSeconds(ca.currentTime) + ' / ' + humanTimeFromSeconds(ca.duration);
+                sl.innerText =
+                  'Time: ' +
+                  humanTimeFromSeconds(ca.currentTime) +
+                  ' / ' +
+                  humanTimeFromSeconds(ca.duration);
               }
             }
           }
-        } catch(ignore) {}        
+        } catch (ignore) {}
       }, 1000);
 
       return () => {
-        try{
+        try {
           element.removeChild(audiotable);
           element.removeChild(audio);
           clearInterval(seekInterval);
-        } catch(ignore) {}
+        } catch (ignore) {}
       };
     }
   }, [element, audio, close]);
@@ -133,45 +159,63 @@ function AudioPlayerToast({close}) {
         style={{color: 'white'}}
       >
         <div className="text-md flex">
-          <div className="flex" onClick={end} style={{cursor: 'pointer',border:'1px solid white'}}><CloseSvg color="white" /></div>
+          <div
+            className="flex"
+            onClick={end}
+            style={{cursor: 'pointer', border: '1px solid white'}}
+          >
+            <CloseSvg color="white" />
+          </div>
           <div className="flex-grow"> Streaming to the room</div>
           <div className="flex justify-center">
             <div className="flex text-gray-200 bold mr-4">
-            <input
-              className="rounded placeholder-black bg-gray-400 text-black w-6"
-              type="checkbox"
-              checked={loopAudio == 'true' ? true : false}
-              onChange={e => {
-                let l = (e.target.checked ? 'true' : 'false');
-                setLoopAudio(l);
-                let ca = document.getElementById('audio');
-                if (e.target.checked) {
-                  ca.setAttribute('loop',l);
-                } else {
-                  ca.removeAttribute('loop');
-                }
-              }}
-            />
+              <input
+                className="rounded placeholder-black bg-gray-400 text-black w-6"
+                type="checkbox"
+                checked={loopAudio == 'true' ? true : false}
+                onChange={e => {
+                  let l = e.target.checked ? 'true' : 'false';
+                  setLoopAudio(l);
+                  let ca = document.getElementById('audio');
+                  if (e.target.checked) {
+                    ca.setAttribute('loop', l);
+                  } else {
+                    ca.removeAttribute('loop');
+                  }
+                }}
+              />
               Loop
             </div>
-            <button className="h-8 w-20 rounded-full flex items-center justify-center transition-all text-sm hover:opacity-80 outline"
-              style={{cursor:'pointer',paddingLeft:'5px',paddingRight:'5px',border:'1px solid white'}}
+            <button
+              className="h-8 w-20 rounded-full flex items-center justify-center transition-all text-sm hover:opacity-80 outline"
+              style={{
+                cursor: 'pointer',
+                paddingLeft: '5px',
+                paddingRight: '5px',
+                border: '1px solid white',
+              }}
               id="audioplaypause"
-              onClick={async (e) => {
+              onClick={async e => {
                 e.stopPropagation();
                 let ca = document.getElementById('audio');
                 let capp = document.getElementById('audioplaypause');
                 if (!ca) return;
-                if (ca.paused) { 
+                if (ca.paused) {
                   ca.play();
-                  sendCSAR("continueaudio");
-                } else { 
-                  ca.pause(); 
+                  sendCSAR('continueaudio');
+                } else {
+                  ca.pause();
                 }
                 if (!capp) return;
-                if (ca.paused) { capp.innerText = 'Play'; } else { capp.innerText = 'Pause'; }
+                if (ca.paused) {
+                  capp.innerText = 'Play';
+                } else {
+                  capp.innerText = 'Pause';
+                }
               }}
-            >Pause</button>
+            >
+              Pause
+            </button>
           </div>
         </div>
       </div>

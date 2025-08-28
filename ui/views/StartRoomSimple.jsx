@@ -17,6 +17,7 @@ export default function StartRoomSimple({roomInfo, index, myFavoritedRooms}) {
   const isLiveActivity = roomInfo?.isLiveActivity ?? false;
   const isTalkingStick = roomInfo?.isTS ?? false;
   const isMembersOnly = roomInfo?.isMembersOnly ?? false;
+  const isNoAnon = roomInfo?.isNoAnon ?? false;
   const memberATag = roomInfo?.memberATag ?? '';
 
   var coloringStyle = {
@@ -64,6 +65,20 @@ export default function StartRoomSimple({roomInfo, index, myFavoritedRooms}) {
                     >
                       {' '}
                       🔒{' '}
+                    </div>
+                  )}
+                  {isNoAnon && (
+                    <div
+                      className="text-xs text-red-500"
+                      title="Anonymous users are not allowed to participate"
+                      style={{
+                        margin: '3px',
+                        display: 'inline-block',
+                        backgroundColor: 'rgba(0,0,0,.63)',
+                      }}
+                    >
+                      {' '}
+                      🪪{' '}
                     </div>
                   )}
                   {isLiveActivity && (

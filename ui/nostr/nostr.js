@@ -682,6 +682,11 @@ export async function loadFollowList(followListDTag) {
   // kind 3 is deprecated, now using kind 30000 as d=cornychat-follows
   if (window.DEBUG) console.log('in loadFollowList for ' + followListDTag);
   return new Promise(async (res, rej) => {
+    // requires extension
+    if (!window.nostr) {
+      res([]);
+      return;
+    }
     // return from local cache if it has not aged out
     const currentTime = Math.floor(Date.now() / 1000);
     const timeToExpire = 3600; // 1 hour
@@ -1017,6 +1022,11 @@ async function saveFavoriteRooms(favoriteRoomList) {
 export async function loadFavoriteRooms() {
   if (window.DEBUG) console.log('in loadFavoriteRooms');
   return new Promise(async (res, rej) => {
+    // requires extension
+    if (!window.nostr) {
+      res([]);
+      return;
+    }
     // return from local cache if it has not aged out
     const currentTime = Math.floor(Date.now() / 1000);
     const timeToExpire = 3600; // 1 hour
@@ -1475,17 +1485,21 @@ export async function loadList(kind, pubkey) {
     try {
       let events = [];
       const defaultRelays = getDefaultOutboxRelays();
-      const myPubkey = await getPublicKey();
-      const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
-      const cornychatkind = String(kind).slice(-3) == '388';
+      let myPubkey = undefined;
+      let userRelays = [];
       let myOutboxRelays = [];
-      if (userRelays?.length == 0) {
-        const myNpub = nip19.npubEncode(myPubkey);
-        myOutboxRelays = await getOutboxRelays(myPubkey);
-        if (window.DEBUG)
-          console.log('myOutboxRelays from await call', myOutboxRelays);
-        updateCacheOutboxRelays(myOutboxRelays, myNpub);
+      if (window.nostr) {
+        myPubkey = await getPublicKey();
+        userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
+        if (userRelays?.length == 0) {
+          const myNpub = nip19.npubEncode(myPubkey);
+          myOutboxRelays = await getOutboxRelays(myPubkey);
+          if (window.DEBUG)
+            console.log('myOutboxRelays from await call', myOutboxRelays);
+          updateCacheOutboxRelays(myOutboxRelays, myNpub);
+        }
       }
+      const cornychatkind = String(kind).slice(-3) == '388';
       const relaysToUse = unique([
         ...myOutboxRelays,
         ...userRelays,
@@ -2248,7 +2262,7 @@ export async function publishEvent(eventSigned) {
   // event is assumed to already be signed
   // push to relays
   const defaultRelays = getDefaultOutboxRelays();
-  const myPubkey = await await getPublicKey();
+  const myPubkey = await getPublicKey();
   const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
   let myOutboxRelays = [];
   if (userRelays?.length == 0) {
