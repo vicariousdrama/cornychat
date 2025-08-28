@@ -39,6 +39,8 @@ export function BasicRoomInfo({
   setStageOnly,
   isLiveActivityAnnounced,
   setIsLiveActivityAnnounced,
+  isNoAnon,
+  setIsNoAnon,
   isTS,
   setIsTS,
   tsID,
@@ -61,9 +63,10 @@ export function BasicRoomInfo({
   let [expanded, setExpanded] = useState(false);
   let pubkey = sessionStorage.getItem('pubkey');
   let lists = [];
-  if (pubkey != undefined)
+  if (pubkey != undefined) {
     lists = sessionStorage.getItem(`${pubkey}.kind30000events`);
-  if (lists) lists = JSON.parse(lists);
+    if (lists) lists = JSON.parse(lists);
+  }
   if (!lists || lists == undefined) lists = [];
   let [isMembersOnly, setIsMembersOnly] = useState(memberATag.length > 0);
 
@@ -721,6 +724,52 @@ export function BasicRoomInfo({
                 Talking Stick Disabled
               </span>{' '}
               - Anyone with speaker privileges may talk at any time.
+            </p>
+          )}
+        </div>
+
+        <div className="mt-2">
+          {iOwn && userNpub && (
+            <>
+              <input
+                className="ml-2"
+                type="checkbox"
+                name="jam-room-isnoanon"
+                id="jam-room-isnoanon"
+                onChange={() => {
+                  setIsNoAnon(!isNoAnon);
+                }}
+                defaultChecked={isNoAnon}
+              />
+              <label
+                className="pl-3 ml-0.5 text-sm font-medium text-gray-300 p-2"
+                htmlFor="jam-room-isnoanon"
+              >
+                Require Nostr Identity
+                <div className="p-2 pl-9 text-gray-300 text-sm">
+                  When checked, anonymous users are not allowed in the room.
+                  They must identify using a nostr extension and have done so in
+                  another room prior to joining this one.
+                </div>
+              </label>
+            </>
+          )}
+          {!iOwn && isNoAnon && (
+            <p className="text-gray-300 text-sm">
+              <span className="font-medium text-gray-300">
+                Identity Required
+              </span>{' '}
+              - Participants of the room must not be anonymous. They must
+              identity using a nostr extension or verification prior to joining
+              the room.
+            </p>
+          )}
+          {!iOwn && !isNoAnon && (
+            <p className="text-gray-300 text-sm">
+              <span className="font-medium text-gray-300">
+                Anonymous Entry Allowed
+              </span>{' '}
+              - Users do not have to identify with nostr to access this room.
             </p>
           )}
         </div>

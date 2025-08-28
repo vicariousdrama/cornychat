@@ -74,6 +74,7 @@ export function EditRoomModal({
   let [isLiveActivityAnnounced, setIsLiveActivityAnnounced] = useState(
     room.isLiveActivityAnnounced || false
   );
+  let [isNoAnon, setIsNoAnon] = useState(room.isNoAnon || false);
   let [stageOnly, setStageOnly] = useState(room.stageOnly || false);
   let [customEmojis, setCustomEmojis] = useState(room.customEmojis);
   let [roomSlides, setRoomSlides] = useState(room.roomSlides || []);
@@ -209,6 +210,7 @@ export function EditRoomModal({
       isProtected,
       isRecordingAllowed,
       isLiveActivityAnnounced,
+      isNoAnon,
       memberATag,
       isTS,
       tsID,
@@ -287,6 +289,8 @@ export function EditRoomModal({
           setIsRecordingAllowed={setIsRecordingAllowed}
           isLiveActivityAnnounced={isLiveActivityAnnounced}
           setIsLiveActivityAnnounced={setIsLiveActivityAnnounced}
+          isNoAnon={isNoAnon}
+          setIsNoAnon={setIsNoAnon}
           memberATag={memberATag}
           setMemberATag={setMemberATag}
           isTS={isTS}

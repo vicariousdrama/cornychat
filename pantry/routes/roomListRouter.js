@@ -61,6 +61,7 @@ router.get('', async function (req, res) {
         (roomInfo.passphraseHash ?? '').length > 0;
       let isStageOnly = roomInfo?.stageOnly ?? false;
       let isLiveActivity = roomInfo?.isLiveActivityAnnounced ?? false;
+      let isNoAnon = roomInfo?.isNoAnon ?? false;
       let isTS = roomInfo?.isTS ?? false;
       let memberATag = roomInfo?.memberATag ?? '';
       rooms.push({
@@ -71,6 +72,7 @@ router.get('', async function (req, res) {
         isProtected: isProtected,
         isStageOnly: isStageOnly,
         isLiveActivity: isLiveActivity,
+        isNoAnon: isNoAnon,
         isTS: isTS,
         isMembersOnly: memberATag.length > 0,
         memberATag: memberATag,

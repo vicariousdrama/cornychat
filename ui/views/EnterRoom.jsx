@@ -84,6 +84,7 @@ export default function EnterRoom({
   const textColor = isDark(roomColor.buttons.primary)
     ? roomColor.text.light
     : roomColor.text.dark;
+  let isAnonAllowed = !(room.isNoAnon ?? false);
   let isProtected = room.isProtected && (room.passphraseHash ?? '').length > 0;
   let [roomPassphrase, setRoomPassphrase] = useState(
     localStorage.getItem(`${roomId}.passphrase`) ??
@@ -164,6 +165,16 @@ export default function EnterRoom({
       }
     }
   }
+
+  let userNpub = getNpubFromInfo(myIdentity.info);
+  let profileTags = [];
+  let iAmAnon = userNpub == undefined;
+  if (iAmAnon) {
+    userDisplayName = getRelationshipPetname(userNpub, userDisplayName);
+    const tagCache = sessionStorage.getItem(`${userNpub}.kind0tags`) || '[]';
+    profileTags = JSON.parse(tagCache);
+  }
+
   let [passphraseEnabled, setPassphraseEnabled] = useState(
     !kicked &&
       (!isMembershipRequired || iAmInMemberList == true) &&
@@ -174,6 +185,7 @@ export default function EnterRoom({
   let [loginEnabled, setLoginEnabled] = useState(
     !kicked &&
       (!isMembershipRequired || iAmInMemberList == true) &&
+      (isAnonAllowed || !iAmAnon) &&
       !isProtected &&
       (!showAd || !jamConfig.handbill) &&
       supportsWebRTC
@@ -185,26 +197,20 @@ export default function EnterRoom({
   let hasNostrInfo = false; //getNpubFromInfo(myIdentity.info) != undefined;
   let joinRoomButtonAlwaysEnabled = true;
 
-  let userNpub = getNpubFromInfo(myIdentity.info);
-  let profileTags = [];
-  if (userNpub != undefined) {
-    userDisplayName = getRelationshipPetname(userNpub, userDisplayName);
-    const tagCache = sessionStorage.getItem(`${userNpub}.kind0tags`) || '[]';
-    profileTags = JSON.parse(tagCache);
-  }
-
   useEffect(() => {
     // Setup a timeout to hide the image
     const timeoutImageOverlay = setTimeout(() => {
       setPassphraseEnabled(
         !kicked &&
           (!isMembershipRequired || iAmInMemberList) &&
+          (isAnonAllowed || !iAmAnon) &&
           isProtected &&
           supportsWebRTC
       );
       setLoginEnabled(
         !kicked &&
           (!isMembershipRequired || iAmInMemberList) &&
+          (isAnonAllowed || !iAmAnon) &&
           !isProtected &&
           supportsWebRTC
       );
@@ -225,12 +231,14 @@ export default function EnterRoom({
           setPassphraseEnabled(
             !kicked &&
               (!isMembershipRequired || iAmInMemberList) &&
+              (isAnonAllowed || !iAmAnon) &&
               isProtected &&
               supportsWebRTC
           );
           setLoginEnabled(
             !kicked &&
               (!isMembershipRequired || iAmInMemberList) &&
+              (isAnonAllowed || !iAmAnon) &&
               !isProtected &&
               supportsWebRTC
           );
@@ -403,6 +411,14 @@ export default function EnterRoom({
           </div>
         )}
 
+        {!isAnonAllowed && iAmAnon && (
+          <div className="text-center my-3 text-gray-300">
+            <div className="text-sm text-gray-700 bg-red-50">
+              This room is not available for anonymous/unidentified users.
+            </div>
+          </div>
+        )}
+
         {passphraseEnabled && (
           <>
             <div className="text-center my-3 text-gray-300">
@@ -542,10 +558,10 @@ export default function EnterRoom({
                     NIP-07 browser extensions
                   </a>
                   . Extensions are available for major desktop browsers. On
-                  mobile, the Chromium based Kiwi browser supports extensions on
-                  Android. The{' '}
+                  mobile, the Chromium based Kiwi browser supports extensions
+                  like NOS2X on Android. The{' '}
                   <a href="https://apps.apple.com/us/app/nostore/id1666553677">
-                    Nostore
+                    Nostash
                   </a>{' '}
                   extension is suitable with Safari on iOS.
                 </p>
