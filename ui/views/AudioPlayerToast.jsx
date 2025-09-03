@@ -166,7 +166,7 @@ function AudioPlayerToast({close}) {
           >
             <CloseSvg color="white" />
           </div>
-          <div className="flex-grow"> Streaming to the room</div>
+          <div className="flex-grow"> Streaming to the room: {name}</div>
           <div className="flex justify-center">
             <div className="flex text-gray-200 bold mr-4">
               <input
