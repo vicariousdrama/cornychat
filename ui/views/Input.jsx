@@ -43,6 +43,17 @@ export function useInput(initial) {
   ];
 }
 
+export function useUrlInput() {
+  let inputRef = useRef();
+  return [
+    () => inputRef.current,
+    {
+      inputRef,
+      type: 'text',
+    },
+  ];
+}
+
 export function useFileInput() {
   let inputRef = useRef();
   return [
