@@ -92,6 +92,7 @@ app.use('/api/v1/oldidentities/', oldIdentitiesRouter);
 app.use('/api/v1/oldrooms/', oldRoomsRouter);
 app.use('/api/v1/permanentrooms/', permanentRoomsRouter);
 app.use('/api/v1/roomlist/', roomListRouter);
+app.use('/api/v1/roomlist/:f', roomListRouter);
 app.use('/api/v1/rooms/:id/live', liveRoomRouter);
 app.use('/api/v1/rooms/:id/recordings.zip', recordingsRouter);
 app.use('/api/v1/rooms/:id/member', roomMemberRouter);

@@ -17,7 +17,8 @@ function AudioPlayerToast({close}) {
   let {name} = use(state, 'audioFile') ?? {};
   if (name && name != 'undefined')
     (async () => {
-      await sendTextChat(`/me playing audio file: ${name}`);
+      let lorr = name.startsWith('http') ? 'remote' : 'local';
+      await sendTextChat(`/me playing ${lorr} audio file: ${name}`);
     })();
   let audio = use(state, 'audioFileElement');
   let [element, setElement] = useState();
@@ -166,7 +167,10 @@ function AudioPlayerToast({close}) {
           >
             <CloseSvg color="white" />
           </div>
-          <div className="flex-grow"> Streaming to the room: {name}</div>
+          <div className="flex-grow" style={{textWrap: 'nowrap'}}>
+            {' '}
+            Streaming to the room: {name}
+          </div>
           <div className="flex justify-center">
             <div className="flex text-gray-200 bold mr-4">
               <input

@@ -1,11 +1,16 @@
 const express = require('express');
 const {get, list} = require('../services/redis');
 const {activeUsersInRoom} = require('../services/ws');
+const {isAdmin} = require('../auth');
 
 const router = express.Router({mergeParams: true});
 
 router.get('', async function (req, res) {
   res.type('application/json');
+
+  const f = req.params.f;
+  let showall = false;
+  if (f && f == '*') showall = true;
 
   let rooms = [];
   let roomIds = [];
@@ -54,7 +59,7 @@ router.get('', async function (req, res) {
       let isClosed = roomInfo?.closed ?? false;
       let isPrivate = roomInfo?.isPrivate ?? false;
       if (isPrivate || isClosed) {
-        continue;
+        if (!showall) continue;
       }
       let isProtected =
         (roomInfo.isProtected || false) &&
@@ -69,6 +74,8 @@ router.get('', async function (req, res) {
         name: roomInfo.name,
         description: roomInfo.description,
         logoURI: roomInfo.logoURI,
+        isClosed: isClosed,
+        isPrivate: isPrivate,
         isProtected: isProtected,
         isStageOnly: isStageOnly,
         isLiveActivity: isLiveActivity,

@@ -20,6 +20,7 @@ export {
   getGifs,
   getHighScores,
   getMOTD,
+  getAllActiveRoomList,
   getRoomList,
   getPermanentRoomsList,
   getScheduledEvents,
@@ -227,6 +228,10 @@ async function getMOTD() {
 
 async function getRoomList() {
   return await get(`/roomlist/`);
+}
+
+async function getAllActiveRoomList() {
+  return await get(`/roomlist/*`);
 }
 
 async function getScheduledEvents() {

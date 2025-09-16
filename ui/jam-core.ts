@@ -39,6 +39,7 @@ import {
   getGifs,
   getHighScores,
   getMOTD,
+  getAllActiveRoomList,
   getRoomList,
   getPermanentRoomsList,
   getScheduledEvents,
@@ -163,6 +164,7 @@ function createApi<T extends StateType>(
       updateRoom(state, roomId, room) as Promise<boolean>,
 
     deleteOldRooms: () => deleteOldRooms(state),
+    listAllActiveRooms: () => getAllActiveRoomList(),
     listRooms: () => getRoomList(),
     listScheduledEvents: () => getScheduledEvents(),
     listGifs: (phrase: string, cursor: string) => getGifs(phrase, cursor),

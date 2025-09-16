@@ -12,6 +12,8 @@ export default function StartRoomSimple({roomInfo, index, myFavoritedRooms}) {
       ? roomLogoValue
       : '/img/cornychat-defaultroomlogo.png';
   const userCount = roomInfo?.userCount ?? -1;
+  const isClosed = roomInfo?.isClosed ?? false;
+  const isPrivate = roomInfo?.isPrivate ?? false;
   const isProtected = roomInfo?.isProtected ?? false;
   const isStageOnly = roomInfo?.isStageOnly ?? false;
   const isLiveActivity = roomInfo?.isLiveActivity ?? false;
@@ -21,8 +23,11 @@ export default function StartRoomSimple({roomInfo, index, myFavoritedRooms}) {
   const memberATag = roomInfo?.memberATag ?? '';
 
   var coloringStyle = {
-    backgroundColor: 'rgb(1,111,210)',
-    backgroundImage: 'linear-gradient(rgb(1, 111, 210), rgb(0, 0, 0))',
+    backgroundColor: isClosed || isPrivate ? 'rgb(40,40,40)' : 'rgb(1,111,210)',
+    backgroundImage:
+      isClosed || isPrivate
+        ? 'linear-gradient(rgb(40, 40, 40), rgb(0, 0, 0))'
+        : 'linear-gradient(rgb(1, 111, 210), rgb(0, 0, 0))',
     color: 'rgb(255,255,255)',
     width: '300px',
     cursor: 'pointer',
@@ -53,6 +58,34 @@ export default function StartRoomSimple({roomInfo, index, myFavoritedRooms}) {
                     backgroundColor: 'rgba(0,0,0,.63)',
                   }}
                 >
+                  {isClosed && (
+                    <div
+                      className="text-xs"
+                      title="Room is marked as closed"
+                      style={{
+                        margin: '3px',
+                        display: 'inline-block',
+                        backgroundColor: 'rgba(0,0,0,.63)',
+                      }}
+                    >
+                      {' '}
+                      🚪{' '}
+                    </div>
+                  )}
+                  {isPrivate && (
+                    <div
+                      className="text-xs"
+                      title="Private (unlisted) Room"
+                      style={{
+                        margin: '3px',
+                        display: 'inline-block',
+                        backgroundColor: 'rgba(0,0,0,.63)',
+                      }}
+                    >
+                      {' '}
+                      🕵️{' '}
+                    </div>
+                  )}
                   {isProtected && (
                     <div
                       className="text-xs"
