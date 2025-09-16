@@ -34,6 +34,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
       setProps,
       createRoom,
       deleteOldRooms,
+      listAllActiveRooms,
       listRooms,
       listScheduledEvents,
       listMyRooms,
@@ -63,6 +64,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
       userInfo: [],
     },
   ];
+  const cycling = false;
   const [motd, setMotd] = useState(undefined);
   let mqp = useMqParser();
   let myId = useJamState('myId');
@@ -130,7 +132,9 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
     loadZapGoal();
     const loadRooms = async () => {
       setLoadingRooms(true);
-      let roomlist = await listRooms();
+      let roomlist = undefined;
+      if (!iAmAdmin) roomlist = await listRooms();
+      if (iAmAdmin) roomlist = await listAllActiveRooms();
       if (roomlist[0].length > 0) {
         setRoomList(roomlist[0]);
       } else {
@@ -185,34 +189,37 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
     loadMyFavoritedRooms();
 
     // cycle info mode
-    // let infoInterval = 5 * 1000; // 5 seconds
-    // let intervalInfo = setInterval(() => {
-    //   let im = infoMode;
-    //     if (im == 'motd') {
-    //       console.log('infoMode is motd, setting to higscores');
-    //       if (!editingMOTD) {
-    //         im = 'highscores';
-    //         setInfoMode('highscores');
-    //       }
-    //       return;
-    //     }
-    //     if (im == 'highscores') {
-    //       console.log('infoMode is highscores, setting to zapgoal');
-    //       im = 'zapgoal';
-    //       setInfoMode('zapgoal');
-    //       return;
-    //     }
-    //     if (im == 'zapgoal') {
-    //       console.log('infoMode is zapgoal, setting to motd');
-    //       im = 'motd';
-    //       setInfoMode('motd');
-    //       return;
-    //     }
-    // }, infoInterval);
+    let intervalInfo = undefined;
+    if (cycling) {
+      let infoInterval = 5 * 1000; // 5 seconds
+      intervalInfo = setInterval(() => {
+        let im = infoMode;
+        if (im == 'motd') {
+          console.log('infoMode is motd, setting to higscores');
+          if (!editingMOTD) {
+            im = 'highscores';
+            setInfoMode('highscores');
+          }
+          return;
+        }
+        if (im == 'highscores') {
+          console.log('infoMode is highscores, setting to zapgoal');
+          im = 'zapgoal';
+          setInfoMode('zapgoal');
+          return;
+        }
+        if (im == 'zapgoal') {
+          console.log('infoMode is zapgoal, setting to motd');
+          im = 'motd';
+          setInfoMode('motd');
+          return;
+        }
+      }, infoInterval);
+    }
 
     // This function is called when component unmounts
     return () => {
-      //      clearInterval(intervalInfo);
+      if (cycling && intervalInfo) clearInterval(intervalInfo);
     };
   }, []);
 
@@ -350,8 +357,8 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
           </p>
         </div>
 
-        {
-          /*infoMode == 'zapgoal' && */ zapGoal.hasOwnProperty('content') && (
+        {(!cycling || infoMode == 'zapgoal') &&
+          zapGoal.hasOwnProperty('content') && (
             <center>
               <div style={{width: '320px'}}>
                 <center>
@@ -368,38 +375,36 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
                 </center>
               </div>
             </center>
-          )
-        }
+          )}
 
-        {
-          /*infoMode == 'highscore' && */ highScoresLastWeek &&
-            highScoresLastWeek.length > 0 && (
-              <center>
-                <div
-                  className="text-white p-2 mt-2 mr-1 ml-1 rounded-md"
-                  style={{
-                    border: '1px solid rgba(240, 35, 154, 1)',
-                    width: '320px',
-                    backgroundColor: roomColors.background,
-                  }}
-                >
-                  <center>
-                    Last Week's High Score by
-                    <br />
-                    <img
-                      src={highScoresLastWeek[0].avatar}
-                      className="h-12 w-12 rounded-md"
-                    />
-                    {highScoresLastWeek[0].name} with{' '}
-                    {highScoresLastWeek[0].points} points!
-                  </center>
-                </div>
-              </center>
-            )
-        }
+        {(!cycling || infoMode == 'highscore') &&
+          highScoresLastWeek &&
+          highScoresLastWeek.length > 0 && (
+            <center>
+              <div
+                className="text-white p-2 mt-2 mr-1 ml-1 rounded-md"
+                style={{
+                  border: '1px solid rgba(240, 35, 154, 1)',
+                  width: '320px',
+                  backgroundColor: roomColors.background,
+                }}
+              >
+                <center>
+                  Last Week's High Score by
+                  <br />
+                  <img
+                    src={highScoresLastWeek[0].avatar}
+                    className="h-12 w-12 rounded-md"
+                  />
+                  {highScoresLastWeek[0].name} with{' '}
+                  {highScoresLastWeek[0].points} points!
+                </center>
+              </div>
+            </center>
+          )}
 
-        {
-          /*infoMode == 'motd' &&*/ <div
+        {(!cycling || infoMode == 'motd') && (
+          <div
             className="text-white p-2 mt-2 mr-1 ml-1 rounded-md"
             style={{
               border: '1px solid rgb(210, 84, 0)',
@@ -464,7 +469,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
               </p>
             )}
           </div>
-        }
+        )}
 
         <div className="flex flex-wrap justify-center">
           <div
