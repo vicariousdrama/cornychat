@@ -170,12 +170,14 @@ router.get('/:userId', async function (req, res) {
       let isPermanent = permanentRooms.includes(roomId);
       let n = roominfo.name ?? '';
       let isSpeaker = false;
+      let isSpeakerById = false;
+      let isSpeakerByNpub = false;
       try {
         if (roominfo.speakers != undefined) {
-          isSpeaker = roominfo.speakers.includes(userid);
-          if (!isSpeaker && usernpub.length > 0) {
-            isSpeaker = roominfo.speakers.includes(usernpub);
-          }
+          isSpeakerById = roominfo.speakers.includes(userid);
+          isSpeakerByNpub =
+            usernpub.length > 0 && roominfo.speakers.includes(usernpub);
+          isSpeaker = isSpeakerById || isSpeakerByNpub;
         }
       } catch (error) {
         if (pmd)
@@ -184,12 +186,14 @@ router.get('/:userId', async function (req, res) {
           );
       }
       let isModerator = false;
+      let isModeratorById = false;
+      let isModeratorByNpub = false;
       try {
         if (roominfo.moderators != undefined) {
-          isModerator = roominfo.moderators.includes(userid);
-          if (!isModerator && usernpub.length > 0) {
-            isModerator = roominfo.moderators.includes(usernpub);
-          }
+          isModeratorById = roominfo.moderators.includes(userid);
+          isModeratorByNpub =
+            usernpub.length > 0 && roominfo.moderators.includes(usernpub);
+          isModerator = isModeratorById || isModeratorByNpub;
         }
       } catch (error) {
         if (pmd)
@@ -198,12 +202,14 @@ router.get('/:userId', async function (req, res) {
           );
       }
       let isOwner = false;
+      let isOwnerById = false;
+      let isOwnerByNpub = false;
       try {
         if (roominfo.owners != undefined) {
-          isOwner = roominfo.owners.includes(userid);
-          if (!isOwner && usernpub.length > 0) {
-            isOwner = roominfo.owners.includes(usernpub);
-          }
+          isOwnerById = roominfo.owners.includes(userid);
+          isOwnerByNpub =
+            usernpub.length > 0 && roominfo.owners.includes(usernpub);
+          isOwner = isOwnerById || isOwnerByNpub;
         }
       } catch (error) {
         if (pmd)
@@ -212,6 +218,11 @@ router.get('/:userId', async function (req, res) {
           );
       }
       if (isSpeaker || isOwner || isModerator) {
+        if (pmd) {
+          console.log(
+            `[userRoomsRouter] adding room ${roomId} based on speaker (${isSpeakerById},${isSpeakerByNpub}), moderator (${isModeratorById},${isModeratorByNpub}), owner (${isOwnerById},${isOwnerByNpub}) for user ${userid} (npub: ${usernpub})`
+          );
+        }
         let peerIds = await activeUsersInRoom(roomId);
         let lastAccessed = await get(`activity/${roomkey}/last-accessed`);
         if (isPermanent) lastAccessed = currentTime; // force these rooms to the top
@@ -242,6 +253,9 @@ router.get('/:userId', async function (req, res) {
       }
     }
   }
+  console.log(
+    `[userRoomsRouter] completed reviewing ${rrcount} rooms, found ${frcount} for user ${userid} (npub: ${usernpub}). applying sorting logic`
+  );
   // Sort
   if (userrooms.length > 0) {
     // most recently accessed to the top
