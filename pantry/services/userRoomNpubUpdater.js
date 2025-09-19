@@ -28,7 +28,8 @@ const userRoomNpubUpdaterLogic = async () => {
     );
 
   let rooms = {};
-  let userIds = {};
+  let userIds = {}; // keys = userid, and the value is the corresponding npub
+  let npubs = {}; // keys = npub, and the value is an array of 1 or more userids
   let npubsToAdd = [];
   let npubsPresent = [];
   let roomsChecked = 0;
@@ -58,13 +59,17 @@ const userRoomNpubUpdaterLogic = async () => {
                 npubToAdd = await getNpubFromID(uservalue);
                 userIds[uservalue] = npubToAdd;
               }
-              if (
-                npubToAdd.length > 0 &&
-                !roominfo.speakers.includes(npubToAdd) &&
-                !npubsPresent.includes(npubToAdd) &&
-                !npubsToAdd.includes(npubToAdd)
-              )
-                npubsToAdd.push(npubToAdd);
+              if (npubToAdd.length > 0) {
+                if (!npubs.hasOwnProperty(npubToAdd)) npubs[npubToAdd] = [];
+                if (!npubs[npubToAdd].includes(uservalue))
+                  npubs[npubToAdd].push(uservalue);
+                if (
+                  !roominfo.speakers.includes(npubToAdd) &&
+                  !npubsPresent.includes(npubToAdd) &&
+                  !npubsToAdd.includes(npubToAdd)
+                )
+                  npubsToAdd.push(npubToAdd);
+              }
             }
           }
           if (npubsToAdd.length > 0) {
@@ -192,6 +197,8 @@ const userRoomNpubUpdaterLogic = async () => {
       console.log(
         `[userRoomNpubUpdaterLogic] Finished checking ${roomsChecked} rooms. ${roomsUpdated} updated`
       );
+    // save npub to userid cache. will be referenced for delete room requests by user
+    await set('npubs2users', npubs);
   } catch (error) {
     if (pmd)
       console.log(
