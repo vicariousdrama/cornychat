@@ -50,6 +50,14 @@ router.delete('/:userId/:roomId', async function (req, res) {
       }
     }
   }
+  // other user ids
+  let usernpubs = await get('npubs2users');
+  let userids = [];
+  if (usernpub && usernpub.length > 0 && usernpubs) {
+    if (usernpubs != undefined && usernpubs.hasOwnProperty(usernpub)) {
+      userids = usernpubs[usernpub];
+    }
+  }
   // check for room definition
   let roomkey = `rooms/${roomId}`;
   let roominfo = await get(roomkey);
@@ -66,6 +74,13 @@ router.delete('/:userId/:roomId', async function (req, res) {
       roominfo.speakers = r.newList;
       updateRoom = true;
     }
+    for (let otherid of userids) {
+      r = removeValues(roominfo.speakers, otherid, usernpub);
+      if (r.changed) {
+        roominfo.speakers = r.newList;
+        updateRoom = true;
+      }
+    }
   }
   // remove from moderator array
   if (roominfo.moderators != undefined) {
@@ -74,6 +89,13 @@ router.delete('/:userId/:roomId', async function (req, res) {
       roominfo.moderators = r.newList;
       updateRoom = true;
     }
+    for (let otherid of userids) {
+      r = removeValues(roominfo.moderators, otherid, usernpub);
+      if (r.changed) {
+        roominfo.moderators = r.newList;
+        updateRoom = true;
+      }
+    }
   }
   // remove from owner array
   if (roominfo.owners != undefined) {
@@ -81,14 +103,21 @@ router.delete('/:userId/:roomId', async function (req, res) {
     if (r.changed) {
       roominfo.owners = r.newList;
       updateRoom = true;
-      // check if need to assign another owner
-      if (roominfo.owners.length == 0) {
-        if (roominfo.moderators.length > 0) {
-          roominfo.owners.push(roominfo.moderators[0]);
-        } else {
-          // no moderators or owners. delete it
-          deleteRoom = true;
-        }
+    }
+    for (let otherid of userids) {
+      r = removeValues(roominfo.owners, otherid, usernpub);
+      if (r.changed) {
+        roominfo.owners = r.newList;
+        updateRoom = true;
+      }
+    }
+    // check if need to assign another owner
+    if (roominfo.owners.length == 0) {
+      if (roominfo.moderators.length > 0) {
+        roominfo.owners.push(roominfo.moderators[0]);
+      } else {
+        // no moderators or owners. delete it
+        deleteRoom = true;
       }
     }
   }
