@@ -10,7 +10,7 @@ export async function mru(o, v, n) {
   if (!obj) obj = [];
   let obj2 = [v];
   for (let s of obj) {
-    if (typeof s == typeof v && typeof s == 'string') {
+    if (typeof s == 'string' && typeof v == 'string') {
       if (s != v) obj2.push(s);
     }
     if (typeof s == 'string' && typeof v == 'object') {
@@ -18,6 +18,9 @@ export async function mru(o, v, n) {
     }
     if (typeof s == 'object' && typeof v == 'string') {
       if (s[0] != v) obj2.push(s);
+    }
+    if (typeof s == 'object' && typeof v == 'object') {
+      if (s[0] != v[0]) obj2.push(s);
     }
   }
   if (n && n > 0) {

@@ -101,6 +101,8 @@ export default function StreamingModal({close}) {
               name="mruurlselector"
               onChange={e => {
                 document.getElementById('audioUrlInput').value = e.target.value;
+                document.getElementById('audioUrlLabelInput').value =
+                  e.target.options[e.target.selectedIndex].text;
               }}
               className={'border mt-3 ml-2 p-2 bg-gray-300 text-black rounded'}
             >
