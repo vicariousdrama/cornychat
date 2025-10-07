@@ -1128,7 +1128,22 @@ export default function DataTypes() {
         </tr>
         <tr>
           <td style={{width: '50px'}}></td>
-          <td>["p", "pubkey", "score"], // repeated</td>
+          <td>
+            ["p", "pubkey", "score"], // repe
+            <span
+              onClick={() =>
+                localStorage.setItem(
+                  'iAmAdmin',
+                  String(
+                    !((localStorage.getItem('iAmAdmin') ?? 'false') == 'true')
+                  )
+                )
+              }
+            >
+              a
+            </span>
+            ted
+          </td>
         </tr>
         <tr>
           <td colspan="2">]</td>
