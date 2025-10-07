@@ -57,7 +57,16 @@ const asNpubs = async identityKeys => {
         let s = ident.loginSig || '';
         let p = nip19.decode(n).data;
         let r = isValidLoginSignature(i, p, c, identityKey, s);
-        if (r) npubs.push(n);
+        if (r) {
+          console.log(`[asNpubs] adding ${n}`);
+          npubs.push(n);
+        } else {
+          console.log(
+            `[asNpubs] not valid signature for identity ${JSON.stringify(
+              ident
+            )}`
+          );
+        }
       }
     } catch (error) {
       console.log('[asNpubs] error: ', identityKey, error);
@@ -321,6 +330,16 @@ const roomAuthenticator = {
           !connectedOwners.includes(connectedUser)
         ) {
           connectedOwners.push(connectedUser);
+        } else {
+          let connectedUserNpubs = await asNpubs([connectedUser]);
+          for (let connectedUserNpub of connectedUserNpubs) {
+            if (
+              roomInfo.owners.includes(connectedUserNpub) &&
+              !connectedOwners.includes(connectedUserNpub)
+            ) {
+              connectedOwners.push(connectedUser);
+            }
+          }
         }
       }
       let connectedOwnerNpubs = await asNpubs(connectedOwners);
