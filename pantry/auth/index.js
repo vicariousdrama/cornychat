@@ -413,10 +413,31 @@ const roomAuthenticator = {
       }
       // rule: for a room to be public, user must have an npub
       // OR at least one other owner currently connected must have an npub
-      if (npubs.length == 0 && connectedOwnerNpubs.length == 0) {
+      // OR it must be on the always public list
+      let permanentPublic = false;
+      let publicRooms = await get('publicRooms');
+      if (publicRooms != null) {
+        for (let publicRoom of publicRooms) {
+          if (publicRoom == roomId) {
+            permanentPublic = true;
+            break;
+          }
+        }
+      }
+      if (
+        npubs.length == 0 &&
+        connectedOwnerNpubs.length == 0 &&
+        !permanentPublic
+      ) {
         console.log('forcing room to private');
         roomInfo.isPrivate = true;
         postingRoom.isPrivate = true;
+        req.body.isPrivate = true;
+      }
+      if (permanentPublic) {
+        roomInfo.isPrivate = false;
+        postingRoom.isPrivate = false;
+        req.body.isPrivate = false;
       }
       // set the new update time
       req.body.updateTime = Date.now();
