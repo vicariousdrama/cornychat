@@ -37,6 +37,35 @@ function doneRelayPool(p) {
 }
 const publishEvent = async (pool, event, relays) => {
   try {
+    const publishEventConfig = await get('publishEventConfig');
+    if (publishEventConfig?.kindsDenied) {
+      for (let kind of publishEventConfig.kindsDenied) {
+        if (kind == event.kind) {
+          if (pmd)
+            console.log(
+              `[publishEvent] not publishing event to relay as kind is denied in publishEventConfig: ${JSON.stringify(
+                event
+              )}`
+            );
+          return;
+        }
+      }
+    }
+    if (publishEventConfig?.kindsAllowed) {
+      let b = false;
+      for (let kind of publishEventConfig.kindsAllowed) {
+        b |= kind == event.kind;
+      }
+      if (!b) {
+        if (pmd)
+          console.log(
+            `[publishEvent] not publishing event to relay as kind is not allowed in publishEventConfig: ${JSON.stringify(
+              event
+            )}`
+          );
+        return;
+      }
+    }
     if (pmd)
       console.log(
         `[publishEvent] publishing to relays ${JSON.stringify(
