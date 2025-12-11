@@ -69,6 +69,7 @@ function getDefaultOutboxRelays() {
 }
 
 function getCachedOutboxRelaysByPubkey(pubkey) {
+  if (pubkey && pubkey == '*') return [];
   if (window.DEBUG) console.log('in getCachedOutboxRelaybyPubkey for ', pubkey);
   const npub = nip19.npubEncode(pubkey);
   return normalizeRelays(getCachedOutboxRelaysByNpub(npub));
@@ -270,9 +271,8 @@ export async function getUserEventsByKind(pubkey, kind, timeSince) {
       const defaultRelays = getDefaultOutboxRelays();
       const relaysToUse = unique([...userRelays, ...defaultRelays]);
       const since = timeSince;
-      const filter = [
-        {kinds: [kind], authors: [pubkey], since: since, limit: 50},
-      ];
+      const filter = [{kinds: [kind], since: since, limit: 50}];
+      if (pubkey && pubkey != '*') filter.authors = [pubkey];
       let userEvents = [];
       setTimeout(() => {
         localpool.close();
@@ -2297,7 +2297,7 @@ export async function publishEvent(eventSigned) {
   } catch (e) {
     return [false, 'error talking to relays: ' + e];
   }
-  return [true, eventSigned.id];
+  return [true, eventSigned.id, eventSigned];
 }
 
 export async function signAndSendEvent(event) {
@@ -2312,7 +2312,7 @@ export async function signAndSendEvent(event) {
   if (!event.hasOwnProperty('sig')) event['sig'] = null;
   if (!event.hasOwnProperty('tags')) event['tags'] = [];
   let sp = sessionStorage.getItem('serverPubkey');
-  if (sp) {
+  if (sp && ![5].includes(event.kind)) {
     event['tags'].push([
       'client',
       'Corny Chat',
@@ -2623,4 +2623,280 @@ export async function getCustomEmojis() {
     }
   }
   return customEmojis;
+}
+
+export async function loadAllSoundEffectSets() {
+  let kind34388s = await getUserEventsByKind('*', 34388, 0);
+  let allSoundBoards = localStorage.getItem('allSoundBoards');
+  if (!allSoundBoards) allSoundBoards = '[]';
+  allSoundBoards = JSON.parse(allSoundBoards);
+  for (let kind34388 of kind34388s) {
+    if (kind34388.tags == undefined) continue;
+    if (kind34388.tags.length == 0) continue;
+    let dTag = '';
+    for (let tag of kind34388.tags) {
+      if (tag.length < 2) continue;
+      if (tag[0] == 'd') {
+        dTag = tag[1];
+        break;
+      }
+    }
+    if (dTag.length == 0) continue;
+    let found = false;
+    let rpos = -1;
+    let pos = -1;
+    for (let aBoard of allSoundBoards) {
+      pos += 1;
+      if (aBoard.pubkey != kind34388.pubkey) continue;
+      for (let tag of aBoard.tags) {
+        if (tag.length < 2) continue;
+        if (tag[0] != 'd') continue;
+        if (tag[1] == dTag) {
+          // Same dTag!
+          found = true;
+          // Update if newer
+          if (kind34388.created_at > aBoard.created_at) rpos = pos;
+          break;
+        }
+      }
+    }
+    if (!found) {
+      // add it
+      allSoundBoards.push(kind34388);
+    } else {
+      // see if need to replace
+      if (rpos > -1) allSoundBoards[rpos] = kind34388;
+    }
+  }
+  // Sort by Title?
+  sortByTag(allSoundBoards, 'title');
+
+  // save em
+  localStorage.setItem('allSoundBoards', JSON.stringify(allSoundBoards));
+  return allSoundBoards;
+}
+export async function loadFavoriteSoundEffectSets() {
+  let favoriteSFX = localStorage.getItem('soundBoards');
+  if (window.nostr) {
+    let pubkey = await getPublicKey();
+    const currentTime = Math.floor(Date.now() / 1000);
+    const timeToExpire = 3600; // 1 hour
+    let retrievedTime = localStorage.getItem('soundBoards.retrievedTime');
+    if (retrievedTime) retrievedTime *= 1;
+    const isExpired =
+      retrievedTime == undefined || retrievedTime + timeToExpire < currentTime;
+    if (isExpired || favoriteSFX == undefined) {
+      favoriteSFX = [];
+      if (window.DEBUG) console.log('user pubkey', pubkey);
+      let kind14388s = await getUserEventsByKind(pubkey, 14388, 0);
+      if (window.DEBUG) console.log('14388', kind14388s);
+      // date of newest set
+      let newestkind14388 = 0;
+      for (let kind14388 of kind14388s) {
+        if (kind14388.tags == undefined) continue;
+        if (kind14388.tags.length == 0) continue;
+        if (kind14388.created_at > newestkind14388) {
+          newestkind14388 = kind14388.created_at;
+        }
+      }
+      for (let kind14388 of kind14388s) {
+        if (kind14388.created_at != newestkind14388) continue;
+        let kind14388tags = kind14388.tags;
+        if (kind14388tags == undefined) continue;
+        let isCornyChat = false;
+        for (let kind14388tag of kind14388tags) {
+          if (kind14388tag.length < 2) continue;
+          isCornyChat |=
+            kind14388tag[0] == 'L' && kind14388tag[1] == 'com.cornychat';
+          if (kind14388tag[0] != 'a') continue;
+          let aTagParts = kind14388tag[1].split(':');
+          if (aTagParts.length != 3) continue;
+          if (aTagParts[0] != '34388') continue;
+          let soundSetPubkey = aTagParts[1];
+          let soundSetName = aTagParts[2];
+          if (window.DEBUG)
+            console.log('pubkey that authored sound set', soundSetPubkey);
+          let kind34388s = sessionStorage.getItem(
+            `${soundSetPubkey}.kind34388events`
+          );
+          if (kind34388s == undefined) {
+            kind34388s = await getUserEventsByKind(soundSetPubkey, 34388, 0);
+          } else {
+            kind34388s = JSON.parse(kind34388s);
+          }
+          if (window.DEBUG) console.log('34388', kind34388s);
+          for (let kind34388 of kind34388s) {
+            let kind34388tags = kind34388.tags;
+            let targetFound = false;
+            for (let kind34388tag of kind34388tags) {
+              if (kind34388tag.length < 2) continue;
+              if (kind34388tag[0] != 'd') continue;
+              if (kind34388tag[1] != soundSetName) continue;
+              targetFound = true;
+              break;
+            }
+            if (!targetFound) continue;
+            favoriteSFX.push(kind34388);
+          }
+        }
+      }
+      localStorage.setItem('soundBoards.retrievedTime', currentTime);
+      localStorage.setItem('soundBoards', JSON.stringify(favoriteSFX));
+    } else {
+      favoriteSFX = JSON.parse(favoriteSFX);
+    }
+  }
+  return favoriteSFX;
+}
+export async function addTagToList(
+  tagName,
+  tagValue,
+  listKind,
+  titleTagValue,
+  altTagValue
+) {
+  // for 10000 series lists, will add a tag of the given name and value.
+  let myPubkey = await getPublicKey();
+  let created_at = Math.floor(Date.now() / 1000);
+  console.log('addTagToList - getUserEventsByKind');
+  let myListKinds = await getUserEventsByKind(myPubkey, listKind, 0);
+  let newestKindTime = 0;
+  let newestKind = undefined;
+  console.log('addTagToList - iterate kinds');
+  for (let myListKind of myListKinds) {
+    if (myListKind.tags == undefined) continue;
+    if (myListKind.tags.length == 0) continue;
+    if (myListKind.created_at > newestKindTime) {
+      newestKindTime = myListKind.created_at;
+      newestKind = {...myListKind};
+    }
+  }
+  if (newestKind == undefined) {
+    console.log('addTagToList - if no newestKind, make it');
+    let tags = [];
+    let content = '';
+    tags.push(['L', 'com.cornychat']);
+    tags.push(['l', 'cornychat.com', 'com.cornychat']);
+    tags.push(['l', 'audiospace', 'com.cornychat']);
+    if (titleTagValue != undefined) {
+      tags.push(['title', titleTagValue]);
+    }
+    if (altTagValue != undefined) {
+      tags.push(['alt', altTagValue]);
+    }
+    tags.push([tagName, tagValue]);
+    newestKind = {
+      created_at: created_at,
+      content: content,
+      kind: listKind,
+      pubkey: myPubkey,
+      tags: tags,
+    };
+  } else {
+    console.log('addTagToList - newestKind found, adding to tags');
+    newestKind = {
+      created_at: created_at,
+      content: newestKind.content,
+      kind: listKind,
+      pubkey: myPubkey,
+      tags: newestKind.tags,
+    };
+    newestKind.tags.push([tagName, tagValue]);
+  }
+  console.log(JSON.stringify(newestKind));
+  let rFavorites = await signAndSendEvent(newestKind);
+  if (rFavorites[0]) {
+    console.log('in addtag2list, assigning to session');
+    console.log(JSON.stringify(rFavorites));
+    let events = [];
+    events.push(rFavorites[2]);
+    sessionStorage.setItem(
+      `${myPubkey}.kind${listKind}events`,
+      JSON.stringify(events)
+    );
+  }
+  return rFavorites;
+}
+
+export async function removeTagFromList(
+  tagName,
+  tagValue,
+  listKind,
+  titleTagValue,
+  altTagValue
+) {
+  // for 10000 series lists, will remove a tag of the given name and value.
+  // only supports tag entries of a length of 2.
+  let myPubkey = await getPublicKey();
+  let created_at = Math.floor(Date.now() / 1000);
+  let myListKinds = await getUserEventsByKind(myPubkey, listKind, 0);
+  let newestKindTime = 0;
+  let newestKind = undefined;
+  for (let myListKind of myListKinds) {
+    if (myListKind.tags == undefined) continue;
+    if (myListKind.tags.length == 0) continue;
+    if (myListKind.created_at > newestKindTime) {
+      newestKindTime = myListKind.created_at;
+      newestKind = {...myListKind};
+    }
+  }
+  if (newestKind == undefined) {
+    // setup for an empty list
+    let tags = [];
+    let content = '';
+    tags.push(['L', 'com.cornychat']);
+    tags.push(['l', 'cornychat.com', 'com.cornychat']);
+    tags.push(['l', 'audiospace', 'com.cornychat']);
+    if (titleTagValue != undefined) {
+      tags.push(['title', titleTagValue]);
+    }
+    if (altTagValue != undefined) {
+      tags.push(['alt', altTagValue]);
+    }
+    newestKind = {
+      created_at: created_at,
+      content: content,
+      kind: listKind,
+      pubkey: myPubkey,
+      tags: tags,
+    };
+  } else {
+    // the existing tags need to exclude the one provided
+    let revisedTags = [];
+    for (let t of newestKind.tags) {
+      if (t.length != 2) {
+        revisedTags.push(t);
+        continue;
+      }
+      if (t[0] != tagName) {
+        // tag has different name, keep it
+        revisedTags.push(t);
+        continue;
+      }
+      if (t[1] != tagValue) {
+        // tag has different value, keep it
+        revisedTags.push(t);
+      }
+    }
+    newestKind = {
+      created_at: created_at,
+      content: newestKind.content,
+      kind: listKind,
+      pubkey: myPubkey,
+      tags: revisedTags,
+    };
+  }
+  console.log(JSON.stringify(newestKind));
+  let rFavorites = await signAndSendEvent(newestKind);
+  if (rFavorites[0]) {
+    console.log('in removetagfromlist, assigning to session');
+    console.log(JSON.stringify(rFavorites));
+    let events = [];
+    events.push(rFavorites[2]);
+    sessionStorage.setItem(
+      `${myPubkey}.kind${listKind}events`,
+      JSON.stringify(events)
+    );
+  }
+  return rFavorites;
 }

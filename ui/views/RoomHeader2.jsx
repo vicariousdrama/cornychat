@@ -19,6 +19,7 @@ import {
   getCustomEmojis,
   getPublicKey,
   getUncachedPeerMetadata,
+  loadFavoriteSoundEffectSets,
   loadList,
   publishStatus,
 } from '../nostr/nostr';
@@ -283,6 +284,13 @@ export default function RoomHeader2({
         let ce = await getCustomEmojis();
       })();
     }, 5000);
+
+    // SFX
+    let timeoutSFX = setTimeout(() => {
+      let r = (async () => {
+        let s = await loadFavoriteSoundEffectSets();
+      })();
+    }, 8333);
 
     // Peer profiles (precache metadata including emoji refs for peers we haven't seen yet)
     let intervalFetchPeerMetadata = setInterval(() => {

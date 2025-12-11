@@ -61,6 +61,11 @@ export default function DataTypes() {
           <a href="#kind10030useremojilist">Kind 10030 - User Emoji List</a>
         </li>
         <li>
+          <a href="#kind14388usersoundeffectslist">
+            Kind 14388 - User Sound Effects List
+          </a>
+        </li>
+        <li>
           <a href="#kind23194nip47request">
             Kind 23194 - Nostr Wallet Connect Request
           </a>
@@ -112,6 +117,9 @@ export default function DataTypes() {
         </li>
         <li>
           <a href="#kind33388highscores">Kind 33388 - High Scores</a>
+        </li>
+        <li>
+          <a href="#kind34388soundeffectsets">Kind 34388 - Sound Effects</a>
         </li>
       </ul>
 
@@ -531,6 +539,57 @@ export default function DataTypes() {
         </a>
         .
       </p>
+
+      <a name="kind14388usersoundeffectslist"></a>
+      <h2 style={{backgroundColor: '#ff0000'}}>
+        Kind 14388 - User Sound Effects List
+      </h2>
+      <p>
+        When a user logs into a room, if their current session doesn't have a
+        cache of sound effects yet, it will be built up based on the sound
+        effect sets (kind 34388) referenced in their User SoundEffects List.
+        This allows users to select from these sounds to play when interacting
+        in a room. This follows the structure outlined in{' '}
+        <a href="https://github.com/nostr-protocol/nips/blob/master/51.md">
+          NIP-51
+        </a>
+        . The following tags are set
+      </p>
+
+      <table
+        style={{
+          borderCollapse: 'collapse',
+          border: '1px solid #FF0000',
+          margin: '20px',
+          fontFamily: 'courier',
+          fontSize: '.8em',
+        }}
+      >
+        <tr>
+          <td colspan="2">tags: [</td>
+        </tr>
+        <tr>
+          <td style={{width: '50px'}}></td>
+          <td>["L", "com.cornychat"],</td>
+        </tr>
+        <tr>
+          <td style={{width: '50px'}}></td>
+          <td>["l", "cornychat.com", "com.cornychat"],</td>
+        </tr>
+        <tr>
+          <td style={{width: '50px'}}></td>
+          <td>["l", "audiospace", "com.cornychat"],</td>
+        </tr>
+        <tr>
+          <td style={{width: '50px'}}></td>
+          <td>
+            ["a", "34388:author-pubkey:soundeffectset-identity"], // repeated
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2">]</td>
+        </tr>
+      </table>
 
       <a name="kind23194nip47request"></a>
       <h2 style={{backgroundColor: '#ff0000'}}>
@@ -1056,12 +1115,6 @@ export default function DataTypes() {
       </h2>
       <p>The service announces kinds it can handle to nostr relays.</p>
 
-      <p>
-        <a href="/" style={{textDecoration: 'underline'}}>
-          Home
-        </a>
-      </p>
-
       <a name="kind32388roomfavorites"></a>
       <h2 style={{backgroundColor: '#ff0000'}}>Kind 32388 - Room Favorites</h2>
       <p>
@@ -1149,6 +1202,106 @@ export default function DataTypes() {
           <td colspan="2">]</td>
         </tr>
       </table>
+
+      <a name="kind34388soundeffectsets"></a>
+      <h2 style={{backgroundColor: '#ff0000'}}>Kind 34388 - Sound Effects</h2>
+      <p>
+        Sound Effect Sets are a collection of related sound effect resources.
+        Modeled after Emoji Sets, each sound entry in a set includes a shortcode
+        or caption, the URL to the sound effect file, and an optional URL for an
+        iconic representation. As a replaceable event, a `d` tag defines a
+        unique identity for the set as defined by the author pubkey. The author
+        of the set may also provide helpful metadata for a name and general
+        description for the set. Example of expected tags for this structure are
+        as follows:
+      </p>
+      <table
+        style={{
+          borderCollapse: 'collapse',
+          border: '1px solid #FF0000',
+          margin: '20px',
+          fontFamily: 'courier',
+          fontSize: '.8em',
+        }}
+      >
+        <tr>
+          <td colspan="2">tags: [</td>
+        </tr>
+        <tr>
+          <td style={{width: '50px'}}></td>
+          <td>["d", "the-d-tag"],</td>
+        </tr>
+        <tr>
+          <td style={{width: '50px'}}></td>
+          <td>["title", "Locomotive Sounds"],</td>
+        </tr>
+        <tr>
+          <td style={{width: '50px'}}></td>
+          <td>["image", "Deleted Event"],</td>
+        </tr>
+        <tr>
+          <td style={{width: '50px'}}></td>
+          <td>
+            ["summary", "An assortment of locomotive sounds through the ages"],
+          </td>
+        </tr>
+        <tr>
+          <td style={{width: '50px'}}></td>
+          <td>["L", "com.cornychat"],</td>
+        </tr>
+        <tr>
+          <td style={{width: '50px'}}></td>
+          <td>["l", "cornychat.com", "com.cornychat"],</td>
+        </tr>
+        <tr>
+          <td style={{width: '50px'}}></td>
+          <td>["l", "audiospace", "com.cornychat"],</td>
+        </tr>
+        <tr>
+          <td style={{width: '50px'}}></td>
+          <td>
+            ["sound", "steam crossing",
+            "https://cornychat.com/mp3/steam-train-at-crossing-62158.mp3"],
+          </td>
+        </tr>
+        <tr>
+          <td style={{width: '50px'}}></td>
+          <td>
+            ["sound", "train horn",
+            "https://cornychat.com/mp3/train-horn-306424.mp3"],
+          </td>
+        </tr>
+        <tr>
+          <td style={{width: '50px'}}></td>
+          <td>
+            ["sound", "train on tracks",
+            "https://cornychat.com/mp3/train-on-tracks-232447.mp3"],
+          </td>
+        </tr>
+        <tr>
+          <td style={{width: '50px'}}></td>
+          <td>
+            ["sound", "whistle",
+            "https://cornychat.com/mp3/old-train-steam-whistle-reverb-256873.mp3"],
+          </td>
+        </tr>
+        <tr>
+          <td style={{width: '50px'}}></td>
+          <td>
+            ["sound", "steam engine",
+            "https://cornychat.com/mp3/steam-engine-37399.mp3"],
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2">]</td>
+        </tr>
+      </table>
+
+      <p>
+        <a href="/" style={{textDecoration: 'underline'}}>
+          Home
+        </a>
+      </p>
     </div>
   );
 }

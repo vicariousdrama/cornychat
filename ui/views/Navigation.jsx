@@ -25,7 +25,10 @@ export default function Navigation({
   iAmAdmin,
 }) {
   let mqp = useMqParser();
-  const [state, {leaveRoom, sendReaction, retryMic, setProps}] = useJam();
+  const [
+    state,
+    {leaveRoom, sendReaction, sendSound, retryMic, setProps},
+  ] = useJam();
   let [room, roomId, myId] = use(state, ['room', 'roomId', 'myId']);
   let [myAudio, micMuted, handRaised, handType, iSpeak, iOwn] = use(state, [
     'myAudio',
@@ -35,6 +38,15 @@ export default function Navigation({
     'iAmSpeaker',
     'iAmOwner',
   ]);
+  const reactionSounds = [];
+  let activeSoundboard = localStorage.getItem('soundBoardActive');
+  const hasSoundboard = activeSoundboard ?? false;
+  if (hasSoundboard) {
+    activeSoundboard = JSON.parse(activeSoundboard);
+    for (let t of activeSoundboard.tags) {
+      if (t[0] == 'sound') reactionSounds.push(t);
+    }
+  }
 
   const [time, setTime] = useState(Date.now());
   const colorTheme = state.room?.color ?? 'default';
@@ -123,27 +135,99 @@ export default function Navigation({
 
   let limitReactions = false;
   let reactionQueue = [];
+  let lastReactionTime = 0;
   function queueReaction(r) {
     if (!reactionsEnabled) {
       r = '⚡';
     }
-    if (!limitReactions) {
-      sendReaction(r, sessionStorage.getItem('peerSelected'));
-      return;
+    if (limitReactions) {
+      if (reactionQueue.length < 10) {
+        reactionQueue.push(r);
+      }
+    } else {
+      reactionQueue.push(r);
     }
-    if (limitReactions && reactionQueue.length < 10) reactionQueue.push(r);
   }
   function sendReactions() {
-    let r = reactionQueue.shift();
-    if (r) sendReaction(r, sessionStorage.getItem('peerSelected'));
+    let ct = Math.floor(Date.now() / 1000);
+    if (!limitReactions || ct - 200 > lastReactionTime) {
+      let r = reactionQueue.shift();
+      if (r) sendReaction(r, sessionStorage.getItem('peerSelected'));
+      lastReactionTime = ct;
+    }
   }
-  if (limitReactions) {
-    setInterval(sendReactions, 250);
+  setInterval(sendReactions, 250);
+  let limitSounds = false;
+  let soundQueue = [];
+  let lastSoundTime = 0;
+  function queueSound(s) {
+    if (limitSounds) {
+      if (soundQueue.length < 3) {
+        soundQueue.push(s);
+      }
+    } else {
+      soundQueue.push(s);
+    }
   }
+  function sendSounds() {
+    let ct = Math.floor(Date.now() / 1000);
+    if (!limitSounds || ct - 5000 > lastSoundTime) {
+      let s = soundQueue.shift();
+      if (s) sendSound(s, sessionStorage.getItem('peerSelected'));
+      lastSoundTime = ct;
+    }
+  }
+  setInterval(sendSounds, 250);
 
   function ReactionsEmojis() {
     return (
       <div>
+        {iSpeak &&
+          hasSoundboard &&
+          reactionSounds.map((s, index) => {
+            let scaption = s.length > 1 ? s[1] : '';
+            let ssound = s.length > 2 ? s[2] : '';
+            let simage = s.length > 3 ? s[3] : '';
+            if (location.host == 'test-cornychat.com') {
+              ssound = ssound.replace(
+                'https://cornychat.com/',
+                'https://test-cornychat.com/'
+              );
+              simage = simage.replace(
+                'https://cornychat.com/',
+                'https://test-cornychat.com/'
+              );
+            }
+            return (
+              <button
+                className="human-radius text-2xl select-none"
+                key={ssound}
+                onClick={() => {
+                  queueSound(ssound);
+                  if (simage.length > 0) queueReaction(simage);
+                }}
+                style={{
+                  width: '48px',
+                  height: '48px',
+                }}
+                title={scaption}
+              >
+                {simage.length > 0 ? (
+                  <img
+                    src={simage}
+                    style={{
+                      width: '100%',
+                      height: 'auto',
+                      border: '0px',
+                      display: 'inline',
+                    }}
+                  />
+                ) : (
+                  <>🔈</>
+                )}
+              </button>
+            );
+          })}
         {areEmojisSet ? (
           emojis.map(r => (
             <button
@@ -533,7 +617,7 @@ export default function Navigation({
         {showReactions && (
           <div
             className="text-4xl items-center max-w-md flex flex-wrap overflow-y-scroll text-black text-center rounded-lg left-0 bottom-14"
-            style={{backgroundColor: roomColor.avatarBg, maxHeight: '3.25em'}}
+            style={{backgroundColor: roomColor.avatarBg, maxHeight: '3.67em'}}
           >
             <ReactionsEmojis />
           </div>

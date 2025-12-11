@@ -202,6 +202,10 @@ function renderEvent(event) {
         renderTitle(`Relay List`);
         renderText(`Corny Chat supports the outbox model and discovery of a user's relays via the Relay List Metadata`);
     }
+    else if (event.kind === 14388) {
+        renderTitle(`User Sound Effects List`);
+        renderText(`Sound Effect List is a collection of user favorited sound effect sets. The sound effects in this list appear in user preferences to select a preferred sound set to use for sound effects in room.`);
+    }
     else if (event.kind === 23194) {
         renderTitle(`Nostr Wallet Connect Request`);
         renderText(`NWC requests are used in Corny Chat for issuing commands to a NWC provider`);
@@ -283,6 +287,10 @@ function renderEvent(event) {
     else if (event.kind === 33388) {
         renderTitle(`Corny Chat High Scores`);
         renderText(`Corny Chat points may be awarded for various actions by users. This kind tracks the current score for referenced pubkeys.`);
+    }
+    else if (event.kind === 34388) {
+        renderTitle(`Sound Effect Set`);
+        renderText(`Sound Effect Sets are a collection of sound effect files. Corny Chat lets users choose sound effect sets to render a sound board for playing sound effects in a room.`);
     }
     else {
         renderTitle(`Kind ${event.kind}`);

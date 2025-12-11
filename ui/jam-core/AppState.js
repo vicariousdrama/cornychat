@@ -9,6 +9,7 @@ import {AudioState} from './audio';
 import {VideoState} from './video';
 import {BackChannel} from './backchannel';
 import {Reactions} from './reactions';
+import {SoundReactions} from './soundreactions';
 import {TextChat} from './textchat';
 import {ClientSideActionReport} from './clientsideaction';
 import {RoomState} from './room';
@@ -56,10 +57,23 @@ export default function AppState({hasMediasoup, hasBroadcast}) {
       peerState,
       myPeerState,
     });
-    let {room, iAmSpeaker, iAmModerator, iAmOwner, iAmPresenter, hasRoom} = roomState;
+    let {
+      room,
+      iAmSpeaker,
+      iAmModerator,
+      iAmOwner,
+      iAmPresenter,
+      hasRoom,
+    } = roomState;
     let inRoom = use(InRoom, {roomState, autoJoin, autoRejoin});
 
-    declare(ModeratorState, {swarm, moderators: room.moderators, owners: room.owners, handRaised, handType});
+    declare(ModeratorState, {
+      swarm,
+      moderators: room.moderators,
+      owners: room.owners,
+      handRaised,
+      handType,
+    });
 
     let remoteStreams = use(ConnectMedia, {
       roomState,
@@ -79,11 +93,22 @@ export default function AppState({hasMediasoup, hasBroadcast}) {
 
     is(myPeerState, {micMuted, inRoom: !!inRoom, handType, passphraseHash});
     declare(Reactions, {swarm});
+    declare(SoundReactions, {swarm});
     declare(TextChat, {swarm});
     declare(ClientSideActionReport, {swarm});
 
     return merge(
-      {swarm, micMuted, handRaised, handType, passphraseHash, inRoom, myId, myIdentity, remoteStreams},
+      {
+        swarm,
+        micMuted,
+        handRaised,
+        handType,
+        passphraseHash,
+        inRoom,
+        myId,
+        myIdentity,
+        remoteStreams,
+      },
       roomState,
       declare(PeerState, {swarm}),
       declare(ConnectRoom, {
