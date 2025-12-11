@@ -15,6 +15,7 @@ import {parseUrlConfig} from './lib/url-utils';
 import {colors} from './lib/theme.js';
 import About from './pages/About';
 import DataTypes from './pages/DataTypes';
+import SFX from './pages/SFX';
 
 let urlConfig = parseUrlConfig(location.search, location.hash);
 
@@ -55,6 +56,8 @@ function JamUI({style, className, route = null, dynamicConfig = {}, ...props}) {
         return <About />;
       case 'datatypes':
         return <DataTypes />;
+      case 'sfx':
+        return <SFX />;
       default:
         roomId = route;
         return (

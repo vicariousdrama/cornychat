@@ -393,6 +393,7 @@ export default function Room({room, roomId, uxConfig}) {
       }
     }
   }
+  sessionStorage.setItem(`${roomId}.stagePeerIds`, JSON.stringify(stagePeers));
 
   () => setAudience(stagePeers.length + audiencePeers.length + 1);
 

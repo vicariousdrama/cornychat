@@ -140,6 +140,7 @@ const defaultState = {
   },
 
   reactions: {},
+  sounds: {},
   handRaised: false,
   handType: '',
   passphraseHash: '',
@@ -180,6 +181,7 @@ export const actions = {
   SELECT_MIC: Action('select-mic'),
   RETRY_AUDIO: Action('retry-audio'),
   REACTION: Action('reaction'),
+  SOUND: Action('sound'),
   AUTO_JOIN: Action('auto-join'),
   START_SERVER_RECORDING: Action('start-server-recording'),
   STOP_SERVER_RECORDING: Action('stop-server-recording'),

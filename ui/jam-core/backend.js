@@ -231,7 +231,7 @@ async function getRoomList() {
 }
 
 async function getAllActiveRoomList() {
-  return await get(`/roomlist/*`);
+  return await get(`/roomlist/knots-is-malware`);
 }
 
 async function getScheduledEvents() {

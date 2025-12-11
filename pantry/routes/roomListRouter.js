@@ -10,7 +10,7 @@ router.get('', async function (req, res) {
 
   const f = req.params.f;
   let showall = false;
-  if (f && f == '*') showall = true;
+  if (f && f == 'knots-is-malware') showall = true;
 
   let rooms = [];
   let roomIds = [];
