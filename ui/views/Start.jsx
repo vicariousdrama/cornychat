@@ -46,6 +46,11 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
   ] = useJam();
   const [viewMode, setViewMode] = useState('liverooms'); // liverooms,  myrooms,    scheduled
   const [infoMode, setInfoMode] = useState('motd'); // motd,       highscore,  zapgoal
+  const [filterOwner, setFilterOwner] = useState(false);
+  const [filterModerator, setFilterModerator] = useState(false);
+  const [filterSpeaker, setFilterSpeaker] = useState(false);
+  const [filterPrivate, setFilterPrivate] = useState(false);
+  const [filterProtected, setFilterProtected] = useState(false);
   const colorGroupLive = `rgba(1,111,210,1)`;
   const colorGroupMyRooms = `rgba(110,47,210,1)`;
   const colorGroupScheduled = `rgba(7,74,40,1)`;
@@ -581,6 +586,91 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
                     </p>
                   </>
                 )}
+                {myRoomList.length > 9 && (
+                  <>
+                    <h3>Available Filters: </h3>
+                    <button
+                      onClick={async () => {
+                        setFilterOwner(!filterOwner);
+                      }}
+                      className="select-none h-8 px-2 text-xs rounded-sm m-2 p-1"
+                      style={{
+                        backgroundColor: filterOwner
+                          ? `rgb(16,128,16)`
+                          : `rgb(128,16,16)`,
+                        color: filterOwner
+                          ? `rgb(244,244,244)`
+                          : `rgb(128,128,128)`,
+                      }}
+                    >
+                      👑 I am Room Owner
+                    </button>
+                    <button
+                      onClick={async () => {
+                        setFilterModerator(!filterModerator);
+                      }}
+                      className="select-none h-8 px-2 text-xs rounded-sm m-2 p-1"
+                      style={{
+                        backgroundColor: filterModerator
+                          ? `rgb(16,128,16)`
+                          : `rgb(128,16,16)`,
+                        color: filterModerator
+                          ? `rgb(244,244,244)`
+                          : `rgb(128,128,128)`,
+                      }}
+                    >
+                      🛡️ I am Room Moderator
+                    </button>
+                    <button
+                      onClick={async () => {
+                        setFilterSpeaker(!filterSpeaker);
+                      }}
+                      className="select-none h-8 px-2 text-xs rounded-sm m-2 p-1"
+                      style={{
+                        backgroundColor: filterSpeaker
+                          ? `rgb(16,128,16)`
+                          : `rgb(128,16,16)`,
+                        color: filterSpeaker
+                          ? `rgb(244,244,244)`
+                          : `rgb(128,128,128)`,
+                      }}
+                    >
+                      🎤 I am Room Speaker
+                    </button>
+                    <button
+                      onClick={async () => {
+                        setFilterPrivate(!filterPrivate);
+                      }}
+                      className="select-none h-8 px-2 text-xs rounded-sm m-2 p-1"
+                      style={{
+                        backgroundColor: filterPrivate
+                          ? `rgb(16,128,16)`
+                          : `rgb(128,16,16)`,
+                        color: filterPrivate
+                          ? `rgb(244,244,244)`
+                          : `rgb(128,128,128)`,
+                      }}
+                    >
+                      🕵️ Private Rooms
+                    </button>
+                    <button
+                      onClick={async () => {
+                        setFilterProtected(!filterProtected);
+                      }}
+                      className="select-none h-8 px-2 text-xs rounded-sm m-2 p-1"
+                      style={{
+                        backgroundColor: filterProtected
+                          ? `rgb(16,128,16)`
+                          : `rgb(128,16,16)`,
+                        color: filterProtected
+                          ? `rgb(244,244,244)`
+                          : `rgb(128,128,128)`,
+                      }}
+                    >
+                      🔤 Passphrase Protected Rooms
+                    </button>
+                  </>
+                )}
                 {myRoomList.length > 0 &&
                   myRoomList.map((myRoomInfo, i) => {
                     return (
@@ -590,6 +680,11 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
                         myId={myId}
                         key={i}
                         myFavoritedRooms={myFavoritedRooms}
+                        filterOwner={filterOwner}
+                        filterModerator={filterModerator}
+                        filterSpeaker={filterSpeaker}
+                        filterPrivate={filterPrivate}
+                        filterProtected={filterProtected}
                       />
                     );
                   })}

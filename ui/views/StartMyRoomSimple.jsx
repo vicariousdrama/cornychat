@@ -7,6 +7,11 @@ export default function StartMyRoomSimple({
   index,
   myId,
   myFavoritedRooms,
+  filterOwner,
+  filterModerator,
+  filterSpeaker,
+  filterPrivate,
+  filterProtected,
 }) {
   const [state, api] = useJam();
   const {removeSelfFromRoom} = api;
@@ -34,6 +39,12 @@ export default function StartMyRoomSimple({
     isFavorited = true;
     break;
   }
+
+  if (filterOwner && !isOwner) return <></>;
+  if (filterModerator && !isOwner && !isModerator) return <></>;
+  if (filterSpeaker && !isOwner && !isModerator && !isSpeaker) return <></>;
+  if (filterPrivate && !isPrivate) return <></>;
+  if (filterProtected && !isProtected) return <></>;
 
   // time constraint
   let now = Date.now();
