@@ -4,9 +4,9 @@ import {emit, set} from 'minimal-state';
 import {timeout, addTimeout, stopTimeout} from './timeout';
 import {DISCONNECTED, INITIAL} from './swarm-health';
 
-const MAX_CONNECT_TIME = 6000;
-const MAX_CONNECT_TIME_AFTER_ICE_DISCONNECT = 2000;
-const MIN_MAX_CONNECT_TIME_AFTER_SIGNAL = 2000;
+const MAX_CONNECT_TIME = 8000; // 6000
+const MAX_CONNECT_TIME_AFTER_ICE_DISCONNECT = 3000; // 2000
+const MIN_MAX_CONNECT_TIME_AFTER_SIGNAL = 3000; // 2000
 const MAX_FAIL_TIME = Infinity;
 
 export {

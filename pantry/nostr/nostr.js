@@ -342,7 +342,7 @@ const getScheduledEvents = async () => {
             if (startTime > maxTime) {
               if (pmd)
                 console.log(
-                  '[getScheduledEvents] skipping event that starts more than a week from now'
+                  `[getScheduledEvents] skipping event that starts (${startTime}) more than a month from now (${title})`
                 );
               continue; // must start within 1 week
             }
@@ -519,8 +519,8 @@ const getScheduledEvents = async () => {
                 continue;
               }
               if (startTime > maxTime) {
-                //console.log(`[getScheduledEvents] skipping event ${dTag} that starts more than a week from now`);
-                continue; // must start within 1 week
+                //console.log(`[getScheduledEvents] skipping event ${dTag} that starts more than a month from now`);
+                continue; // must start within 1 month
               }
               // check for required fields
               if (!(title && location && startTime && endTime)) {
