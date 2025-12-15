@@ -426,13 +426,14 @@ export default function Room({room, roomId, uxConfig}) {
   if (localStorage.getItem('animationsEnabled')) mainHeightOffset += 32; // animations will be clicked
   if (isRecording) mainHeightOffset += 32; // recording
   if (srfm && srfm.length > 0) mainHeightOffset += 32;
+  let dbv = Math.floor(localStorage.getItem('doorbellVolume') ?? '50') / 100;
 
   return (
     <div className="h-screen w-screen flex flex-col justify-between overflow-y-scroll">
       <audio
         id="doorbellsound"
         src="/mp3/call-to-attention-123107.mp3"
-        volume=".5"
+        volume={dbv}
       />
 
       <div

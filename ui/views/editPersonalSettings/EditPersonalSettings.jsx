@@ -104,12 +104,18 @@ export default function EditPersonalSettings({close}) {
   let [doorbellEnabled, setDoorbellEnabled] = useState(
     localStorage.getItem('doorbellEnabled') ?? '0'
   );
+  let [doorbellVolume, setDoorbellVolume] = useState(
+    localStorage.getItem('doorbellVolume') ?? '50'
+  );
   let [soundBoardId, setSoundBoardId] = useState(
     localStorage.getItem('soundBoardId') ?? '0'
   );
   let soundBoards = JSON.parse(localStorage.getItem('soundBoards') ?? '[]');
   let allSoundBoards = JSON.parse(
     localStorage.getItem('allSoundBoards') ?? '[]'
+  );
+  let [soundBoardVolume, setSoundBoardVolume] = useState(
+    localStorage.getItem('soundBoardVolume') ?? '50'
   );
   let [textchatLayout, setTextchatLayout] = useState(
     localStorage.getItem('textchat.layout') ?? 'left'
@@ -411,6 +417,7 @@ export default function EditPersonalSettings({close}) {
     localStorage.setItem('maxPostsToDisplay', maxPostsToDisplay);
     localStorage.setItem('onlyZapsEnabled', onlyZapsEnabled);
     localStorage.setItem('doorbellEnabled', doorbellEnabled);
+    localStorage.setItem('doorbellVolume', doorbellVolume);
     localStorage.setItem('soundBoardId', soundBoardId);
     if (soundBoardId != '') {
       let soundBoardFound = false;
@@ -446,6 +453,7 @@ export default function EditPersonalSettings({close}) {
         }
       }
     }
+    localStorage.setItem('soundBoardVolume', soundBoardVolume);
     localStorage.setItem('textchat.layout', textchatLayout);
     localStorage.setItem('textchat.showNames', textchatShowNames);
     localStorage.setItem('textchat.showAvatars', textchatShowAvatars);
@@ -522,7 +530,7 @@ export default function EditPersonalSettings({close}) {
     let dbs = document.getElementById('doorbellsound');
     if (dbs == undefined) return;
     dbs.src = doorbellsounds[Math.floor(dbe) - 1][0];
-    dbs.volume = 0.5;
+    dbs.volume = Math.floor(doorbellVolume) / 100;
     dbs.play();
     let r = (async () => {
       await sendCSAR('previewdoorbell');
@@ -1114,6 +1122,19 @@ export default function EditPersonalSettings({close}) {
                 );
               })}
             </select>
+            <p className="text-sm font-medium text-gray-300">Doorbell Volume</p>
+            <input
+              type="range"
+              min="1"
+              max="100"
+              value={doorbellVolume}
+              onInput={e => {
+                setDoorbellVolume(e.target.value);
+              }}
+              onChange={e => {
+                setDoorbellVolume(e.target.value);
+              }}
+            />
             <button
               onClick={previewDoorbell}
               className="flex-grow mt-5 h-10 mx-2 px-2 text-lg rounded-lg"
@@ -1130,119 +1151,144 @@ export default function EditPersonalSettings({close}) {
               When enabled, a sound will play for you when another user enters
               the room
             </p>
-            {(iAmAdmin || true) &&
-              (soundBoards.length > 0 || allSoundBoards.length > 0) && (
-                <>
-                  <p className="text-sm font-medium text-gray-300">
-                    Soundboard
-                  </p>
-                  <select
-                    name="soundBoardId"
-                    defaultValue={soundBoardId}
-                    onChange={e => {
-                      setSoundBoardId(e.target.value);
-                      sendCSAR('setsoundboard');
-                    }}
-                    className={
-                      'border mt-3 ml-2 p-2 bg-gray-300 text-black rounded max-w-lg'
-                    }
-                  >
-                    <option key="0" value="0">
-                      None
-                    </option>
-                    {soundBoards.length > 0 &&
-                      soundBoards?.map((soundBoardInfo, index) => {
-                        let soundboardKey = `soundboardkey_${index}`;
-                        let soundboardATag = '';
-                        let soundboardTitle = '';
-                        for (let t of soundBoardInfo.tags) {
-                          if (t.length < 2) continue;
-                          if (t[0] == 'd')
-                            soundboardATag = `${soundBoardInfo.kind}:${soundBoardInfo.pubkey}:${t[1]}`;
-                          if (t[0] == 'title') soundboardTitle = t[1];
-                        }
-                        if (soundboardTitle == '')
-                          soundboardTitle = soundboardATag;
-                        if (soundboardATag != '') {
-                          return (
-                            <option key={soundboardKey} value={soundboardATag}>
-                              {soundboardTitle}
-                            </option>
-                          );
-                        } else {
-                          return <></>;
-                        }
-                      })}
-                    {soundBoards.length == 0 &&
-                      allSoundBoards.length > 0 &&
-                      allSoundBoards?.map((soundBoardInfo, index) => {
-                        let soundboardKey = `soundboardkey_${index}`;
-                        let soundboardATag = '';
-                        let soundboardTitle = '';
-                        let soundboardDTag = '';
-                        let soundboardPubkey = soundBoardInfo.pubkey;
-                        for (let t of soundBoardInfo.tags) {
-                          if (t.length < 2) continue;
-                          if (t[0] == 'd') {
-                            soundboardDTag = t[1];
-                            soundboardATag = `${soundBoardInfo.kind}:${soundboardPubkey}:${soundboardDTag}`;
-                          }
-                          if (t[0] == 'title') soundboardTitle = t[1];
-                        }
-                        if (soundboardTitle == '') {
-                          soundboardTitle = soundboardDTag;
-                        }
-                        // try to get creators name
-                        let soundboardNpub = nip19.npubEncode(soundboardPubkey);
-                        let soundboardUserMeta = sessionStorage.getItem(
-                          `${soundboardNpub}.kind0content`
+            {soundBoards.length > 0 || allSoundBoards.length > 0 ? (
+              <>
+                <p className="text-sm font-medium text-gray-300">Soundboard</p>
+                <select
+                  name="soundBoardId"
+                  defaultValue={soundBoardId}
+                  onChange={e => {
+                    setSoundBoardId(e.target.value);
+                    sendCSAR('setsoundboard');
+                  }}
+                  className={
+                    'border mt-3 ml-2 p-2 bg-gray-300 text-black rounded max-w-lg'
+                  }
+                >
+                  <option key="0" value="0">
+                    None
+                  </option>
+                  {soundBoards.length > 0 &&
+                    soundBoards?.map((soundBoardInfo, index) => {
+                      let soundboardKey = `soundboardkey_${index}`;
+                      let soundboardATag = '';
+                      let soundboardTitle = '';
+                      for (let t of soundBoardInfo.tags) {
+                        if (t.length < 2) continue;
+                        if (t[0] == 'd')
+                          soundboardATag = `${soundBoardInfo.kind}:${soundBoardInfo.pubkey}:${t[1]}`;
+                        if (t[0] == 'title') soundboardTitle = t[1];
+                      }
+                      if (soundboardTitle == '')
+                        soundboardTitle = soundboardATag;
+                      if (soundboardATag != '') {
+                        return (
+                          <option key={soundboardKey} value={soundboardATag}>
+                            {soundboardTitle}
+                          </option>
                         );
-                        if (soundboardUserMeta) {
-                          soundboardUserMeta = JSON.parse(soundboardUserMeta);
-                          let fnps = ['name', 'displayName', 'display_name'];
-                          for (let fnp of fnps) {
-                            if (soundboardUserMeta.hasOwnProperty(fnp)) {
-                              let fnv = soundboardUserMeta[fnp];
-                              soundboardTitle = `${fnv}> ${soundboardTitle}`;
-                              break;
-                            }
+                      } else {
+                        return <></>;
+                      }
+                    })}
+                  {soundBoards.length == 0 &&
+                    allSoundBoards.length > 0 &&
+                    allSoundBoards?.map((soundBoardInfo, index) => {
+                      let soundboardKey = `soundboardkey_${index}`;
+                      let soundboardATag = '';
+                      let soundboardTitle = '';
+                      let soundboardDTag = '';
+                      let soundboardPubkey = soundBoardInfo.pubkey;
+                      for (let t of soundBoardInfo.tags) {
+                        if (t.length < 2) continue;
+                        if (t[0] == 'd') {
+                          soundboardDTag = t[1];
+                          soundboardATag = `${soundBoardInfo.kind}:${soundboardPubkey}:${soundboardDTag}`;
+                        }
+                        if (t[0] == 'title') soundboardTitle = t[1];
+                      }
+                      if (soundboardTitle == '') {
+                        soundboardTitle = soundboardDTag;
+                      }
+                      // try to get creators name
+                      let soundboardNpub = nip19.npubEncode(soundboardPubkey);
+                      let soundboardUserMeta = sessionStorage.getItem(
+                        `${soundboardNpub}.kind0content`
+                      );
+                      if (soundboardUserMeta) {
+                        soundboardUserMeta = JSON.parse(soundboardUserMeta);
+                        let fnps = ['name', 'displayName', 'display_name'];
+                        for (let fnp of fnps) {
+                          if (soundboardUserMeta.hasOwnProperty(fnp)) {
+                            let fnv = soundboardUserMeta[fnp];
+                            soundboardTitle = `${fnv}> ${soundboardTitle}`;
+                            break;
                           }
                         }
-                        if (soundboardTitle.indexOf('>') < 0) {
-                          soundboardTitle = `${soundboardNpub.substr(
-                            0,
-                            8
-                          )}..${soundboardNpub.substr(-8)}> ${soundboardTitle}`;
-                        }
-                        if (soundboardATag != '') {
-                          return (
-                            <option key={soundboardKey} value={soundboardATag}>
-                              {soundboardTitle}
-                            </option>
-                          );
-                        } else {
-                          return <></>;
-                        }
-                      })}
-                  </select>
-                  <p className="p-2 text-gray-200 italic">
-                    A soundboard can be selected to be added to the reactions
-                    panel. The list is populated with all community soundboards
-                    discovered, unless you've established your own favorites.
-                    You can choose favorites, as well as create, edit, and copy
-                    soundboards at{' '}
-                    <a
-                      style={{display: 'inline', color: 'yellow'}}
-                      target="_blank"
-                      href="https://cornychat.com/sfx"
-                    >
-                      cornychat.com/sfx
-                    </a>{' '}
-                    or any other nostr enabled app that lets you manage
-                    soundboards.
-                  </p>
-                </>
-              )}
+                      }
+                      if (soundboardTitle.indexOf('>') < 0) {
+                        soundboardTitle = `${soundboardNpub.substr(
+                          0,
+                          8
+                        )}..${soundboardNpub.substr(-8)}> ${soundboardTitle}`;
+                      }
+                      if (soundboardATag != '') {
+                        return (
+                          <option key={soundboardKey} value={soundboardATag}>
+                            {soundboardTitle}
+                          </option>
+                        );
+                      } else {
+                        return <></>;
+                      }
+                    })}
+                </select>
+                <p className="text-sm font-medium text-gray-300">
+                  Soundboard Volume
+                </p>
+                <input
+                  type="range"
+                  min="1"
+                  max="100"
+                  value={soundBoardVolume}
+                  onInput={e => {
+                    setSoundBoardVolume(e.target.value);
+                  }}
+                  onChange={e => {
+                    setSoundBoardVolume(e.target.value);
+                  }}
+                />
+                <p className="p-2 text-gray-200 italic">
+                  A soundboard can be selected to be added to the reactions
+                  panel. The list is populated with all community soundboards
+                  discovered, unless you've established your own favorites. You
+                  can choose favorites, as well as create, edit, and copy
+                  soundboards at{' '}
+                  <a
+                    style={{display: 'inline', color: 'yellow'}}
+                    target="_blank"
+                    href="https://cornychat.com/sfx"
+                  >
+                    cornychat.com/sfx
+                  </a>{' '}
+                  or any other nostr enabled app that lets you manage
+                  soundboards.
+                </p>
+              </>
+            ) : (
+              <p className="p-2 text-gray-200 italic">
+                No soundboards were found. The list is populated with discovered
+                soundboards which may be created and managed at{' '}
+                <a
+                  style={{display: 'inline', color: 'yellow'}}
+                  target="_blank"
+                  href="https://cornychat.com/sfx"
+                >
+                  cornychat.com/sfx
+                </a>{' '}
+                or any other nostr enabled app that lets you manage soundboards.
+              </p>
+            )}
           </div>
         </div>
 
