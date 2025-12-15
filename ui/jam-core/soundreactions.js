@@ -38,6 +38,8 @@ function SoundReactions({swarm}) {
     if (!sounds[peerId]) sounds[peerId] = [];
     let soundObj = [sound, Math.random()];
     let soundFile = sound.sound;
+    let soundVolume =
+      Math.floor(localStorage.getItem('soundBoardVolume') ?? '50') / 100;
     let soundTarget = sound.peerId;
     if (soundTarget == '' || soundTarget == swarm.myPeerId) {
       console.log('peer', peerId, 'sent sound effect', soundFile);
@@ -47,6 +49,8 @@ function SoundReactions({swarm}) {
         // todo: stop timer, start new timer
         sobj.pause();
         sobj.setAttribute('src', soundFile);
+        sobj.setAttribute('volume', soundVolume);
+        sobj.volume = soundVolume;
         sobj.currentTime = 0;
         sobj.play();
       } else {
@@ -54,10 +58,11 @@ function SoundReactions({swarm}) {
         sobj = document.createElement('audio');
         sobj.setAttribute('id', id);
         sobj.setAttribute('src', soundFile);
-        sobj.setAttribute('volume', '.5');
+        sobj.setAttribute('volume', soundVolume);
         sobj.setAttribute('style', 'width:0px;height:0px;display:none;');
         sobj.currentTime = 0;
         document.body.appendChild(sobj);
+        sobj.volume = soundVolume;
         sobj.play();
       }
     }

@@ -27,23 +27,32 @@ function doorbell(d, myPeerId, roomId) {
         }
         // dont play doorbell if its been less than 30 seconds since last time
         let dbt = sessionStorage.getItem(keyDoorbellTime);
-        if ((dbt!=undefined) && ((Math.floor(dbt) + 30) > Math.floor(Date.now() / 1000))) playsound = false;
+        if (
+          dbt != undefined &&
+          Math.floor(dbt) + 30 > Math.floor(Date.now() / 1000)
+        )
+          playsound = false;
         // dont play doorbell if this user left and came back within the past 60 seconds
         let ult = sessionStorage.getItem(keyPeerIdLeft);
-        if ((ult!=undefined) && ((Math.floor(ult) + 60) > Math.floor(Date.now() / 1000))) playsound = false;
+        if (
+          ult != undefined &&
+          Math.floor(ult) + 60 > Math.floor(Date.now() / 1000)
+        )
+          playsound = false;
         if (!playsound) return;
         // Play the sound based on index user chose
-        let dbe = localStorage.getItem("doorbellEnabled");
+        let dbe = localStorage.getItem('doorbellEnabled');
         if (dbe == undefined) return;
         if (dbe == false) return;
         if (dbe == true) dbe = 1;
         if (dbe == null) return;
         dbe = Math.floor(dbe);
         //let dbs = document.getElementById("doorbellsound" + String(dbe));
-        let dbs = document.getElementById("doorbellsound");
-        if(dbs == undefined) return;
-        dbs.src = doorbellsounds[dbe-1][0];
-        dbs.volume = .5;
+        let dbs = document.getElementById('doorbellsound');
+        if (dbs == undefined) return;
+        dbs.src = doorbellsounds[dbe - 1][0];
+        let dbv = localStorage.getItem('doorbellVolume') ?? '50';
+        dbs.volume = Math.floor(dbv) / 100;
         dbs.play();
         //sendCSAR("playdoorbell");
         // Mark time last played
@@ -55,7 +64,9 @@ function doorbell(d, myPeerId, roomId) {
         inRoomPeerIds = JSON.parse(inRoomPeerIds);
         let removing = inRoomPeerIds.includes(d.peerId);
         if (removing) {
-          let newRoomPeerIds = inRoomPeerIds.filter(function (v) {return v != d.peerId});
+          let newRoomPeerIds = inRoomPeerIds.filter(function (v) {
+            return v != d.peerId;
+          });
           sessionStorage.setItem(keyPeerIds, JSON.stringify(newRoomPeerIds));
           // Indicate when left
           sessionStorage.setItem(keyPeerIdLeft, Math.floor(Date.now() / 1000));
@@ -69,14 +80,11 @@ function doorbell(d, myPeerId, roomId) {
 }
 
 const doorbellsounds = [
-  ["/mp3/call-to-attention-123107.mp3", "Call to Attention"],
-  ["/mp3/conveniencestorering-96090.mp3", "Convenience Store"],
-  ["/mp3/level-up-191997.mp3", "Level Up"],
-  ["/mp3/melancholy-ui-chime-47804.mp3", "Melancholy Chime"],
-  ["/mp3/wheep-wheep-101146.mp3", "Wheep Wheep"],
+  ['/mp3/call-to-attention-123107.mp3', 'Call to Attention'],
+  ['/mp3/conveniencestorering-96090.mp3', 'Convenience Store'],
+  ['/mp3/level-up-191997.mp3', 'Level Up'],
+  ['/mp3/melancholy-ui-chime-47804.mp3', 'Melancholy Chime'],
+  ['/mp3/wheep-wheep-101146.mp3', 'Wheep Wheep'],
 ];
 
-export {
-  doorbell, 
-  doorbellsounds,
-};
+export {doorbell, doorbellsounds};
