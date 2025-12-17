@@ -5,6 +5,7 @@ import {useJam} from '../../jam-core-react.js';
 import {
   getUserMetadata,
   getUserEventById,
+  loadFavoriteSoundEffectSets,
   rebuildCustomEmojis,
 } from '../../nostr/nostr.js';
 import {nip19} from 'nostr-tools';
@@ -316,6 +317,16 @@ export default function EditPersonalSettings({close}) {
     });
   };
 
+  async function reloadSoundboards() {
+    localStorage.removeItem('soundBoards');
+    localStorage.removeItem('soundBoards.retrievedTime');
+    localStorage.removeItem('allSoundBoards');
+    // need to nix 14388 and 34388 events too?
+    let s = await loadFavoriteSoundEffectSets();
+    soundBoards = JSON.parse(localStorage.getItem('soundBoards') ?? '[]');
+    allSoundBoards = JSON.parse(localStorage.getItem('allSoundBoards') ?? '[]');
+  }
+
   const updateValues = async (file, identities) => {
     setIsSaving(true);
     if (file) {
@@ -396,7 +407,6 @@ export default function EditPersonalSettings({close}) {
 
   let submit = async e => {
     e.preventDefault();
-    //sessionStorage.clear();
     setIsSaving(true);
     // for now, disallow uploading file, so we set as undefined to alter flow
     const selectedFile = undefined; // document.querySelector('.edit-profile-file-input').files[0];
@@ -1289,6 +1299,19 @@ export default function EditPersonalSettings({close}) {
                 or any other nostr enabled app that lets you manage soundboards.
               </p>
             )}
+            <button
+              className="mx-2 px-2 py-2 text-sm rounded-md"
+              style={{
+                color: textColor,
+                backgroundColor: roomColor.buttons.primary,
+              }}
+              onClick={async e => {
+                e.preventDefault();
+                await reloadSoundboards();
+              }}
+            >
+              Reload Soundboards
+            </button>
           </div>
         </div>
 

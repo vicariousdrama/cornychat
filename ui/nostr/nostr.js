@@ -292,6 +292,53 @@ export async function getUserEventsByKind(pubkey, kind, timeSince) {
             }
           }
         }
+        // single replaceables (10000 series) should only return latest one
+        if ([0, 3].includes(kind) || (kind >= 10000 && kind <= 19999)) {
+          let newestEvent = {created_at: -1};
+          for (let ue of userEvents) {
+            if (ue.created_at > newestEvent.created_at) newestEvent = ue;
+          }
+          userEvents = [newestEvent];
+        }
+        // parameterized replaceables (30000 series) need to filter out replaced entries
+        if ([8].includes(kind) || (kind >= 30000 && kind <= 39999)) {
+          let newestEvents = {};
+          for (let ue of userEvents) {
+            for (let t of ue.tags) {
+              if (t.length < 2) continue;
+              if (t[0] == 'd') {
+                let d = t[1];
+                if (newestEvents.hasOwnProperty(d)) {
+                  if (newestEvents[d] < ue.created_at) {
+                    newestEvents[d] = ue.created_at;
+                  }
+                } else {
+                  newestEvents[d] = ue.created_at;
+                }
+                break;
+              }
+            }
+          }
+          let rEvents = [];
+          for (let ue of userEvents) {
+            let f = false;
+            for (let t of ue.tags) {
+              if (t.length < 2) continue;
+              if (t[0] == 'd') {
+                let d = t[1];
+                if (newestEvents[d] == ue.created_at) {
+                  f = true;
+                  break;
+                }
+              }
+            }
+            if (f) {
+              rEvents.push(ue);
+              break;
+            }
+          }
+          userEvents = rEvents;
+        }
         // sorts as chronological order
         userEvents.sort((a, b) =>
           a.created_at > b.created_at ? 1 : b.created_at > a.created_at ? -1 : 0
