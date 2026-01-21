@@ -33,25 +33,10 @@ const checkGoal = async (currentGoal, sk) => {
     }
   }
   let relays = relaysZapGoals.split(',');
-  let monthname = new Intl.DateTimeFormat('en', {month: 'long'}).format(
-    new Date()
-  );
-  let goalDescription = `Infrastructure Costs for ${monthname}`;
-  let amount = 100000;
-  let amounts = [
-    [0, 100000, `Infrastructure Costs for ${monthname}`], // Since implemented
-    [1725148800000, 50000, `Server management for ${monthname}`], // September 1, 2024
-    [1743465600000, 34567, `Server management for ${monthname}`], // April 1, 2025
-    [1751328000000, 30000, `Server management for ${monthname}`], // July 1, 2025
-    [1759276800000, 32000, `Server management for ${monthname}`], // October 1, 2025
-    [1782864000000, 45000, `Server management for ${monthname}`], // July 1, 2026
-  ];
-  for (let a of amounts) {
-    if (a[0] < theTime) {
-      amount = a[1];
-      goalDescription = a[2];
-    }
-  }
+  // Annual goal
+  let theYear = new Date().getUTCFullYear();
+  let goalDescription = `Infrastructure Costs for ${theYear}`;
+  let amount = 212121;
 
   let update = false;
   if (currentGoal.created_at == 0) {

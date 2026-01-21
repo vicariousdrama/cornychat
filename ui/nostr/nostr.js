@@ -133,7 +133,7 @@ export async function getOutboxRelays(pubkey) {
         filter,
         relaysToUse,
         (event, onEose, url) => {
-          events.push(event);
+          if (event.kind == 10002 && event.pubkey == pubkey) events.push(event);
         },
         undefined,
         undefined,
@@ -359,7 +359,12 @@ export async function getUserEventsByKind(pubkey, kind, timeSince) {
         filter,
         relaysToUse,
         (event, afterEose, url) => {
-          userEvents.push(event);
+          if (
+            kind == event.kind &&
+            (!pubkey || pubkey == '*' || pubkey == '' || pubkey == event.pubkey)
+          ) {
+            userEvents.push(event);
+          }
         },
         undefined,
         undefined,
@@ -401,7 +406,8 @@ export async function getUserEventById(pubkey, id) {
         relaysToUse,
         (event, afterEose, url) => {
           clearTimeout(timeoutRelays);
-          userEvents.push(event);
+          if (event.kind == 1 && event.pubkey == pubkey && event.id == id)
+            userEvents.push(event);
           localpool.close();
           res(event);
         },
@@ -496,7 +502,7 @@ export async function getUserMetadata(pubkey, id) {
         filter,
         relaysToUse,
         (event, afterEose, url) => {
-          userEvents.push(event);
+          if (event.pubkey == pubkey && event.kind == 0) userEvents.push(event);
         },
         undefined,
         undefined,
@@ -553,7 +559,7 @@ export async function getZapReceipts(eventId) {
         filter,
         relaysToUse,
         (event, afterEose, url) => {
-          userEvents.push(event);
+          if (event.kind == 9735) userEvents.push(event);
         },
         undefined,
         undefined,
@@ -804,7 +810,8 @@ export async function loadFollowList(followListDTag) {
         filter,
         relaysToUse,
         (event, onEose, url) => {
-          events.push(event);
+          if (event.kind == kind && event.pubkey == myPubkey)
+            events.push(event);
         },
         undefined,
         undefined,
@@ -1151,7 +1158,8 @@ export async function loadFavoriteRooms() {
         filter,
         relaysToUse,
         (event, onEose, url) => {
-          events.push(event);
+          if (event.kind == kind && event.pubkey == myPubkey)
+            events.push(event);
         },
         undefined,
         undefined,
@@ -1605,7 +1613,7 @@ export async function loadList(kind, pubkey) {
         filters,
         relaysToUse,
         (event, onEose, url) => {
-          events.push(event);
+          if (event.kind == kind && event.pubkey == pubkey) events.push(event);
         },
         undefined,
         undefined,
@@ -1817,7 +1825,8 @@ export async function loadPetnames() {
         filters,
         relaysToUse,
         (event, onEose, url) => {
-          events.push(event);
+          if (event.kind == 30382 && event.pubkey == myPubkey)
+            events.push(event);
         },
         undefined,
         undefined,
@@ -1914,7 +1923,8 @@ export async function getRelationshipForNpub(userNpub) {
         filters,
         relaysToUse,
         (event, onEose, url) => {
-          events.push(event);
+          if (event.kind == 30382 && event.pubkey == myPubkey)
+            events.push(event);
         },
         undefined,
         undefined,
@@ -2125,7 +2135,7 @@ export async function getCBadgeConfigsForPubkey(pubkey) {
         filters,
         relaysToUse,
         (event, onEose, url) => {
-          events.push(event);
+          if (event.kind == 8) events.push(event);
         },
         undefined,
         undefined,
@@ -2277,7 +2287,8 @@ export async function loadZapGoals() {
         filters,
         relaysToUse,
         (event, onEose, url) => {
-          events.push(event);
+          if (event.kind == 9041 && event.pubkey == myPubkey)
+            events.push(event);
         },
         undefined,
         undefined,
@@ -2544,7 +2555,7 @@ export async function getUncachedPeerMetadata(inRoomPeerIds) {
         filter,
         relaysToUse,
         (event, afterEose, url) => {
-          userEvents.push(event);
+          if (event.kind == 0) userEvents.push(event);
         },
         undefined,
         undefined,
