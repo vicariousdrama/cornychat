@@ -107,6 +107,17 @@ export default function ZapGoalBar({
   async function _checkZaps(zapgoal) {
     let receipts = await getZapReceipts(zapgoal.id);
     let totalSats = 0;
+    // For 2026, add zaps already given to the January goal
+    if (
+      String(zapgoal.content).startsWith('Infrastructure Costs for') &&
+      zapgoal.created_at < 1798761600 &&
+      (zapgoal.pubkey ==
+        'c3c73212fb6cd88d1acc18f6849c660c46a3c972bf5a766c5938d0649fddcb7c' ||
+        zapgoal.pubkey ==
+          'd4e4a4d0e1d1519098b534cbcb3c023946b62160c77aed1e4c22fdd78a7e4d3b')
+    ) {
+      totalSats = 10522;
+    }
     // TODO: more validation
     for (let receipt of receipts) {
       for (let tag of receipt?.tags) {
