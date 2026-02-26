@@ -47,6 +47,7 @@ import {
   getStaticEventsList,
   getMyRoomList,
   getRoomATag,
+  getZapGoalBalance,
   isRoomMember,
 } from './jam-core/backend';
 import {
@@ -123,6 +124,7 @@ function createApi<T extends StateType>(
       displayName(info, room) as string,
     getZapGoal: (roomId: string) =>
       (getZapGoal(roomId) as unknown) as Promise<ZapGoal | undefined>,
+    getZapGoalBalance: () => getZapGoalBalance(),
 
     isRoomMember: (roomId: string) =>
       isRoomMember(state, roomId) as Promise<boolean>,

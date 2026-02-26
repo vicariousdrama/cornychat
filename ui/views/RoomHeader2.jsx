@@ -59,6 +59,7 @@ export default function RoomHeader2({
   );
   const [state, {sendTextChat, sendCSAR, getRoomATag, getZapGoal}] = useJam();
   const [clickedAnimations, setClickedAnimations] = useState([]);
+  const [zapGoalBalance, setZapGoalBalance] = useState(0);
 
   let textchats = JSON.parse(
     localStorage.getItem(`${roomId}.textchat`) || '[]'
@@ -555,6 +556,8 @@ export default function RoomHeader2({
               <ZapGoalBar
                 key={`zapgoalbar_${room.zapGoal.id}`}
                 zapgoal={room.zapGoal}
+                balance={zapGoalBalance}
+                setBalance={setZapGoalBalance}
                 lud16={lud16}
                 textColorTitle={textColor}
                 backgroundColorTitle={colors.avatarBg}

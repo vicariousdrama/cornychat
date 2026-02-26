@@ -44,9 +44,14 @@ const scheduledEventsUpdateInterval = process.env
   .SCHEDULED_EVENTS_UPDATE_INTERVAL
   ? parseInt(process.env.SCHEDULED_EVENTS_UPDATE_INTERVAL)
   : 30; // minutes
+
+// SERVER ZAP GOAL
 const serverZapGoalUpdateInterval = process.env.SERVER_ZAP_GOAL_UPDATE_INTERVAL
   ? parseInt(process.env.SERVER_ZAP_GOAL_UPDATE_INTERVAL)
   : 1; // hours
+const serverZapGoalWalletAPIKeys = process.env.SERVER_ZAP_GOAL_WALLET_API_KEYS
+  ? process.env.SERVER_ZAP_GOAL_WALLET_API_KEYS
+  : ''; // comma delimited list of Wallet api keys
 
 // SUBSCRIPTIONS
 const lnbitsHost = process.env.LNBITS_HOST ?? '';
@@ -89,6 +94,7 @@ module.exports = {
   serverAdminId,
   serverNsec,
   serverZapGoalUpdateInterval,
+  serverZapGoalWalletAPIKeys,
   squareAdFileLocationPath,
   subscriptionsEnabled,
 };

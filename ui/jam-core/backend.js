@@ -28,6 +28,7 @@ export {
   getStaticEventsList,
   getMyRoomList,
   getRoomATag,
+  getZapGoalBalance,
   isRoomMember,
 };
 
@@ -266,6 +267,10 @@ async function getRoomATag(roomId) {
   if (!roomId) return '';
   let aTag = (await get(`/rooms/${roomId}/nip53`))[0];
   return aTag;
+}
+
+async function getZapGoalBalance() {
+  return await get(`/zapgoalbalance/`);
 }
 
 async function isRoomMember(state, roomId) {
