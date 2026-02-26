@@ -43,6 +43,7 @@ const staticEventsRouter = require('./routes/staticEventsRouter');
 const staticRoomsRouter = require('./routes/staticRoomsRouter');
 const subscriptionRouter = require('./routes/subscriptionRouter');
 const userRoomRouter = require('./routes/userRoomsRouter');
+const zapGoalBalanceRouter = require('./routes/zapGoalBalanceRouter');
 const zapGoalRouter = require('./routes/zapGoalRouter');
 
 const app = express();
@@ -102,6 +103,7 @@ app.use('/api/v1/scheduledevents/', scheduledEventsRouter);
 app.use('/api/v1/staticrooms/', staticRoomsRouter);
 app.use('/api/v1/staticevents/', staticEventsRouter);
 app.use('/api/v1/userrooms/', userRoomRouter);
+app.use('/api/v1/zapgoalbalance/', zapGoalBalanceRouter);
 app.use('/api/v1/zapgoal/:id', zapGoalRouter);
 
 app.use('/.well-known/nostr.json', nip05Router);

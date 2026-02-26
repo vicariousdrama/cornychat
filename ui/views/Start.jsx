@@ -23,6 +23,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
   const [loadingZapGoal, setLoadingZapGoal] = useState(false);
   const [showDeleteOldRooms, setShowDeleteOldRooms] = useState(true);
   const [zapGoal, setZapGoal] = useState({});
+  const [zapGoalBalance, setZapGoalBalance] = useState(0);
   const [loadingScores, setLoadingScores] = useState(false);
   const [highScores, setHighScores] = useState([]);
   const [highScoresLastWeek, setHighScoresLastWeek] = useState([]);
@@ -40,6 +41,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
       listMyRooms,
       listHighScores,
       getZapGoal,
+      getZapGoalBalance,
       getMOTD,
       setMOTD,
     },
@@ -131,8 +133,10 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
         setZapGoal(zg);
         sessionStorage.setItem('serverPubkey', zg.pubkey);
       }
+      let zgb = await getZapGoalBalance();
+      if (zgb && (zgb.length > 1) & zgb[1]) setZapGoalBalance(zgb[0].balance);
       setLoadingZapGoal(false);
-      if (window.DEBUG) console.log(zapGoal);
+      if (window.DEBUG) console.log(zapGoal, 'balance: ', zapGoalBalance);
     };
     loadZapGoal();
     const loadRooms = async () => {
@@ -369,6 +373,8 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
                 <center>
                   <ZapGoalBar
                     zapgoal={zapGoal}
+                    balance={zapGoalBalance}
+                    setBalance={setZapGoalBalance}
                     textColorTitle={textColor}
                     backgroundColorTitle={'rgb(1,111,210)'}
                     textColorFilled={textColor}

@@ -658,7 +658,24 @@ export async function zapEvent(
           comment
         );
         if (window.DEBUG) console.log('ui/nostr/nostr.js', lnInvoice);
-        return [true, lnInvoice.pr];
+        // only return payment requests
+        if (lnInvoice.hasOwnProperty('pr')) return [true, lnInvoice.pr];
+        // alby errors
+        if (
+          lnInvoice.hasOwnProperty('status') &&
+          lnInvoice.hasOwnProperty('reason') &&
+          lnInvoice.status == 'ERROR'
+        ) {
+          return [false, {message: lnInvoice.reason}];
+        }
+        // other errors ?
+        return [
+          false,
+          {
+            message:
+              'Error retrieving payment request from users lightning custodian',
+          },
+        ];
       }
       // zap request was signed...
       if (window.DEBUG) console.log('about to call getLNInvoice for zap');
@@ -669,7 +686,24 @@ export async function zapEvent(
         msatsAmount,
         comment
       );
-      return [true, lnInvoice.pr];
+      // only return payment requests
+      if (lnInvoice.hasOwnProperty('pr')) return [true, lnInvoice.pr];
+      // alby errors
+      if (
+        lnInvoice.hasOwnProperty('status') &&
+        lnInvoice.hasOwnProperty('reason') &&
+        lnInvoice.status == 'ERROR'
+      ) {
+        return [false, {message: lnInvoice.reason}];
+      }
+      // other errors ?
+      return [
+        false,
+        {
+          message:
+            'Error retrieving payment request from users lightning custodian',
+        },
+      ];
     } else {
       // No pubkey, so no zap. Only lightning (usecase: fakenpub handler for private rooms)
       if (window.DEBUG)
@@ -681,11 +715,28 @@ export async function zapEvent(
         msatsAmount,
         comment
       );
-      return [true, lnInvoice.pr];
+      // only return payment requests
+      if (lnInvoice.hasOwnProperty('pr')) return [true, lnInvoice.pr];
+      // alby errors
+      if (
+        lnInvoice.hasOwnProperty('status') &&
+        lnInvoice.hasOwnProperty('reason') &&
+        lnInvoice.status == 'ERROR'
+      ) {
+        return [false, {message: lnInvoice.reason}];
+      }
+      // other errors ?
+      return [
+        false,
+        {
+          message:
+            'Error retrieving payment request from users lightning custodian',
+        },
+      ];
     }
   } catch (error) {
     //console.log('There was an error sending zaps: ', error);
-    return [undefined, error];
+    return [undefined, {message: JSON.stringify(error)}];
   }
 }
 
@@ -1336,8 +1387,18 @@ export async function getLNInvoice(
   let baseUrl = `${LNService.callback}?amount=${msatsAmount}`;
   async function fetchInvoice(baseUrl) {
     const response = await fetch(baseUrl);
-    const invoice = await response.json();
-    return invoice;
+    if (response.ok && response.status == 200) {
+      const invoice = await response.json();
+      return invoice;
+    } else {
+      if (window.DEBUG) {
+        console.log(
+          `error fetching invoice for ${baseUrl} . here is the response`
+        );
+        console.log(JSON.stringify(response));
+      }
+      return {status: 'ERROR', reason: 'Error fetching invoice for user'};
+    }
   }
   if (hasPubkey) {
     baseUrl += `&nostr=${zapEvent}&lnurl=${lnurlEncoded}`;

@@ -5,16 +5,57 @@ const {
 } = require('../nostr/nostr');
 const {nip19, getPublicKey} = require('nostr-tools');
 const {
-  serverNsec,
+  lnbitsHost,
   relaysZapGoals,
+  serverNsec,
   serverZapGoalUpdateInterval,
+  serverZapGoalWalletAPIKeys,
 } = require('../config');
 const {get, set} = require('../services/redis');
 const CHECK_INTERVAL = serverZapGoalUpdateInterval * 60 * 60 * 1000;
-
 function sleep(ms) {
   return new Promise(res => setTimeout(res, ms));
 }
+
+const checkBalance = async () => {
+  let balance = 0;
+  console.log(`[zapGoalUpdater.checkBalance] checking`);
+  if (serverZapGoalWalletAPIKeys && serverZapGoalWalletAPIKeys.length > 0) {
+    let apikeys = serverZapGoalWalletAPIKeys.split(',');
+    let walleturl = `https://${lnbitsHost}/api/v1/wallet`;
+    let apikeycount = 0;
+    for (let apikey of apikeys) {
+      apikeycount++;
+      try {
+        console.log(
+          `[zapGoalUpdater.checkBalance] url: ${walleturl} for key # ${apikeycount}`
+        );
+        let res = await fetch(walleturl, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'X-Api-Key': apikey,
+          },
+        });
+        let ret = await res.json();
+        console.log(
+          `[zapGoalUpdater.checkBalance] ret: ${JSON.stringify(ret)}`
+        );
+        if (ret.hasOwnProperty('balance')) balance = balance + ret.balance;
+      } catch (error) {
+        console.log(
+          `[zapGoalUpdater.checkBalance] error: ${JSON.stringify(error)}`
+        );
+      }
+    }
+  } else {
+    console.log(`[zapGoalUpdater.checkBalance] no wallet api keys to check`);
+  }
+  // update total
+  let r = await set('server/zapgoalbalance', balance);
+
+  return balance;
+};
 
 const checkGoal = async (currentGoal, sk) => {
   let pk = getPublicKey(sk);
@@ -36,7 +77,8 @@ const checkGoal = async (currentGoal, sk) => {
   // Annual goal
   let theYear = new Date().getUTCFullYear();
   let goalDescription = `Infrastructure Costs for ${theYear}`;
-  let amount = 212121;
+  // annual in sats when bitcoin at 65000 usd.. 100000 (domains) + 221538 (vps hosting) + 55384 (backups) + 84000 (relay)
+  let amount = 460922; // about $300 per year
 
   let update = false;
   if (currentGoal.created_at == 0) {
@@ -87,12 +129,18 @@ const zapGoalUpdater = async () => {
   if (currentGoal == undefined || currentGoal == {})
     currentGoal = {created_at: 0};
 
+  console.log(`[zapGoalUpdater] looking up current zap goal balance`);
+  let currentBalance = await get('server/zapgoalbalance');
+  if (currentBalance == undefined || currentBalance == {}) currentBalance = 0;
+
   // initial comparison check on startup
   currentGoal = await checkGoal(currentGoal, sk);
+  currentBalance = await checkBalance();
 
   // periodic checks every hour
   setInterval(async () => {
     currentGoal = await checkGoal(currentGoal, sk);
+    currentBalance = await checkBalance();
   }, CHECK_INTERVAL);
 };
 
