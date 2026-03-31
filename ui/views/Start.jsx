@@ -329,6 +329,12 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
     ? roomColors.text.light
     : roomColors.text.dark;
 
+  let homepageHeader = '/img/homepage-header.png';
+  let is41 = new Date().getMonth() + 1 == 4 && new Date().getDate() == 1;
+  if (is41) {
+    homepageHeader = '/img/homepage-header-crony.png';
+  }
+
   return (
     <div className="p-2 max-w-s flex flex-col justify-evenly m-auto text-center items-center">
       {roomFromURIError && (
@@ -354,7 +360,15 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
       )}
 
       <br />
-      <img src="/img/homepage-header.png" className={'w-9/12'} />
+      <img src={homepageHeader} className={'w-9/12'} />
+      {is41 && (
+        <a
+          href="/crony"
+          style={{color: 'rgb(255,255,0)', textDecoration: 'underline'}}
+        >
+          NEW YORK AGREEMENT / PRESS RELEASE
+        </a>
+      )}
 
       <div>
         <div style={{color: textColor}} className="jam">

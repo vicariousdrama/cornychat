@@ -20,11 +20,13 @@ app.use(express.static(process.env.STATIC_FILES_DIR || 'public'));
 const jamHost = process.env.JAM_HOST || 'beta.jam.systems';
 const jamSchema = process.env.JAM_SCHEMA || 'https://';
 const relaysGeneral =
-  process.env.RELAYS_GENERAL ||
-  'wss://relay.damus.io,wss://nos.lol,wss://nostr-pub.wellorder.net,wss://relay.snort.social';
+  process.env.RELAYS_GENERAL && process.env.RELAYS_GENERAL != 'none'
+    ? process.env.RELAYS_GENERAL
+    : '';
 const relaysZapGoals =
-  process.env.RELAYS_ZAPGOALS ||
-  'wss://relay.damus.io,wss://nos.lol,wss://nostr-pub.wellorder.net,wss://relay.snort.social';
+  process.env.RELAYS_ZAPGOALS && process.env.RELAYS_ZAPGOALS != 'none'
+    ? process.env.RELAYS_ZAPGOALS
+    : '';
 
 const urls = {
   jam: process.env.JAM_URL || `${jamSchema}${jamHost}`,
