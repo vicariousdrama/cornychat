@@ -23,13 +23,18 @@ const chatAdFileLocationPath =
   process.env.CHAT_AD_FILE_LOCATION_PATH || '/pantry/adimages2'; // mobile ads: 320x50 for text chat
 
 // NOSTR RELAY MANAGEMENT
-const relaysACL = process.env.RELAYS_ACL || '';
+const relaysACL =
+  process.env.RELAYS_ACL && process.env.RELAYS_ACL != 'none'
+    ? process.env.RELAYS_ACL
+    : '';
 const relaysGeneral =
-  process.env.RELAYS_GENERAL ||
-  'wss://relay.damus.io,wss://nos.lol,wss://nostr-pub.wellorder.net,wss://relay.snort.social';
+  process.env.RELAYS_GENERAL && process.env.RELAYS_GENERAL != 'none'
+    ? process.env.RELAYS_GENERAL
+    : '';
 const relaysZapGoals =
-  process.env.RELAYS_ZAPGOALS ||
-  'wss://relay.damus.io,wss://nos.lol,wss://nostr-pub.wellorder.net,wss://relay.snort.social';
+  process.env.RELAYS_ZAPGOALS && process.env.RELAYS_ZAPGOALS != 'none'
+    ? process.env.RELAYS_ZAPGOALS
+    : '';
 const relaysPoolPerWrite = process.env.RELAYS_POOL_PER_WRITE ?? true;
 
 // LIVE ACTIVITIES AND SCHEDULED EVENTS

@@ -14,6 +14,7 @@ import {ShowInteractionModal} from './views/InteractionModal';
 import {parseUrlConfig} from './lib/url-utils';
 import {colors} from './lib/theme.js';
 import About from './pages/About';
+import Crony from './pages/Crony';
 import DataTypes from './pages/DataTypes';
 import SFX from './pages/SFX';
 
@@ -54,6 +55,8 @@ function JamUI({style, className, route = null, dynamicConfig = {}, ...props}) {
         return <Me />;
       case 'about':
         return <About />;
+      case 'crony':
+        return <Crony />;
       case 'datatypes':
         return <DataTypes />;
       case 'sfx':

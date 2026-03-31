@@ -82,6 +82,7 @@ const publishEvent = async (pool, event, relays) => {
         throw error;
       }
     })().catch(e => {
+      console.log('Catching pool.publish error in publishEvent');
       console.error(e);
     });
     if (pool.errorsAndNotices && pool.errorsAndNotices.length > 0)
