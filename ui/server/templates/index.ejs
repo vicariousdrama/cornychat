@@ -338,7 +338,13 @@
         }
     }
     function makeUnicorn() {
-        makeAnim('🦄','corn');
+        switch (Math.round(Math.random() * 5)) {
+            case 0: makeAnim('🇺🇸','corn'); break;
+            case 1: makeAnim('🗽','corn'); break;
+            case 2: makeAnim('🦄','corn'); break;
+            case 3: makeAnim('🏙','corn'); break;
+            case 4: makeAnim('🌽','corn'); break;
+        }
     }
     function makeAnim(t, className, d) {
         const c = document.createElement('div');

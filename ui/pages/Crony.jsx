@@ -10,7 +10,7 @@ export default function Crony() {
       </p>
       <br />
       <p className="text-lg">
-        New York, NY — April 1, 2026 — Corporate Raiders of New York (CORNY), a
+        New York, NY — April 1, 2026 — Corporate Raiders of New York (CRONY), a
         leading investment and media collective focused on innovative digital
         platforms, today announced a strategic agreement with Corny Chat, the
         premier audio spaces platform serving nostr and a worldwide audience.
@@ -101,7 +101,7 @@ export default function Crony() {
       <br />
       <p className="text-lg">
         Media Contact: Jenny, Head of Nostr Communications, Corporate Raiders of
-        New York press@corny.chat +1 (212) 867-5309
+        New York jenny@corny.chat +1 (212) 867-5309
       </p>
       <br />
       <p className="text-lg">

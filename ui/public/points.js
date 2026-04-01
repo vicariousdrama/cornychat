@@ -4,17 +4,21 @@ epts['💗'] = [14, '#fd455e', '#813bdb'];
 epts['💵'] = [2, '#27a402', '#cdee71'];
 epts['🍟'] = [7, '#e62129', '#ffd601'];
 epts['🍷'] = [18, '#e62129', '#ffd601'];
-epts['𓅦'] = [21, '#e62129', '#ffd601'];
+epts['𓅦'] = [20, '#e62129', '#ffd601'];
 epts['🎉'] = [13, '#e62129', '#ffd601'];
 epts['🍀'] = [4, '#27a402', '#cdee71'];
 epts['🍿'] = [8, '#e62129', '#ffffff'];
-epts['🎁'] = [21, '#e62129', '#fe7004'];
+epts['🎁'] = [28, '#e62129', '#fe7004'];
 epts['❄️'] = [16, '#212188', '#ffffff'];
 epts['🧜‍♀️'] = [11, '#e62129', '#ffffff'];
-epts['🐙'] = [18, '#000000', '#ffffff'];
+epts['🐙'] = [19, '#000000', '#ffffff'];
 epts['🪙'] = [21, '#ffd601', '#fe7004'];
 epts['🌭'] = [6, '#ffd601', '#fe7004'];
 epts['🌮'] = [9, '#ffd601', '#fe7004'];
+epts['🌽'] = [12, '#ffd601', '#fe7004'];
+epts['🏙'] = [1, '#212188', '#ffffff'];
+epts['🗽'] = [5, '#27a488', '#813bdb'];
+// 10, 15, 17, 22, 23, 24, 25, 26, 27, 29, 30, 31
 let spts = [];
 function makeAnimOnClick(c) {
   if (!gameok || !window.jamConfig.game || !window.nostr) return;
@@ -28,6 +32,7 @@ function makeAnimOnClick(c) {
         if (epts.hasOwnProperty(c.innerText)) {
           let ep = epts[c.innerText];
           p = ep[0];
+          if (new Date().getDate() == p) p += 6;
           if (ep.length > 1) cm = ep[1];
           if (ep.length > 2) co = ep[2];
           if (spts.length > 0) {
