@@ -1,4 +1,4 @@
-import {nip19, validateEvent, verifySignature} from 'nostr-tools';
+import {nip19, validateEvent, verifySignature, getPublicKey as derivePubkey, getEventHash, getSignature} from 'nostr-tools';
 import {RelayPool} from 'nostr-relaypool';
 import {nanoid} from 'nanoid';
 import crypto from 'crypto-js';
@@ -196,7 +196,18 @@ export async function getDMPubkey() {
 
 export async function getPublicKey() {
   let pubkey = sessionStorage.getItem('pubkey');
-  if (!pubkey && window.nostr) {
+  if (pubkey) return pubkey;
+  // Try stored nsec
+  const nsec = getStoredNsec();
+  if (nsec) {
+    try {
+      let {data: privkeyHex} = nip19.decode(nsec);
+      pubkey = derivePubkey(privkeyHex);
+      sessionStorage.setItem('pubkey', pubkey);
+      return pubkey;
+    } catch {}
+  }
+  if (window.nostr) {
     pubkey = await window.nostr.getPublicKey();
     sessionStorage.setItem('pubkey', pubkey);
   }
@@ -253,6 +264,93 @@ export async function signInExtension(state, setProps, updateInfo, enterRoom) {
     await enterRoom(roomId);
   } catch (error) {
     console.log('There was an error logging in with extension: ', error);
+    return undefined;
+  }
+}
+
+// Store/retrieve nsec for local signing when no extension is available
+function storeNsec(nsec) {
+  const key = nanoid();
+  const enc = crypto.AES.encrypt(nsec, key).toString();
+  localStorage.setItem('nsec.enc', enc);
+  localStorage.setItem('nsec.key', key);
+}
+function getStoredNsec() {
+  const enc = localStorage.getItem('nsec.enc');
+  const key = localStorage.getItem('nsec.key');
+  if (!enc || !key) return null;
+  try {
+    return crypto.AES.decrypt(enc, key).toString(crypto.enc.Utf8);
+  } catch {
+    return null;
+  }
+}
+function clearStoredNsec() {
+  localStorage.removeItem('nsec.enc');
+  localStorage.removeItem('nsec.key');
+}
+
+export async function signInWithNsec(nsecInput, state, setProps, updateInfo, enterRoom) {
+  if (window.DEBUG) console.log('in signInWithNsec');
+  try {
+    if (!nsecInput || !nsecInput.startsWith('nsec1')) {
+      throw new Error('Invalid nsec key');
+    }
+    let {type, data: privkeyHex} = nip19.decode(nsecInput);
+    if (type !== 'nsec') {
+      throw new Error('Invalid nsec key');
+    }
+    let pubkey = derivePubkey(privkeyHex);
+    let id = state.id;
+    let roomId = state.roomId;
+    let created_at = Math.floor(Date.now() / 1000);
+    let myId = state.myId;
+
+    // Sign login event locally
+    let loginEvent = {
+      created_at: created_at,
+      pubkey: pubkey,
+      kind: 1,
+      tags: [],
+      content: myId,
+    };
+    loginEvent.id = getEventHash(loginEvent);
+    loginEvent.sig = getSignature(loginEvent, privkeyHex);
+
+    let npub = nip19.npubEncode(pubkey);
+    let dmPubkey = await getDMPubkey();
+
+    let identities = [
+      {
+        type: 'nostr',
+        id: npub,
+        loginTime: created_at,
+        loginId: loginEvent.id,
+        loginSig: loginEvent.sig,
+      },
+    ];
+
+    // Store nsec for future signing
+    storeNsec(nsecInput);
+    sessionStorage.setItem('pubkey', pubkey);
+
+    let metadata = await getUserMetadata(pubkey, id);
+    setProps({userInteracted: true});
+    if (!metadata) {
+      await updateInfo({identities, dmPubkey});
+    } else {
+      let name = metadata.display_name || metadata.name;
+      let avatar = metadata.picture;
+      await updateInfo({
+        name,
+        identities,
+        avatar,
+        dmPubkey,
+      });
+    }
+    await enterRoom(roomId);
+  } catch (error) {
+    console.log('There was an error logging in with nsec: ', error);
     return undefined;
   }
 }
@@ -2420,8 +2518,6 @@ export async function publishEvent(eventSigned) {
 }
 
 export async function signAndSendEvent(event) {
-  if (!window.nostr)
-    return [false, 'A nostr extension is required to sign events'];
   if (!event.hasOwnProperty('created_at'))
     event['created_at'] = Math.floor(Date.now() / 1000);
   if (!event.hasOwnProperty('content')) event['content'] = '';
@@ -2438,12 +2534,32 @@ export async function signAndSendEvent(event) {
       '31990:' + sp + ':nostrhandler',
     ]);
   }
-  const eventSigned = await window.nostr.signEvent(event);
-  if (!eventSigned) {
-    return [false, 'There was an error with your nostr extension'];
-  } else {
+
+  // Try extension first
+  if (window.nostr) {
+    const eventSigned = await window.nostr.signEvent(event);
+    if (!eventSigned) {
+      return [false, 'There was an error with your nostr extension'];
+    }
     return publishEvent(eventSigned);
   }
+
+  // Fallback to stored nsec
+  const nsec = getStoredNsec();
+  if (nsec) {
+    try {
+      let {data: privkeyHex} = nip19.decode(nsec);
+      event['pubkey'] = derivePubkey(privkeyHex);
+      event['id'] = getEventHash(event);
+      event['sig'] = getSignature(event, privkeyHex);
+      return publishEvent(event);
+    } catch (e) {
+      console.log('Error signing with stored nsec: ', e);
+      return [false, 'Error signing with stored key: ' + e];
+    }
+  }
+
+  return [false, 'A nostr extension or nsec key is required to sign events'];
 }
 
 export async function rebuildCustomEmojis() {

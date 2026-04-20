@@ -24,7 +24,7 @@ import {
   publishStatus,
 } from '../nostr/nostr';
 import ZapGoalBar from './ZapGoalBar';
-import {buildKnownEmojiTags} from '../../nostr/emojiText.js';
+import {buildKnownEmojiTags} from '../nostr/emojiText.js';
 
 export default function RoomHeader2({
   colors,

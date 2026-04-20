@@ -10,6 +10,7 @@ import {colors, isDark} from '../lib/theme.js';
 import {
   makeLocalDate,
   signInExtension,
+  signInWithNsec,
   getDMPubkey,
   getNpubFromInfo,
   getRelationshipPetname,
@@ -71,6 +72,8 @@ export default function EnterRoom({
 
   let mqp = useMqParser();
   let [loadingExtension, setLoadingExtension] = useState(false);
+  let [nsecInput, setNsecInput] = useState('');
+  let [showNsecInput, setShowNsecInput] = useState(false);
   let width = useWidth();
   let leftColumn = width < 720 ? 'hidden' : 'w-full';
   let rightColumn =
@@ -297,6 +300,10 @@ export default function EnterRoom({
       setLoadingExtension(true);
       //sessionStorage.clear();
       const ok = await signInExtension(state, setProps, updateInfo, enterRoom);
+      if (!ok) setLoadingExtension(false);
+    } else if (type === 'nsec') {
+      setLoadingExtension(true);
+      const ok = await signInWithNsec(nsecInput, state, setProps, updateInfo, enterRoom);
       if (!ok) setLoadingExtension(false);
     }
   };
@@ -534,37 +541,75 @@ export default function EnterRoom({
             )}
             {!window.nostr && (
               <div className="mt-4 text-gray-300 text-sm">
-                <button
-                  onClick={e => {
-                    e.preventDefault();
-                  }}
-                  className={
-                    closed || forbidden
-                      ? 'hidden'
-                      : 'mt-5 select-none w-full p-3 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
-                  }
-                  style={{
-                    backgroundColor: `rgba(192,192,192,1)`,
-                    color: `rgba(244,244,244,1)`,
-                  }}
-                >
-                  {'Login with Nostr'}
-                </button>
-                <p>
-                  This service supports{' '}
-                  <a href="https://nostr.how/en/what-is-nostr">Nostr</a> logins
-                  via{' '}
-                  <a href="https://github.com/aljazceru/awesome-nostr#nip-07-browser-extensions">
-                    NIP-07 browser extensions
-                  </a>
-                  . Extensions are available for major desktop browsers. On
-                  mobile, the Chromium based Kiwi browser supports extensions
-                  like NOS2X on Android. The{' '}
-                  <a href="https://apps.apple.com/us/app/nostore/id1666553677">
-                    Nostash
-                  </a>{' '}
-                  extension is suitable with Safari on iOS.
-                </p>
+                {!showNsecInput ? (
+                  <>
+                    <button
+                      onClick={() => setShowNsecInput(true)}
+                      className={
+                        closed || forbidden
+                          ? 'hidden'
+                          : 'mt-5 select-none w-full p-3 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
+                      }
+                      style={{
+                        backgroundColor: roomColor.buttons.primary,
+                        color: textColor,
+                      }}
+                    >
+                      Login with nsec
+                    </button>
+                    <p className="mt-2">
+                      No NIP-07 extension detected. You can sign in with your nsec
+                      key, or install a{' '}
+                      <a href="https://github.com/aljazceru/awesome-nostr#nip-07-browser-extensions">
+                        NIP-07 browser extension
+                      </a>
+                      .
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <input
+                      type="password"
+                      placeholder="nsec1..."
+                      value={nsecInput}
+                      onChange={e => setNsecInput(e.target.value)}
+                      className="rounded w-full p-2 bg-gray-700 text-white placeholder-gray-400 mt-3"
+                    />
+                    <button
+                      onClick={() => {
+                        if (!nsecInput.startsWith('nsec1') || nsecInput.length < 60) {
+                          alert('Please enter a valid nsec key');
+                          return;
+                        }
+                        setReturnToHomepage(false);
+                        handlerSignIn('nsec');
+                      }}
+                      className={
+                        closed || forbidden
+                          ? 'hidden'
+                          : 'mt-3 select-none w-full p-3 text-lg text-white bg-gray-600 rounded-lg focus:shadow-outline active:bg-gray-600'
+                      }
+                      style={{
+                        backgroundColor: roomColor.buttons.primary,
+                        color: textColor,
+                      }}
+                    >
+                      {loadingExtension ? <LoadingIcon /> : 'Sign In'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowNsecInput(false);
+                        setNsecInput('');
+                      }}
+                      className="mt-2 text-sm text-gray-400 underline"
+                    >
+                      Cancel
+                    </button>
+                    <p className="mt-2 text-xs text-gray-500">
+                      Your nsec is encrypted locally and never sent to a server.
+                    </p>
+                  </>
+                )}
               </div>
             )}
             {(false ||
