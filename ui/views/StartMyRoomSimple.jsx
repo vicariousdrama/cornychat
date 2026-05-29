@@ -1,6 +1,5 @@
 import React from 'react';
 import {useJam} from '../jam-core-react';
-import {unfavoriteRoom} from '../nostr/nostr';
 
 export default function StartMyRoomSimple({
   roomInfo,
@@ -13,7 +12,7 @@ export default function StartMyRoomSimple({
   filterPrivate,
   filterProtected,
 }) {
-  const [state, api] = useJam();
+  const [, api] = useJam();
   const {removeSelfFromRoom} = api;
   const roomId = roomInfo?.roomId ?? 'unknown-room';
   const roomNameValue = roomInfo?.name ?? roomId;
@@ -59,6 +58,13 @@ export default function StartMyRoomSimple({
     cursor: 'pointer',
     color: 'rgb(255,255,255)',
     display: 'inline-block',
+    width: '300px',
+    boxSizing: 'border-box',
+  };
+  const roomTextLineStyle = {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
   };
   if (isFavorited) {
     coloringStyle.backgroundImage =
@@ -92,65 +98,86 @@ export default function StartMyRoomSimple({
       key={`myroom_${index}`}
       style={coloringStyle}
       id={`myrooms-${roomId}`}
-      onClick={async e => {
+      onClick={async () => {
         location.href = `./${roomId}`;
       }}
     >
-      <table cellPadding="0" cellSpacing="0" width="300px">
+      <table
+        cellPadding="0"
+        cellSpacing="0"
+        style={{width: '100%', tableLayout: 'fixed'}}
+      >
         <tbody>
           <tr>
-            <td width="48">
+            <td style={{width: '48px'}}>
               <img
                 src={roomLogo}
                 style={{width: '48px', height: '48px', objectFit: 'cover'}}
               />
             </td>
-            <td width="232" className="text-sm" align="left">
-              room id: {roomId}
-              <br />
-              {roomId != roomName && <>{roomName}</>}
+            <td className="text-sm" align="left" style={{overflow: 'hidden'}}>
+              <div style={roomTextLineStyle} title={`room id: ${roomId}`}>
+                room id: {roomId}
+              </div>
+              {roomId != roomName && (
+                <div style={roomTextLineStyle} title={roomName}>
+                  {roomName}
+                </div>
+              )}
             </td>
           </tr>
           <tr>
-            <td colspan="2">
-              <table cellPadding="0" cellSpacing="0" width="300px">
-                <tr>
-                  <td className="text-sm" align="left">
-                    {isOwner && <span title="Room Owner"> 👑 </span>}
-                    {isModerator && <span title="Room Moderator"> 🛡️ </span>}
-                    {isSpeaker && <span title="Speaker"> 🎤 </span>}
-                    {isPrivate && (
-                      <span title="Private (unlisted) Room"> 🕵️ </span>
-                    )}
-                    {isProtected && (
-                      <span title="Passphrase Protected Room"> 🔤 </span>
-                    )}
-                    {userCount > 0 && <span> {userCount} users chatting </span>}
-                  </td>
-                  <td className="text-sm" align="right">
-                    <button
-                      className="mr-2 h-6 text-sm rounded-md"
-                      title="Remove yourself from this room"
-                      onClick={async e => {
-                        e.stopPropagation();
-                        let result = confirm(
-                          'Are you sure you want to remove yourself from this room?'
-                        );
-                        if (result != true) {
-                          return;
-                        }
-                        removeSelfFromRoom(roomId, myId);
-                        let f = document.getElementById(`myrooms-${roomId}`);
-                        if (f) {
-                          f.style.display = 'none';
-                          roomInfo.hidden = true;
-                        }
-                      }}
+            <td colSpan="2">
+              <table
+                cellPadding="0"
+                cellSpacing="0"
+                style={{width: '100%', tableLayout: 'fixed'}}
+              >
+                <tbody>
+                  <tr>
+                    <td className="text-sm" align="left">
+                      {isOwner && <span title="Room Owner"> 👑 </span>}
+                      {isModerator && <span title="Room Moderator"> 🛡️ </span>}
+                      {isSpeaker && <span title="Speaker"> 🎤 </span>}
+                      {isPrivate && (
+                        <span title="Private (unlisted) Room"> 🕵️ </span>
+                      )}
+                      {isProtected && (
+                        <span title="Passphrase Protected Room"> 🔤 </span>
+                      )}
+                      {userCount > 0 && (
+                        <span> {userCount} users chatting </span>
+                      )}
+                    </td>
+                    <td
+                      className="text-sm"
+                      align="right"
+                      style={{width: '36px'}}
                     >
-                      ❌
-                    </button>
-                  </td>
-                </tr>
+                      <button
+                        className="mr-2 h-6 text-sm rounded-md"
+                        title="Remove yourself from this room"
+                        onClick={async e => {
+                          e.stopPropagation();
+                          let result = confirm(
+                            'Are you sure you want to remove yourself from this room?'
+                          );
+                          if (result != true) {
+                            return;
+                          }
+                          removeSelfFromRoom(roomId, myId);
+                          let f = document.getElementById(`myrooms-${roomId}`);
+                          if (f) {
+                            f.style.display = 'none';
+                            roomInfo.hidden = true;
+                          }
+                        }}
+                      >
+                        ❌
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
               </table>
             </td>
           </tr>
