@@ -1,6 +1,8 @@
 FROM node:alpine AS builder
 ARG BUILD_DATE=0
 
+RUN npm install --global yarn@1.22.22
+
 COPY yarn.lock package.json ./
 
 RUN yarn
@@ -13,6 +15,8 @@ RUN yarn build
 FROM node:alpine
 ARG BUILD_DATE=0
 ENV JAM_CONFIG_DIR=/jam-config
+
+RUN npm install --global yarn@1.22.22
 
 RUN mkdir /app
 WORKDIR /app

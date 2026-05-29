@@ -3,6 +3,7 @@ WORKDIR /build
 
 COPY package.json package.json
 # COPY yarn.lock yarn.lock
+RUN npm install --global yarn@1.22.22
 RUN yarn
 
 COPY public/ public
