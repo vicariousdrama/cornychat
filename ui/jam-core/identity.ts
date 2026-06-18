@@ -65,8 +65,9 @@ async function updateInfo(state: any, info: IdentityInfo) {
   let {myIdentity, myId, swarm} = state;
   info = {...myIdentity.info, ...info};
   let ok = (await putOrPost(state, `/identities/${myId}`, info)) as boolean;
+  // Always update local state even if server save fails
+  setCurrentIdentity(state, i => ({...i, info}));
   if (ok) {
-    setCurrentIdentity(state, i => ({...i, info}));
     sendPeerEvent(swarm, 'identity-update', info);
   }
   return ok;

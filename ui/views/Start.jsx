@@ -2,6 +2,8 @@ import React, {useState, useEffect} from 'react';
 import {navigate} from '../lib/use-location';
 import {useJam, useJamState} from '../jam-core-react';
 import {colors, isDark} from '../lib/theme';
+import {nip19} from 'nostr-tools';
+import {getNpubFromInfo, signInExtension, signInWithNsec, getUserMetadata} from '../nostr/nostr';
 import * as bip39 from '@scure/bip39';
 import {wordlist} from '@scure/bip39/wordlists/english';
 import StartRoomSimple from './StartRoomSimple';
@@ -44,6 +46,7 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
       getZapGoalBalance,
       getMOTD,
       setMOTD,
+      updateInfo,
     },
   ] = useJam();
   const [viewMode, setViewMode] = useState('liverooms'); // liverooms,  myrooms,    scheduled
@@ -75,8 +78,49 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
   const [motd, setMotd] = useState(undefined);
   let mqp = useMqParser();
   let myId = useJamState('myId');
+  let myIdentity = useJamState('myIdentity');
   let iAmAdmin = (localStorage.getItem('iAmAdmin') || 'false') == 'true';
+  let myNpub = myIdentity ? getNpubFromInfo(myIdentity.info) : undefined;
+  let [profileName, setProfileName] = useState(myIdentity?.info?.name || '');
+  let [profileAvatar, setProfileAvatar] = useState(myIdentity?.info?.avatar || '');
+  let [showNsecInput, setShowNsecInput] = useState(false);
+  let [nsecInput, setNsecInput] = useState('');
+  let [loadingLogin, setLoadingLogin] = useState(false);
+  const fullState = useJamState();
   let motdCurrent = '';
+
+  // Fetch profile metadata when nostr identity is detected but name/avatar missing
+  useEffect(() => {
+    if (myNpub && !profileName) {
+      (async () => {
+        try {
+          let {type, data: pubkey} = nip19.decode(myNpub);
+          if (type === 'npub') {
+            let meta = await getUserMetadata(pubkey);
+            if (meta) {
+              let name = meta.display_name || meta.name || '';
+              let avatar = meta.picture || '';
+              setProfileName(name);
+              setProfileAvatar(avatar);
+              // Also update the identity so rooms pick it up
+              if (name || avatar) {
+                updateInfo({name, avatar});
+              }
+            }
+          }
+        } catch {}
+      })();
+    }
+  }, [myNpub, profileName]);
+
+  const handleSignOut = () => {
+    // Clear nostr-specific storage
+    sessionStorage.removeItem('pubkey');
+    localStorage.removeItem('nsec.enc');
+    localStorage.removeItem('nsec.key');
+    // Reload to reset identity
+    window.location.reload();
+  };
   useEffect(() => {
     function getMaxWeek(y) {
       let beginDate = new Date(y, 0, 1);
@@ -361,6 +405,90 @@ export default function Start({newRoom = {}, urlRoomId, roomFromURIError}) {
 
       <br />
       <img src={homepageHeader} className={'w-9/12'} />
+
+      {/* Sign-in status */}
+      <div className="w-full max-w-md mx-auto mt-3 mb-2">
+        {myNpub ? (
+          <div className="flex items-center justify-center gap-2 bg-gray-800 rounded-lg px-4 py-2">
+            {profileAvatar && (
+              <img src={profileAvatar} className="w-8 h-8 rounded-full" />
+            )}
+            <span className="text-white text-sm">
+              {profileName || myNpub.slice(0, 12) + '...'}
+            </span>
+            <span className="text-green-400 text-xs">Signed in</span>
+            <button
+              onClick={handleSignOut}
+              className="ml-2 text-gray-400 text-xs underline hover:text-white"
+            >
+              Sign out
+            </button>
+          </div>
+        ) : (
+          <div className="text-center">
+            {window.nostr ? (
+              <button
+                onClick={async () => {
+                  setLoadingLogin(true);
+                  await signInExtension(fullState, setProps, updateInfo, () => {});
+                  setLoadingLogin(false);
+                }}
+                className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-semibold hover:bg-orange-600"
+                disabled={loadingLogin}
+              >
+                {loadingLogin ? 'Signing in...' : 'Sign in with Nostr Extension'}
+              </button>
+            ) : (
+              <>
+                {!showNsecInput ? (
+                  <button
+                    onClick={() => setShowNsecInput(true)}
+                    className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-semibold hover:bg-orange-600"
+                  >
+                    Sign in with nsec
+                  </button>
+                ) : (
+                  <div className="flex flex-col gap-2 items-center">
+                    <input
+                      type="password"
+                      placeholder="nsec1..."
+                      value={nsecInput}
+                      onChange={e => setNsecInput(e.target.value)}
+                      className="rounded px-3 py-2 bg-gray-700 text-white placeholder-gray-400 w-64 text-sm"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={async () => {
+                          if (!nsecInput.startsWith('nsec1') || nsecInput.length < 60) {
+                            alert('Please enter a valid nsec key');
+                            return;
+                          }
+                          setLoadingLogin(true);
+                          await signInWithNsec(nsecInput, fullState, setProps, updateInfo, () => {});
+                          setLoadingLogin(false);
+                          setShowNsecInput(false);
+                        }}
+                        className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-semibold hover:bg-orange-600"
+                        disabled={loadingLogin}
+                      >
+                        {loadingLogin ? 'Signing in...' : 'Sign In'}
+                      </button>
+                      <button
+                        onClick={() => { setShowNsecInput(false); setNsecInput(''); }}
+                        className="px-3 py-2 text-gray-400 text-sm underline"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                    <p className="text-gray-500 text-xs">Your nsec is encrypted locally, never sent to a server.</p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
       {is41 && (
         <a
           href="/crony"
