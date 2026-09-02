@@ -25,6 +25,7 @@ import {
 } from '../nostr/nostr';
 import ZapGoalBar from './ZapGoalBar';
 import {buildKnownEmojiTags} from '../../nostr/emojiText.js';
+import {replaceDynamicFields} from '../lib/dynamicFields';
 
 export default function RoomHeader2({
   colors,
@@ -60,6 +61,12 @@ export default function RoomHeader2({
   const [state, {sendTextChat, sendCSAR, getRoomATag, getZapGoal}] = useJam();
   const [clickedAnimations, setClickedAnimations] = useState([]);
   const [zapGoalBalance, setZapGoalBalance] = useState(0);
+
+  let roomName = name ?? roomId;
+
+  const [roomDisplayName, setRoomDisplayName] = useState(
+    replaceDynamicFields(roomName)
+  );
 
   let textchats = JSON.parse(
     localStorage.getItem(`${roomId}.textchat`) || '[]'
@@ -355,6 +362,14 @@ export default function RoomHeader2({
       })();
     }, clickedAnimationsInterval);
 
+    // Dynamic Fields
+    let dynamicFieldsInterval = 1 * 60 * 1000; // once a minute
+    let intervalReplaceFields = setInterval(() => {
+      let r = (async () => {
+        setRoomDisplayName(replaceDynamicFields(roomName));
+      })();
+    }, dynamicFieldsInterval);
+
     // This function is called when component unmounts
     return () => {
       clearTimeout(timeoutEntered);
@@ -367,6 +382,7 @@ export default function RoomHeader2({
       clearTimeout(intervalFetchPeerMetadata);
       clearTimeout(timeoutUserLists);
       clearInterval(intervalClickedAnimations);
+      clearInterval(intervalReplaceFields);
     };
   }, []);
 
@@ -543,7 +559,7 @@ export default function RoomHeader2({
                   onLoad={e => (e.target.style.display = '')}
                 />
               )}
-              {name || roomId}
+              {roomDisplayName}
             </p>
           </div>
           {displayDescription && <RoomDescription />}
