@@ -21,6 +21,7 @@ import {dosha256hexrounds} from '../lib/sha256rounds.js';
 import {canWebRTC} from '../lib/webrtc.js';
 import {createLinksSanitized} from '../lib/sanitizedText';
 import {createEmojiImages} from '../nostr/emojiText';
+import {replaceDynamicFields} from '../lib/dynamicFields';
 
 const iOS =
   /^iP/.test(navigator.platform) ||
@@ -50,6 +51,9 @@ export default function EnterRoom({
     state,
     {enterRoom, setProps, updateInfo, sendTextChat, isRoomMember},
   ] = useJam();
+
+  let roomName = name ?? 'General Discussion';
+  let roomDisplayName = replaceDynamicFields(roomName);
 
   let [
     myIdentity,
@@ -352,9 +356,7 @@ export default function EnterRoom({
           </div>
         )}
         <div className="text-center my-3">
-          <p className="text-xl text-gray-300">
-            Topic: {name || 'General Discussion'}
-          </p>
+          <p className="text-xl text-gray-300">Topic: {roomDisplayName}</p>
 
           <div className="text-gray-600 max-h-96 overflow-y-scroll text-sm">
             <ReactMarkdown
