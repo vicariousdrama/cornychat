@@ -25,7 +25,7 @@ export default function ZapGoalBar({
   let remainAmount = 0;
   let goalDescription = zapgoal.content;
   for (let t of zapgoal.tags) {
-    if (t.length > 1 && t[0] == 'amount')
+    if (t.length > 1 && t[0] == 'amount' && t[1] > 0)
       goalAmount = Math.floor(Math.floor(t[1]) / 1000);
   }
   if (!zapgoal.hasOwnProperty('npub') && zapgoal.hasOwnProperty('pubkey')) {
@@ -110,91 +110,101 @@ export default function ZapGoalBar({
   }
 
   async function _checkZaps(zapgoal) {
-    let totalSats = 0;
-    if (balance > 0) {
-      totalSats = Math.floor(balance / 1000);
-    }
-    if (totalSats == 0) {
-      // If its a server goal, just get the balance directly
-      if (
-        String(zapgoal.content).startsWith('Infrastructure Costs for') &&
-        zapgoal.created_at < 1798761600 &&
-        (zapgoal.pubkey ==
-          'c3c73212fb6cd88d1acc18f6849c660c46a3c972bf5a766c5938d0649fddcb7c' ||
-          zapgoal.pubkey ==
-            'd4e4a4d0e1d1519098b534cbcb3c023946b62160c77aed1e4c22fdd78a7e4d3b')
-      ) {
-        let zgb = await getZapGoalBalance();
-        if (zgb && (zgb.length > 1) & zgb[1])
-          totalSats = Math.floor(zgb[0].balance / 1000);
+    if (goalAmount > 0) {
+      let totalSats = 0;
+      if (balance > 0) {
+        totalSats = Math.floor(balance / 1000);
       }
       if (totalSats == 0) {
-        // Check zap receipts
-        let receipts = await getZapReceipts(zapgoal.id);
-        for (let receipt of receipts) {
-          for (let tag of receipt?.tags) {
-            if (tag.length > 1 && tag[0] != 'description') continue;
-            let v = tag[1];
-            try {
-              let o = JSON.parse(v);
-              if (o.hasOwnProperty('tags')) {
-                for (let t of o.tags) {
-                  if (t.length < 2) continue;
-                  if (t[0] != 'amount') continue;
-                  let msats = t[1];
-                  let sats = Math.floor(msats / 1000);
-                  totalSats += sats;
+        // If its a server goal, just get the balance directly
+        if (
+          String(zapgoal.content).startsWith('Infrastructure Costs for') &&
+          zapgoal.created_at < 1798761600 &&
+          (zapgoal.pubkey ==
+            'c3c73212fb6cd88d1acc18f6849c660c46a3c972bf5a766c5938d0649fddcb7c' ||
+            zapgoal.pubkey ==
+              'd4e4a4d0e1d1519098b534cbcb3c023946b62160c77aed1e4c22fdd78a7e4d3b')
+        ) {
+          let zgb = await getZapGoalBalance();
+          if (zgb && (zgb.length > 1) & zgb[1])
+            totalSats = Math.floor(zgb[0].balance / 1000);
+        }
+        if (totalSats == 0) {
+          // Check zap receipts
+          let receipts = await getZapReceipts(zapgoal.id);
+          for (let receipt of receipts) {
+            for (let tag of receipt?.tags) {
+              if (tag.length > 1 && tag[0] != 'description') continue;
+              let v = tag[1];
+              try {
+                let o = JSON.parse(v);
+                if (o.hasOwnProperty('tags')) {
+                  for (let t of o.tags) {
+                    if (t.length < 2) continue;
+                    if (t[0] != 'amount') continue;
+                    let msats = t[1];
+                    let sats = Math.floor(msats / 1000);
+                    totalSats += sats;
+                  }
                 }
+              } catch (e) {
+                console.log('error parsing a zap receipt: ', e);
               }
-            } catch (e) {
-              console.log('error parsing a zap receipt: ', e);
             }
           }
         }
       }
+      remainAmount = goalAmount - totalSats;
+      // with total, update the calculations
+      setWidths(totalSats);
+      setBalance(totalSats);
     }
-    remainAmount = goalAmount - totalSats;
-    // with total, update the calculations
-    setWidths(totalSats);
-    setBalance(totalSats);
   }
 
   useEffect(() => {
-    let timeoutWidth = setTimeout(() => {
-      setWidths(totalSats);
-    }, 45);
+    if (goalAmount > 0) {
+      let timeoutWidth = setTimeout(() => {
+        setWidths(totalSats);
+      }, 45);
 
-    // Initial check in 4 seconds
-    let timeoutInitialReceipts = setTimeout(() => {
-      const loadZapReceipts = async () => {
-        let r = await _checkZaps(zapgoal);
-      };
-      loadZapReceipts();
-    }, 4 * 1000); // 4 seconds to load
-    // Followup check in 12 seconds
-    let timeoutInitialReceipts2 = setTimeout(() => {
-      const loadZapReceipts = async () => {
-        let r = await _checkZaps(zapgoal);
-      };
-      loadZapReceipts();
-    }, 12 * 1000); // 12 seconds to load
-    // Keep checking every 338 seconds
-    let frequencyReceipts = 338 * 1000; // 338 seconds
-    let intervalReceipts = setInterval(() => {
-      const loadZapReceipts = async () => {
-        let r = await _checkZaps(zapgoal);
-      };
-      loadZapReceipts();
-    }, frequencyReceipts);
+      // Initial check in 4 seconds
+      let timeoutInitialReceipts = setTimeout(() => {
+        const loadZapReceipts = async () => {
+          let r = await _checkZaps(zapgoal);
+        };
+        loadZapReceipts();
+      }, 4 * 1000); // 4 seconds to load
+      // Followup check in 12 seconds
+      let timeoutInitialReceipts2 = setTimeout(() => {
+        const loadZapReceipts = async () => {
+          let r = await _checkZaps(zapgoal);
+        };
+        loadZapReceipts();
+      }, 12 * 1000); // 12 seconds to load
+      // Keep checking every 338 seconds
+      let frequencyReceipts = 338 * 1000; // 338 seconds
+      let intervalReceipts = setInterval(() => {
+        const loadZapReceipts = async () => {
+          let r = await _checkZaps(zapgoal);
+        };
+        loadZapReceipts();
+      }, frequencyReceipts);
+    }
 
     // This function is called when component unmounts
     return () => {
-      clearTimeout(timeoutWidth);
-      clearTimeout(timeoutInitialReceipts);
-      clearTimeout(timeoutInitialReceipts2);
-      clearInterval(intervalReceipts);
+      if (goalAmount > 0) {
+        clearTimeout(timeoutWidth);
+        clearTimeout(timeoutInitialReceipts);
+        clearTimeout(timeoutInitialReceipts2);
+        clearInterval(intervalReceipts);
+      }
     };
   }, []);
+
+  if (goalAmount <= 0) {
+    return <></>;
+  }
 
   return (
     <center key={`zapgoal_${zapgoal.id}`}>
