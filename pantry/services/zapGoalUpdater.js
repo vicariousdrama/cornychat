@@ -117,7 +117,16 @@ const checkGoal = async (currentGoal, sk) => {
 };
 
 const zapGoalUpdater = async () => {
-  if (serverNsec.length == 0) return;
+  if (serverNsec.length == 0) {
+    console.log(`[zapGoalUpdater] disabled. server has no nsec`);
+    return;
+  }
+  if (CHECK_INTERVAL <= 0) {
+    console.log(
+      `[zapGoalUpdater] disabled. SERVER_ZAP_GOAL_UPDATE_INTERVAL not set to a positive integer`
+    );
+    return;
+  }
   await sleep(2500);
   const sk = nip19.decode(serverNsec).data;
 
