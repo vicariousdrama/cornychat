@@ -88,6 +88,7 @@ export default function EditNostrLists({close}) {
   };
 
   let addList = async e => {
+    let denyAddList = sessionStorage.getItem('denyAddList');
     e.preventDefault();
 
     // verify dtag is not empty
@@ -135,28 +136,38 @@ export default function EditNostrLists({close}) {
     if (description.length != 0) {
       listevent.tags.push(['description', description]);
     }
-    if (window.nostr) {
-      const listEventSigned = await window.nostr.signEvent(listevent);
-      // publish
-      let r = await publishEvent(listEventSigned);
-      if (r[0]) {
-        // add to lists
-        lists.push(listEventSigned);
-        sessionStorage.setItem(
-          `${pubkey}.kind30000events`,
-          JSON.stringify(lists)
-        );
-        // add dtag to lists
-        listDTags.push(dTag);
-        sessionStorage.setItem(
-          `${pubkey}.kind30000dtags`,
-          JSON.stringify(listDTags)
-        );
-        // set timestamp
-        sessionStorage.setItem(`${pubkey}.kind30000timestamp`, Date.now());
-      } else {
-        alert(r[1]);
-        return;
+    if (!denyAddList && window.nostr) {
+      try {
+        const listEventSigned = await window.nostr.signEvent(listevent);
+        // publish
+        let r = await publishEvent(listEventSigned);
+        if (r[0]) {
+          // add to lists
+          lists.push(listEventSigned);
+          sessionStorage.setItem(
+            `${pubkey}.kind30000events`,
+            JSON.stringify(lists)
+          );
+          // add dtag to lists
+          listDTags.push(dTag);
+          sessionStorage.setItem(
+            `${pubkey}.kind30000dtags`,
+            JSON.stringify(listDTags)
+          );
+          // set timestamp
+          sessionStorage.setItem(`${pubkey}.kind30000timestamp`, Date.now());
+        } else {
+          alert(r[1]);
+          return;
+        }
+      } catch (error) {
+        if (
+          typeof error == 'object' &&
+          error.message &&
+          error.message.indexOf('denied') > -1
+        ) {
+          sessionStorage.setItem('denyAddList', true);
+        }
       }
     }
 
@@ -260,6 +271,7 @@ export default function EditNostrLists({close}) {
   }
 
   let saveList = async e => {
+    let denySaveList = sessionStorage.getItem('denySaveList');
     e.preventDefault();
 
     // prep list
@@ -285,40 +297,50 @@ export default function EditNostrLists({close}) {
       listevent.tags.push(othertag);
     }
 
-    if (window.nostr) {
-      const listEventSigned = await window.nostr.signEvent(listevent);
-      // publish
-      let r = await publishEvent(listEventSigned);
-      if (r[0]) {
-        // rebuild lists
-        let newlists = [];
-        for (let ev of lists) {
-          let dTagFound = false;
-          for (let t of ev.tags) {
-            if (t.length < 2) continue;
-            if (t[0] == 'd') {
-              if (t[1] == selectedListDTag) {
-                dTagFound = true;
-                break;
+    if (!denySaveList && window.nostr) {
+      try {
+        const listEventSigned = await window.nostr.signEvent(listevent);
+        // publish
+        let r = await publishEvent(listEventSigned);
+        if (r[0]) {
+          // rebuild lists
+          let newlists = [];
+          for (let ev of lists) {
+            let dTagFound = false;
+            for (let t of ev.tags) {
+              if (t.length < 2) continue;
+              if (t[0] == 'd') {
+                if (t[1] == selectedListDTag) {
+                  dTagFound = true;
+                  break;
+                }
+                continue;
               }
-              continue;
             }
+            if (!dTagFound) newlists.push(ev);
           }
-          if (!dTagFound) newlists.push(ev);
+          lists = newlists;
+          // add to lists
+          lists.push(listEventSigned);
+          sessionStorage.setItem(
+            `${pubkey}.kind30000events`,
+            JSON.stringify(lists)
+          );
+          // set timestamp
+          sessionStorage.setItem(`${pubkey}.kind30000timestamp`, Date.now());
+          alert('Changes to the list have been saved and published');
+        } else {
+          alert(r[1]);
+          return;
         }
-        lists = newlists;
-        // add to lists
-        lists.push(listEventSigned);
-        sessionStorage.setItem(
-          `${pubkey}.kind30000events`,
-          JSON.stringify(lists)
-        );
-        // set timestamp
-        sessionStorage.setItem(`${pubkey}.kind30000timestamp`, Date.now());
-        alert('Changes to the list have been saved and published');
-      } else {
-        alert(r[1]);
-        return;
+      } catch (error) {
+        if (
+          typeof error == 'object' &&
+          error.message &&
+          error.message.indexOf('denied') > -1
+        ) {
+          sessionStorage.setItem('denySaveList', true);
+        }
       }
     }
   };

@@ -195,9 +195,23 @@ export async function getDMPubkey() {
 }
 
 export async function getPublicKey() {
+  let denyGetPublicKey = sessionStorage.getItem('denyGetPublicKey');
   let pubkey = sessionStorage.getItem('pubkey');
-  if (!pubkey && window.nostr) {
-    pubkey = await window.nostr.getPublicKey();
+  if (!denyGetPublicKey && !pubkey && window.nostr) {
+    pubkey = '';
+    try {
+      pubkey = await window.nostr.getPublicKey();
+    } catch (error) {
+      // nos2x rejection looks like   {error: {message: 'denied'}}
+      // no differentiation between `reject always` and `reject`
+      if (
+        typeof error == 'object' &&
+        error.message &&
+        error.message.indexOf('denied') > -1
+      ) {
+        sessionStorage.setItem('denyGetPublicKey', true);
+      }
+    }
     sessionStorage.setItem('pubkey', pubkey);
   }
   return pubkey;
@@ -253,6 +267,13 @@ export async function signInExtension(state, setProps, updateInfo, enterRoom) {
     await enterRoom(roomId);
   } catch (error) {
     console.log('There was an error logging in with extension: ', error);
+    if (
+      typeof error == 'object' &&
+      error.message &&
+      error.message.indexOf('denied') > -1
+    ) {
+      alert('Login Cancelled');
+    }
     return undefined;
   }
 }
@@ -1160,6 +1181,10 @@ export async function loadFavoriteRooms() {
     try {
       const defaultRelays = getDefaultOutboxRelays();
       const myPubkey = await getPublicKey();
+      if (!myPubkey) {
+        res([]);
+        return;
+      }
       const userRelays = getCachedOutboxRelaysByPubkey(myPubkey);
       let myOutboxRelays = [];
       if (userRelays?.length == 0) {
@@ -1412,7 +1437,20 @@ export async function getLNInvoice(
 }
 
 export async function makeZapRequest(content, receiver, event, msatsAmount) {
+  let denyMakeZapRequest = sessionStorage.getItem('denyMakeZapRequest');
   if (window.DEBUG) console.log('in makeZapRequest');
+  if (!window.nostr) {
+    return [
+      null,
+      'Unable to sign nostr zap request event without a nostr extension',
+    ];
+  }
+  if (denyMakeZapRequest) {
+    return [
+      null,
+      'Unable to sign nostr zap request event as previous attempt was denied',
+    ];
+  }
   // TODO: relays for zap event should be those from the event
   let zapevent = {
     id: null,
@@ -1432,19 +1470,23 @@ export async function makeZapRequest(content, receiver, event, msatsAmount) {
   if (event?.id != undefined) {
     zapevent.tags.push(['e', `${event.id}`]);
   }
-
-  if (window.nostr) {
+  try {
     const EventSigned = await window.nostr.signEvent(zapevent); // not published to relays, encoded to send to lightning provider
     if (!EventSigned)
       return [null, 'There was an error with your nostr extension'];
     const eventSignedEncoded = encodeURI(JSON.stringify(EventSigned));
     return [true, eventSignedEncoded];
+  } catch (error) {
+    if (
+      typeof error == 'object' &&
+      error.message &&
+      error.message.indexOf('denied') > -1
+    ) {
+      sessionStorage.setItem('denyMakeZapRequest', true);
+      return [null, 'Preparing zap request was cancelled'];
+    }
+    return [null, 'There was an error with your nostr extension'];
   }
-
-  return [
-    null,
-    'Unable to sign nostr zap request event without a nostr extension',
-  ];
 }
 
 function encryptPrivatekey(privateKey) {
@@ -2438,11 +2480,32 @@ export async function signAndSendEvent(event) {
       '31990:' + sp + ':nostrhandler',
     ]);
   }
-  const eventSigned = await window.nostr.signEvent(event);
-  if (!eventSigned) {
-    return [false, 'There was an error with your nostr extension'];
-  } else {
-    return publishEvent(eventSigned);
+  let denySignAndSendEventKind = sessionStorage.getItem(
+    'denySignAndSendEventKind' + event['kind']
+  );
+  if (!denySignAndSendEventKind) {
+    try {
+      const eventSigned = await window.nostr.signEvent(event);
+      if (!eventSigned) {
+        return [false, 'There was an error with your nostr extension'];
+      } else {
+        return publishEvent(eventSigned);
+      }
+    } catch (error) {
+      if (
+        typeof error == 'object' &&
+        error.message &&
+        error.message.indexOf('denied') > -1
+      ) {
+        sessionStorage.setItem(
+          'denySignAndSendEventKind' + event['kind'],
+          true
+        );
+        return [false, 'Signing the event was cancelled'];
+        1;
+      }
+      return [false, 'There was an error with your nostr extension'];
+    }
   }
 }
 
