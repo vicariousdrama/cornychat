@@ -120,17 +120,7 @@
             return;
         }
         // VV
-        if (yr == 2025 && mn == 8 && dn >= 5 && dn <= 10) {
-            linkCSS('/css/corns.css');
-            setTimeout(() => {animInterval = setInterval(makeMermaid, 4567);}, 5000);
-            return;
-        }
-        if (yr == 2026 && mn == 0 && dn >= 24 && dn <= 30) {
-            linkCSS('/css/corns.css');
-            setTimeout(() => {animInterval = setInterval(makeMermaid, 4567);}, 5000);
-            return;
-        }
-        if (yr == 2026 && mn == 7 && dn >= 6 && dn <= 30) {
+        if (yr == 2027 && mn == 0 && dn >= 23 && dn <= 29) {
             linkCSS('/css/corns.css');
             setTimeout(() => {animInterval = setInterval(makeMermaid, 4567);}, 5000);
             return;
@@ -192,6 +182,13 @@
         if (dn == 4 && mn == 6) {
             linkCSS('/css/corns.css');
             setTimeout(() => {animInterval = setInterval(makeUSA, 1976);}, 5000);
+            return;
+        }
+
+        // Pirate
+        if (dn == 19 && mn == 8) {
+            linkCSS('/css/corns.css');
+            setTimeout(() => {animInterval = setInterval(makePirates, 4567);}, 5000);
             return;
         }
 
@@ -303,6 +300,20 @@
             case 1: makeAnim('𓅦', className); break;
             case 2: makeAnim('🎉', className); break;
             case 3: makeAnim('NOSTRBAMA!!!', className); break;
+        }
+    }
+    function makePirates() {
+        const className = 'corn';
+        switch (Math.round(Math.random() * 6)) {
+            case 0: makeAnim('🏴‍☠', className); break;
+            case 1: makeAnim('🦜', className); break;
+            case 2: makeAnim('🧭', className); break;
+            case 3: makeAnim('💀', className); break;
+            case 4: makeAnim('💰', className); break;
+            case 5: makeAnim('🪝', className); break;
+            case 6: makeAnim('🗡️', className); break;
+            case 7: makeAnim('🗺️', className); break;
+            case 8: makeAnim('❌', className); break;
         }
     }
     function makePizza() {

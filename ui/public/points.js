@@ -1,5 +1,5 @@
 let epts = [];
-epts['🍕'] = [3, '#fe7004', '#e62129'];
+epts['🍕'] = [8, '#fe7004', '#e62129'];
 epts['💗'] = [14, '#fd455e', '#813bdb'];
 epts['💵'] = [2, '#27a402', '#cdee71'];
 epts['🍟'] = [7, '#e62129', '#ffd601'];
@@ -7,7 +7,7 @@ epts['🍷'] = [18, '#e62129', '#ffd601'];
 epts['𓅦'] = [20, '#e62129', '#ffd601'];
 epts['🎉'] = [13, '#e62129', '#ffd601'];
 epts['🍀'] = [4, '#27a402', '#cdee71'];
-epts['🍿'] = [8, '#e62129', '#ffffff'];
+epts['🍿'] = [5, '#e62129', '#ffffff'];
 epts['🎁'] = [28, '#e62129', '#fe7004'];
 epts['❄️'] = [16, '#212188', '#ffffff'];
 epts['🧜‍♀️'] = [11, '#e62129', '#ffffff'];
@@ -18,6 +18,15 @@ epts['🌮'] = [9, '#ffd601', '#fe7004'];
 epts['🌽'] = [12, '#ffd601', '#fe7004'];
 epts['🏙'] = [1, '#212188', '#ffffff'];
 epts['🗽'] = [5, '#27a488', '#813bdb'];
+epts['🏴‍☠'] = [19, '#212188', '#ffffff'];
+epts['🦜'] = [17, '#212188', '#ffffff'];
+epts['🧭'] = [6, '#212188', '#ffffff'];
+epts['💀'] = [21, '#212188', '#ffffff'];
+epts['💰'] = [12, '#212188', '#ffffff'];
+epts['🪝'] = [8, '#212188', '#ffffff'];
+epts['🗡️'] = [8, '#212188', '#ffffff'];
+epts['🗺️'] = [7, '#212188', '#ffffff'];
+epts['❌'] = [4, '#212188', '#ffffff'];
 // 10, 15, 17, 22, 23, 24, 25, 26, 27, 29, 30, 31
 let spts = [];
 function makeAnimOnClick(c) {
@@ -50,6 +59,9 @@ function makeAnimOnClick(c) {
         }
         if (spts.join('').endsWith('🌭🌮🌭🌮🌭🌮')) {
           p = 191;
+        }
+        if (spts.join('').endsWith('🏴‍☠💀🦜')) {
+          p = 199;
         }
         sessionStorage.setItem('animationsClicked', JSON.stringify(spts));
         p += new Date().getSeconds() % 3;
