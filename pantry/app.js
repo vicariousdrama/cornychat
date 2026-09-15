@@ -23,6 +23,7 @@ const {
 } = require('./config');
 
 const adReportRouter = require('./routes/adReportRouter');
+const builddateRouter = require('./routes/builddateRouter');
 const chatAdRouter = require('./routes/adRouterChat');
 const clickyPointsRouter = require('./routes/clickyPointsRouter');
 const envRouter = require('./routes/envRouter');
@@ -85,6 +86,7 @@ if (subscriptionsEnabled) {
 
 app.use('/api/v1/admin/', adminRouter);
 app.use('/api/v1/adr/:year/:month', adReportRouter);
+app.use('/api/v1/builddate/', builddateRouter);
 app.use('/api/v1/clickypts/', clickyPointsRouter);
 //app.use('/api/v1/env/:n/:v', envRouter);
 app.use('/api/v1/highscores/', highScoresRouter);

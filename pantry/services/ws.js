@@ -218,7 +218,26 @@ const PING_CHECK_INTERVAL = 5000;
 const PING_MAX_INTERVAL = 25000;
 
 function handleConnection(ws, req) {
-  let {roomId, peerId, subs, bd} = req;
+  let {roomId, peerId, subs, bd, serviceId} = req;
+
+  // 20260914 - Get service domain from headers, or passed in service identifier
+  let serviceDomain = '';
+  if (req.rawHeaders) {
+    let serviceHeaders = ['Host', 'Origin', 'X-Forwarded-Host'];
+    for (let sh of serviceHeaders) {
+      if (serviceDomain) break;
+      for (let i = 0; i < req.rawHeaders.length; i++) {
+        if (req.rawHeaders[i] == sh) {
+          serviceDomain = req.rawHeaders[i + 1];
+        }
+      }
+    }
+    if (serviceDomain == '' && serviceId != '') serviceDomain = serviceId;
+  }
+  console.log(
+    `[ws.handleConnection] connection from ${serviceDomain}/${peerId} in room ${roomId}`
+  );
+  //console.log(JSON.stringify({req: req}));
 
   if (roomId === '~forward') {
     handleForwardingConnection(ws, req);
@@ -235,7 +254,8 @@ function handleConnection(ws, req) {
       console.log(
         `[handleConnection] killing ws as no build date provided`,
         roomId,
-        peerId
+        peerId,
+        serviceDomain
       );
       ws.send(JSON.stringify({t: 'error', d: errmsg}));
       ws.close();
@@ -247,6 +267,7 @@ function handleConnection(ws, req) {
         `[handleConnection] killing ws as ping build date was invalid`,
         roomId,
         peerId,
+        serviceDomain,
         bd
       );
       ws.send(JSON.stringify({t: 'error', d: errmsg}));
@@ -258,7 +279,7 @@ function handleConnection(ws, req) {
   //console.log('[handleConnection] ws open', roomId, peerId, subs); // ws open mainchat 9v32sRPpNqbpe0RYLlYdjtTeOxqXoMIvdpqTB3GQ1OM.da4f [ 'all' ]
   let lastPing = Date.now();
   let pingCount = 0;
-  let interval = setInterval(() => {
+  let intervalPingCheck = setInterval(() => {
     let timeSinceClientPing = Date.now() - lastPing;
     //console.log(`[handleConnection] timeSinceClientPing: ${timeSinceClientPing} from peer: ${peerId}`);
     if (timeSinceClientPing > PING_MAX_INTERVAL) {
@@ -266,7 +287,8 @@ function handleConnection(ws, req) {
       console.log(
         `[handleConnection] killing ws after ${timeSinceClientPing}ms`,
         roomId,
-        peerId
+        peerId,
+        serviceDomain
       );
       ws.send(JSON.stringify({t: 'error', d: errmsg}));
       ws.close();
@@ -294,14 +316,14 @@ function handleConnection(ws, req) {
         }
         // track room accessed
         set(`activity/rooms/${roomId}/last-accessed`, Date.now());
-        // track for user
+        // track user
         let dtm = dti.replaceAll('-', '').replace('T', '').slice(0, 6);
         let dtd = dti.replaceAll('-', '').replace('T', '').slice(6, 8);
         let dth = dti.replaceAll('-', '').replace('T', '').slice(8, 10);
         k = `usertracking/${userId}/${dtm}`;
         v = await get(k);
         if (v == undefined || v == null) {
-          // not yet set for the month, initialize
+          // not yet set the the month, initialize
           v = {};
           v[dtd] = [dth];
           set(k, v);
@@ -324,20 +346,24 @@ function handleConnection(ws, req) {
     }
   }, PING_CHECK_INTERVAL);
 
-  const connection = {ws, peerId};
+  const connection = {ws, peerId, serviceDomain};
 
   addPeer(roomId, connection);
 
   // inform every participant about new peer connection
-  publish(roomId, 'add-peer', {t: 'add-peer', d: peerId});
-  publishToServers({t: 'add-peer', d: peerId, ro: roomId});
+  publish(roomId, 'add-peer', {t: 'add-peer', d: peerId, s: serviceDomain});
+  publishToServers({t: 'add-peer', d: peerId, s: serviceDomain, ro: roomId});
 
   // auto subscribe to updates about connected peers
   subscribe(connection, roomId, reservedTopics);
   if (subs !== undefined) subscribe(connection, roomId, subs);
 
   // inform about peers immediately
-  sendMessage(connection, {t: 'peers', d: getPeers(roomId)});
+  sendMessage(connection, {
+    t: 'peers',
+    d: getPeers(roomId),
+    s: getServiceDomains(roomId),
+  });
 
   ws.on('message', jsonMsg => {
     let msg = parseMessage(jsonMsg);
@@ -353,7 +379,8 @@ function handleConnection(ws, req) {
             console.log(
               `[handleConnection] killing ws as no build date provided`,
               roomId,
-              peerId
+              peerId,
+              serviceDomain
             );
             ws.send(JSON.stringify({t: 'error', d: errmsg}));
             ws.close();
@@ -367,6 +394,7 @@ function handleConnection(ws, req) {
                 `[handleConnection] killing ws as ping build date was invalid`,
                 roomId,
                 peerId,
+                serviceDomain,
                 b
               );
               ws.send(JSON.stringify({t: 'error', d: errmsg}));
@@ -391,21 +419,30 @@ function handleConnection(ws, req) {
   });
 
   async function closeWs() {
-    clearInterval(interval);
-    console.log('[closeWs] ws closed', roomId, peerId);
+    clearInterval(intervalPingCheck);
+    console.log('[ws.closeWs] ws closed', roomId, peerId, serviceDomain);
     removePeer(roomId, connection);
     unsubscribeAll(connection);
     //removeKeys(roomId, peerId);
 
-    publish(roomId, 'remove-peer', {t: 'remove-peer', d: peerId});
-    publishToServers({t: 'remove-peer', d: peerId, ro: roomId});
+    publish(roomId, 'remove-peer', {
+      t: 'remove-peer',
+      d: peerId,
+      s: serviceDomain,
+    });
+    publishToServers({
+      t: 'remove-peer',
+      d: peerId,
+      s: serviceDomain,
+      ro: roomId,
+    });
   }
 }
 
 function handleForwardingConnection(ws, req) {
   let {peerId: serverId, subs: topics} = req;
   console.log(
-    '[handleForwardingConnection] ws start forwarding',
+    '[ws.handleForwardingConnection] start forwarding',
     serverId,
     topics
   );
@@ -471,7 +508,22 @@ function addWebsocket(server) {
     let [path, query] = req.url.split('?');
     let [roomId] = path.split('/').filter(t => t);
     let params = querystring.parse(query);
-    let {id: peerId, subs, token, bd} = params;
+    let {id: peerId, subs, token, bd, serviceId} = params;
+
+    // 20260914 - Get service domain from headers if present, otherwise querystring arg
+    let serviceDomain = '';
+    if (req.rawHeaders) {
+      let serviceHeaders = ['Host', 'Origin', 'X-Forwarded-Host'];
+      for (let sh of serviceHeaders) {
+        if (serviceDomain) break;
+        for (let i = 0; i < req.rawHeaders.length; i++) {
+          if (req.rawHeaders[i] == sh) {
+            serviceDomain = req.rawHeaders[i + 1];
+          }
+        }
+      }
+      if (serviceDomain == '' && serviceId != '') serviceDomain = serviceId;
+    }
 
     // this is for forwarding messages to other containers
     // TODO authenticate
@@ -499,7 +551,9 @@ function addWebsocket(server) {
         'room',
         roomId,
         'peer',
-        peerId
+        peerId,
+        'serviceDomain',
+        serviceDomain
       );
       socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
       socket.destroy();
@@ -509,6 +563,7 @@ function addWebsocket(server) {
     req.roomId = roomId;
     req.subs = subs?.split(',').filter(t => t) ?? []; // custom encoding, don't use "," in topic names
     req.bd = bd?.split('.')[0] ?? '';
+    req.serviceId = serviceDomain;
 
     // Grant the user access to the relay
     try {
@@ -586,6 +641,9 @@ function getConnections(roomId) {
 }
 function getPeers(roomId) {
   return getConnections(roomId).map(c => c.peerId);
+}
+function getServiceDomains(roomId) {
+  return getConnections(roomId).map(c => c.serviceDomain);
 }
 
 // p2p pub sub
@@ -699,7 +757,7 @@ function parseMessage(jsonMsg) {
   try {
     return JSON.parse(jsonMsg);
   } catch (err) {
-    console.log('[parseMessage] ws: error parsing msg', jsonMsg);
+    console.log('[ws.parseMessage] ws: error parsing msg', jsonMsg);
     console.error(err);
   }
 }
@@ -709,7 +767,7 @@ function sendMessage({ws}, msg) {
   try {
     jsonMsg = JSON.stringify(msg);
   } catch (err) {
-    console.log('[sendMessage] ws: error stringifying', msg);
+    console.log('[ws.sendMessage] ws: error stringifying', msg);
     console.error(err);
     return;
   }
@@ -717,7 +775,7 @@ function sendMessage({ws}, msg) {
     ws.send(jsonMsg);
     return true;
   } catch (err) {
-    console.log('[sendMessage] ws: error sending', jsonMsg);
+    console.log('[ws.sendMessage] ws: error sending', jsonMsg);
     console.error(err);
     return false;
   }
