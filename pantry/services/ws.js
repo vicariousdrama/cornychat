@@ -208,7 +208,7 @@ async function handleMessage(connection, roomId, msg) {
       break;
     }
     default:
-      //console.log(`in pantry services/ws.js handleMessage topic ${topic}, data: ${data}`);
+      //console.log(`[ws.handleMessage] topic ${topic}, data: ${data}`);
       // normal topic that everyone can subscribe
       publish(roomId, topic, {t: topic, d: data, p: senderId});
   }
@@ -217,23 +217,44 @@ async function handleMessage(connection, roomId, msg) {
 const PING_CHECK_INTERVAL = 5000;
 const PING_MAX_INTERVAL = 25000;
 
-function handleConnection(ws, req) {
-  let {roomId, peerId, subs, bd, serviceId} = req;
-
-  // 20260914 - Get service domain from headers, or passed in service identifier
-  let serviceDomain = '';
-  if (req.rawHeaders) {
-    let serviceHeaders = ['Host', 'Origin', 'X-Forwarded-Host'];
+// 20260914 - Get service domain from headers, or passed in service identifier
+function getServiceDomain(req, serviceId) {
+  // 20260914 - Get service domain from headers if present, otherwise querystring arg
+  let serviceDomain = undefined;
+  if (req && req.rawHeaders) {
+    let serviceHeaders = ['X-Forwarded-Host', 'Origin', 'Host'];
     for (let sh of serviceHeaders) {
-      if (serviceDomain) break;
+      if (serviceDomain) {
+        if (serviceDomain.indexOf('://') > -1) {
+          serviceDomain = serviceDomain.split('://')[1];
+        }
+        break;
+      }
       for (let i = 0; i < req.rawHeaders.length; i++) {
         if (req.rawHeaders[i] == sh) {
           serviceDomain = req.rawHeaders[i + 1];
         }
       }
     }
-    if (serviceDomain == '' && serviceId != '') serviceDomain = serviceId;
+    // override service domain if query argument passed
+    if (serviceId) {
+      console.log(
+        `[ws.getServiceDomain] header ${serviceDomain} overridden by ${serviceId}`
+      );
+      serviceDomain = serviceId;
+    }
   }
+  // set serviceDomain if not yet set
+  if (!serviceDomain) serviceDomain = 'unknown';
+  req.serviceId = serviceDomain;
+  return serviceDomain;
+}
+
+function handleConnection(ws, req) {
+  let {roomId, peerId, subs, bd, serviceId} = req;
+
+  // 20260914 - Get service domain from headers, or passed in service identifier
+  let serviceDomain = getServiceDomain(req, serviceId);
   console.log(
     `[ws.handleConnection] connection from ${serviceDomain}/${peerId} in room ${roomId}`
   );
@@ -252,7 +273,7 @@ function handleConnection(ws, req) {
     if (!bd) {
       let errmsg = 'client version not set. disconnecting';
       console.log(
-        `[handleConnection] killing ws as no build date provided`,
+        `[ws.handleConnection] killing ws as no build date provided`,
         roomId,
         peerId,
         serviceDomain
@@ -264,7 +285,7 @@ function handleConnection(ws, req) {
     if (bd != 'BUILD_DATE'.split('.')[0]) {
       let errmsg = 'client version contains unexpected value. disconnecting';
       console.log(
-        `[handleConnection] killing ws as ping build date was invalid`,
+        `[ws.handleConnection] killing ws as ping build date was invalid`,
         roomId,
         peerId,
         serviceDomain,
@@ -276,16 +297,16 @@ function handleConnection(ws, req) {
     }
   }
 
-  //console.log('[handleConnection] ws open', roomId, peerId, subs); // ws open mainchat 9v32sRPpNqbpe0RYLlYdjtTeOxqXoMIvdpqTB3GQ1OM.da4f [ 'all' ]
+  //console.log('[ws.handleConnection] ws open', roomId, peerId, subs); // ws open mainchat 9v32sRPpNqbpe0RYLlYdjtTeOxqXoMIvdpqTB3GQ1OM.da4f [ 'all' ]
   let lastPing = Date.now();
   let pingCount = 0;
   let intervalPingCheck = setInterval(() => {
     let timeSinceClientPing = Date.now() - lastPing;
-    //console.log(`[handleConnection] timeSinceClientPing: ${timeSinceClientPing} from peer: ${peerId}`);
+    //console.log(`[ws.handleConnection] timeSinceClientPing: ${timeSinceClientPing} from peer: ${peerId}`);
     if (timeSinceClientPing > PING_MAX_INTERVAL) {
       let errmsg = `client response time exceeds max time allowed (${timeSinceClientPing}ms > ${PING_MAX_INTERVAL} ms). disconnecting`;
       console.log(
-        `[handleConnection] killing ws after ${timeSinceClientPing}ms`,
+        `[ws.handleConnection] killing ws after ${timeSinceClientPing}ms`,
         roomId,
         peerId,
         serviceDomain
@@ -367,7 +388,7 @@ function handleConnection(ws, req) {
 
   ws.on('message', jsonMsg => {
     let msg = parseMessage(jsonMsg);
-    // console.log('[handleConnection] ws message', msg);
+    // console.log('[ws.handleConnection] message:', msg);
     if (msg !== undefined) {
       if (msg.t === 'ping') {
         if (VERIFY_BUILDDATE_ONPING) {
@@ -377,7 +398,7 @@ function handleConnection(ws, req) {
           if (!b) {
             let errmsg = 'client version not set. disconnecting';
             console.log(
-              `[handleConnection] killing ws as no build date provided`,
+              `[ws.handleConnection] killing ws as no build date provided`,
               roomId,
               peerId,
               serviceDomain
@@ -391,7 +412,7 @@ function handleConnection(ws, req) {
               let errmsg =
                 'client version contains unexpected value. disconnecting';
               console.log(
-                `[handleConnection] killing ws as ping build date was invalid`,
+                `[ws.handleConnection] killing ws as ping build date was invalid`,
                 roomId,
                 peerId,
                 serviceDomain,
@@ -415,7 +436,7 @@ function handleConnection(ws, req) {
   ws.on('close', closeWs);
 
   ws.on('error', error => {
-    console.log('[handleConnection] ws error', error);
+    console.log('[ws.handleConnection] ws error', error);
   });
 
   async function closeWs() {
@@ -461,7 +482,7 @@ function handleForwardingConnection(ws, req) {
   });
 
   ws.on('error', error => {
-    console.log('[handleForwardingConnection] ws error', error);
+    console.log('[ws.handleForwardingConnection] ws error', error);
   });
 }
 
@@ -492,11 +513,10 @@ function activeUsers() {
 }
 
 // ws server, handles upgrade requests for http server
-
 function addWebsocket(server) {
   if (VERIFY_BUILDDATE_ONSOCKET) {
     console.log(
-      '[addWebSocket] ws socket server configuring to verify that clients connect with build date: ',
+      '[ws.addWebSocket] ws socket server configuring to verify that clients connect with build date: ',
       'BUILD_DATE'.split('.')[0]
     );
   }
@@ -511,19 +531,7 @@ function addWebsocket(server) {
     let {id: peerId, subs, token, bd, serviceId} = params;
 
     // 20260914 - Get service domain from headers if present, otherwise querystring arg
-    let serviceDomain = '';
-    if (req.rawHeaders) {
-      let serviceHeaders = ['Host', 'Origin', 'X-Forwarded-Host'];
-      for (let sh of serviceHeaders) {
-        if (serviceDomain) break;
-        for (let i = 0; i < req.rawHeaders.length; i++) {
-          if (req.rawHeaders[i] == sh) {
-            serviceDomain = req.rawHeaders[i + 1];
-          }
-        }
-      }
-      if (serviceDomain == '' && serviceId != '') serviceDomain = serviceId;
-    }
+    let serviceDomain = getServiceDomain(req, serviceId);
 
     // this is for forwarding messages to other containers
     // TODO authenticate
@@ -546,7 +554,7 @@ function addWebsocket(server) {
         (bd === undefined || bd.split('.')[0] != 'BUILD_DATE'.split('.')[0]))
     ) {
       console.log(
-        '[addWebSocket] ws rejected!',
+        '[ws.addWebSocket] ws rejected!',
         req.url,
         'room',
         roomId,
@@ -575,7 +583,7 @@ function addWebsocket(server) {
       }
     } catch (err) {
       console.log(
-        `[addWebSocket] error granting pubkey access to relays when starting socket: ${err}`
+        `[ws.addWebSocket] error granting pubkey access to relays when starting socket: ${err}`
       );
     }
 
@@ -600,7 +608,7 @@ function addPeer(roomId, connection) {
     roomConnections.get(roomId) ??
     roomConnections.set(roomId, new Set()).get(roomId);
   connections.add(connection);
-  //console.log('[addPeer] all peers:', getPeers(roomId));
+  //console.log('[ws.addPeer] all peers:', getPeers(roomId));
 }
 function removePeer(roomId, connection) {
   let connections = roomConnections.get(roomId);
@@ -608,31 +616,8 @@ function removePeer(roomId, connection) {
     connections.delete(connection);
     if (connections.size === 0) roomConnections.delete(roomId);
   }
-  //console.log('[removePeer] all peers:', getPeers(roomId));
+  //console.log('[ws.removePeer] all peers:', getPeers(roomId));
 }
-
-// async function removeKeys(roomId, userId) {
-//   const newRoomId = roomId + 'Keys';
-//   const newUserId = userId.split('.')[0];
-//   const roomPeers = getPeers(roomId);
-//   let roomsKeys = await get(newRoomId);
-
-//   if (!roomsKeys) {
-//     return;
-//   }
-//   const hasPrivateKeys = roomsKeys.hasOwnProperty(newUserId);
-
-//   if (hasPrivateKeys) {
-//     delete roomsKeys[`${newUserId}`];
-
-//     if (roomPeers.length === 0) {
-//       del(newRoomId);
-//       return;
-//     }
-
-//     set(newRoomId, roomsKeys);
-//   }
-// }
 
 function getConnections(roomId) {
   let connections = roomConnections.get(roomId);

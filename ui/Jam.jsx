@@ -16,6 +16,7 @@ import {colors} from './lib/theme.js';
 import About from './pages/About';
 import Crony from './pages/Crony';
 import DataTypes from './pages/DataTypes';
+import WebSocketTypes from './pages/WebSocketTypes.jsx';
 import SFX from './pages/SFX';
 
 let urlConfig = parseUrlConfig(location.search, location.hash);
@@ -51,16 +52,18 @@ function JamUI({style, className, route = null, dynamicConfig = {}, ...props}) {
     switch (route) {
       case null:
         return <Start newRoom={{...defaultRoom, ...dynamicConfig.room}} />;
-      case 'me':
-        return <Me />;
       case 'about':
         return <About />;
       case 'crony':
         return <Crony />;
       case 'datatypes':
         return <DataTypes />;
+      case 'me':
+        return <Me />;
       case 'sfx':
         return <SFX />;
+      case 'websockettypes':
+        return <WebSocketTypes />;
       default:
         roomId = route;
         return (
