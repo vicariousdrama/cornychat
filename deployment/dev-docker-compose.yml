@@ -210,7 +210,7 @@ services:
           - ${JAM_HOST}
           - ${LNBITS_HOST}
     hostname: traefik
-    image: traefik
+    image: traefik:v3.7.18
     restart: unless-stopped
     command:
       - "--entryPoints.web.address=:80"
@@ -272,7 +272,7 @@ services:
     volumes: # use :ro to make sure volume gets mounted read only
       - ../data/lnbits:/data/lnbits:ro
     restart: unless-stopped
-    profiles: [ "backup" ]
+    profiles: [ "backuplnbits" ]
 volumes:
   prometheus_data: {}
   grafana_data: {}

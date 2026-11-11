@@ -144,7 +144,7 @@ services:
     networks:
       jam:
         aliases:
-          - pantry      
+          - pantry
     #build: ../pantry
     image: cornychat/pantry:${CHANNEL}
     restart: always
@@ -211,7 +211,7 @@ services:
           - ${JAM_HOST}
           - ${LNBITS_HOST}
     hostname: traefik
-    image: traefik
+    image: traefik:v3.7.18
     restart: always
     command:
       - "--entryPoints.web.address=:80"
@@ -273,7 +273,7 @@ services:
     volumes: # use :ro to make sure volume gets mounted read only
       - ../data/lnbits:/data/lnbits:ro
     restart: always
-    profiles: [ "backup" ]
+    profiles: [ "backuplnbits" ]
 volumes:
   prometheus_data: {}
   grafana_data: {}
